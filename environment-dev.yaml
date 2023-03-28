@@ -1,0 +1,18 @@
+name: catalog-manger-dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python >= 3.9
+  - black
+  - cftime
+  - ecgtools
+  - flake8
+  - intake-esm
+  - jsonschema
+  - pip
+  - pip:
+    - git+https://github.com/ACCESS-NRI/intake-dataframe-catalog@main
+    - pytest
+    - pytest-cov
+    - pre-commit

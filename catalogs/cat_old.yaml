@@ -1,0 +1,9 @@
+sources:
+  cosima_1deg_jra55_ryf9091_gadi:
+    args:
+      esmcol_obj: '/g/data/tm70/ds0092/projects/dev_data_querying/cosima_intake/intake_dbdb/catalogs/cosima_1deg_jra55_ryf9091_gadi.json'
+    description: ''
+    driver: intake_esm.core.esm_datastore
+    metadata: {}
+
+

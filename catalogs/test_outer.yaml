@@ -1,0 +1,7 @@
+sources:
+  test:
+    args:
+      path: /g/data/tm70/ds0092/projects/dev_data_querying/cosima_intake/intake_dbdb/catalogs/test.yaml
+    description: ''
+    driver: intake.catalog.local.YAMLFileCatalog
+    metadata: {}
