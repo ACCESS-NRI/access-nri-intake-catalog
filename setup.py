@@ -9,6 +9,7 @@ setup(
     url="https://github.com/ACCESS-NRI/intake_catalog",
     description="Tools and configuration info for managing ACCESS-NRI's intake catalogue",
     packages=find_packages(),
+    package_dir={"": "src"},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",

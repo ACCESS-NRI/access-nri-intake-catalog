@@ -19,7 +19,6 @@ def get_timeinfo(ds, time_dim="time"):
     time_dim: str
         The name of the time dimension
     """
-    # TODO: This function needs work
 
     if time_dim is None:
         return None
@@ -45,6 +44,7 @@ def get_timeinfo(ds, time_dim="time"):
             next_time = _todate(time_var[1])
 
         dt = next_time - start_time
+        # TODO: This is not a very good way to get the frequency
         if dt.days >= 365:
             years = round(dt.days / 365)
             frequency = f"{years}yr"

@@ -36,11 +36,11 @@ CORE_INFO = {
             lambda x: any(
                 re.match(pattern, x)
                 for pattern in [
-                    r"\d+_yearly",
-                    r"\d+_monthly",
-                    r"\d+_daily",
-                    r"\d+_hourly",
-                    "static",
+                    r"\d+yr",
+                    r"\d+mon",
+                    r"\d+day",
+                    r"\d+hr",
+                    "fx",
                 ]
             ),
             "must be one of 'Nyr', 'Nmon', 'Nday', 'Nhr', 'fx', where N is an integer",
