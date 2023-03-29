@@ -1,7 +1,0 @@
-sources:
-  test_data:
-    description: "Test"
-    driver: csv
-    args:
-      urlpath: "/g/data/tm70/ds0092/projects/dev_data_querying/cosima_intake/intake_dbdb/catalogs/cosima_01deg_jra55v13_ryf9091.csv"
-

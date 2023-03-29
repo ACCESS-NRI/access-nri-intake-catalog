@@ -5,19 +5,11 @@
 
 import os
 
-import yaml
+import intake
 
 # import jsonschema
-import pandas as pd
-from intake_esm.cat import (
-    Assets,
-    Attribute,
-    AggregationControl,
-)
 
-from . import parsers
-from .cat import MetaCatalogModel
-
+from . import esm
 
 # config_schema = {
 #         'type': 'object',
@@ -57,153 +49,107 @@ class CatalogExistsError(Exception):
     pass
 
 
-class CatalogBuilder:
+class CatalogManager:
     """
-    Build intake-esm catalog(s) base on a provided config file
+    Manage intake catalogs in an intake-dataframe-catalog
     """
 
-    def __init__(self, config, metacatalog):
+    def __init__(self, cat, metadata=None):
         """
-        Initialise a CatalogBuilder
+        Initialise a CatalogManager
 
         Parameters
         ----------
-        config: str
-            Path to the config yaml file describing the catalog to build/add
-        metacatalog: str
-            Path to the metacatalog
+        cat: :py:class:`intake.DataSource`
+            An intake catalog to append/update in the intake-dataframe-catalog
+        metadata: dict
+            Metadata associated with cat to include in the intake-dataframe-catalog.
+            If adding to an existing dataframe-catalog, keys in this dictionary must
+            correspond to columns in the dataframe-catalog.
         """
 
-        with open(config) as f:
-            config = yaml.safe_load(f)
+        self.cat = cat
+        self.metadata = metadata or {}
 
-        # jsonschema.validate(config, config_schema)
-
-        self.model = config.get("model")
-        self.catalogs = config.get("catalogs")
-        self.parser = getattr(parsers, config.get("parser"))
-        self.build_kwargs = config.get("search")
-        self.groupby_attrs = config.get("aggregation_control")["groupby_attrs"]
-        self.aggregations = config.get("aggregation_control")["aggregations"]
-
-        self.metacatalog = metacatalog
-
-    def build(self, catalogs_dir, add_to_metacatalog=True, overwrite=False):
+    @classmethod
+    def build_esm(
+        cls,
+        name,
+        description,
+        parser,
+        root_dirs,
+        data_format,
+        parser_kwargs=None,
+        groupby_attrs=None,
+        aggregations=None,
+        directory=None,
+        overwrite=False,
+    ):
         """
-        Build the intake-esm catalog(s)
-
-        Parameters
-        ----------
-        catalogs_dir: str
-            Where to output catalog(s)
-        add_to_metacatalog: boolean, optional
-            Whether or not to add the catalog(s) to the metacatalog
-        overwrite: boolean, optional
-            Whether to overwrite any existing catalog(s) with the same name
-        """
-
-        import multiprocessing
-        from ecgtools import Builder
-
-        esmcat_version = "0.0.1"
-
-        ncpu = multiprocessing.cpu_count()
-
-        for cat_name, cat_contents in self.catalogs.items():
-
-            root_dir = cat_contents["root_dirs"]
-            description = cat_contents["description"]
-
-            json_file = os.path.abspath(f"{os.path.join(catalogs_dir, cat_name)}.json")
-            if os.path.isfile(json_file):
-                if not overwrite:
-                    raise CatalogExistsError(
-                        f"A catalog already exists for {cat_name}. To overwrite, "
-                        "pass `overwrite=True` to CatalogBuilder.build"
-                    )
-
-            builder = Builder(
-                root_dir,
-                **self.build_kwargs,
-                joblib_parallel_kwargs={"n_jobs": ncpu},
-            ).build(parsing_func=self.parser)
-
-            builder.save(
-                name=cat_name,
-                path_column_name="path",
-                variable_column_name="variable",
-                data_format="netcdf",
-                groupby_attrs=self.groupby_attrs,
-                aggregations=self.aggregations,
-                esmcat_version=esmcat_version,
-                description=description,
-                directory=catalogs_dir,
-                catalog_type="file",
-            )
-
-            if add_to_metacatalog:
-                self._add_to_metacatalog(
-                    cat_name,
-                    builder.df,
-                    json_file,
-                )
-
-    def _add_to_metacatalog(self, name, df, json_file):
-        """
-        Add an intake-esm catalogue to the metacatalog
+        Build an intake-esm catalog
 
         Parameters
         ----------
         name: str
-            The catalog name
-        df: pandas Dataframe
-            Dataframe for the intake-esm catalog being added
-        json_file: str
-            The path to the intake-esm obj json file
+            The name of the catalog
+        description: str
+            Description of the contents of the catalog
+        parser: subclass of :py:class:`catalog_manager.esm.BaseParser`
+            The parser to use to build the intake-esm catalog
+        root_dirs: list of str
+            Root directories to parse for files to add to the catalog
+        data_format: str
+            The data format. Valid values are 'netcdf', 'reference', 'zarr' and 'opendap'.
+        parser_kwargs: dict
+            Additional kwargs to pass to the parser
+        groupby_attrs
+            Intake-esm column names that define data sets that can be aggegrated.
+        aggregations: listof dict
+            List of aggregations to apply to query results
+        directory: str
+            The directory to save the catalog to. If None, use the current directory
+        overwrite: bool, optional
+            Whether to overwrite any existing catalog(s) with the same name
         """
 
-        def _get_variables_union(df, variable_column_name="variable"):
-            """Get the union of all variables in a dataframe"""
-            variable_sets = df[variable_column_name].apply(set)
-            return sorted(list(set.union(*variable_sets.to_list())))
+        parser_kwargs = parser_kwargs or {}
 
-        cat_df = pd.DataFrame(
-            [
-                {
-                    "model": self.model,
-                    "experiment": name,
-                    "realm": sorted(list(set(df["realm"].to_list()))),
-                    "variable": _get_variables_union(df),
-                    "frequency": sorted(list(set(df["frequency"].to_list()))),
-                    "dataset_catalog": json_file,
-                }
-            ]
+        json_file = os.path.abspath(f"{os.path.join(directory, name)}.json")
+        if os.path.isfile(json_file):
+            if not overwrite:
+                raise CatalogExistsError(
+                    f"A catalog already exists for {name}. To overwrite, "
+                    "pass `overwrite=True` to CatalogBuilder.build"
+                )
+
+        builder = parser(
+            root_dirs,
+            **parser_kwargs,
+        ).build()
+
+        builder.save(
+            name=name,
+            path_column_name=esm.CORE_INFO["path_column"]["name"],
+            variable_column_name=esm.CORE_INFO["variable_column"]["name"],
+            data_format=data_format,
+            groupby_attrs=groupby_attrs,
+            aggregations=aggregations,
+            esmcat_version="0.0.1",
+            description=description,
+            directory=directory,
+            catalog_type="file",
         )
 
-        if os.path.isfile(self.metacatalog):
-            meta = MetaCatalogModel.load(self.metacatalog)
+        return cls(intake.open_esm_datastore(json_file))
 
-            if name in list(meta.df.experiment):
-                meta._df.loc[meta.df["experiment"] == name] = cat_df
-            else:
-                meta._df = pd.concat([meta._df, cat_df], ignore_index=True)
-        else:
-            attributes = [
-                Attribute(column_name=column, vocabulary="")
-                for column in cat_df.columns
-            ]
-            _aggregation_control = AggregationControl(
-                variable_column_name="variable",
-                groupby_attrs=["model", "experiment"],
-                aggregations=[],
-            )
-            meta = MetaCatalogModel(
-                esmcat_version="0.0.1",
-                description="A test meta-esm catalog",
-                attributes=attributes,
-                aggregation_control=_aggregation_control,
-                assets=Assets(column_name="dataset_catalog", format="netcdf"),
-            )
-            meta._df = cat_df
+    @classmethod
+    def load_esm(cls, json_file):
+        """
+        Load an existing intake-esm catalog
 
-        meta.save(name="meta", catalog_type="file")
+        Parameters
+        ----------
+        json_file: str
+            The path to the intake-esm catalog JSON file
+        """
+        return cls(intake.open_esm_datastore(json_file))

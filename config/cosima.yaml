@@ -103,10 +103,10 @@ catalogs:
       - "/g/data/ik11/outputs/access-om2-01/01deg_jra55v150_iaf_cycle1"
   
 
-# parser function to use with ecgtools
-parser: "cosima_parser"
+# parser class from catalog_manager.parsers
+parser: "CosimaParser"
 
-# kwargs to pass to ecgtools.Builder
+# kwargs to pass to parser
 search:
   depth: 3
   exclude_patterns:
@@ -114,6 +114,8 @@ search:
     - "*o2i.nc"
   include_patterns:
     - "*.nc"
+    
+format: "netcdf"
 
 # Aggregation, see https://intake-esm.readthedocs.io/en/latest/reference/esm-catalog-spec.html#aggregation-control-object
 aggregation_control:
