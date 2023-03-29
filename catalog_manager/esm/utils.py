@@ -47,17 +47,17 @@ def get_timeinfo(ds, time_dim="time"):
         dt = next_time - start_time
         if dt.days >= 365:
             years = round(dt.days / 365)
-            frequency = f"{years}_yearly"
+            frequency = f"{years}yr"
         elif dt.days >= 28:
             months = round(dt.days / 30)
-            frequency = f"{months}_monthly"
+            frequency = f"{months}mon"
         elif dt.days >= 1:
-            frequency = f"{dt.days}_daily"
+            frequency = f"{dt.days}day"
         else:
-            frequency = f"{dt.seconds // 3600}_hourly"
+            frequency = f"{dt.seconds // 3600}hr"
     else:
         # single time value in this file and no averaging
-        frequency = "static"
+        frequency = "fx"
 
     return (
         start_time.strftime("%Y-%m-%d, %H:%M:%S"),

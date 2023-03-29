@@ -43,7 +43,7 @@ CORE_INFO = {
                     "static",
                 ]
             ),
-            "must be one of 'N_yearly', 'N_monthly', 'N_daily', 'N_hourly', 'static', where N is an integer",
+            "must be one of 'Nyr', 'Nmon', 'Nday', 'Nhr', 'fx', where N is an integer",
         ),
     },
     "start_date_column": {
@@ -122,6 +122,23 @@ class BaseParser(Builder):
         self.get_assets().validate_parser().parse().clean_dataframe()
 
         return self
+
+    @property
+    def columns_with_iterables(self):
+        """
+        Return a set of the columns that have iterables
+        """
+        # Stolen from intake-esm.cat.ESMCatalogModel
+        if self.df.empty:
+            return set()
+        has_iterables = (
+            self.df.sample(20, replace=True)
+            .applymap(type)
+            .isin([list, tuple, set])
+            .any()
+            .to_dict()
+        )
+        return {column for column, check in has_iterables.items() if check}
 
     @staticmethod
     def parser(file):
