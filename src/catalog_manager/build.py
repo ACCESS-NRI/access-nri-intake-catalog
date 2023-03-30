@@ -182,32 +182,26 @@ class CatalogManager:
             Core metadata columns to group by before merging metadata across remaining core columns.
         """
 
-        def _parse_row(series, translator):
-            metadata = {}
-            for col in core_metadata:
-                if col in translator:
-                    if isinstance(translator[col], str):
-                        metadata[col] = translator[col]
-                    else:
-                        metadata[col] = translator[col](series)
-                else:
-                    metadata[col] = series[col]
-            return pd.DataFrame(metadata, index=[0])
-
         def _sum_unique(values):
             return values.drop_duplicates().sum()
 
-        core_metadata = [val["name"] for val in DF_CORE_METADATA.values()]
-        nongrouped_metadata = list(set(core_metadata) - set(groupby))
+        core_columns = [val["name"] for val in DF_CORE_METADATA.values()]
+        ungrouped_columns = list(set(core_columns) - set(groupby))
 
-        df_metadata = pd.DataFrame(columns=core_metadata)
+        metadata = {}
+        for col in core_columns:
+            if col in translator:
+                if callable(translator[col]):
+                    metadata[col] = self.cat.df.apply(translator[col], axis="columns")
+                else:
+                    metadata[col] = pd.Series([translator[col]] * len(self.cat.df))
+            else:
+                metadata[col] = self.cat.df[col]
 
-        for ind, row in self.cat.df.iterrows():
-            row = _parse_row(row, translator)
-            df_metadata = pd.concat([df_metadata, row], ignore_index=True)
+        metadata = pd.concat(metadata, axis="columns")
 
         self.metadata = (
-            df_metadata.groupby(groupby)
-            .agg({col: _sum_unique for col in nongrouped_metadata})
+            metadata.groupby(groupby)
+            .agg({col: _sum_unique for col in ungrouped_columns})
             .reset_index()
         )

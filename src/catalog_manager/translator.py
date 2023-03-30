@@ -3,7 +3,7 @@ import re
 from . import _ALLOWABLE_FREQS
 
 
-def get_cmip6_freq(table_id):
+def _get_cmip6_freq(table_id):
     """
     Parse frequency from CMIP6 table_id
     """
@@ -30,7 +30,7 @@ def get_cmip6_freq(table_id):
                 return freq
 
 
-def get_cmip6_realm(table_id):
+def _get_cmip6_realm(table_id):
     """
     Parse realm from CMIP6 table_id
     """
@@ -51,11 +51,7 @@ def get_cmip6_realm(table_id):
 cmip6 = {
     "model": "CMIP6",
     "experiment": "CMIP6",
-    "realm": lambda x: get_cmip6_realm(x["table_id"]),
-    "variable": lambda x: [
-        [
-            x["variable_id"],
-        ]
-    ],  # ensure a list
-    "frequency": lambda x: get_cmip6_freq(x["table_id"]),
+    "realm": lambda x: _get_cmip6_realm(x["table_id"]),
+    "variable": lambda x: [x["variable_id"]],
+    "frequency": lambda x: _get_cmip6_freq(x["table_id"]),
 }
