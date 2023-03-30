@@ -11,7 +11,8 @@ import xarray as xr
 
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 
-from . import BaseParser, CORE_INFO
+from .. import ESM_CORE_METADATA
+from .base import BaseParser
 from .utils import get_timeinfo
 
 
@@ -22,12 +23,12 @@ class CosimaParser(BaseParser):
     def parser(file):
         try:
             # Use correct names for core columns
-            path_name = CORE_INFO["path_column"]["name"]
-            realm_name = CORE_INFO["realm_column"]["name"]
-            variable_name = CORE_INFO["variable_column"]["name"]
-            start_date_name = CORE_INFO["start_date_column"]["name"]
-            end_date_name = CORE_INFO["end_date_column"]["name"]
-            frequency_name = CORE_INFO["frequency_column"]["name"]
+            path_name = ESM_CORE_METADATA["path_column"]["name"]
+            realm_name = ESM_CORE_METADATA["realm_column"]["name"]
+            variable_name = ESM_CORE_METADATA["variable_column"]["name"]
+            start_date_name = ESM_CORE_METADATA["start_date_column"]["name"]
+            end_date_name = ESM_CORE_METADATA["end_date_column"]["name"]
+            frequency_name = ESM_CORE_METADATA["frequency_column"]["name"]
 
             filename = os.path.basename(file)
             match_groups = re.match(

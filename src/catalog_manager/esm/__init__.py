@@ -3,5 +3,4 @@
 
 """ Parser for generating intake-esm catalogs """
 
-from .base import CORE_INFO, BaseParser
 from .cosima import CosimaParser

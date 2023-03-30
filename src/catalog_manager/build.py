@@ -7,9 +7,11 @@ import os
 
 import intake
 
+import pandas as pd
+
 # import jsonschema
 
-from . import esm
+from . import ESM_CORE_METADATA, DF_CORE_METADATA
 
 # config_schema = {
 #         'type': 'object',
@@ -54,7 +56,7 @@ class CatalogManager:
     Manage intake catalogs in an intake-dataframe-catalog
     """
 
-    def __init__(self, cat, metadata=None):
+    def __init__(self, cat):
         """
         Initialise a CatalogManager
 
@@ -69,7 +71,7 @@ class CatalogManager:
         """
 
         self.cat = cat
-        self.metadata = metadata or {}
+        self.metadata = {}
 
     @classmethod
     def build_esm(
@@ -129,8 +131,8 @@ class CatalogManager:
 
         builder.save(
             name=name,
-            path_column_name=esm.CORE_INFO["path_column"]["name"],
-            variable_column_name=esm.CORE_INFO["variable_column"]["name"],
+            path_column_name=ESM_CORE_METADATA["path_column"]["name"],
+            variable_column_name=ESM_CORE_METADATA["variable_column"]["name"],
             data_format=data_format,
             groupby_attrs=groupby_attrs,
             aggregations=aggregations,
@@ -140,10 +142,16 @@ class CatalogManager:
             catalog_type="file",
         )
 
-        return cls(intake.open_esm_datastore(json_file))
+        columns_with_iterables = builder.columns_with_iterables
+
+        return cls(
+            intake.open_esm_datastore(
+                json_file, columns_with_iterables=list(columns_with_iterables)
+            )
+        )
 
     @classmethod
-    def load_esm(cls, json_file):
+    def load_esm(cls, json_file, **kwargs):
         """
         Load an existing intake-esm catalog
 
@@ -151,5 +159,55 @@ class CatalogManager:
         ----------
         json_file: str
             The path to the intake-esm catalog JSON file
+        kwargs: dict
+            Additional kwargs to pass to :py:class:`~intake.open_esm_datastore`
         """
-        return cls(intake.open_esm_datastore(json_file))
+        return cls(intake.open_esm_datastore(json_file, **kwargs))
+
+    def parse_metadata(self, translator, groupby):
+        """
+        Parse metadata table to include in the intake-dataframe-catalog from the intake-esm dataframe
+        and merge into a set of rows with unique values of the columns specified in groupby.
+
+        Parameters
+        ----------
+        translator: dict
+            Dictionary with keys corresponding to core metadata columns in the
+            intake-dataframe-catalog (see catalog_manager.DF_CORE_METADATA) and values corresponding
+            to functions that translate information in the intake-esm dataframe to the
+            intake-dataframe-catalog metadata. If a key is missing from this dictionary it is assumed
+            that this key exists as a column in the intake-esm dataframe. If values are not not callable
+            they are input directly as metadata for that key.
+        groupby: list of str
+            Core metadata columns to group by before merging metadata across remaining core columns.
+        """
+
+        def _parse_row(series, translator):
+            metadata = {}
+            for col in core_metadata:
+                if col in translator:
+                    if isinstance(translator[col], str):
+                        metadata[col] = translator[col]
+                    else:
+                        metadata[col] = translator[col](series)
+                else:
+                    metadata[col] = series[col]
+            return pd.DataFrame(metadata, index=[0])
+
+        def _sum_unique(values):
+            return values.drop_duplicates().sum()
+
+        core_metadata = [val["name"] for val in DF_CORE_METADATA.values()]
+        nongrouped_metadata = list(set(core_metadata) - set(groupby))
+
+        df_metadata = pd.DataFrame(columns=core_metadata)
+
+        for ind, row in self.cat.df.iterrows():
+            row = _parse_row(row, translator)
+            df_metadata = pd.concat([df_metadata, row], ignore_index=True)
+
+        self.metadata = (
+            df_metadata.groupby(groupby)
+            .agg({col: _sum_unique for col in nongrouped_metadata})
+            .reset_index()
+        )
