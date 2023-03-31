@@ -14,6 +14,13 @@ class CoreMetadataBase:
     Not intended to be used directly
     """
 
+    def __init__(self):
+        """
+        Override this. Initialise self._metadata_columns with dictionary of  {"column_descriptor":
+        ("column_name", "description of type of column entries", "function for checking columns entries"}
+        """
+        self._metadata_columns = {}
+
     @classmethod
     def validate(cls, metadata):
         """
@@ -26,12 +33,12 @@ class CoreMetadataBase:
             entries
         """
         core = cls()
-        _validate_metadata(core._columns, metadata)
+        _validate_metadata(core._metadata_columns, metadata)
 
     @classmethod
     @property
     def columns(cls):
-        return [val[0] for val in cls()._columns.values()]
+        return [val[0] for val in cls()._metadata_columns.values()]
 
 
 class CoreESMMetadata(CoreMetadataBase):
@@ -40,7 +47,7 @@ class CoreESMMetadata(CoreMetadataBase):
     """
 
     def __init__(self):
-        self._columns = {
+        self._metadata_columns = {
             "path_column": ("path", "strings", lambda x: isinstance(x, str)),
             "realm_column": ("realm", "strings", lambda x: isinstance(x, str)),
             "variable_column": (
@@ -75,12 +82,12 @@ class CoreESMMetadata(CoreMetadataBase):
     @classmethod
     @property
     def path_column_name(cls):
-        return cls()._columns["path_column"][0]
+        return cls()._metadata_columns["path_column"][0]
 
     @classmethod
     @property
     def variable_column_name(cls):
-        return cls()._columns["variable_column"][0]
+        return cls()._metadata_columns["variable_column"][0]
 
 
 class CoreDFMetadata(CoreMetadataBase):
@@ -90,9 +97,12 @@ class CoreDFMetadata(CoreMetadataBase):
     """
 
     def __init__(self):
-        self._columns = {
-            # name_column is the name of the subcatalog
-            "name_column": ("experiment", "strings", lambda x: isinstance(x, str)),
+        self._metadata_columns = {
+            "experiment_column": (
+                "experiment",
+                "strings",
+                lambda x: isinstance(x, str),
+            ),
             "model_column": ("model", "strings", lambda x: isinstance(x, str)),
             "realm_column": ("realm", "strings", lambda x: isinstance(x, str)),
             "variable_column": (
@@ -109,6 +119,31 @@ class CoreDFMetadata(CoreMetadataBase):
                 ),
             ),
         }
+
+        # Columns to groupby when creating intake-dataframe-datalog metadata from intake-esm metadata
+        # (see catalog_manager.CatalogManager.parse_esm_metadata)
+        self.groupby_columns = ["realm", "frequency"]
+
+        # Column name to use as yaml_column in intake-dataframe-datalog
+        self._yaml_column = "yaml"
+
+        # Column name to use as name_column in intake-dataframe-datalog
+        self._name_column = self._metadata_columns["experiment_column"][0]
+
+    @classmethod
+    @property
+    def groupby_columns(cls):
+        return cls().groupby_columns
+
+    @classmethod
+    @property
+    def yaml_column(cls):
+        return cls()._yaml_column
+
+    @classmethod
+    @property
+    def name_column(cls):
+        return cls()._name_column
 
 
 def _validate_metadata(template, metadata):

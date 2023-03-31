@@ -6,8 +6,10 @@
 import os
 
 import intake
+from intake_dataframe_catalog.core import DFCatalogModel
 
 from . import CoreESMMetadata, CoreDFMetadata
+from .translators import SimpleColumnTranslator
 
 
 class CatalogExistsError(Exception):
@@ -20,7 +22,7 @@ class CatalogManager:
     Manage intake catalogs in an intake-dataframe-catalog
     """
 
-    def __init__(self, cat):
+    def __init__(self, cat, metadata):
         """
         Initialise a CatalogManager
 
@@ -28,14 +30,24 @@ class CatalogManager:
         ----------
         cat: :py:class:`intake.DataSource`
             An intake catalog to append/update in the intake-dataframe-catalog
-        metadata: dict
-            Metadata associated with cat to include in the intake-dataframe-catalog.
-            If adding to an existing dataframe-catalog, keys in this dictionary must
-            correspond to columns in the dataframe-catalog.
+        metadata: :py:class:`~pandas.DataFrame`
+            :py:class:`~pandas.DataFrame` with columns corresponding to Metadata associated
+            with cat to include in the intake-dataframe-catalog.
         """
 
+        # Overwrite the catalog name with the name_column entry in metadata
+        name = metadata[CoreDFMetadata.name_column].unique()
+        if len(name) != 1:
+            raise ValueError(
+                f"Metadata column '{CoreDFMetadata.name_column}' must be the same for all rows "
+                "since this corresponds to the catalog name"
+            )
+        name = name[0]
+        cat.name = name
+
         self.cat = cat
-        self.metadata = {}
+        self.metadata = metadata
+        self.dfcat = None
 
     @classmethod
     def build_esm(
@@ -106,16 +118,15 @@ class CatalogManager:
             catalog_type="file",
         )
 
-        columns_with_iterables = builder.columns_with_iterables
-
-        return cls(
-            intake.open_esm_datastore(
-                json_file, columns_with_iterables=list(columns_with_iterables)
-            )
+        cat = intake.open_esm_datastore(
+            json_file, columns_with_iterables=list(builder.columns_with_iterables)
         )
+        metadata = parse_esm_metadata(cat)
+
+        return cls(cat, metadata)
 
     @classmethod
-    def load_esm(cls, json_file, **kwargs):
+    def load_esm(cls, json_file, translator, **kwargs):
         """
         Load an existing intake-esm catalog
 
@@ -123,34 +134,96 @@ class CatalogManager:
         ----------
         json_file: str
             The path to the intake-esm catalog JSON file
-        kwargs: dict
-            Additional kwargs to pass to :py:class:`~intake.open_esm_datastore`
-        """
-        return cls(intake.open_esm_datastore(json_file, **kwargs))
-
-    def parse_esm_metadata(self, translator, groupby):
-        """
-        Parse metadata table to include in the intake-dataframe-catalog from an intake-esm dataframe
-        and merge into a set of rows with unique values of the columns specified in groupby.
-
-        Parameters
-        ----------
         translator: :py:class:`~catalog_manager.translators.ColumnTranslator`
             An instance of the :py:class:`~catalog_manager.translators.ColumnTranslator` class for
             translating intake-esm column metadata into intake-dataframe-catalog column metadata
-        groupby: list of str
-            Core metadata columns to group by before merging metadata across remaining core columns.
+        kwargs: dict
+            Additional kwargs to pass to :py:class:`~intake.open_esm_datastore`
         """
 
-        def _sum_unique(values):
-            return values.drop_duplicates().sum()
+        cat = intake.open_esm_datastore(json_file, **kwargs)
+        metadata = parse_esm_metadata(cat, translator)
 
-        ungrouped_columns = list(set(CoreDFMetadata.columns) - set(groupby))
+        return cls(cat, metadata)
 
-        metadata = translator.translate(self.cat.df)
+    def add(self, name, directory=None, **kwargs):
+        """
+        Add the catalog to an intake-dataframe-catalog
 
-        self.metadata = (
-            metadata.groupby(groupby)
-            .agg({col: _sum_unique for col in ungrouped_columns})
-            .reset_index()
-        )
+        Parameters
+        ----------
+        name: str
+            The name of the intake-dataframe-catalog
+        directory: str
+            The directory to save the DF catalog to. If None, use the current directory.
+        kwargs: dict, optional
+            Additional keyword arguments passed to :py:func:`~pandas.DataFrame.to_csv`.
+        """
+
+        fname = os.path.join(directory, f"{name}.csv")
+        csv_kwargs = {"index": False}
+        csv_kwargs.update(kwargs or {})
+        compression = csv_kwargs.get("compression")
+        extensions = {
+            "gzip": ".gz",
+            "bz2": ".bz2",
+            "zip": ".zip",
+            "xz": ".xz",
+            None: "",
+        }
+        fname = f"{fname}{extensions[compression]}"
+
+        if os.path.exists(fname):
+            dfcat = DFCatalogModel.load(
+                fname,
+                yaml_column=CoreDFMetadata.yaml_column,
+                name_column=CoreDFMetadata.name_column,
+            )
+        else:
+            dfcat = DFCatalogModel(
+                yaml_column=CoreDFMetadata.yaml_column,
+                name_column=CoreDFMetadata.name_column,
+                metadata_columns=list(
+                    set(CoreDFMetadata.columns) - set([CoreDFMetadata.name_column])
+                ),
+            )
+
+        overwrite = True
+        for _, row in self.metadata.iterrows():
+            dfcat.add(self.cat, row.to_dict(), overwrite=overwrite)
+            overwrite = False
+
+        dfcat.save(name, directory, **kwargs)
+
+
+def parse_esm_metadata(
+    cat, translator=SimpleColumnTranslator, groupby=CoreDFMetadata.groupby_columns
+):
+    """
+    Parse metadata table to include in the intake-dataframe-catalog from an intake-esm dataframe
+    and merge into a set of rows with unique values of the columns specified in groupby.
+
+    Parameters
+    ----------
+    translator: :py:class:`~catalog_manager.translators.ColumnTranslator`
+        An instance of the :py:class:`~catalog_manager.translators.ColumnTranslator` class for
+        translating intake-esm column metadata into intake-dataframe-catalog column metadata. Defaults
+        to catalog_manager.translators.SimpleColumnTranslator which assumes all core
+        intake-dataframe-catalog columns are present in the intake-esm catalog.
+    groupby: list of str, optional
+        Core metadata columns to group by before merging metadata across remaining core columns.
+        Defaults to catalog_manager.CoreDFMetadata.groupby_columns
+    """
+
+    def _sum_unique(values):
+        return values.drop_duplicates().sum()
+
+    ungrouped_columns = list(set(CoreDFMetadata.columns) - set(groupby))
+
+    metadata = translator.translate(cat.df)
+
+    return (
+        metadata.groupby(groupby)
+        .agg({col: _sum_unique for col in ungrouped_columns})
+        .reset_index()
+    )

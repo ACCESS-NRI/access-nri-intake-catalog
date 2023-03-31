@@ -15,7 +15,7 @@ class ColumnTranslator:
     Base class for translating intake-esm dataframe columns into intake-dataframe-catalog core columns
     """
 
-    def __init__(self, translations=None):
+    def __init__(self, translations):
         """
         Initialise a ColumnTranslator
 
@@ -28,11 +28,8 @@ class ColumnTranslator:
             for the intake-dataframe-catalog column. If a key has a value of None, it is assumed that this
             key exists as a column in the intake-esm dataframe. If values are not not callable
             they are input directly as metadata entries in the intake-esm dataframe for that key (column).
-            If None, a translations dictionary is generated will all keys set to None.
         """
-        self.translations = translations or {
-            col: None for col in CoreDFMetadata.columns
-        }
+        self.translations = translations
         self.validate()
 
     def validate(self):
@@ -117,11 +114,14 @@ def _get_cmip6_realm(table_id):
     return "unknown"
 
 
-cmip6_translations = {
-    "model": "CMIP6",
-    "experiment": "CMIP6",
-    "realm": lambda x: _get_cmip6_realm(x["table_id"]),
-    "variable": lambda x: [x["variable_id"]],
-    "frequency": lambda x: _get_cmip6_freq(x["table_id"]),
-}
-CMIP6ColumnTranslator = ColumnTranslator(cmip6_translations)
+SimpleColumnTranslator = ColumnTranslator({col: None for col in CoreDFMetadata.columns})
+
+CMIP6ColumnTranslator = ColumnTranslator(
+    {
+        "model": "CMIP6",
+        "experiment": "CMIP6",
+        "realm": lambda x: _get_cmip6_realm(x["table_id"]),
+        "variable": lambda x: [x["variable_id"]],
+        "frequency": lambda x: _get_cmip6_freq(x["table_id"]),
+    }
+)
