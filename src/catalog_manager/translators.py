@@ -6,18 +6,18 @@ from . import CoreDFMetadata
 from .metadata import _ALLOWABLE_FREQS
 
 
-class ColumnTranslatorError(Exception):
+class MetadataTranslatorError(Exception):
     pass
 
 
-class ColumnTranslator:
+class MetadataTranslator:
     """
     Base class for translating intake-esm dataframe columns into intake-dataframe-catalog core columns
     """
 
     def __init__(self, translations):
         """
-        Initialise a ColumnTranslator
+        Initialise a MetadataTranslator
 
         Parameters
         ----------
@@ -37,7 +37,7 @@ class ColumnTranslator:
         Check that all core intake-dataframe-catalog columns have translators provided
         """
         if set(self.translations) - set(CoreDFMetadata.columns):
-            raise ColumnTranslatorError(
+            raise MetadataTranslatorError(
                 f"The input translations should be a dictionary with the keys: {', '.join(CoreDFMetadata.columns)}"
             )
 
@@ -114,9 +114,11 @@ def _get_cmip6_realm(table_id):
     return "unknown"
 
 
-SimpleColumnTranslator = ColumnTranslator({col: None for col in CoreDFMetadata.columns})
+SimpleMetadataTranslator = MetadataTranslator(
+    {col: None for col in CoreDFMetadata.columns}
+)
 
-CMIP6ColumnTranslator = ColumnTranslator(
+CMIP6MetadataTranslator = MetadataTranslator(
     {
         "model": "CMIP6",
         "experiment": "CMIP6",

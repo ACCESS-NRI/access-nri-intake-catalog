@@ -3,4 +3,4 @@
 
 """ Parser for generating intake-esm catalogs """
 
-from .cosima import CosimaParser
+from .cosima import CosimaESMCatBuilder

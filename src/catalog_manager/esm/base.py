@@ -8,15 +8,15 @@ from ecgtools.builder import Builder, INVALID_ASSET
 from .. import CoreESMMetadata
 
 
-class ParserValidationError(Exception):
+class ESMCatParserError(Exception):
     pass
 
 
-class BaseParser(Builder):
+class BaseESMCatBuilder(Builder):
     """
-    Base class for creating intake-esm parsers. This is very similar to the ecgtools.Builder
-    class, but it includes the parser as a staticmethod in the class, which makes validation
-    of the parser output simpler
+    Base class for creating intake-esm catalog builders. This is very similar to the
+    ecgtools.Builder class, but it includes the parser as a staticmethod in the class,
+    which makes validation of the parser output simpler
     """
 
     def _parse(self):
@@ -42,7 +42,7 @@ class BaseParser(Builder):
                 CoreESMMetadata.validate(info)
                 return self
 
-        raise ParserValidationError(
+        raise ESMCatParserError(
             f"Parser returns no valid assets. Try parsing a single file with {self.parser}(file)"
         )
 

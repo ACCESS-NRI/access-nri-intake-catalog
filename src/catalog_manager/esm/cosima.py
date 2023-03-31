@@ -11,12 +11,12 @@ import xarray as xr
 
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 
-from .base import BaseParser
+from .base import BaseESMCatBuilder
 from .utils import get_timeinfo
 
 
-class CosimaParser(BaseParser):
-    """Parser for COSIMA datasets"""
+class CosimaESMCatBuilder(BaseESMCatBuilder):
+    """Intake-esm catalog builder for COSIMA datasets"""
 
     @staticmethod
     def parser(file):

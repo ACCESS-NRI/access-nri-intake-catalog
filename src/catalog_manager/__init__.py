@@ -4,6 +4,7 @@
 import re
 
 from . import _version
+from .build import DFCatUpdater
 from .metadata import CoreESMMetadata, CoreDFMetadata
 
 __version__ = _version.get_versions()["version"]

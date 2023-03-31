@@ -9,7 +9,7 @@ import intake
 from intake_dataframe_catalog.core import DFCatalogModel
 
 from . import CoreESMMetadata, CoreDFMetadata
-from .translators import SimpleColumnTranslator
+from .translators import SimpleMetadataTranslator
 
 
 class CatalogExistsError(Exception):
@@ -17,14 +17,14 @@ class CatalogExistsError(Exception):
     pass
 
 
-class CatalogManager:
+class DFCatUpdater:
     """
     Manage intake catalogs in an intake-dataframe-catalog
     """
 
     def __init__(self, cat, metadata):
         """
-        Initialise a CatalogManager
+        Initialise a DFCatUpdater
 
         Parameters
         ----------
@@ -134,8 +134,8 @@ class CatalogManager:
         ----------
         json_file: str
             The path to the intake-esm catalog JSON file
-        translator: :py:class:`~catalog_manager.translators.ColumnTranslator`
-            An instance of the :py:class:`~catalog_manager.translators.ColumnTranslator` class for
+        translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
+            An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
             translating intake-esm column metadata into intake-dataframe-catalog column metadata
         kwargs: dict
             Additional kwargs to pass to :py:class:`~intake.open_esm_datastore`
@@ -197,7 +197,7 @@ class CatalogManager:
 
 
 def parse_esm_metadata(
-    cat, translator=SimpleColumnTranslator, groupby=CoreDFMetadata.groupby_columns
+    cat, translator=SimpleMetadataTranslator, groupby=CoreDFMetadata.groupby_columns
 ):
     """
     Parse metadata table to include in the intake-dataframe-catalog from an intake-esm dataframe
@@ -205,10 +205,10 @@ def parse_esm_metadata(
 
     Parameters
     ----------
-    translator: :py:class:`~catalog_manager.translators.ColumnTranslator`
-        An instance of the :py:class:`~catalog_manager.translators.ColumnTranslator` class for
+    translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
+        An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
         translating intake-esm column metadata into intake-dataframe-catalog column metadata. Defaults
-        to catalog_manager.translators.SimpleColumnTranslator which assumes all core
+        to catalog_manager.translators.SimpleMetadataTranslator which assumes all core
         intake-dataframe-catalog columns are present in the intake-esm catalog.
     groupby: list of str, optional
         Core metadata columns to group by before merging metadata across remaining core columns.
