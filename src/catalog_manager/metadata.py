@@ -9,11 +9,18 @@ class CoreMetadataError(Exception):
 
 
 class CoreMetadataBase:
+    """
+    Base class for keeping track of core metadata columns anf formats and validating against them.
+    Not intended to be used directly
+    """
+
     @classmethod
     def validate(cls, metadata):
         """
-        Validate a dictionary of metadata relative to core intake-esm columns
+        Validate a dictionary of metadata relative to core columns
 
+        Parameters
+        ----------
         metadata: dict
             Dictionary with keys corresponding to metadata columns and values corresponding to metadata
             entries
@@ -28,6 +35,10 @@ class CoreMetadataBase:
 
 
 class CoreESMMetadata(CoreMetadataBase):
+    """
+    Core intake-esm catalog metadata columns and formats. Not really intended to be used by users.
+    """
+
     def __init__(self):
         self._columns = {
             "path_column": ("path", "strings", lambda x: isinstance(x, str)),
@@ -73,12 +84,17 @@ class CoreESMMetadata(CoreMetadataBase):
 
 
 class CoreDFMetadata(CoreMetadataBase):
+    """
+    Core intake-dataframe-catalog catalog metadata columns and formats. Not really intended to be used
+    by users.
+    """
+
     def __init__(self):
         self._columns = {
             # name_column is the name of the subcatalog
             "name_column": ("experiment", "strings", lambda x: isinstance(x, str)),
             "model_column": ("model", "strings", lambda x: isinstance(x, str)),
-            "realm_column": ("strings", lambda x: isinstance(x, str)),
+            "realm_column": ("realm", "strings", lambda x: isinstance(x, str)),
             "variable_column": (
                 "variable",
                 "lists of strings",
@@ -99,9 +115,11 @@ def _validate_metadata(template, metadata):
     """
     Validate a dictionary of metadata relative to core intake-esm columns
 
+    Parameters
+    ----------
     template: dict
-        Template of core metadata keys, descriptions and functions to evaluate if metadata entries
-        are valid
+        Template of core metadata columns, their names, descriptions and functions to evaluate if metadata
+        entries are valid
     metadata: dict
         Dictionary with keys corresponding to metadata columns and values corresponding to metadata
         entries

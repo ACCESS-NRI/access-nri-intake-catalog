@@ -7,43 +7,7 @@ import os
 
 import intake
 
-import pandas as pd
-
-# import jsonschema
-
-from catalog_manager import CoreESMMetadata, CoreDFMetadata
-
-# config_schema = {
-#         'type': 'object',
-#         'properties': {
-#             'model': {'type': 'string'},
-#             'catalogs': {
-#                 'type': 'object',
-#                 'properties': {
-#                     'catalog_names': {
-#                         'type': 'array',
-#                         'items': {'type': 'string'},
-#                     },
-#                 },
-#             },
-#             'parser': {'type': 'string'},
-#             'search': {
-#                 'type': 'object',
-#                 'properties': {
-#                     'depth': {'type': 'integer'},
-#                     'exclude_patterns': {
-#                         'type': 'array',
-#                         'items': {'type': 'string'},
-#                     },
-#                     'include_patterns': {
-#                         'type': 'array',
-#                         'items': {'type': 'string'},
-#                     },
-#                 },
-#             },
-#         },
-#         'required': ['id','catalogs','parser','search'],
-#     }
+from . import CoreESMMetadata, CoreDFMetadata
 
 
 class CatalogExistsError(Exception):
@@ -164,20 +128,16 @@ class CatalogManager:
         """
         return cls(intake.open_esm_datastore(json_file, **kwargs))
 
-    def parse_metadata(self, translator, groupby):
+    def parse_esm_metadata(self, translator, groupby):
         """
-        Parse metadata table to include in the intake-dataframe-catalog from the intake-esm dataframe
+        Parse metadata table to include in the intake-dataframe-catalog from an intake-esm dataframe
         and merge into a set of rows with unique values of the columns specified in groupby.
 
         Parameters
         ----------
-        translator: dict
-            Dictionary with keys corresponding to core metadata columns in the
-            intake-dataframe-catalog (see catalog_manager.CoreDFMetadata) and values corresponding
-            to functions that translate information in the intake-esm dataframe to the
-            intake-dataframe-catalog metadata. If a key is missing from this dictionary it is assumed
-            that this key exists as a column in the intake-esm dataframe. If values are not not callable
-            they are input directly as metadata for that key.
+        translator: :py:class:`~catalog_manager.translators.ColumnTranslator`
+            An instance of the :py:class:`~catalog_manager.translators.ColumnTranslator` class for
+            translating intake-esm column metadata into intake-dataframe-catalog column metadata
         groupby: list of str
             Core metadata columns to group by before merging metadata across remaining core columns.
         """
@@ -187,17 +147,7 @@ class CatalogManager:
 
         ungrouped_columns = list(set(CoreDFMetadata.columns) - set(groupby))
 
-        metadata = {}
-        for col in CoreDFMetadata.columns:
-            if col in translator:
-                if callable(translator[col]):
-                    metadata[col] = self.cat.df.apply(translator[col], axis="columns")
-                else:
-                    metadata[col] = pd.Series([translator[col]] * len(self.cat.df))
-            else:
-                metadata[col] = self.cat.df[col]
-
-        metadata = pd.concat(metadata, axis="columns")
+        metadata = translator.translate(self.cat.df)
 
         self.metadata = (
             metadata.groupby(groupby)
