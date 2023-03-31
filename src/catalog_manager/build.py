@@ -8,7 +8,7 @@ import os
 import intake
 from intake_dataframe_catalog.core import DFCatalogModel
 
-from . import CoreESMMetadata, CoreDFMetadata
+from .metadata import CoreDFMetadata
 from .translators import SimpleMetadataTranslator
 
 
@@ -55,11 +55,8 @@ class DFCatUpdater:
         name,
         description,
         parser,
-        root_dirs,
-        data_format,
+        paths,
         parser_kwargs=None,
-        groupby_attrs=None,
-        aggregations=None,
         directory=None,
         overwrite=False,
     ):
@@ -74,16 +71,10 @@ class DFCatUpdater:
             Description of the contents of the catalog
         parser: subclass of :py:class:`catalog_manager.esm.BaseParser`
             The parser to use to build the intake-esm catalog
-        root_dirs: list of str
-            Root directories to parse for files to add to the catalog
-        data_format: str
-            The data format. Valid values are 'netcdf', 'reference', 'zarr' and 'opendap'.
+        paths: list of str
+            List of paths to crawl for assets/files to add to the catalog.
         parser_kwargs: dict
             Additional kwargs to pass to the parser
-        groupby_attrs
-            Intake-esm column names that define data sets that can be aggegrated.
-        aggregations: listof dict
-            List of aggregations to apply to query results
         directory: str
             The directory to save the catalog to. If None, use the current directory
         overwrite: bool, optional
@@ -100,30 +91,15 @@ class DFCatUpdater:
                     "pass `overwrite=True` to CatalogBuilder.build"
                 )
 
-        builder = parser(
-            root_dirs,
-            **parser_kwargs,
-        ).build()
-
-        builder.save(
-            name=name,
-            path_column_name=CoreESMMetadata.path_column_name,
-            variable_column_name=CoreESMMetadata.variable_column_name,
-            data_format=data_format,
-            groupby_attrs=groupby_attrs,
-            aggregations=aggregations,
-            esmcat_version="0.0.1",
-            description=description,
-            directory=directory,
-            catalog_type="file",
-        )
+        builder = parser(paths, **parser_kwargs).build()
+        builder.save(name=name, description=description, directory=directory)
 
         cat = intake.open_esm_datastore(
             json_file, columns_with_iterables=list(builder.columns_with_iterables)
         )
         metadata = parse_esm_metadata(cat)
 
-        return cls(cat, metadata)
+        return cat, metadata  # cls(cat, metadata)
 
     @classmethod
     def load_esm(cls, json_file, translator, **kwargs):

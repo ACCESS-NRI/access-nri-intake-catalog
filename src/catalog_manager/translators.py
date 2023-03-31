@@ -2,8 +2,7 @@ import re
 
 import pandas as pd
 
-from . import CoreDFMetadata
-from .metadata import _ALLOWABLE_FREQS
+from .metadata import CoreDFMetadata, _ALLOWABLE_FREQS
 
 
 class MetadataTranslatorError(Exception):
@@ -58,7 +57,7 @@ class MetadataTranslator:
 
         translated = {}
         for col, translation in self.translations.items():
-            if col:
+            if translation:
                 if callable(translation):
                     translated[col] = df.apply(translation, axis="columns")
                 else:

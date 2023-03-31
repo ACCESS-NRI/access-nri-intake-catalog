@@ -18,6 +18,37 @@ from .utils import get_timeinfo
 class CosimaESMCatBuilder(BaseESMCatBuilder):
     """Intake-esm catalog builder for COSIMA datasets"""
 
+    def __init__(self, paths):
+        """
+        Initialise a CosimaESMCatBuilder
+
+        Parameters
+        ----------
+        paths : list of str
+            List of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            paths=paths,
+            depth=3,
+            exclude_patterns=["*/restart*/*", "*o2i.nc"],
+            include_patterns=["*.nc"],
+            data_format="netcdf",
+            groupby_attrs=["realm", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                }
+            ],
+        )
+
+        super().__init__(**kwargs)
+
     @staticmethod
     def parser(file):
         try:
@@ -26,7 +57,7 @@ class CosimaESMCatBuilder(BaseESMCatBuilder):
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
             ).groups()
             # configuration = match_groups[0]
-            # experiment = match_groups[1]
+            experiment = match_groups[1]
             realm = match_groups[2]
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
@@ -34,6 +65,7 @@ class CosimaESMCatBuilder(BaseESMCatBuilder):
 
             info = {
                 "path": str(file),
+                "experiment": experiment,
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
