@@ -5,7 +5,7 @@
 
 from ecgtools.builder import Builder, INVALID_ASSET
 
-from .. import ESM_CORE_METADATA
+from .. import CoreESMMetadata
 
 
 class ParserValidationError(Exception):
@@ -39,16 +39,7 @@ class BaseParser(Builder):
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
-                for key, val in ESM_CORE_METADATA.items():
-                    name = val["name"]
-                    func = val["validate"][0]
-                    msg = val["validate"][1]
-                    if name not in info:
-                        raise ParserValidationError(
-                            f"Parser must parse '{name}' info that {msg}"
-                        )
-                    if not func(info[name]):
-                        raise ParserValidationError(f"Parser output '{name}' {msg}")
+                CoreESMMetadata.validate(info)
                 return self
 
         raise ParserValidationError(

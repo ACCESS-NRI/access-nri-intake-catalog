@@ -11,7 +11,7 @@ import pandas as pd
 
 # import jsonschema
 
-from . import ESM_CORE_METADATA, DF_CORE_METADATA
+from catalog_manager import CoreESMMetadata, CoreDFMetadata
 
 # config_schema = {
 #         'type': 'object',
@@ -131,8 +131,8 @@ class CatalogManager:
 
         builder.save(
             name=name,
-            path_column_name=ESM_CORE_METADATA["path_column"]["name"],
-            variable_column_name=ESM_CORE_METADATA["variable_column"]["name"],
+            path_column_name=CoreESMMetadata.path_column_name,
+            variable_column_name=CoreESMMetadata.variable_column_name,
             data_format=data_format,
             groupby_attrs=groupby_attrs,
             aggregations=aggregations,
@@ -173,7 +173,7 @@ class CatalogManager:
         ----------
         translator: dict
             Dictionary with keys corresponding to core metadata columns in the
-            intake-dataframe-catalog (see catalog_manager.DF_CORE_METADATA) and values corresponding
+            intake-dataframe-catalog (see catalog_manager.CoreDFMetadata) and values corresponding
             to functions that translate information in the intake-esm dataframe to the
             intake-dataframe-catalog metadata. If a key is missing from this dictionary it is assumed
             that this key exists as a column in the intake-esm dataframe. If values are not not callable
@@ -185,11 +185,10 @@ class CatalogManager:
         def _sum_unique(values):
             return values.drop_duplicates().sum()
 
-        core_columns = [val["name"] for val in DF_CORE_METADATA.values()]
-        ungrouped_columns = list(set(core_columns) - set(groupby))
+        ungrouped_columns = list(set(CoreDFMetadata.columns) - set(groupby))
 
         metadata = {}
-        for col in core_columns:
+        for col in CoreDFMetadata.columns:
             if col in translator:
                 if callable(translator[col]):
                     metadata[col] = self.cat.df.apply(translator[col], axis="columns")

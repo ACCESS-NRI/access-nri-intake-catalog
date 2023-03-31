@@ -11,7 +11,6 @@ import xarray as xr
 
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 
-from .. import ESM_CORE_METADATA
 from .base import BaseParser
 from .utils import get_timeinfo
 
@@ -22,14 +21,6 @@ class CosimaParser(BaseParser):
     @staticmethod
     def parser(file):
         try:
-            # Use correct names for core columns
-            path_name = ESM_CORE_METADATA["path_column"]["name"]
-            realm_name = ESM_CORE_METADATA["realm_column"]["name"]
-            variable_name = ESM_CORE_METADATA["variable_column"]["name"]
-            start_date_name = ESM_CORE_METADATA["start_date_column"]["name"]
-            end_date_name = ESM_CORE_METADATA["end_date_column"]["name"]
-            frequency_name = ESM_CORE_METADATA["frequency_column"]["name"]
-
             filename = os.path.basename(file)
             match_groups = re.match(
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
@@ -42,17 +33,13 @@ class CosimaParser(BaseParser):
                 variable_list = [var for var in ds if "long_name" in ds[var].attrs]
 
             info = {
-                path_name: str(file),
-                realm_name: realm,
-                variable_name: variable_list,
+                "path": str(file),
+                "realm": realm,
+                "variable": variable_list,
                 "filename": filename,
             }
 
-            (
-                info[start_date_name],
-                info[end_date_name],
-                info[frequency_name],
-            ) = get_timeinfo(ds)
+            info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
 
             return info
 
