@@ -19,7 +19,7 @@ class CatalogExistsError(Exception):
 
 class DFCatUpdater:
     """
-    Manage intake catalogs in an intake-dataframe-catalog
+    Add/update intake catalogs in an intake-dataframe-catalog
     """
 
     def __init__(self, cat, metadata):
