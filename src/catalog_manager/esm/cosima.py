@@ -57,7 +57,7 @@ class CosimaESMCatBuilder(BaseESMCatBuilder):
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
             ).groups()
             # configuration = match_groups[0]
-            experiment = match_groups[1]
+            # experiment = match_groups[1]
             realm = match_groups[2]
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
@@ -65,7 +65,6 @@ class CosimaESMCatBuilder(BaseESMCatBuilder):
 
             info = {
                 "path": str(file),
-                "experiment": experiment,
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,

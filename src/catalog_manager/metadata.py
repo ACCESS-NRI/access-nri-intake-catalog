@@ -98,12 +98,17 @@ class CoreDFMetadata(CoreMetadataBase):
 
     def __init__(self):
         self._metadata_columns = {
+            "model_column": ("model", "strings", lambda x: isinstance(x, str)),
             "experiment_column": (
                 "experiment",
                 "strings",
                 lambda x: isinstance(x, str),
             ),
-            "model_column": ("model", "strings", lambda x: isinstance(x, str)),
+            "description_column": (
+                "description",
+                "strings",
+                lambda x: isinstance(x, str),
+            ),
             "realm_column": ("realm", "strings", lambda x: isinstance(x, str)),
             "variable_column": (
                 "variable",

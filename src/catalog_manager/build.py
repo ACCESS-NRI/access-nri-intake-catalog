@@ -54,9 +54,10 @@ class DFCatUpdater:
         cls,
         name,
         description,
-        parser,
+        builder,
+        translator,
         paths,
-        parser_kwargs=None,
+        builder_kwargs=None,
         directory=None,
         overwrite=False,
     ):
@@ -69,19 +70,22 @@ class DFCatUpdater:
             The name of the catalog
         description: str
             Description of the contents of the catalog
-        parser: subclass of :py:class:`catalog_manager.esm.BaseParser`
-            The parser to use to build the intake-esm catalog
+        builder: subclass of :py:class:`catalog_manager.esm.BaseBuilder`
+            The builder to use to build the intake-esm catalog
+        translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
+            An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
+            translating intake-esm column metadata into intake-dataframe-catalog column metadata
         paths: list of str
             List of paths to crawl for assets/files to add to the catalog.
-        parser_kwargs: dict
-            Additional kwargs to pass to the parser
+        builder_kwargs: dict
+            Additional kwargs to pass to the builder
         directory: str
             The directory to save the catalog to. If None, use the current directory
         overwrite: bool, optional
             Whether to overwrite any existing catalog(s) with the same name
         """
 
-        parser_kwargs = parser_kwargs or {}
+        builder_kwargs = builder_kwargs or {}
 
         json_file = os.path.abspath(f"{os.path.join(directory, name)}.json")
         if os.path.isfile(json_file):
@@ -91,15 +95,18 @@ class DFCatUpdater:
                     "pass `overwrite=True` to CatalogBuilder.build"
                 )
 
-        builder = parser(paths, **parser_kwargs).build()
+        builder = builder(paths, **builder_kwargs).build()
         builder.save(name=name, description=description, directory=directory)
 
         cat = intake.open_esm_datastore(
             json_file, columns_with_iterables=list(builder.columns_with_iterables)
         )
-        metadata = parse_esm_metadata(cat)
+        cat.name = name
+        cat.description = description
 
-        return cat, metadata  # cls(cat, metadata)
+        metadata = translate_esm_metadata(cat, translator)
+
+        return cls(cat, metadata)
 
     @classmethod
     def load_esm(cls, json_file, translator, **kwargs):
@@ -118,7 +125,7 @@ class DFCatUpdater:
         """
 
         cat = intake.open_esm_datastore(json_file, **kwargs)
-        metadata = parse_esm_metadata(cat, translator)
+        metadata = translate_esm_metadata(cat, translator)
 
         return cls(cat, metadata)
 
@@ -172,7 +179,7 @@ class DFCatUpdater:
         dfcat.save(name, directory, **kwargs)
 
 
-def parse_esm_metadata(
+def translate_esm_metadata(
     cat, translator=SimpleMetadataTranslator, groupby=CoreDFMetadata.groupby_columns
 ):
     """
@@ -196,7 +203,7 @@ def parse_esm_metadata(
 
     ungrouped_columns = list(set(CoreDFMetadata.columns) - set(groupby))
 
-    metadata = translator.translate(cat.df)
+    metadata = translator.translate(cat)
 
     return (
         metadata.groupby(groupby)

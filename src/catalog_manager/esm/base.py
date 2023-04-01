@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Base parser for generating an intake-esm catalog """
+""" Base builder for generating an intake-esm catalog """
 
 import multiprocessing
 
