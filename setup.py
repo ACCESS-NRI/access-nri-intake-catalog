@@ -6,7 +6,7 @@ setup(
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     author="ACCESS-NRI",
-    url="https://github.com/ACCESS-NRI/intake_catalog",
+    url="https://github.com/ACCESS-NRI/nri_intake_catalog",
     description="Tools and configuration info for managing ACCESS-NRI's intake catalogue",
     packages=find_packages(),
     package_dir={"": "src"},
