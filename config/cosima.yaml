@@ -2,6 +2,8 @@ builder: "CosimaESMCatBuilder"
 
 translator: "CosimaMetadataTranslator"
 
+catalog_dir: "/g/data/tm70/ds0092/projects/intake_catalog/catalogs/cosima"
+
 catalogs:
 
   # 0.3 TB across 9,755 files
