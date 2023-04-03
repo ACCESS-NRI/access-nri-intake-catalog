@@ -2,7 +2,7 @@ builder: "AccessEsm15Builder"
 
 translator: "AccessEsm15Translator"
 
-catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/accessesm15"
+catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/access-esm1-5"
 
 catalogs:
 

@@ -2,7 +2,7 @@ builder: "AccessOm2Builder"
 
 translator: "AccessOm2Translator"
 
-catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/accessom2"
+catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/access-om2"
 
 catalogs:
 

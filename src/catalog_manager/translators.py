@@ -145,7 +145,7 @@ AccessEsm15Translator = MetadataTranslator(
     {
         "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
         "description": lambda cat: pd.Series([cat.description] * len(cat.df)),
-        "model": "ACCESS-ESM1.5",
+        "model": "ACCESS-ESM1-5",
         "realm": None,
         "frequency": None,
         "variable": None,
