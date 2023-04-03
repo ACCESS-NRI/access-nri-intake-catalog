@@ -1,0 +1,12 @@
+builder: "AccessEsm15Builder"
+
+translator: "AccessEsm15Translator"
+
+catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/accessesm15"
+
+catalogs:
+
+  PI_GWL_B2035:
+    description: "Climate stabilization at different global warming levels, branching from ACCESS-ESM1.5 SSP-EDC-585-13 in 2035 and running with zero CO2 emissions and pre-industrial aerosols"
+    paths:
+      - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2035"

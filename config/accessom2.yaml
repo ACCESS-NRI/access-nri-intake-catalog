@@ -1,8 +1,8 @@
-builder: "CosimaBuilder"
+builder: "AccessOm2Builder"
 
-translator: "CosimaTranslator"
+translator: "AccessOm2Translator"
 
-catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/cosima"
+catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/accessom2"
 
 catalogs:
 

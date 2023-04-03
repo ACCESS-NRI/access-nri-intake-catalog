@@ -3,4 +3,5 @@
 
 """ Builders for generating intake-esm catalogs """
 
-from .cosima import CosimaBuilder
+from .accessom2 import AccessOm2Builder
+from .accessesm15 import AccessEsm15Builder

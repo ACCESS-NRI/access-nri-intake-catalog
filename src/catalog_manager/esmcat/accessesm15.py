@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Parser for generating an intake-esm catalog from COSIMA data """
+""" Builder for generating an intake-esm catalog from ACCESS-ESM1.5 data """
 
 import os
 import re
@@ -11,16 +11,16 @@ import xarray as xr
 
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 
-from .base import BaseBuilder
-from .utils import get_timeinfo
+from catalog_manager.esmcat.base import BaseBuilder, ParserError
+from catalog_manager.esmcat.utils import get_timeinfo
 
 
-class CosimaBuilder(BaseBuilder):
-    """Intake-esm catalog builder for COSIMA datasets"""
+class AccessEsm15Builder(BaseBuilder):
+    """Intake-esm catalog builder for ACCESS-ESM1.5 datasets"""
 
     def __init__(self, paths):
         """
-        Initialise a CosimaBuilder
+        Initialise a AccessEsm15Builder
 
         Parameters
         ----------
@@ -31,8 +31,7 @@ class CosimaBuilder(BaseBuilder):
         kwargs = dict(
             paths=paths,
             depth=3,
-            exclude_patterns=["*/restart*/*", "*o2i.nc"],
-            include_patterns=["*.nc"],
+            include_patterns=["*.nc*"],
             data_format="netcdf",
             groupby_attrs=["realm", "frequency"],
             aggregations=[
@@ -53,12 +52,15 @@ class CosimaBuilder(BaseBuilder):
     def parser(file):
         try:
             filename = os.path.basename(file)
-            match_groups = re.match(
-                r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
-            ).groups()
-            # configuration = match_groups[0]
-            # experiment = match_groups[1]
-            realm = match_groups[2]
+            match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
+            # experiment = match_groups[0]
+            realm = match_groups[1]
+            if realm == "atm":
+                realm = "atmos"
+            elif realm == "ocn":
+                realm = "ocean"
+            elif realm != "ice":
+                raise ParserError(f"Could not translate {realm} to a realm")
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
                 variable_list = [var for var in ds if "long_name" in ds[var].attrs]
