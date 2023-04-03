@@ -11,16 +11,16 @@ import xarray as xr
 
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 
-from .base import BaseESMCatBuilder
+from .base import BaseBuilder
 from .utils import get_timeinfo
 
 
-class CosimaESMCatBuilder(BaseESMCatBuilder):
+class CosimaBuilder(BaseBuilder):
     """Intake-esm catalog builder for COSIMA datasets"""
 
     def __init__(self, paths):
         """
-        Initialise a CosimaESMCatBuilder
+        Initialise a CosimaBuilder
 
         Parameters
         ----------

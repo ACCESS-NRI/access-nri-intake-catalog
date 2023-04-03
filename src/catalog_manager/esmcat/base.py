@@ -10,11 +10,11 @@ from ecgtools.builder import Builder, INVALID_ASSET
 from ..metadata import CoreESMMetadata
 
 
-class ESMCatParserError(Exception):
+class ParserError(Exception):
     pass
 
 
-class BaseESMCatBuilder(Builder):
+class BaseBuilder(Builder):
     """
     Base class for creating intake-esm catalog builders. Not intended for direct use.
     This builds on the ecgtools.Builder class.
@@ -126,7 +126,7 @@ class BaseESMCatBuilder(Builder):
                 CoreESMMetadata.validate(info)
                 return self
 
-        raise ESMCatParserError(
+        raise ParserError(
             f"Parser returns no valid assets. Try parsing a single file with {self.parser}(file)"
         )
 

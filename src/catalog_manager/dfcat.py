@@ -17,7 +17,7 @@ class CatalogExistsError(Exception):
     pass
 
 
-class DFCatUpdater:
+class CatalogManager:
     """
     Add/update intake catalogs in an intake-dataframe-catalog
     """
@@ -70,7 +70,7 @@ class DFCatUpdater:
             The name of the catalog
         description: str
             Description of the contents of the catalog
-        builder: subclass of :py:class:`catalog_manager.esm.BaseBuilder`
+        builder: subclass of :py:class:`catalog_manager.esmcat.BaseBuilder`
             The builder to use to build the intake-esm catalog
         translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
             An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
@@ -198,15 +198,27 @@ def translate_esm_metadata(
         Defaults to catalog_manager.CoreDFMetadata.groupby_columns
     """
 
-    def _sum_unique(values):
-        return values.drop_duplicates().sum()
+    def _list_unique(series):
+        # TODO: This could be made more robust
+        iterable_entries = isinstance(series.iloc[0], (list, tuple, set))
+        uniques = sorted(
+            set(
+                series.drop_duplicates()
+                .apply(lambda x: x if iterable_entries else [x])
+                .sum()
+            )
+        )
+        return uniques[0] if (len(uniques) == 1) & (not iterable_entries) else uniques
 
     ungrouped_columns = list(set(CoreDFMetadata.columns) - set(groupby))
 
     metadata = translator.translate(cat)
-
-    return (
+    metadata = (
         metadata.groupby(groupby)
-        .agg({col: _sum_unique for col in ungrouped_columns})
+        .agg({col: _list_unique for col in ungrouped_columns})
         .reset_index()
     )
+
+    return metadata[
+        list(CoreDFMetadata.columns)
+    ]  # Order according to entries in CoreDFMetadata.columns

@@ -98,9 +98,8 @@ class CoreDFMetadata(CoreMetadataBase):
 
     def __init__(self):
         self._metadata_columns = {
-            "model_column": ("model", "strings", lambda x: isinstance(x, str)),
-            "experiment_column": (
-                "experiment",
+            "subcatalog_column": (
+                "subcatalog",
                 "strings",
                 lambda x: isinstance(x, str),
             ),
@@ -109,12 +108,8 @@ class CoreDFMetadata(CoreMetadataBase):
                 "strings",
                 lambda x: isinstance(x, str),
             ),
+            "model_column": ("model", "strings", lambda x: isinstance(x, str)),
             "realm_column": ("realm", "strings", lambda x: isinstance(x, str)),
-            "variable_column": (
-                "variable",
-                "lists of strings",
-                lambda x: isinstance(x, list) and all(isinstance(s, str) for s in x),
-            ),
             "frequency_column": (
                 "frequency",
                 f"one of {', '.join(_ALLOWABLE_FREQS)}",
@@ -123,17 +118,22 @@ class CoreDFMetadata(CoreMetadataBase):
                     for pattern in [freq for freq in _ALLOWABLE_FREQS]
                 ),
             ),
+            "variable_column": (
+                "variable",
+                "lists of strings",
+                lambda x: isinstance(x, list) and all(isinstance(s, str) for s in x),
+            ),
         }
 
         # Columns to groupby when creating intake-dataframe-datalog metadata from intake-esm metadata
         # (see catalog_manager.CatalogManager.parse_esm_metadata)
-        self.groupby_columns = ["realm", "frequency"]
+        self.groupby_columns = ["model", "realm", "frequency"]
 
         # Column name to use as yaml_column in intake-dataframe-datalog
         self._yaml_column = "yaml"
 
         # Column name to use as name_column in intake-dataframe-datalog
-        self._name_column = self._metadata_columns["experiment_column"][0]
+        self._name_column = self._metadata_columns["subcatalog_column"][0]
 
     @classmethod
     @property

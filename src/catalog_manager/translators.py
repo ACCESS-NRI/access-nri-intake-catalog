@@ -129,24 +129,24 @@ SimpleMetadataTranslator = MetadataTranslator(
 
 CosimaMetadataTranslator = MetadataTranslator(
     {
-        "model": "ACCESS-OM2",
-        "experiment": lambda cat: pd.Series([cat.name] * len(cat.df)),
+        "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
         "description": lambda cat: pd.Series([cat.description] * len(cat.df)),
+        "model": "ACCESS-OM2",
         "realm": None,
-        "variable": None,
         "frequency": None,
+        "variable": None,
     }
 )
 
 Cmip6MetadataTranslator = MetadataTranslator(
     {
-        "model": "CMIP6",
-        "experiment": "CMIP6_CMS",
-        "description": "CLEX CMS indexed replicas of CMIP6 available on Gadi.",
+        "subcatalog": "CMIP6_CMS",
+        "description": "Available CMIP6 replicas indexed by CLEX-CMS",
+        "model": lambda cat: cat.df["source_id"],
         "realm": lambda cat: cat.df.apply(_get_cmip6_realm, axis="columns"),
+        "frequency": lambda cat: cat.df.apply(_get_cmip6_freq, axis="columns"),
         "variable": lambda cat: cat.df.apply(
             _make_list, column="variable_id", axis="columns"
         ),
-        "frequency": lambda cat: cat.df.apply(_get_cmip6_freq, axis="columns"),
     }
 )
