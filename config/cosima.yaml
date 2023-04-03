@@ -8,100 +8,100 @@ catalogs:
 
   # 0.3 TB across 9,755 files
   1deg_jra55_ryf9091_gadi:
-    description: "1 degree ACCESS-OM2 physics only global configuration with JRA55-do v1.3 RYF9091 Repeat Year Forcing. 780+ years of spinup from WOA. See metadata.yaml in the data directories for more information."
+    description: "1 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.3 RYF9091 repeat year forcing (May 1990 to Apr 1991)."
     paths:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi"
       
   # 2.2TB across 12,444 files
   1deg_jra55_iaf_omip2_cycle1:
-    description: "1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 1 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 1/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle1"
   1deg_jra55_iaf_omip2_cycle2:
-    description: "1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 2 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 2/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle2"
   1deg_jra55_iaf_omip2_cycle3:
-    description: "1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 3 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 3/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle3"
   1deg_jra55_iaf_omip2_cycle4:
-    description: "1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 4 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 4/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle4"
   1deg_jra55_iaf_omip2_cycle5:
-    description: "1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 5 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 5/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle5"
   1deg_jra55_iaf_omip2_cycle6:
-    description: "1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 6 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 6/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle6"
       
   # 4.9TB across 9,276 files
   025deg_jra55_ryf9091_gadi:
-    description: "0.25 degree ACCESS-OM2 physics only global configuration with JRA55-do v1.3 RYF9091 Repeat Year Forcing. 600+ years of spinup from WOA. Ideal for perturbation runs. See metadata.yaml in the data directories for more information."
+    description: "0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.3 RYF9091 repeat year forcing (May 1990 to Apr 1991)."
     paths:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_ryf9091_gadi"
       
   # 25TB across 11,385 files
   025deg_jra55_iaf_omip2_cycle1:
-    description: "0.25 degree ACCESS-OM2 physics only global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 1 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 1/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle1"
   025deg_jra55_iaf_omip2_cycle2:
-    description: "0.25 degree ACCESS-OM2 physics only global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 2 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 2/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle2"
   025deg_jra55_iaf_omip2_cycle3:
-    description: "0.25 degree ACCESS-OM2 physics only global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 3 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 3/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle3"
   025deg_jra55_iaf_omip2_cycle4:
-    description: "0.25 degree ACCESS-OM2 physics only global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 4 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 4/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle4"
   025deg_jra55_iaf_omip2_cycle5:
-    description: "0.25 degree ACCESS-OM2 physics only global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 5 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 5/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle5"
   025deg_jra55_iaf_omip2_cycle6:
-    description: "0.25 degree ACCESS-OM2 physics only global configuration with JRA55-do v1.4 IAF Interannual Forcing. Cycle 6 of 6 61-year cycles of 1 Jan 1958 to 1 Jan 2019 following the OMIP-2 protocol. Run for and included in CMIP6’s Ocean Model Intercomparison Program 1. See metadata.yaml in the data directories for more information."
+    description: "Cycle 6/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)."
     paths:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle6"
       
   # 122.6TB across 13,063 files
   01deg_jra55v13_ryf9091:
-    description: "0.1 degree ACCESS-OM2 global model configuration under JRA55-do v1.3 RYF9091 Repeat Year Forcing. Forcing strategy outlined by Stewart et al. (2020) 1. The configuration is based on that described in Kiss et al. (2020) 1, but with many improvements. Initial conditions are WOA13v2 potential temperature and practical salinity. The JRA55-do v1.3 RYF9091 atmospheric forcing runs from 1 May 1990 to 30 April 1991. The simulation starts from a nominal year of 1 Jan 1900 and runs to 31 Dec 2179. See metadata.yaml in the data directories for more information."
+    description: "0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.3 RYF9091 repeat year forcing (May 1990 to Apr 1991)."
     paths:
       - "/g/data/ik11/outputs/access-om2-01/01deg_jra55v13_ryf9091"
       
   # 150.8TB across 208,882 files
   01deg_jra55v140_iaf:
-    description: "0.1 degree ACCESS-OM2 global model configuration with interannual forcing. Cycle 1 of 4 cycles following the OMIP-2 protocol with with JRA55v1.4.0 forcing. The configuration is based on that described in Kiss et al. (2020), but with many improvements that are detailed in the Supplementary Materials of Solodoch et al. (2022). Cycle 4 includes WOMBAT biogeochemistry. See metadata.yaml in the data directories for more information."
+    description: "Cycle 1/4 of 0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.4.0 OMIP2 interannual forcing."
     paths:
       - "/g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf"
   01deg_jra55v140_iaf_cycle2:
-    description: "0.1 degree ACCESS-OM2 global model configuration with interannual forcing. Cycle 2 of 4 cycles following the OMIP-2 protocol with with JRA55v1.4.0 forcing. The configuration is based on that described in Kiss et al. (2020), but with many improvements that are detailed in the Supplementary Materials of Solodoch et al. (2022). Cycle 4 includes WOMBAT biogeochemistry. See metadata.yaml in the data directories for more information."
+    description: "Cycle 2/4 of 0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.4.0 OMIP2 interannual forcing."
     paths:
       - "/g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle2"
   01deg_jra55v140_iaf_cycle3:
-    description: "0.1 degree ACCESS-OM2 global model configuration with interannual forcing. Cycle 3 of 4 cycles following the OMIP-2 protocol with with JRA55v1.4.0 forcing. The configuration is based on that described in Kiss et al. (2020), but with many improvements that are detailed in the Supplementary Materials of Solodoch et al. (2022). Cycle 4 includes WOMBAT biogeochemistry. See metadata.yaml in the data directories for more information."
+    description: "Cycle 3/4 of 0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.4.0 OMIP2 interannual forcing."
     paths:
       - "/g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle3"
   01deg_jra55v140_iaf_cycle4:
-    description: "0.1 degree ACCESS-OM2 global model configuration with interannual forcing. Cycle 4 of 4 cycles following the OMIP-2 protocol with with JRA55v1.4.0 forcing. The configuration is based on that described in Kiss et al. (2020), but with many improvements that are detailed in the Supplementary Materials of Solodoch et al. (2022). Cycle 4 includes WOMBAT biogeochemistry. See metadata.yaml in the data directories for more information."
+    description: "Cycle 4/4 of 0.1 degree ACCESS-OM2 + WOMBAT BGC global model configuration with JRA55-do v1.4.0 OMIP2 interannual forcing."
     paths:
       - "/g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle4"
       
   # 4.1TB acros 10,823 files
   01deg_jra55v140_iaf_cycle4_jra55v150_extension:
-    description: "0.1 degree ACCESS-OM2 global model configuration with interannual forcing. Extension of cycle 4 to present day with WOMBAT BGC using v1.5.0 and v1.5.0.1 forcing. The configuration is based on that described in Kiss et al. (2020), but with many improvements that are detailed in the Supplementary Materials of Solodoch et al. (2022). See metadata.yaml in the data directories for more information."
+    description: "Extensions of cycle 4/4 of 0.1 degree ACCESS-OM2 + WOMBAT BGC global model configuration with JRA55-do v1.5.0 and v1.5.0.1 OMIP2 interannual forcing."
     paths:
       - "/g/data/ik11/outputs/access-om2-01/01deg_jra55v140_iaf_cycle4_jra55v150_extension"
       
   # 69.0TB acros 23,096 files
   01deg_jra55v150_iaf_cycle1:
-    description: "0.1 degree ACCESS-OM2 global model configuration with interannual forcing. Cycle 1 of 1 cycles following the OMIP-2 protocol with with JRA55v1.5.0 forcing. This run was to generate data and restarts for forcing regional models and running DA systems. The configuration is based on that described in Kiss et al. (2020), but with many improvements that are detailed in the Supplementary Materials of Solodoch et al. (2022). See metadata.yaml in the data directories for more information."
+    description: "Cycle 1/1 of 0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.5.0 OMIP2 interannual forcing."
     paths:
       - "/g/data/ik11/outputs/access-om2-01/01deg_jra55v150_iaf_cycle1"
