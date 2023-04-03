@@ -1,8 +1,6 @@
-import re
-
 import pandas as pd
 
-from .metadata import CoreDFMetadata, _ALLOWABLE_FREQS
+from .metadata import CoreDFMetadata
 
 
 class MetadataTranslatorError(Exception):
@@ -69,58 +67,65 @@ class MetadataTranslator:
         return pd.concat(translated, axis="columns")
 
 
-def _make_list(series, column):
+def _to_list(df, column):
     """
     Make entries in the provided column a list
     """
-    return [series[column]]
+    return df[column].apply(lambda x: [x])
 
 
-def _get_cmip6_freq(series):
+def _get_cmip6_realm_freq(df, get):
     """
-    Parse frequency from CMIP6 metadata
+    Parse realm and frequency from CMIP6 metadata
     """
-    table_id = series["table_id"]
-    if table_id == "Oclim":
-        # An annoying edge case
-        return "1mon"
-    for pattern in [s for s in _ALLOWABLE_FREQS]:
-        get_int = False
-        if r"\d+" in pattern:
-            get_int = True
-            pattern = pattern.replace(r"\d+", "")
-        match = re.match(f".*({pattern})", table_id)
-        if match:
-            freq = match.groups()[0]
-            if get_int:
-                if match.start(1) > 0:
-                    try:
-                        n = int(table_id[match.start(1) - 1])
-                        return f"{n}{freq}"
-                    except ValueError:
-                        pass
-                return f"1{freq}"
-            else:
-                return freq
-
-
-def _get_cmip6_realm(series):
-    """
-    Parse realm from CMIP6 metadata
-    """
-    table_id = series["table_id"]
-    if any(re.match(f".*{pattern}.*", table_id) for pattern in ["Ant", "Gre", "SI"]):
-        return "ice"
-    if table_id == "3hr" or any(
-        re.match(f".*{pattern}.*", table_id)
-        for pattern in ["Lev", "Plev", "A", "CF", "E.*hr", "Z"]
-    ):
-        return "atmos"
-    if any(re.match(f".*{pattern}.*", table_id) for pattern in ["O"]):
-        return "ocean"
-    if any(re.match(f".*{pattern}.*", table_id) for pattern in ["L"]):
-        return "land"
-    return "unknown"
+    table_id = df["table_id"]
+    mapping = {
+        "3hr": ("multi", "3hr"),  # "atmos", "land", "ocean"
+        "6hrLev": ("atmos", "6hr"),
+        "6hrPlev": ("atmos", "6hr"),
+        "6hrPlevPt": ("atmos", "6hr"),
+        "AERday": ("atmos", "1day"),
+        "AERhr": ("atmos", "1hr"),
+        "AERmon": ("atmos", "1mon"),
+        "AERmonZ": ("atmos", "1mon"),
+        "Amon": ("atmos", "1mon"),
+        "CF3hr": ("atmos", "3hr"),
+        "CFday": ("atmos", "1day"),
+        "CFmon": ("atmos", "1mon"),
+        "CFsubhr": ("atmos", "subhr"),
+        "E1hr": ("atmos", "1hr"),
+        "E1hrClimMon": ("atmos", "1hr"),
+        "E3hr": ("multi", "3hr"),  # "atmos", "land"
+        "E3hrPt": ("multi", "3hr"),  # "atmos", "land"
+        "E6hrZ": ("atmos", "6hr"),
+        "Eday": ("multi", "1day"),  # "atmos", "ice", "land", "ocean"
+        "EdayZ": ("atmos", "1day"),
+        "Efx": ("multi", "fx"),  # "atmos", "ice", "land"
+        "Emon": ("multi", "1mon"),  # "atmos", "land", "ocean"
+        "EmonZ": ("multi", "1mon"),  # "atmos", "ocean"
+        "Esubhr": ("atmos", "subhr"),
+        "Eyr": ("multi", "1yr"),  # "land", "ocean"
+        "IfxAnt": ("ice", "fx"),
+        "IfxGre": ("ice", "fx"),
+        "ImonAnt": ("ice", "1mon"),
+        "ImonGre": ("ice", "1mon"),
+        "IyrAnt": ("ice", "1yr"),
+        "IyrGre": ("ice", "1yr"),
+        "LImon": ("multi", "1mon"),  # "ice", "land"
+        "Lmon": ("land", "1mon"),
+        "Oclim": ("ocean", "1mon"),
+        "Oday": ("ocean", "1day"),
+        "Odec": ("ocean", "1dec"),
+        "Ofx": ("ocean", "fx"),
+        "Omon": ("ocean", "1mon"),
+        "Oyr": ("ocean", "1yr"),
+        "SIday": ("ice", "1day"),
+        "SImon": ("ice", "1mon"),
+        "day": ("multi", "1day"),  # "atmos", "ocean"
+        "fx": ("multi", "fx"),  # "atmos", "ice", "land"
+    }
+    ind = {"realm": 0, "freq": 1}[get]
+    return table_id.map({k: v[ind] for k, v in mapping.items()})
 
 
 SimpleMetadataTranslator = MetadataTranslator(
@@ -143,10 +148,8 @@ Cmip6MetadataTranslator = MetadataTranslator(
         "subcatalog": "CMIP6_CMS",
         "description": "Available CMIP6 replicas indexed by CLEX-CMS",
         "model": lambda cat: cat.df["source_id"],
-        "realm": lambda cat: cat.df.apply(_get_cmip6_realm, axis="columns"),
-        "frequency": lambda cat: cat.df.apply(_get_cmip6_freq, axis="columns"),
-        "variable": lambda cat: cat.df.apply(
-            _make_list, column="variable_id", axis="columns"
-        ),
+        "realm": lambda cat: _get_cmip6_realm_freq(cat.df, get="realm"),
+        "frequency": lambda cat: _get_cmip6_realm_freq(cat.df, get="freq"),
+        "variable": lambda cat: _to_list(cat.df, column="variable_id"),
     }
 )

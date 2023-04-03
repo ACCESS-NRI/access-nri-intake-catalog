@@ -125,6 +125,7 @@ class CatalogManager:
         """
 
         cat = intake.open_esm_datastore(json_file, **kwargs)
+
         metadata = translate_esm_metadata(cat, translator)
 
         return cls(cat, metadata)
