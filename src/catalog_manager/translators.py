@@ -128,11 +128,9 @@ def _get_cmip6_realm_freq(df, get):
     return table_id.map({k: v[ind] for k, v in mapping.items()})
 
 
-SimpleMetadataTranslator = MetadataTranslator(
-    {col: None for col in CoreDFMetadata.columns}
-)
+SimpleTranslator = MetadataTranslator({col: None for col in CoreDFMetadata.columns})
 
-CosimaMetadataTranslator = MetadataTranslator(
+CosimaTranslator = MetadataTranslator(
     {
         "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
         "description": lambda cat: pd.Series([cat.description] * len(cat.df)),
@@ -143,7 +141,7 @@ CosimaMetadataTranslator = MetadataTranslator(
     }
 )
 
-Cmip6MetadataTranslator = MetadataTranslator(
+Cmip6Translator = MetadataTranslator(
     {
         "subcatalog": "CMIP6_CMS",
         "description": "Available CMIP6 replicas indexed by CLEX-CMS",

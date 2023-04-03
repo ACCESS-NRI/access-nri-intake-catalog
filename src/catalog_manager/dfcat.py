@@ -9,7 +9,7 @@ import intake
 from intake_dataframe_catalog.core import DFCatalogModel
 
 from .metadata import CoreDFMetadata
-from .translators import SimpleMetadataTranslator
+from .translators import SimpleTranslator
 
 
 class CatalogExistsError(Exception):
@@ -164,12 +164,12 @@ class CatalogManager:
                 name_column=CoreDFMetadata.name_column,
             )
         else:
+            metadata_columns = CoreDFMetadata.columns  # Preserve column order
+            metadata_columns.remove(CoreDFMetadata.name_column)
             dfcat = DFCatalogModel(
                 yaml_column=CoreDFMetadata.yaml_column,
                 name_column=CoreDFMetadata.name_column,
-                metadata_columns=list(
-                    set(CoreDFMetadata.columns) - set([CoreDFMetadata.name_column])
-                ),
+                metadata_columns=metadata_columns,
             )
 
         overwrite = True
@@ -181,7 +181,7 @@ class CatalogManager:
 
 
 def translate_esm_metadata(
-    cat, translator=SimpleMetadataTranslator, groupby=CoreDFMetadata.groupby_columns
+    cat, translator=SimpleTranslator, groupby=CoreDFMetadata.groupby_columns
 ):
     """
     Parse metadata table to include in the intake-dataframe-catalog from an intake-esm dataframe
@@ -192,8 +192,8 @@ def translate_esm_metadata(
     translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
         An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
         translating intake-esm column metadata into intake-dataframe-catalog column metadata. Defaults
-        to catalog_manager.translators.SimpleMetadataTranslator which assumes all core
-        intake-dataframe-catalog columns are present in the intake-esm catalog.
+        to catalog_manager.translators.SimpleTranslator which assumes all core intake-dataframe-catalog
+        columns are present in the intake-esm catalog.
     groupby: list of str, optional
         Core metadata columns to group by before merging metadata across remaining core columns.
         Defaults to catalog_manager.CoreDFMetadata.groupby_columns

@@ -97,6 +97,7 @@ class CoreDFMetadata(CoreMetadataBase):
     """
 
     def __init__(self):
+        # Columns appear in the catalog in the order they are entered here
         self._metadata_columns = {
             "subcatalog_column": (
                 "subcatalog",
