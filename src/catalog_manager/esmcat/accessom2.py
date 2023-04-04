@@ -31,7 +31,7 @@ class AccessOm2Builder(BaseBuilder):
         kwargs = dict(
             paths=paths,
             depth=3,
-            exclude_patterns=["*/restart*/*", "*o2i.nc"],
+            exclude_patterns=["*restart*", "*o2i.nc"],
             include_patterns=["*.nc"],
             data_format="netcdf",
             groupby_attrs=["file_id", "frequency"],

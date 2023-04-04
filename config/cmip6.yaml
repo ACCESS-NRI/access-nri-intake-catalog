@@ -17,7 +17,8 @@ catalogs:
     description: "Australian CMIP6-era datasets catalogued by NCI"
     paths:
       - "/g/data/dk92/catalog/v2/esm/cmip6-fs38/catalog.json"
-      
+
+  # 947 TB
   CMIP6_NCI_oi10:
     description: "Replicated CMIP6-era datasets catalogued by NCI"
     paths:

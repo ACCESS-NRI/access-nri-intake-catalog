@@ -31,6 +31,7 @@ class AccessEsm15Builder(BaseBuilder):
         kwargs = dict(
             paths=paths,
             depth=3,
+            exclude_patterns=["*restart*"],
             include_patterns=["*.nc*"],
             data_format="netcdf",
             groupby_attrs=["file_id", "frequency"],
