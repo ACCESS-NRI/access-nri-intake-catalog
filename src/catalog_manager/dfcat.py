@@ -55,12 +55,12 @@ class CatalogManager:
         name,
         description,
         builder,
-        paths,
+        path,
         translator=DefaultTranslator,
-        builder_kwargs=None,
+        metadata=None,
         directory=None,
         overwrite=False,
-        **additional_info,
+        **kwargs,
     ):
         """
         Build an intake-esm catalog
@@ -73,24 +73,27 @@ class CatalogManager:
             Description of the contents of the catalog
         builder: subclass of :py:class:`catalog_manager.esmcat.BaseBuilder`
             The builder to use to build the intake-esm catalog
-        paths: list of str
-            List of paths to crawl for assets/files to add to the catalog.
+        path: str or list of str
+            Path or list of paths to crawl for assets/files to add to the catalog.
         translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
             An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
             translating info in the intake-esm catalog into intake-dataframe-catalog column metadata.
             Defaults to catalog_manager.translators.DefaultTranslator.
-        builder_kwargs: dict
-            Additional kwargs to pass to the builder
+        metadata: dict, optional
+            Additional info to store in the intake cat.metadata attribute. This info will be available
+            to MetadataTranslators and to users of the catalog
         directory: str
             The directory to save the catalog to. If None, use the current directory
         overwrite: bool, optional
             Whether to overwrite any existing catalog(s) with the same name
-        additional_info: dict, optional
-            Additional info to store in the intake cat.metadata attribute. This info will be available
-            to MetadataTranslators and to users of the catalog
+        kwargs: dict
+            Additional kwargs to pass to the builder
         """
 
-        builder_kwargs = builder_kwargs or {}
+        metadata = metadata or {}
+
+        if isinstance(path, str):
+            path = [path]
 
         json_file = os.path.abspath(f"{os.path.join(directory, name)}.json")
         if os.path.isfile(json_file):
@@ -100,29 +103,29 @@ class CatalogManager:
                     "pass `overwrite=True` to CatalogBuilder.build"
                 )
 
-        builder = builder(paths, **builder_kwargs).build()
+        builder = builder(path, **kwargs).build()
         builder.save(name=name, description=description, directory=directory)
 
-        cat, metadata = _open_and_translate(
+        cat, df = _open_and_translate(
             json_file,
             name,
             description,
-            additional_info,
+            metadata,
             translator,
             columns_with_iterables=list(builder.columns_with_iterables),
         )
 
-        return cls(cat, metadata)
+        return cls(cat, df)
 
     @classmethod
     def load_esm(
         cls,
         name,
         description,
-        json_file,
+        path,
         translator,
-        open_kwargs=None,
-        **additional_info,
+        metadata=None,
+        **kwargs,
     ):
         """
         Load an existing intake-esm catalog
@@ -133,25 +136,32 @@ class CatalogManager:
             The name of the catalog
         description: str
             Description of the contents of the catalog
-        json_file: str
+        path: str
             The path to the intake-esm catalog JSON file
         translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
             An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
             translating intake-esm column metadata into intake-dataframe-catalog column metadata
-        open_kwargs: dict, optional
-            Additional kwargs to pass to :py:class:`~intake.open_esm_datastore`
-        additional_info: dict, optional
+        metadata: dict, optional
             Additional info to store in the intake cat.metadata attribute. This info will be available
             to MetadataTranslators and to users of the catalog
+        kwargs: dict, optional
+            Additional kwargs to pass to :py:class:`~intake.open_esm_datastore`
         """
 
-        open_kwargs = open_kwargs or {}
+        if isinstance(path, list):
+            if len(path) != 1:
+                raise ValueError(
+                    "Only a single JSON file can be passed to CatalogManager.load_esm. Received {len(path)}"
+                )
+            path = path[0]
 
-        cat, metadata = _open_and_translate(
-            json_file, name, description, additional_info, translator, **open_kwargs
+        metadata = metadata or {}
+
+        cat, df = _open_and_translate(
+            path, name, description, metadata, translator, **kwargs
         )
 
-        return cls(cat, metadata)
+        return cls(cat, df)
 
     def add(self, name, directory=None, **kwargs):
         """

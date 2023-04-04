@@ -23,4 +23,7 @@ setup(
         "intake-esm",
         "jsonschema",
     ],
+    entry_points={
+        "console_scripts": ["buildcat=catalog_manager.cli:main"],
+    },
 )

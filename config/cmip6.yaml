@@ -10,16 +10,17 @@ catalogs:
 
   CMIP6_CMS:
     description: "CMIP6 datasets catalogued by CLEX-CMS"
-    paths:
+    path:
       - "/g/data/hh5/public/apps/nci-intake-catalogue/esgf/cmip6/catalogue_latest.json"
       
+  # 417 TB
   CMIP6_NCI_fs38:
     description: "Australian CMIP6-era datasets catalogued by NCI"
-    paths:
+    path:
       - "/g/data/dk92/catalog/v2/esm/cmip6-fs38/catalog.json"
 
   # 947 TB
   CMIP6_NCI_oi10:
     description: "Replicated CMIP6-era datasets catalogued by NCI"
-    paths:
+    path:
       - "/g/data/dk92/catalog/v2/esm/cmip6-oi10/catalog.json"

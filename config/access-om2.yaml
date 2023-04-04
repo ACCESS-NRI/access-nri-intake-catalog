@@ -12,99 +12,99 @@ catalogs:
   # 0.3 TB across 9,755 files
   1deg_jra55_ryf9091_gadi:
     description: "1 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.3 RYF9091 repeat year forcing (May 1990 to Apr 1991)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi"
       
   # 2.2TB across 12,444 files
   1deg_jra55_iaf_omip2_cycle1:
     description: "Cycle 1/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle1"
   1deg_jra55_iaf_omip2_cycle2:
     description: "Cycle 2/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle2"
   1deg_jra55_iaf_omip2_cycle3:
     description: "Cycle 3/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle3"
   1deg_jra55_iaf_omip2_cycle4:
     description: "Cycle 4/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle4"
   1deg_jra55_iaf_omip2_cycle5:
     description: "Cycle 5/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle5"
   1deg_jra55_iaf_omip2_cycle6:
     description: "Cycle 6/6 of 1 degree ACCESS-OM2-BGC global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle6"
       
   # 4.9TB across 9,276 files
   025deg_jra55_ryf9091_gadi:
     description: "0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.3 RYF9091 repeat year forcing (May 1990 to Apr 1991)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_ryf9091_gadi"
       
   # 25TB across 11,385 files
   025deg_jra55_iaf_omip2_cycle1:
     description: "Cycle 1/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle1"
   025deg_jra55_iaf_omip2_cycle2:
     description: "Cycle 2/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle2"
   025deg_jra55_iaf_omip2_cycle3:
     description: "Cycle 3/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle3"
   025deg_jra55_iaf_omip2_cycle4:
     description: "Cycle 4/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle4"
   025deg_jra55_iaf_omip2_cycle5:
     description: "Cycle 5/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle5"
   025deg_jra55_iaf_omip2_cycle6:
     description: "Cycle 6/6 of 0.25 degree ACCESS-OM2 physics-only global configuration with JRA55-do v1.4 OMIP2 interannual forcing (1958-2019)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle6"
       
   # 122.6TB across 13,063 files
   01deg_jra55v13_ryf9091:
     description: "0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.3 RYF9091 repeat year forcing (May 1990 to Apr 1991)"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-01/01deg_jra55v13_ryf9091"
       
   # 150.8TB across 208,882 files
   01deg_jra55v140_iaf:
     description: "Cycle 1/4 of 0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.4.0 OMIP2 interannual forcing"
-    paths:
+    path:
       - "/g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf"
   01deg_jra55v140_iaf_cycle2:
     description: "Cycle 2/4 of 0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.4.0 OMIP2 interannual forcing"
-    paths:
+    path:
       - "/g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle2"
   01deg_jra55v140_iaf_cycle3:
     description: "Cycle 3/4 of 0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.4.0 OMIP2 interannual forcing"
-    paths:
+    path:
       - "/g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle3"
   01deg_jra55v140_iaf_cycle4:
     description: "Cycle 4/4 of 0.1 degree ACCESS-OM2 + WOMBAT BGC global model configuration with JRA55-do v1.4.0 OMIP2 interannual forcing"
-    paths:
+    path:
       - "/g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle4"
       
   # 4.1TB acros 10,823 files
   01deg_jra55v140_iaf_cycle4_jra55v150_extension:
     description: "Extensions of cycle 4/4 of 0.1 degree ACCESS-OM2 + WOMBAT BGC global model configuration with JRA55-do v1.5.0 and v1.5.0.1 OMIP2 interannual forcing"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-01/01deg_jra55v140_iaf_cycle4_jra55v150_extension"
       
   # 69.0TB acros 23,096 files
   01deg_jra55v150_iaf_cycle1:
     description: "Cycle 1/1 of 0.1 degree ACCESS-OM2 global model configuration with JRA55-do v1.5.0 OMIP2 interannual forcing"
-    paths:
+    path:
       - "/g/data/ik11/outputs/access-om2-01/01deg_jra55v150_iaf_cycle1"

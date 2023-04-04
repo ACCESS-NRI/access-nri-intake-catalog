@@ -12,99 +12,99 @@ catalogs:
   # 2.8 TB
   bx944:
     description: "Ensemble 1/1 of standard CMIP6 historical simulation control experiment for by473, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944"
   bx944a:
     description: "Ensemble 2/5 of standard CMIP6 historical simulation control experiment for by473a, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944a"
   bx944b:
     description: "Ensemble 3/5 of standard CMIP6 historical simulation control experiment for by473b, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944b"
   bx944c:
     description: "Ensemble 4/5 of standard CMIP6 historical simulation control experiment for by473c, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944c"
   bx944d:
     description: "Ensemble 5/5 of standard CMIP6 historical simulation control experiment for by473d, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944d"
 
   # 0.35 TB
   by647:
     description: "Ensemble 1/5 of standard CMIP6 ssp245 simulation control experiment for by578, branched from ACCESS-CM2 bx944 in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647"
   by647a:
     description: "Ensemble 2/5 of standard CMIP6 ssp245 simulation control experiment for by578a, branched from ACCESS-CM2 bx944a in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647a"
   by647b:
     description: "Ensemble 3/5 of standard CMIP6 ssp245 simulation control experiment for by578b, branched from ACCESS-CM2 bx944b in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647b"
   by647c:
     description: "Ensemble 4/5 of standard CMIP6 ssp245 simulation control experiment for by578c, branched from ACCESS-CM2 bx944c in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647c"
   by647d:
     description: "Ensemble 5/5 of standard CMIP6 ssp245 simulation control experiment for by578d, branched from ACCESS-CM2 bx944d in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647d"
 
   # 2.1 TB
   by473:
     description: "Ensemble 1/5 of pacemaker variation of CMIP6 historical simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473"
   by473a:
     description: "Ensemble 2/5 of pacemaker variation of CMIP6 historical simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473a"
   by473b:
     description: "Ensemble 3/5 of pacemaker variation of CMIP6 historical simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473b"
   by473c:
     description: "Ensemble 4/5 of pacemaker variation of CMIP6 historical simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473c"
   by473d:
     description: "Ensemble 5/5 of pacemaker variation of CMIP6 historical simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi889"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473d"
 
   # 0.35 GB
   by578:
     description: "Ensemble 1/5 of pacemaker variation of CMIP6 ssp245 simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi473 in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578"
   by578a:
     description: "Ensemble 2/5 of pacemaker variation of CMIP6 ssp245 simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi473a in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578a"
   by578b:
     description: "Ensemble 3/5 of pacemaker variation of CMIP6 ssp245 simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi473b in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578b"
   by578c:
     description: "Ensemble 4/5 of pacemaker variation of CMIP6 ssp245 simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi473c in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578c"
   by578d:
     description: "Ensemble 5/5 of pacemaker variation of CMIP6 ssp245 simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi473d in 2015"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578d"
 
   # 14 TB
   bz687:
     description: "Present day control run"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bz687"
 
   # 24 TB
   cj877:
     description: "Present day control run with ACCESS-OM2 0.25 deg ocean"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/cj877"

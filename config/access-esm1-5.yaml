@@ -12,25 +12,25 @@ catalogs:
   # 55 TB
   PI_GWL_B2035:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2035"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2035" 
   PI-GWL-B2040:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2040"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2040"
   PI-GWL-B2045:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2045"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2045"
   PI-GWL-B2050:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2050"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2050"
   PI-GWL-B2055:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2055"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2055"
   PI-GWL-B2060:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2060"
-    paths:
+    path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2060"
