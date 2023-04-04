@@ -128,24 +128,11 @@ def _get_cmip6_realm_freq(df, get):
     return table_id.map({k: v[ind] for k, v in mapping.items()})
 
 
-SimpleTranslator = MetadataTranslator({col: None for col in CoreDFMetadata.columns})
-
-AccessOm2Translator = MetadataTranslator(
+DefaultTranslator = MetadataTranslator(
     {
         "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
         "description": lambda cat: pd.Series([cat.description] * len(cat.df)),
-        "model": "ACCESS-OM2",
-        "realm": None,
-        "frequency": None,
-        "variable": None,
-    }
-)
-
-AccessEsm15Translator = MetadataTranslator(
-    {
-        "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
-        "description": lambda cat: pd.Series([cat.description] * len(cat.df)),
-        "model": "ACCESS-ESM1-5",
+        "model": lambda cat: pd.Series([cat.metadata["model"]] * len(cat.df)),
         "realm": None,
         "frequency": None,
         "variable": None,

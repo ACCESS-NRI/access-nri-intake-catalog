@@ -1,6 +1,8 @@
+model: "ACCESS-OM2"
+
 builder: "AccessOm2Builder"
 
-translator: "AccessOm2Translator"
+# translator: Not set - use DefaultTranslator
 
 catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/access-om2"
 

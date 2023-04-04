@@ -1,6 +1,8 @@
+model: "ACCESS-CM2"
+
 builder: "AccessCm2Builder"
 
-translator: "AccessCm2Translator"
+# translator: Not set - use DefaultTranslator
 
 catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/access-cm2"
 

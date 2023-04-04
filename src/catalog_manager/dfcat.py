@@ -9,7 +9,7 @@ import intake
 from intake_dataframe_catalog.core import DFCatalogModel
 
 from .metadata import CoreDFMetadata
-from .translators import SimpleTranslator
+from .translators import DefaultTranslator
 
 
 class CatalogExistsError(Exception):
@@ -55,11 +55,12 @@ class CatalogManager:
         name,
         description,
         builder,
-        translator,
         paths,
+        translator=DefaultTranslator,
         builder_kwargs=None,
         directory=None,
         overwrite=False,
+        **additional_info,
     ):
         """
         Build an intake-esm catalog
@@ -72,17 +73,21 @@ class CatalogManager:
             Description of the contents of the catalog
         builder: subclass of :py:class:`catalog_manager.esmcat.BaseBuilder`
             The builder to use to build the intake-esm catalog
-        translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
-            An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
-            translating intake-esm column metadata into intake-dataframe-catalog column metadata
         paths: list of str
             List of paths to crawl for assets/files to add to the catalog.
+        translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
+            An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
+            translating info in the intake-esm catalog into intake-dataframe-catalog column metadata.
+            Defaults to catalog_manager.translators.DefaultTranslator.
         builder_kwargs: dict
             Additional kwargs to pass to the builder
         directory: str
             The directory to save the catalog to. If None, use the current directory
         overwrite: bool, optional
             Whether to overwrite any existing catalog(s) with the same name
+        additional_info: dict, optional
+            Additional info to store in the intake cat.metadata attribute. This info will be available
+            to MetadataTranslators and to users of the catalog
         """
 
         builder_kwargs = builder_kwargs or {}
@@ -103,6 +108,7 @@ class CatalogManager:
         )
         cat.name = name
         cat.description = description
+        cat.metadata = additional_info
 
         metadata = translate_esm_metadata(cat, translator)
 
@@ -180,20 +186,19 @@ class CatalogManager:
         dfcat.save(name, directory, **kwargs)
 
 
-def translate_esm_metadata(
-    cat, translator=SimpleTranslator, groupby=CoreDFMetadata.groupby_columns
-):
+def translate_esm_metadata(cat, translator, groupby=CoreDFMetadata.groupby_columns):
     """
-    Parse metadata table to include in the intake-dataframe-catalog from an intake-esm dataframe
+    Parse metadata table to include in the intake-dataframe-catalog from an intake-esm catalog
     and merge into a set of rows with unique values of the columns specified in groupby.
 
     Parameters
     ----------
+    cat: :py:class:`intake-esm.esm_datastore`
+        An intake-esm catalog
     translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
         An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
         translating intake-esm column metadata into intake-dataframe-catalog column metadata. Defaults
-        to catalog_manager.translators.SimpleTranslator which assumes all core intake-dataframe-catalog
-        columns are present in the intake-esm catalog.
+        to catalog_manager.translators.DefaultTranslator.
     groupby: list of str, optional
         Core metadata columns to group by before merging metadata across remaining core columns.
         Defaults to catalog_manager.CoreDFMetadata.groupby_columns

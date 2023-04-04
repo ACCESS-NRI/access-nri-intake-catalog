@@ -38,24 +38,24 @@ class BaseBuilder(Builder):
 
         Parameters
         ----------
-        paths : list of str
+        paths: list of str
             List of paths to crawl for assets/files.
-        depth : int, optional
+        depth: int, optional
             Maximum depth to crawl for assets. Default is 0.
-        exclude_patterns : list of str, optional
+        exclude_patterns: list of str, optional
             List of glob patterns to exclude from crawling.
-        include_patterns : list of str, optional
+        include_patterns: list of str, optional
             List of glob patterns to include from crawling.
-        data_format : str
+        data_format: str
             The data format. Valid values are netcdf, reference and zarr.
         groupby_attrs: List[str]
             Column names (attributes) that define data sets that can be aggegrated.
-        aggregations : List[dict]
+        aggregations: List[dict]
             List of aggregations to apply to query results, default None
-        storage_options : dict, optional
+        storage_options: dict, optional
             Parameters passed to the backend file-system such as Google Cloud Storage,
             Amazon Web Service S3
-        joblib_parallel_kwargs : dict, optional
+        joblib_parallel_kwargs: dict, optional
             Parameters passed to joblib.Parallel. Default is {}.
         """
 
