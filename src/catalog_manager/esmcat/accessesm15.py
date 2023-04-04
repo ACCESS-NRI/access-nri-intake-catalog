@@ -3,9 +3,9 @@
 
 """ Builder for generating an intake-esm catalog from ACCESS-ESM1.5 data """
 
-import os
 import re
 import traceback
+from pathlib import Path
 
 import xarray as xr
 
@@ -33,7 +33,7 @@ class AccessEsm15Builder(BaseBuilder):
             depth=3,
             include_patterns=["*.nc*"],
             data_format="netcdf",
-            groupby_attrs=["realm", "frequency"],
+            groupby_attrs=["file_id", "frequency"],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -51,7 +51,12 @@ class AccessEsm15Builder(BaseBuilder):
     @staticmethod
     def parser(file):
         try:
-            filename = os.path.basename(file)
+            filename = Path(file).stem
+            # File id without dates and using Python characters
+            file_id = re.sub(
+                r"[-.]", "_", re.sub(r"[-_.](\d{4}[-_]\d{2}|\d{6}|\d{8})", "", filename)
+            )
+
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             # experiment = match_groups[0]
             realm = match_groups[1]
@@ -70,6 +75,7 @@ class AccessEsm15Builder(BaseBuilder):
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
+                "file_id": file_id,
             }
 
             info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)

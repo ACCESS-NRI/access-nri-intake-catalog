@@ -104,12 +104,12 @@ class CoreDFMetadata(CoreMetadataBase):
                 "strings",
                 lambda x: isinstance(x, str),
             ),
+            "model_column": ("model", "strings", lambda x: isinstance(x, str)),
             "description_column": (
                 "description",
                 "strings",
                 lambda x: isinstance(x, str),
             ),
-            "model_column": ("model", "strings", lambda x: isinstance(x, str)),
             "realm_column": ("realm", "strings", lambda x: isinstance(x, str)),
             "frequency_column": (
                 "frequency",

@@ -53,9 +53,11 @@ class AccessOm2Builder(BaseBuilder):
     def parser(file):
         try:
             filename = Path(file).stem
+            # File id without dates and using Python characters
             file_id = re.sub(
-                r"[_.]\d\d\d\d[_-]\d\d", "", filename
-            )  # Remove dates like "_1958_04", ".1919-06"
+                r"[-.]", "_", re.sub(r"[-_.](\d{4}[-_]\d{2}|\d{6}|\d{8})", "", filename)
+            )
+
             match_groups = re.match(
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
             ).groups()
