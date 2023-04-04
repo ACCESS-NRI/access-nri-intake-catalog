@@ -24,7 +24,7 @@ class CatalogManager:
 
     def __init__(self, cat, metadata):
         """
-        Initialise a DFCatUpdater
+        Initialise a CatalogManager
 
         Parameters
         ----------
