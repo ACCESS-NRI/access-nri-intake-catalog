@@ -11,7 +11,7 @@ catalogs:
 
   # 2.8 TB
   bx944:
-    description: "Ensemble 1/1 of standard CMIP6 historical simulation control experiment for by473, branched from ACCESS-CM2 bi889"
+    description: "Ensemble 1/5 of standard CMIP6 historical simulation control experiment for by473, branched from ACCESS-CM2 bi889"
     paths:
       - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944"
   bx944a:
