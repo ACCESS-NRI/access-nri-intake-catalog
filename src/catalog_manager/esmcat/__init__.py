@@ -5,3 +5,5 @@
 
 from .accessom2 import AccessOm2Builder
 from .accessesm15 import AccessEsm15Builder
+
+AccessCm2Builder = AccessEsm15Builder

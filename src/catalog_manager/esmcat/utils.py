@@ -3,6 +3,8 @@
 
 """ Shared utilities for writing intake-esm parsers """
 
+import re
+
 import cftime
 
 
@@ -64,3 +66,24 @@ def get_timeinfo(ds, time_dim="time"):
         end_time.strftime("%Y-%m-%d, %H:%M:%S"),
         frequency,
     )
+
+
+def get_file_id(filename):
+    """
+    Return a file_id from a provided filename (without .type suffix) by removing dates
+    (dddd-dd, dddddd, dddddddd) starting from right, replacing "-" and "." with "_" and
+    then removing double or dangling "_".
+
+    Parameters:
+    -----------
+    filename: str
+        A filename with the suffixe (e.g. .nc) removed
+    """
+    # Remove dates dddd-dd, dddddd, dddddddd, starting from right
+    file_id = re.sub(
+        r"(\d{4}[-_]\d{2}|\d{6}|\d{8})(([^0-9]|$))(.*)$", r"\3\4", filename
+    )
+    # Enforce Python characters
+    file_id = re.sub(r"[-.]", "_", file_id)
+    # Remove any double or dangling _
+    return re.sub(r"__", "_", file_id).rstrip("_")

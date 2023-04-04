@@ -12,7 +12,7 @@ import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 
 from .base import BaseBuilder
-from .utils import get_timeinfo
+from .utils import get_timeinfo, get_file_id
 
 
 class AccessOm2Builder(BaseBuilder):
@@ -53,10 +53,7 @@ class AccessOm2Builder(BaseBuilder):
     def parser(file):
         try:
             filename = Path(file).stem
-            # File id without dates and using Python characters
-            file_id = re.sub(
-                r"[-.]", "_", re.sub(r"[-_.](\d{4}[-_]\d{2}|\d{6}|\d{8})", "", filename)
-            )
+            file_id = get_file_id(filename)
 
             match_groups = re.match(
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file

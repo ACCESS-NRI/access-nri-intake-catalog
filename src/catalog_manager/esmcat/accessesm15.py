@@ -12,7 +12,7 @@ import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 
 from catalog_manager.esmcat.base import BaseBuilder, ParserError
-from catalog_manager.esmcat.utils import get_timeinfo
+from catalog_manager.esmcat.utils import get_timeinfo, get_file_id
 
 
 class AccessEsm15Builder(BaseBuilder):
@@ -52,10 +52,7 @@ class AccessEsm15Builder(BaseBuilder):
     def parser(file):
         try:
             filename = Path(file).stem
-            # File id without dates and using Python characters
-            file_id = re.sub(
-                r"[-.]", "_", re.sub(r"[-_.](\d{4}[-_]\d{2}|\d{6}|\d{8})", "", filename)
-            )
+            file_id = get_file_id(filename)
 
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             # experiment = match_groups[0]
