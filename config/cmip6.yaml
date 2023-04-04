@@ -1,0 +1,15 @@
+builder: null
+
+translator: "Cmip6Translator"
+
+metadata: null
+
+subcatalog_dir: null
+
+catalogs:
+
+  # 0.3 TB across 9,755 files
+  CMIP6_CMS:
+    description: "Available CMIP6 replicas indexed by CLEX-CMS"
+    paths:
+      - "/g/data/hh5/public/apps/nci-intake-catalogue/esgf/cmip6/catalogue_latest.json"

@@ -141,8 +141,8 @@ DefaultTranslator = MetadataTranslator(
 
 Cmip6Translator = MetadataTranslator(
     {
-        "subcatalog": "CMIP6_CMS",
-        "description": "Available CMIP6 replicas indexed by CLEX-CMS",
+        "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
+        "description": lambda cat: pd.Series([cat.description] * len(cat.df)),
         "model": lambda cat: cat.df["source_id"],
         "realm": lambda cat: _get_cmip6_realm_freq(cat.df, get="realm"),
         "frequency": lambda cat: _get_cmip6_realm_freq(cat.df, get="freq"),

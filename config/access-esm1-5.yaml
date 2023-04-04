@@ -1,10 +1,11 @@
-model: "ACCESS-ESM1-5"
-
 builder: "AccessEsm15Builder"
 
-# translator: Not set - use DefaultTranslator
+translator: null # use DefaultTranslator
 
-catalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/access-esm1-5"
+metadata:
+  model: "ACCESS-ESM1-5"
+
+subcatalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/access-esm1-5"
 
 catalogs:
 

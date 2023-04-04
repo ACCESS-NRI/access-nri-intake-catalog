@@ -103,36 +103,53 @@ class CatalogManager:
         builder = builder(paths, **builder_kwargs).build()
         builder.save(name=name, description=description, directory=directory)
 
-        cat = intake.open_esm_datastore(
-            json_file, columns_with_iterables=list(builder.columns_with_iterables)
+        cat, metadata = _open_and_translate(
+            json_file,
+            name,
+            description,
+            additional_info,
+            translator,
+            columns_with_iterables=list(builder.columns_with_iterables),
         )
-        cat.name = name
-        cat.description = description
-        cat.metadata = additional_info
-
-        metadata = translate_esm_metadata(cat, translator)
 
         return cls(cat, metadata)
 
     @classmethod
-    def load_esm(cls, json_file, translator, **kwargs):
+    def load_esm(
+        cls,
+        name,
+        description,
+        json_file,
+        translator,
+        open_kwargs=None,
+        **additional_info,
+    ):
         """
         Load an existing intake-esm catalog
 
         Parameters
         ----------
+        name: str
+            The name of the catalog
+        description: str
+            Description of the contents of the catalog
         json_file: str
             The path to the intake-esm catalog JSON file
         translator: :py:class:`~catalog_manager.translators.MetadataTranslator`
             An instance of the :py:class:`~catalog_manager.translators.MetadataTranslator` class for
             translating intake-esm column metadata into intake-dataframe-catalog column metadata
-        kwargs: dict
+        open_kwargs: dict, optional
             Additional kwargs to pass to :py:class:`~intake.open_esm_datastore`
+        additional_info: dict, optional
+            Additional info to store in the intake cat.metadata attribute. This info will be available
+            to MetadataTranslators and to users of the catalog
         """
 
-        cat = intake.open_esm_datastore(json_file, **kwargs)
+        open_kwargs = open_kwargs or {}
 
-        metadata = translate_esm_metadata(cat, translator)
+        cat, metadata = _open_and_translate(
+            json_file, name, description, additional_info, translator, **open_kwargs
+        )
 
         return cls(cat, metadata)
 
@@ -228,3 +245,18 @@ def translate_esm_metadata(cat, translator, groupby=CoreDFMetadata.groupby_colum
     return metadata[
         list(CoreDFMetadata.columns)
     ]  # Order according to entries in CoreDFMetadata.columns
+
+
+def _open_and_translate(json_file, name, description, metadata, translator, **kwargs):
+    """
+    Open an esm-datastore, assign name, description and metadata attrs and
+    translate using the provided translator
+    """
+    cat = intake.open_esm_datastore(json_file, **kwargs)
+    cat.name = name
+    cat.description = description
+    cat.metadata = metadata
+
+    metadata = translate_esm_metadata(cat, translator)
+
+    return cat, metadata
