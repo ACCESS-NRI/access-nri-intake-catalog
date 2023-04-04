@@ -3,9 +3,9 @@
 
 """ Builder for generating an intake-esm catalog from ACCESS-OM2 COSIMA data """
 
-import os
 import re
 import traceback
+from pathlib import Path
 
 import xarray as xr
 
@@ -34,7 +34,7 @@ class AccessOm2Builder(BaseBuilder):
             exclude_patterns=["*/restart*/*", "*o2i.nc"],
             include_patterns=["*.nc"],
             data_format="netcdf",
-            groupby_attrs=["realm", "frequency"],
+            groupby_attrs=["file_id", "frequency"],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -52,7 +52,10 @@ class AccessOm2Builder(BaseBuilder):
     @staticmethod
     def parser(file):
         try:
-            filename = os.path.basename(file)
+            filename = Path(file).stem
+            file_id = re.sub(
+                r"[_.]\d\d\d\d[_-]\d\d", "", filename
+            )  # Remove dates like "_1958_04", ".1919-06"
             match_groups = re.match(
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
             ).groups()
@@ -68,6 +71,7 @@ class AccessOm2Builder(BaseBuilder):
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
+                "file_id": file_id,
             }
 
             info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
