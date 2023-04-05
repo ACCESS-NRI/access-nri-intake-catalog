@@ -68,22 +68,24 @@ def get_timeinfo(ds, time_dim="time"):
     )
 
 
-def get_file_id(filename):
+def strip_pattern_rh(patterns, string):
     """
-    Return a file_id from a provided filename (without .type suffix) by removing dates
-    (dddd-dd, dddddd, dddddddd) starting from right, replacing "-" and "." with "_" and
-    then removing double or dangling "_".
+    Sequentially strip a list of regex patterns from a string, starting from the right
+    hand side. Then replace any "-" and "." with "_" and then remove double or dangling "_".
 
     Parameters:
     -----------
-    filename: str
+    patterns: list of str
+        The list of regex patterns to strip
+    string: str
         A filename with the suffixe (e.g. .nc) removed
     """
     # Remove dates dddd-dd, dddddd, dddddddd, starting from right
-    file_id = re.sub(
-        r"(\d{4}[-_]\d{2}|\d{6}|\d{8})(([^0-9]|$))(.*)$", r"\3\4", filename
+    patterns = "|".join(patterns)
+    stripped = re.sub(
+        f"({patterns})(([^0-9]|$))(.*)$", r"\3\4", string
     )
     # Enforce Python characters
-    file_id = re.sub(r"[-.]", "_", file_id)
+    stripped = re.sub(r"[-.]", "_", stripped)
     # Remove any double or dangling _
-    return re.sub(r"__", "_", file_id).rstrip("_")
+    return re.sub(r"__", "_", stripped).rstrip("_")
