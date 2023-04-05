@@ -53,12 +53,14 @@ class AccessOm2Builder(BaseBuilder):
     def parser(file):
         try:
             filename = Path(file).stem
-            
+
             # Get file id without any dates
             # - ocean-3d-v-1-monthly-pow02-ym_1958_04.nc
             # - iceh.057-daily.nc
             # - oceanbgc-3d-caco3-1-yearly-mean-y_2015.nc
-            file_id = strip_pattern_rh(["\d{4}[-_]\d{2}", "\d{3}", "\d{4}"], filename)
+            file_id = strip_pattern_rh(
+                [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}"], filename
+            )
 
             match_groups = re.match(
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file

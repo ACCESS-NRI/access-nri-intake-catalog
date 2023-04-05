@@ -80,12 +80,17 @@ def strip_pattern_rh(patterns, string):
     string: str
         A filename with the suffixe (e.g. .nc) removed
     """
-    # Remove dates dddd-dd, dddddd, dddddddd, starting from right
-    patterns = "|".join(patterns)
-    stripped = re.sub(
-        f"({patterns})(([^0-9]|$))(.*)$", r"\3\4", string
-    )
+
+    # Strip first matched pattern
+    stripped = string
+    for pattern in patterns:
+        match = re.match(r".*(" + pattern + r")([^0-9]|$).*$", stripped)
+        if match:
+            stripped = stripped[: match.start(1)] + stripped[match.end(1) :]
+            break
+
     # Enforce Python characters
     stripped = re.sub(r"[-.]", "_", stripped)
+
     # Remove any double or dangling _
     return re.sub(r"__", "_", stripped).rstrip("_")

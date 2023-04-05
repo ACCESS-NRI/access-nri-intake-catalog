@@ -53,7 +53,7 @@ class AccessEsm15Builder(BaseBuilder):
     def parser(file):
         try:
             filename = Path(file).stem
-            
+
             # Get file id without any dates
             # - iceh_m.2014-06.nc
             # - bz687a.pm107912_mon.nc
@@ -61,7 +61,9 @@ class AccessEsm15Builder(BaseBuilder):
             # - PI-GWL-B2035.pe-109904_dai.nc
             # - PI-1pct-02.pe-011802_dai.nc_dai.nc
             # - ocean_daily.nc-02531231
-            file_id = strip_pattern_rh(["\d{4}[-_]\d{2}", "\d{6}", "\d{8}"], filename)
+            file_id = strip_pattern_rh(
+                [r"\d{4}[-_]\d{2}", r"\d{8}", r"\d{6}"], filename
+            )
 
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             # experiment = match_groups[0]
