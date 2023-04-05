@@ -5,7 +5,7 @@ translator: null # use DefaultTranslator
 metadata:
   model: "ACCESS-ESM1-5"
 
-subcatalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/access-esm1-5"
+subcatalog_dir: "/g/data/tm70/intake/access-esm1-5"
 
 catalogs:
 

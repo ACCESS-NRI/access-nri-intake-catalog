@@ -96,6 +96,7 @@ class BaseBuilder(Builder):
             description=description,
             directory=directory,
             catalog_type="file",
+            to_csv_kwargs={"compression": "gzip"},
         )
 
     def save(self, name, description, directory=None):

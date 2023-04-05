@@ -1,0 +1,11 @@
+sources:
+  nri:
+    args:
+      columns_with_iterables:
+      - variable
+      name_column: subcatalog
+      path: /g/data/tm70/intake/dfcatalog.csv
+      yaml_column: yaml
+    description: ''
+    driver: intake_dataframe_catalog.core.DFFileCatalog
+    metadata: {}

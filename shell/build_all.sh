@@ -23,7 +23,7 @@
 conda activate catalog-manager-dev
 
 CONFIG_DIR=/g/data/tm70/ds0092/projects/nri_intake_catalog/config
-CATALOG_DIR=/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs
+CATALOG_DIR=/g/data/tm70/intake
 CATALOG_NAME=dfcatalog
 
 configs=( cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml )

@@ -5,7 +5,7 @@ translator: null # use DefaultTranslator
 metadata:
   model: "ACCESS-OM2"
 
-subcatalog_dir: "/g/data/tm70/ds0092/projects/nri_intake_catalog/catalogs/access-om2"
+subcatalog_dir: "/g/data/tm70/intake/access-om2"
 
 catalogs:
 

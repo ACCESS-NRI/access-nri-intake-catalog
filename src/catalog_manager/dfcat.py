@@ -177,13 +177,12 @@ class CatalogManager:
         fname = os.path.join(directory, f"{name}.csv")
         csv_kwargs = {"index": False}
         csv_kwargs.update(kwargs or {})
-        compression = csv_kwargs.get("compression")
+        compression = csv_kwargs.get("compression") or "gzip"
         extensions = {
             "gzip": ".gz",
             "bz2": ".bz2",
             "zip": ".zip",
             "xz": ".xz",
-            None: "",
         }
         fname = f"{fname}{extensions[compression]}"
 
