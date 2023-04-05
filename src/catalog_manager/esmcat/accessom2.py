@@ -18,18 +18,18 @@ from .utils import get_timeinfo, get_file_id
 class AccessOm2Builder(BaseBuilder):
     """Intake-esm catalog builder for ACCESS-OM2 COSIMA datasets"""
 
-    def __init__(self, paths):
+    def __init__(self, path):
         """
         Initialise a AccessOm2Builder
 
         Parameters
         ----------
-        paths : list of str
-            List of paths to crawl for assets/files.
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
         """
 
         kwargs = dict(
-            paths=paths,
+            path=path,
             depth=3,
             exclude_patterns=["*restart*", "*o2i.nc"],
             include_patterns=["*.nc"],

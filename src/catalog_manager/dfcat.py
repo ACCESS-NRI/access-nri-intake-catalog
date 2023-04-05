@@ -92,9 +92,6 @@ class CatalogManager:
 
         metadata = metadata or {}
 
-        if isinstance(path, str):
-            path = [path]
-
         json_file = os.path.abspath(f"{os.path.join(directory, name)}.json")
         if os.path.isfile(json_file):
             if not overwrite:

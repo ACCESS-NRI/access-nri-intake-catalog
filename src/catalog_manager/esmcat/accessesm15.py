@@ -18,18 +18,18 @@ from catalog_manager.esmcat.utils import get_timeinfo, get_file_id
 class AccessEsm15Builder(BaseBuilder):
     """Intake-esm catalog builder for ACCESS-ESM1.5 datasets"""
 
-    def __init__(self, paths):
+    def __init__(self, path):
         """
         Initialise a AccessEsm15Builder
 
         Parameters
         ----------
-        paths : list of str
-            List of paths to crawl for assets/files.
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
         """
 
         kwargs = dict(
-            paths=paths,
+            path=path,
             depth=3,
             exclude_patterns=["*restart*"],
             include_patterns=["*.nc*"],

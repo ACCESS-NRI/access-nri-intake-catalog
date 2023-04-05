@@ -22,7 +22,7 @@ class BaseBuilder(Builder):
 
     def __init__(
         self,
-        paths,
+        path,
         depth=0,
         exclude_patterns=None,
         include_patterns=None,
@@ -38,8 +38,8 @@ class BaseBuilder(Builder):
 
         Parameters
         ----------
-        paths: list of str
-            List of paths to crawl for assets/files.
+        path: str or list of str
+            Path or list of path to crawl for assets/files.
         depth: int, optional
             Maximum depth to crawl for assets. Default is 0.
         exclude_patterns: list of str, optional
@@ -59,7 +59,10 @@ class BaseBuilder(Builder):
             Parameters passed to joblib.Parallel. Default is {}.
         """
 
-        self.paths = paths
+        if isinstance(path, str):
+            path = [path]
+
+        self.paths = path
         self.depth = depth
         self.exclude_patterns = exclude_patterns
         self.include_patterns = include_patterns
@@ -108,6 +111,12 @@ class BaseBuilder(Builder):
         directory: str, optional
             The directory to save the catalog to. If None, use the current directory.
         """
+
+        if self.df.empty:
+            raise ValueError(
+                "intake-esm catalog has not yet been built. Please run `.build()` first"
+            )
+
         self._save(name, description, directory)
 
     def validate_parser(self):
