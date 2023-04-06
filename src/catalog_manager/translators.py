@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 
 from .metadata import CoreDFMetadata
@@ -128,6 +129,14 @@ def _get_cmip6_realm_freq(df, get):
     return table_id.map({k: v[ind] for k, v in mapping.items()})
 
 
+def _get_cmip5_freq(df):
+    def _parse(s):
+        s = re.sub("clim", "", s, flags=re.IGNORECASE)
+        return f"1{s}" if s[0] in ["m", "d", "y"] else s
+
+    return df["time_frequency"].apply(lambda s: _parse(s))
+
+
 DefaultTranslator = MetadataTranslator(
     {
         "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
@@ -147,5 +156,16 @@ Cmip6Translator = MetadataTranslator(
         "realm": lambda cat: _get_cmip6_realm_freq(cat.df, get="realm"),
         "frequency": lambda cat: _get_cmip6_realm_freq(cat.df, get="freq"),
         "variable": lambda cat: _to_list(cat.df, column="variable_id"),
+    }
+)
+
+Cmip5Translator = MetadataTranslator(
+    {
+        "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
+        "description": lambda cat: pd.Series([cat.description] * len(cat.df)),
+        "model": None,
+        "realm": None,
+        "frequency": lambda cat: _get_cmip5_freq(cat.df),
+        "variable": lambda cat: _to_list(cat.df, column="variable"),
     }
 )

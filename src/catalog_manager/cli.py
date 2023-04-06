@@ -24,21 +24,14 @@ def main():
         help="Configuration YAML file specifying the intake-esm catalog(s) to add",
     )
     parser.add_argument(
-        "--catalog_dir",
-        type=str,
-        default="./",
-        help="The directory to save the intake-dataframe-catalog to",
-    )
-    parser.add_argument(
         "--catalog_name",
         type=str,
-        default="dfcatalog",
-        help="The name of the intake-dataframe-catalog",
+        default="dfcatalog.csv",
+        help="The path to the intake-dataframe-catalog",
     )
 
     args = parser.parse_args()
     config = args.config
-    catalog_dir = args.catalog_dir
     catalog_name = args.catalog_name
 
     with open(config) as f:
@@ -73,4 +66,4 @@ def main():
         logger.info(
             f"{msg} '{name}' and adding to intake-dataframe-catalog '{catalog_name}'"
         )
-        cat_generator(**cat_args).add(name=catalog_name, directory=catalog_dir)
+        cat_generator(**cat_args).add(name=catalog_name)

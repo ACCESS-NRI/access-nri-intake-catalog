@@ -160,35 +160,21 @@ class CatalogManager:
 
         return cls(cat, df)
 
-    def add(self, name, directory=None, **kwargs):
+    def add(self, name, **kwargs):
         """
         Add the catalog to an intake-dataframe-catalog
 
         Parameters
         ----------
         name: str
-            The name of the intake-dataframe-catalog
-        directory: str
-            The directory to save the DF catalog to. If None, use the current directory.
+            The path to the intake-dataframe-catalog
         kwargs: dict, optional
             Additional keyword arguments passed to :py:func:`~pandas.DataFrame.to_csv`.
         """
 
-        fname = os.path.join(directory, f"{name}.csv")
-        csv_kwargs = {"index": False}
-        csv_kwargs.update(kwargs or {})
-        compression = csv_kwargs.get("compression") or "gzip"
-        extensions = {
-            "gzip": ".gz",
-            "bz2": ".bz2",
-            "zip": ".zip",
-            "xz": ".xz",
-        }
-        fname = f"{fname}{extensions[compression]}"
-
-        if os.path.exists(fname):
+        if os.path.exists(name):
             dfcat = DFCatalogModel.load(
-                fname,
+                name,
                 yaml_column=CoreDFMetadata.yaml_column,
                 name_column=CoreDFMetadata.name_column,
             )
@@ -206,7 +192,7 @@ class CatalogManager:
             dfcat.add(self.cat, row.to_dict(), overwrite=overwrite)
             overwrite = False
 
-        dfcat.save(name, directory, **kwargs)
+        dfcat.save(name, **kwargs)
 
 
 def translate_esm_metadata(cat, translator, groupby=CoreDFMetadata.groupby_columns):

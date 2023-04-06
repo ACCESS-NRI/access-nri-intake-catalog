@@ -1,0 +1,14 @@
+builder: null
+
+translator: "Cmip5Translator"
+
+metadata: null
+
+subcatalog_dir: null
+
+catalogs:
+
+  CMIP5_CMS:
+    description: "CMIP5 datasets catalogued by CLEX-CMS"
+    path:
+      - "/g/data/hh5/public/apps/nci-intake-catalogue/esgf/cmip5/catalogue_latest.json"
