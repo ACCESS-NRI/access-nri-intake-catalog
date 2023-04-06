@@ -130,11 +130,30 @@ def _get_cmip6_realm_freq(df, get):
 
 
 def _get_cmip5_freq(df):
+    """
+    Parse frequency from CMIP5 metadata
+    """
+
     def _parse(s):
         s = re.sub("clim", "", s, flags=re.IGNORECASE)
         return f"1{s}" if s[0] in ["m", "d", "y"] else s
 
     return df["time_frequency"].apply(lambda s: _parse(s))
+
+
+def _extract_realm(df, column):
+    """
+    Search for substrings matching allowing realms, ignoring case
+    """
+
+    def _parse(s):
+        for realm in ["atmos", "ocean", "ice", "land"]:
+            match = re.match(r".*" + realm + r".*", s, flags=re.IGNORECASE)
+            if match:
+                return realm
+        raise ValueError(f"Could not match {s} to any realm")
+
+    return df[column].apply(lambda s: _parse(s))
 
 
 DefaultTranslator = MetadataTranslator(
@@ -166,6 +185,17 @@ Cmip5Translator = MetadataTranslator(
         "model": None,
         "realm": None,
         "frequency": lambda cat: _get_cmip5_freq(cat.df),
+        "variable": lambda cat: _to_list(cat.df, column="variable"),
+    }
+)
+
+EraiTranslator = MetadataTranslator(
+    {
+        "subcatalog": lambda cat: pd.Series([cat.name] * len(cat.df)),
+        "description": lambda cat: pd.Series([cat.description] * len(cat.df)),
+        "model": "ERA-Interim",
+        "realm": lambda cat: _extract_realm(cat.df, column="realm"),
+        "frequency": None,
         "variable": lambda cat: _to_list(cat.df, column="variable"),
     }
 )
