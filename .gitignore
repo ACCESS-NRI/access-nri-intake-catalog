@@ -131,3 +131,5 @@ dmypy.json
 # intake-esm files
 *.csv
 *.json
+
+*.DS_Store

@@ -5,8 +5,8 @@ Documentation for ACCESS-NRI's Intake catalog
    :maxdepth: 1
    :hidden:
 
-   gettingstarted/index
-   howtos/index
+   getting_started/index
+   how_tos/index
    reference/index
    development/index
    
@@ -23,7 +23,7 @@ This catalog, and the tools that make it work, are still a work in progress. We 
     :card: + intro-card text-center
 
     ---
-    :img-top: _static/play-solid.svg
+    :img-top: _static/play.svg
 
     **Getting started**
 
@@ -34,11 +34,11 @@ This catalog, and the tools that make it work, are still a work in progress. We 
 
     .. link-button:: Get_started
             :type: ref
-            :text: To help getting started
+            :text: To get started
             :classes: btn-block btn-secondary stretched-link
 
     ---
-    :img-top: _static/question-solid.svg
+    :img-top: _static/question.svg
 
     **How-to guides**
 
@@ -53,7 +53,7 @@ This catalog, and the tools that make it work, are still a work in progress. We 
             :classes: btn-block btn-secondary stretched-link
 
     ---
-    :img-top: _static/book-solid.svg
+    :img-top: _static/book.svg
 
     **Reference**
     
@@ -68,11 +68,11 @@ This catalog, and the tools that make it work, are still a work in progress. We 
             :classes: btn-block btn-secondary stretched-link
 
     ---
-    :img-top: _static/code-solid.svg
+    :img-top: _static/code.svg
 
     **Contributing**
 
-    Information on how to contribute to the ACCESS-NRI Intake catalog.
+    Information on how to contribute to the ACCESS-NRI Intake catalog and a history of changes made so far.
 
 
     +++
