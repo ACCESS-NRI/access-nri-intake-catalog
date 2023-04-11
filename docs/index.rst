@@ -32,7 +32,7 @@ This catalog, and the tools that make it work, are still a work in progress. We 
 
     +++
 
-    .. link-button:: Get_started
+    .. link-button:: Getting_started
             :type: ref
             :text: To get started
             :classes: btn-block btn-secondary stretched-link
@@ -47,7 +47,7 @@ This catalog, and the tools that make it work, are still a work in progress. We 
 
     +++
 
-    .. link-button:: Howtos
+    .. link-button:: How_tos
             :type: ref
             :text: To selection of how-to guides
             :classes: btn-block btn-secondary stretched-link
