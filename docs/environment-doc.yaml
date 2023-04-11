@@ -1,0 +1,17 @@
+name: catalog-manager-doc
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python==3.10
+  - nbsphinx
+  - numpydoc
+  - sphinx
+  - sphinx-autobuild
+  - pip
+  - pip:
+    - pydata-sphinx-theme
+    - sphinxcontrib-napoleon
+    - sphinx-autoapi
+    - sphinx-copybutton
+    - sphinx-panels
