@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - python==3.10
+  - ipython
   - nbsphinx
   - numpydoc
   - sphinx

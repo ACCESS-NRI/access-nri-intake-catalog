@@ -20,9 +20,9 @@ author = "ACCESS-NRI"
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
+    #    "IPython.sphinxext.ipython_console_highlighting",
     "numpydoc",
     "sphinx.ext.napoleon",
-    "sphinx.ext.autosectionlabel",
     "autoapi.extension",
     "nbsphinx",
     "sphinx_panels",
@@ -36,13 +36,17 @@ autoapi_ignore = ["**.ipynb_checkpoints"]
 autoapi_python_class_content = "init"
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 # The suffix of source filenames.
 source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
+
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = "sphinx"
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
