@@ -11,9 +11,17 @@ Documentation for ACCESS-NRI's Intake catalog
    development/index
    
 
-Welcome to the documentation for ACCESS-NRI's Intake Catalog. The catalog aims to provide a way for users to discover and load data across a broad range of climate data products, including ACCESS model runs.
+Welcome to the documentation for ACCESS-NRI's Intake catalog. The catalog aims to provide a way for users to discover and load data across a broad range of climate data products, including ACCESS model runs.
 
-This catalog, and the tools that make it work, are still a work in progress. We value your feedback, especially in the form of reporting issues/bugs or suggesting ways to improve the catalog.
+The premise of the ACCESS-NRI catalog is to provide a ("meta") catalog of ("sub") catalogs, which each correspond to different "experiments". An experiment may be a particular model run, for example.
+
+The idea is that users will:
+
+* Query on metadata shared across the different subcatalogs to find the experiments that interest them.
+* Open those subcatalogs (which may have different/additional metadata than the outer catalog).
+* Query further on the subcatalogs and eventually load some data.
+
+The ACCESS-NRI catalog, and the tools that make it work, are still a work in progress. We value your feedback, especially in the form of reporting issues/bugs or suggesting ways to improve the catalog.
 
 .. note::
    Please open an issue `here <https://github.com/ACCESS-NRI/nri_intake_catalog/issues>`_ if you have any questions after reading this documentation.
