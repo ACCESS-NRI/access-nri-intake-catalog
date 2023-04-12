@@ -10,6 +10,7 @@ print(sys.executable)
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+html_title = "ACCESS-NRI Intake catalog"
 project = "ACCESS-NRI Intake catalog"
 copyright = "2023, ACCESS-NRI"
 author = "ACCESS-NRI"

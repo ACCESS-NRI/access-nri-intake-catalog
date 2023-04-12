@@ -8,7 +8,7 @@ setup(
     author="ACCESS-NRI",
     url="https://github.com/ACCESS-NRI/nri_intake_catalog",
     description="Tools and configuration info for managing ACCESS-NRI's intake catalogue",
-    packages=find_packages(),
+    packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
         "Development Status :: 4 - Beta",
