@@ -54,6 +54,10 @@ pygments_style = "sphinx"
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = []  # ['_static']
+html_theme_options = {
+    "use_edit_page_button": True,
+    "github_url": "https://github.com/ACCESS-NRI/nri_intake_catalog",
+}
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 # html_show_copyright = True
