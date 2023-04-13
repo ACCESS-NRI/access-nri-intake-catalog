@@ -39,11 +39,10 @@ def main():
 
     builder = config.get("builder")
     translator = config.get("translator")
-    metadata = config.get("metadata") or {}
     subcatalog_dir = config.get("subcatalog_dir")
-    catalogs = config.get("catalogs")
+    subcatalogs = config.get("subcatalogs")
 
-    args = {"metadata": metadata}
+    args = {}
     if builder:
         msg = "Building intake-esm catalog"
         cat_generator = dfcat.CatalogManager.build_esm
@@ -54,16 +53,22 @@ def main():
         msg = "Loading intake-esm catalog"
         cat_generator = dfcat.CatalogManager.load_esm
 
-    for name, kwargs in catalogs.items():
+    for kwargs in subcatalogs:
         cat_args = args
-        cat_args["name"] = name
-        cat_args["description"] = kwargs.pop("description")
+
         cat_args["path"] = kwargs.pop("path")
+        metadata_yaml = kwargs.pop("metadata_yaml")
+        with open(metadata_yaml) as f:
+            metadata = yaml.safe_load(f)
+        cat_args["name"] = metadata.pop("name")
+        # cat_args["uuid"] = metadata.pop("uuid")
+        cat_args["description"] = metadata.pop("short_description")
+        cat_args["metadata"] = metadata
 
         if translator:
             cat_args["translator"] = getattr(translators, translator)
 
         logger.info(
-            f"{msg} '{name}' and adding to intake-dataframe-catalog '{catalog_name}'"
+            f"{msg} '{cat_args['name']}' and adding to intake-dataframe-catalog '{catalog_name}'"
         )
         cat_generator(**cat_args).add(name=catalog_name)

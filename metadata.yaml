@@ -1,0 +1,16 @@
+# Template for metadata.yaml files
+
+contact: null
+email: null
+created: null
+name: null
+uuid: null
+model: null
+short_description: >-
+  null
+long_description: >-
+  null
+notes: >-
+  null
+keywords:
+  - null
