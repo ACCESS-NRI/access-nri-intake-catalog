@@ -5,9 +5,11 @@
 
 import multiprocessing
 
-from ecgtools.builder import Builder, INVALID_ASSET
+import jsonschema
 
-from ..metadata import CoreESMMetadata
+from . import schema
+
+from ecgtools.builder import Builder, INVALID_ASSET
 
 
 class ParserError(Exception):
@@ -87,8 +89,8 @@ class BaseBuilder(Builder):
     def _save(self, name, description, directory):
         super().save(
             name=name,
-            path_column_name=CoreESMMetadata.path_column_name,
-            variable_column_name=CoreESMMetadata.variable_column_name,
+            path_column_name=schema["path_column"],
+            variable_column_name=schema["variable_column"],
             data_format=self.data_format,
             groupby_attrs=self.groupby_attrs,
             aggregations=self.aggregations,
@@ -133,7 +135,7 @@ class BaseBuilder(Builder):
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
-                CoreESMMetadata.validate(info)
+                jsonschema.validate(info, schema["schema"])
                 return self
 
         raise ParserError(

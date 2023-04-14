@@ -1,7 +1,10 @@
 import re
 import pandas as pd
 
-from .metadata import CoreDFMetadata
+from . import schema
+
+
+_metacat_columns = list(schema["schema"]["properties"].keys())
 
 
 class MetadataTranslatorError(Exception):
@@ -21,12 +24,11 @@ class MetadataTranslator:
         ----------
         translations: dict, optional
             Dictionary with keys corresponding to core metadata columns in the intake-dataframe-catalog
-            (see catalog_manager.CoreDFMetadata) and values corresponding to functions that translate
-            the intake-esm catalog to a :py:class:`~pandas:Series` or :py:class:`~pandas:DataFrame`
-            of metadata for the intake-dataframe-catalog column. If a key has a value of None, it is
-            assumed that this key exists as a column in the intake-esm dataframe. If values are not not
-            callable they are input directly as metadata entries in the intake-esm dataframe for that
-            key (column).
+            and values corresponding to functions that translate the intake-esm catalog to a
+            :py:class:`~pandas:Series` or :py:class:`~pandas:DataFrame` of metadata for the
+            intake-dataframe-catalog column. If a key has a value of None, it is assumed that this key
+            exists as a column in the intake-esm dataframe. If values are not not callable they are input
+            directly as metadata entries in the intake-esm dataframe for that key (column).
         """
         self.translations = translations
         self.validate()
@@ -35,9 +37,9 @@ class MetadataTranslator:
         """
         Check that all core intake-dataframe-catalog columns have translators provided
         """
-        if set(self.translations) - set(CoreDFMetadata.columns):
+        if set(self.translations) - set(_metacat_columns):
             raise MetadataTranslatorError(
-                f"The input translations should be a dictionary with the keys: {', '.join(CoreDFMetadata.columns)}"
+                f"The input translations should be a dictionary with the keys: {', '.join(_metacat_columns)}"
             )
 
     def translate(self, cat):
