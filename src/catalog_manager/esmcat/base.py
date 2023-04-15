@@ -135,7 +135,7 @@ class BaseBuilder(Builder):
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
-                jsonschema.validate(info, schema["schema"])
+                jsonschema.validate(info, schema["jsonschema"])
                 return self
 
         raise ParserError(

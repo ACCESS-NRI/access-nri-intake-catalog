@@ -4,7 +4,7 @@ import pandas as pd
 from . import schema
 
 
-_metacat_columns = list(schema["schema"]["properties"].keys())
+_metacat_columns = list(schema["jsonschema"]["properties"].keys())
 
 
 class MetadataTranslatorError(Exception):

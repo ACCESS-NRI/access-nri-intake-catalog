@@ -14,7 +14,7 @@ from . import schema
 from .translators import DefaultTranslator
 
 
-_metacat_columns = list(schema["schema"]["properties"].keys())
+_metacat_columns = list(schema["jsonschema"]["properties"].keys())
 
 
 class CatalogExistsError(Exception):
@@ -55,7 +55,7 @@ class CatalogManager:
 
         # Validate df_metadata against schema
         for idx, row in df_metadata.iterrows():
-            jsonschema.validate(row.to_dict(), schema["schema"])
+            jsonschema.validate(row.to_dict(), schema["jsonschema"])
 
         self.cat = cat
         self.df_metadata = df_metadata
