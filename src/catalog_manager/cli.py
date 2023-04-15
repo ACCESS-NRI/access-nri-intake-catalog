@@ -3,7 +3,7 @@ import logging
 
 import yaml
 
-from catalog_manager import esmcat, dfcat, translators
+from catalog_manager import esmcat, metacat
 
 
 def main():
@@ -46,13 +46,13 @@ def main():
     args = {"metadata": metadata}
     if builder:
         msg = "Building intake-esm catalog"
-        cat_generator = dfcat.CatalogManager.build_esm
+        cat_generator = metacat.CatalogManager.build_esm
         args["builder"] = getattr(esmcat, builder)
         args["directory"] = subcatalog_dir
         args["overwrite"] = True
     else:
         msg = "Loading intake-esm catalog"
-        cat_generator = dfcat.CatalogManager.load_esm
+        cat_generator = metacat.CatalogManager.load_esm
 
     for name, kwargs in catalogs.items():
         cat_args = args
@@ -61,7 +61,7 @@ def main():
         cat_args["path"] = kwargs.pop("path")
 
         if translator:
-            cat_args["translator"] = getattr(translators, translator)
+            cat_args["translator"] = getattr(metacat.translators, translator)
 
         logger.info(
             f"{msg} '{name}' and adding to intake-dataframe-catalog '{catalog_name}'"

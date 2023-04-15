@@ -5,11 +5,16 @@
 
 import os
 
+import jsonschema
+
 import intake
 from intake_dataframe_catalog.core import DFCatalogModel
 
-from .metadata import CoreDFMetadata
+from . import schema
 from .translators import DefaultTranslator
+
+
+_metacat_columns = list(schema["jsonschema"]["properties"].keys())
 
 
 class CatalogExistsError(Exception):
@@ -22,31 +27,38 @@ class CatalogManager:
     Add/update intake catalogs in an intake-dataframe-catalog
     """
 
-    def __init__(self, cat, metadata):
+    def __init__(self, cat, df_metadata):
         """
-        Initialise a CatalogManager
+        Initialise a CatalogManager instance to add/update intake catalogs in a
+        intake-dataframe-catalog
 
         Parameters
         ----------
         cat: :py:class:`intake.DataSource`
             An intake catalog to append/update in the intake-dataframe-catalog
-        metadata: :py:class:`~pandas.DataFrame`
-            :py:class:`~pandas.DataFrame` with columns corresponding to Metadata associated
-            with cat to include in the intake-dataframe-catalog.
+        df_metadata: :py:class:`~pandas.DataFrame`
+            :py:class:`~pandas.DataFrame` containing metadata associated with cat to include as
+            columns in the intake-dataframe-catalog. If adding to an existing
+            intake-dataframe-catalog, the columns in df_metadata must be the same as those in the
+            existing intake-dataframe-catalog.
         """
 
         # Overwrite the catalog name with the name_column entry in metadata
-        name = metadata[CoreDFMetadata.name_column].unique()
+        name = df_metadata[schema["name_column"]].unique()
         if len(name) != 1:
             raise ValueError(
-                f"Metadata column '{CoreDFMetadata.name_column}' must be the same for all rows "
+                f"Metadata column '{schema['name_column']}' must be the same for all rows "
                 "since this corresponds to the catalog name"
             )
         name = name[0]
         cat.name = name
 
+        # Validate df_metadata against schema
+        for idx, row in df_metadata.iterrows():
+            jsonschema.validate(row.to_dict(), schema["jsonschema"])
+
         self.cat = cat
-        self.metadata = metadata
+        self.df_metadata = df_metadata
         self.dfcat = None
 
     @classmethod
@@ -175,27 +187,27 @@ class CatalogManager:
         if os.path.exists(name):
             dfcat = DFCatalogModel.load(
                 name,
-                yaml_column=CoreDFMetadata.yaml_column,
-                name_column=CoreDFMetadata.name_column,
+                yaml_column=schema["yaml_column"],
+                name_column=schema["name_column"],
             )
         else:
-            metadata_columns = CoreDFMetadata.columns  # Preserve column order
-            metadata_columns.remove(CoreDFMetadata.name_column)
+            metadata_columns = _metacat_columns
+            metadata_columns.remove(schema["name_column"])
             dfcat = DFCatalogModel(
-                yaml_column=CoreDFMetadata.yaml_column,
-                name_column=CoreDFMetadata.name_column,
+                yaml_column=schema["yaml_column"],
+                name_column=schema["name_column"],
                 metadata_columns=metadata_columns,
             )
 
         overwrite = True
-        for _, row in self.metadata.iterrows():
+        for _, row in self.df_metadata.iterrows():
             dfcat.add(self.cat, row.to_dict(), overwrite=overwrite)
             overwrite = False
 
         dfcat.save(name, **kwargs)
 
 
-def translate_esm_metadata(cat, translator, groupby=CoreDFMetadata.groupby_columns):
+def translate_esm_metadata(cat, translator, groupby=["model", "realm", "frequency"]):
     """
     Parse metadata table to include in the intake-dataframe-catalog from an intake-esm catalog
     and merge into a set of rows with unique values of the columns specified in groupby.
@@ -210,7 +222,7 @@ def translate_esm_metadata(cat, translator, groupby=CoreDFMetadata.groupby_colum
         to catalog_manager.translators.DefaultTranslator.
     groupby: list of str, optional
         Core metadata columns to group by before merging metadata across remaining core columns.
-        Defaults to catalog_manager.CoreDFMetadata.groupby_columns
+        Defaults to ["model", "realm", "frequency"]
     """
 
     def _list_unique(series):
@@ -225,7 +237,7 @@ def translate_esm_metadata(cat, translator, groupby=CoreDFMetadata.groupby_colum
         )
         return uniques[0] if (len(uniques) == 1) & (not iterable_entries) else uniques
 
-    ungrouped_columns = list(set(CoreDFMetadata.columns) - set(groupby))
+    ungrouped_columns = list(set(_metacat_columns) - set(groupby))
 
     metadata = translator.translate(cat)
     metadata = (
@@ -234,9 +246,7 @@ def translate_esm_metadata(cat, translator, groupby=CoreDFMetadata.groupby_colum
         .reset_index()
     )
 
-    return metadata[
-        list(CoreDFMetadata.columns)
-    ]  # Order according to entries in CoreDFMetadata.columns
+    return metadata[list(_metacat_columns)]  # Ensure ordered correctly
 
 
 def _open_and_translate(json_file, name, description, metadata, translator, **kwargs):
