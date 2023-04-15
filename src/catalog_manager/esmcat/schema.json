@@ -8,11 +8,12 @@
             },
             "realm": {
                 "enum": [
+                    "aerosol",
                     "atmos",
-                    "ocean",
-                    "land",
                     "ice",
-                    "multi"
+                    "land",
+                    "multi",
+                    "ocean"
                 ]
             },
             "frequency": {
