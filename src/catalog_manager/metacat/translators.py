@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Translators for translating metadata in an intake subcatalog into a metadata table to use in an intake-dataframe-catalog
+Tools for translating metadata in an intake subcatalog into a metadata table to use in an intake-dataframe-catalog
 """
 
 import re
@@ -224,8 +224,20 @@ class Cmip5Translator(DefaultTranslator):
         """
 
         super().__init__(cat, columns)
-        self._dispatch["frequency"] = partial(self._frequency_translator)
+        self._dispatch["realm"] = self._realm_translator
+        self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
+
+    def _realm_translator(self):
+        """
+        Return realm from existing realm column
+        """
+        special_cases = {"landIce": "ice", "seaIce": "ice", "ocnBgchem": "ocean"}
+
+        def _parse(s):
+            return special_cases.get(s, s)
+
+        return self.cat.df["realm"].apply(lambda s: _parse(s))
 
     def _frequency_translator(self):
         """

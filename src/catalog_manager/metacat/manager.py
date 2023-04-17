@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Tools for adding/updating intake catalogs in intake-dataframe-catalog (metacatalogs) """
+""" Manager for adding/updating intake catalogs in an intake-dataframe-catalog (metacatalogs) """
 
 import os
 

@@ -24,7 +24,7 @@ setup(
         "jsonschema",
     ],
     entry_points={
-        "console_scripts": ["buildcat=catalog_manager.cli:main"],
+        "console_scripts": ["metacat-build=catalog_manager.cli:build"],
         "intake.catalogs": ["nri = catalog_manager:data"],
     },
 )

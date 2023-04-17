@@ -6,9 +6,9 @@ import yaml
 from catalog_manager import esmcat, metacat
 
 
-def main():
+def build():
     """
-    Add intake-esm catalogs specified in a config file to the ACCESS-NRI intake-dataframe-catalog
+    Build/add intake catalog(s) specified in a YAML configuration file to an intake-dataframe-catalog metacatalog
     """
 
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -16,12 +16,15 @@ def main():
     logger = logging.getLogger(__name__)
 
     parser = argparse.ArgumentParser(
-        description="Add intake-esm catalogs specified in a config file to the ACCESS-NRI intake-dataframe-catalog"
+        description=(
+            "Build/add intake catalog(s) specified in a YAML configuration file to an intake-dataframe-catalog "
+            "metacatalog"
+        )
     )
     parser.add_argument(
         "config",
         type=str,
-        help="Configuration YAML file specifying the intake-esm catalog(s) to add",
+        help="Configuration YAML file specifying the intake catalog(s) to add",
     )
     parser.add_argument(
         "--catalog_name",
