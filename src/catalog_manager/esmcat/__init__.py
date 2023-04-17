@@ -4,14 +4,11 @@
 """ Builders for generating intake-esm catalogs """
 
 import os
-import json
+import yaml
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 with open(os.path.join(here, "schema.json"), "r") as fpath:
-    schema = json.load(fpath)
+    schema = yaml.safe_load(fpath)
 
-from .accessom2 import AccessOm2Builder
-from .accessesm15 import AccessEsm15Builder
-
-AccessCm2Builder = AccessEsm15Builder
+from .builders import AccessOm2Builder, AccessEsm15Builder, AccessCm2Builder
