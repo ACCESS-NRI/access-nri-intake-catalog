@@ -34,7 +34,7 @@ extensions = [
 autoapi_dirs = ["../src/catalog_manager"]
 autoapi_add_toctree_entry = False
 autoapi_ignore = ["**.ipynb_checkpoints"]
-autoapi_python_class_content = "init"
+autoapi_python_class_content = "class"
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]

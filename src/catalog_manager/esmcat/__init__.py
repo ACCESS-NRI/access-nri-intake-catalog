@@ -6,9 +6,9 @@
 import os
 import yaml
 
-here = os.path.abspath(os.path.dirname(__file__))
+_here = os.path.abspath(os.path.dirname(__file__))
 
-with open(os.path.join(here, "schema.yaml"), "r") as fpath:
+with open(os.path.join(_here, "schema.yaml"), "r") as fpath:
     schema = yaml.safe_load(fpath)
 
 from .builders import AccessOm2Builder, AccessEsm15Builder, AccessCm2Builder
