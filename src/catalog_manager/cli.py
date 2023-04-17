@@ -6,9 +6,9 @@ import yaml
 from catalog_manager import esmcat, metacat
 
 
-def main():
+def build():
     """
-    Add intake-esm catalogs specified in a config file to the ACCESS-NRI intake-dataframe-catalog
+    Build/add intake catalog(s) specified in a YAML configuration file to an intake-dataframe-catalog metacatalog
     """
 
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -16,12 +16,15 @@ def main():
     logger = logging.getLogger(__name__)
 
     parser = argparse.ArgumentParser(
-        description="Add intake-esm catalogs specified in a config file to the ACCESS-NRI intake-dataframe-catalog"
+        description=(
+            "Build/add intake catalog(s) specified in a YAML configuration file to an intake-dataframe-catalog "
+            "metacatalog"
+        )
     )
     parser.add_argument(
         "config",
         type=str,
-        help="Configuration YAML file specifying the intake-esm catalog(s) to add",
+        help="Configuration YAML file specifying the intake catalog(s) to add",
     )
     parser.add_argument(
         "--catalog_name",
@@ -46,13 +49,13 @@ def main():
     args = {"metadata": metadata}
     if builder:
         msg = "Building intake-esm catalog"
-        cat_generator = metacat.CatalogManager.build_esm
+        manager = metacat.MetacatManager(path=catalog_name).build_esm
         args["builder"] = getattr(esmcat, builder)
         args["directory"] = subcatalog_dir
         args["overwrite"] = True
     else:
-        msg = "Loading intake-esm catalog"
-        cat_generator = metacat.CatalogManager.load_esm
+        msg = "Loading intake catalog"
+        manager = metacat.MetacatManager(path=catalog_name).load
 
     for name, kwargs in catalogs.items():
         cat_args = args
@@ -66,4 +69,4 @@ def main():
         logger.info(
             f"{msg} '{name}' and adding to intake-dataframe-catalog '{catalog_name}'"
         )
-        cat_generator(**cat_args).add(name=catalog_name)
+        manager(**cat_args).add()

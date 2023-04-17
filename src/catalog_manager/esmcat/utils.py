@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Shared utilities for writing intake-esm parsers """
+""" Shared utilities for writing intake-esm builders and their parsers """
 
 import re
 

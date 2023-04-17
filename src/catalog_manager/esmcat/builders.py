@@ -1,15 +1,21 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Base builder for generating an intake-esm catalog """
+""" Builders for generating intake-esm catalogs """
 
+import re
+import traceback
 import multiprocessing
+from pathlib import Path
 
 import jsonschema
 
-from . import schema
+import xarray as xr
 
-from ecgtools.builder import Builder, INVALID_ASSET
+from ecgtools.builder import Builder, INVALID_ASSET, TRACEBACK
+
+from . import schema
+from .utils import get_timeinfo, strip_pattern_rh
 
 
 class ParserError(Exception):
@@ -172,3 +178,158 @@ class BaseBuilder(Builder):
     def parser(file):
         """This method should be overwritten"""
         pass
+
+
+class AccessOm2Builder(BaseBuilder):
+    """Intake-esm catalog builder for ACCESS-OM2 COSIMA datasets"""
+
+    def __init__(self, path):
+        """
+        Initialise a AccessOm2Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=3,
+            exclude_patterns=["*restart*", "*o2i.nc"],
+            include_patterns=["*.nc"],
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                }
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def parser(file):
+        try:
+            filename = Path(file).stem
+
+            # Get file id without any dates
+            # - ocean-3d-v-1-monthly-pow02-ym_1958_04.nc
+            # - iceh.057-daily.nc
+            # - oceanbgc-3d-caco3-1-yearly-mean-y_2015.nc
+            file_id = strip_pattern_rh(
+                [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}"], filename
+            )
+
+            match_groups = re.match(
+                r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
+            ).groups()
+            # configuration = match_groups[0]
+            # experiment = match_groups[1]
+            realm = match_groups[2]
+
+            with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
+                variable_list = [var for var in ds if "long_name" in ds[var].attrs]
+
+            info = {
+                "path": str(file),
+                "realm": realm,
+                "variable": variable_list,
+                "filename": filename,
+                "file_id": file_id,
+            }
+
+            info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
+
+            return info
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
+class AccessEsm15Builder(BaseBuilder):
+    """Intake-esm catalog builder for ACCESS-ESM1.5 datasets"""
+
+    def __init__(self, path):
+        """
+        Initialise a AccessEsm15Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=3,
+            exclude_patterns=["*restart*"],
+            include_patterns=["*.nc*"],
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                }
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def parser(file):
+        try:
+            filename = Path(file).stem
+
+            # Get file id without any dates
+            # - iceh_m.2014-06.nc
+            # - bz687a.pm107912_mon.nc
+            # - bz687a.p7107912_mon.nc
+            # - PI-GWL-B2035.pe-109904_dai.nc
+            # - PI-1pct-02.pe-011802_dai.nc_dai.nc
+            # - ocean_daily.nc-02531231
+            file_id = strip_pattern_rh(
+                [r"\d{4}[-_]\d{2}", r"\d{8}", r"\d{6}"], filename
+            )
+
+            match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
+            # experiment = match_groups[0]
+            realm = match_groups[1]
+            if realm == "atm":
+                realm = "atmos"
+            elif realm == "ocn":
+                realm = "ocean"
+            elif realm != "ice":
+                raise ParserError(f"Could not translate {realm} to a realm")
+
+            with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
+                variable_list = [var for var in ds if "long_name" in ds[var].attrs]
+
+            info = {
+                "path": str(file),
+                "realm": realm,
+                "variable": variable_list,
+                "filename": filename,
+                "file_id": file_id,
+            }
+
+            info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
+
+            return info
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
+AccessCm2Builder = AccessEsm15Builder

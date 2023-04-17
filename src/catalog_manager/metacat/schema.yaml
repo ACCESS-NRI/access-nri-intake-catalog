@@ -1,0 +1,39 @@
+jsonschema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    name:
+      type: string
+    model:
+      type: string
+    description:
+      type: string
+    realm:
+      enum:
+      - aerosol
+      - atmos
+      - ice
+      - land
+      - multi
+      - ocean
+    frequency:
+      type: string
+      pattern: ^fx$|^subhr$|^\d+hr$|^\d+day$|^\d+mon$|^\d+yr$|^\d+dec$
+    variable:
+      type: array
+      items:
+        type: string
+  required:
+  - name
+  - model
+  - description
+  - realm
+  - frequency
+  - variable
+  additionalProperties: false
+name_column: name
+yaml_column: yaml
+translator_groupby_columns:
+- model
+- realm
+- frequency
