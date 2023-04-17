@@ -93,4 +93,4 @@ def strip_pattern_rh(patterns, string):
     stripped = re.sub(r"[-.]", "_", stripped)
 
     # Remove any double or dangling _
-    return re.sub(r"__", "_", stripped).rstrip("_").lstrip("_")
+    return re.sub(r"__", "_", stripped).strip("_")
