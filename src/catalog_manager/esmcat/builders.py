@@ -219,7 +219,7 @@ class AccessOm2Builder(BaseBuilder):
                 },
                 {
                     "type": "join_new",
-                    "attribute_name": "experiment",
+                    "attribute_name": "member",
                 },
             ],
         )
@@ -243,7 +243,7 @@ class AccessOm2Builder(BaseBuilder):
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
             ).groups()
             # configuration = match_groups[0]
-            experiment = match_groups[1]
+            exp_id = match_groups[1]
             realm = match_groups[2]
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
@@ -251,10 +251,10 @@ class AccessOm2Builder(BaseBuilder):
 
             info = {
                 "path": str(file),
-                "experiment": experiment,
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
+                "member": exp_id,
                 "file_id": file_id,
             }
 
@@ -297,7 +297,7 @@ class AccessEsm15Builder(BaseBuilder):
                 },
                 {
                     "type": "join_new",
-                    "attribute_name": "experiment",
+                    "attribute_name": "member",
                 },
             ],
         )
@@ -321,7 +321,7 @@ class AccessEsm15Builder(BaseBuilder):
             )
 
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
-            experiment = match_groups[0]
+            exp_id = match_groups[0]
             realm = match_groups[1]
             if realm == "atm":
                 realm = "atmos"
@@ -335,10 +335,10 @@ class AccessEsm15Builder(BaseBuilder):
 
             info = {
                 "path": str(file),
-                "experiment": experiment,
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
+                "member": exp_id,
                 "file_id": file_id,
             }
 
