@@ -216,7 +216,11 @@ class AccessOm2Builder(BaseBuilder):
                         "dim": "time",
                         "combine": "by_coords",
                     },
-                }
+                },
+                {
+                    "type": "join_new",
+                    "attribute_name": "experiment",
+                },
             ],
         )
 
@@ -239,7 +243,7 @@ class AccessOm2Builder(BaseBuilder):
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
             ).groups()
             # configuration = match_groups[0]
-            # experiment = match_groups[1]
+            experiment = match_groups[1]
             realm = match_groups[2]
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
@@ -247,6 +251,7 @@ class AccessOm2Builder(BaseBuilder):
 
             info = {
                 "path": str(file),
+                "experiment": experiment,
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
@@ -270,7 +275,7 @@ class AccessEsm15Builder(BaseBuilder):
 
         Parameters
         ----------
-        path : str or list of str
+        path: str or list of str
             Path or list of paths to crawl for assets/files.
         """
 
@@ -289,7 +294,11 @@ class AccessEsm15Builder(BaseBuilder):
                         "dim": "time",
                         "combine": "by_coords",
                     },
-                }
+                },
+                {
+                    "type": "join_new",
+                    "attribute_name": "experiment",
+                },
             ],
         )
 
@@ -312,7 +321,7 @@ class AccessEsm15Builder(BaseBuilder):
             )
 
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
-            # experiment = match_groups[0]
+            experiment = match_groups[0]
             realm = match_groups[1]
             if realm == "atm":
                 realm = "atmos"
@@ -326,6 +335,7 @@ class AccessEsm15Builder(BaseBuilder):
 
             info = {
                 "path": str(file),
+                "experiment": experiment,
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
