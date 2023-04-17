@@ -24,6 +24,7 @@ class DefaultTranslator:
     def __init__(self, cat, columns):
         """
         Initialise a DefaultTranslator. This Translator works as follows:
+
         - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
              esmcat.df attribute. If the catalog is not an intake-esm catalog, this step is skipped.
         - If that fails, the translator will then look for the column name as an attribute on the catalog iteself

@@ -55,7 +55,7 @@ class BaseBuilder(Builder):
         include_patterns: list of str, optional
             List of glob patterns to include from crawling.
         data_format: str
-            The data format. Valid values are netcdf, reference and zarr.
+            The data format. Valid values are 'netcdf', 'reference' and 'zarr'.
         groupby_attrs: List[str]
             Column names (attributes) that define data sets that can be aggegrated.
         aggregations: List[dict]
@@ -176,7 +176,15 @@ class BaseBuilder(Builder):
 
     @staticmethod
     def parser(file):
-        """This method should be overwritten"""
+        """
+        Parse info from a file asset
+
+        Parameters
+        ----------
+        file: str
+            The path to the file
+        """
+        # This method should be overwritten
         pass
 
 
@@ -332,4 +340,8 @@ class AccessEsm15Builder(BaseBuilder):
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 
-AccessCm2Builder = AccessEsm15Builder
+# Include this so it is in the documentation
+class AccessCm2Builder(AccessEsm15Builder):
+    """Intake-esm catalog builder for ACCESS-CM2 datasets"""
+
+    pass
