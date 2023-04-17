@@ -14,41 +14,41 @@ catalogs:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2035"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2035" 
-  PI-GWL-B2040:
+  PI_GWL_B2040:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2040"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2040"
-  PI-GWL-B2045:
+  PI_GWL_B2045:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2045"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2045"
-  PI-GWL-B2050:
+  PI_GWL_B2050:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2050"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2050"
-  PI-GWL-B2055:
+  PI_GWL_B2055:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2055"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2055"
-  PI-GWL-B2060:
+  PI_GWL_B2060:
     description: "Climate stabilization run at different global warming levels with zero C02 emissions and pre-industrial aerosols, branched from ACCESS-ESM1.5 SSP-EDC-585-13 in 2060"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2060"
   
   # 11 TB
-  HI-C-05-r1:
+  HI_C_05_r1:
     description: "CMIP6 historical run, but with nitrogen and phosphorus limitations disabled within CASA-CNP"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-C-05-r1"
-  HI-CN-05:
+  HI_CN_05:
     description: "CMIP6 historical run, but with phosphorus limitation disabled within CASA-CNP"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-CN-05"
-  HI-nl-C-05-r1:
+  HI_nl_C_05_r1:
     description: "CMIP6 historical run, but with nitrogen and phosphorus limitations disabled within CASA-CNP and land-use change disabled"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-nl-C-05-r1"
-  HI-noluc-CN-05:
+  HI_noluc_CN_05:
     description: "CMIP6 historical run, but with phosphorus limitation disabled within CASA-CNP and land-use change disabled"
     path:
       - "/g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-noluc-CN-05"

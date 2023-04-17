@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Shared utilities for writing intake-esm parsers """
+""" Shared utilities for writing intake-esm builders and their parsers """
 
 import re
 
@@ -84,7 +84,7 @@ def strip_pattern_rh(patterns, string):
     # Strip first matched pattern
     stripped = string
     for pattern in patterns:
-        match = re.match(r".*(" + pattern + r")([^0-9]|$).*$", stripped)
+        match = re.match(rf"^.*({pattern}(?!.*{pattern})).*$", stripped)
         if match:
             stripped = stripped[: match.start(1)] + stripped[match.end(1) :]
             break
@@ -93,4 +93,4 @@ def strip_pattern_rh(patterns, string):
     stripped = re.sub(r"[-.]", "_", stripped)
 
     # Remove any double or dangling _
-    return re.sub(r"__", "_", stripped).rstrip("_")
+    return re.sub(r"__", "_", stripped).strip("_")

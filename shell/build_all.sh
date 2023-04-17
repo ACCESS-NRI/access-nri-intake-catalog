@@ -29,5 +29,5 @@ CATALOG_NAME=/g/data/tm70/ds0092/projects/nri_intake_catalog/dfcatalog.csv
 configs=( access-om2.yaml ) #cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml )
 
 for config in "${configs[@]}"; do
-    buildcat --catalog_name=${CATALOG_NAME} ${CONFIG_DIR}/$config
+    metacat-build --catalog_name=${CATALOG_NAME} ${CONFIG_DIR}/$config
 done
