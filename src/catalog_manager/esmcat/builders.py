@@ -216,7 +216,11 @@ class AccessOm2Builder(BaseBuilder):
                         "dim": "time",
                         "combine": "by_coords",
                     },
-                }
+                },
+                {
+                    "type": "join_new",
+                    "attribute_name": "member",
+                },
             ],
         )
 
@@ -225,6 +229,13 @@ class AccessOm2Builder(BaseBuilder):
     @staticmethod
     def parser(file):
         try:
+            match_groups = re.match(
+                r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
+            ).groups()
+            # configuration = match_groups[0]
+            exp_id = match_groups[1]
+            realm = match_groups[2]
+
             filename = Path(file).stem
 
             # Get file id without any dates
@@ -235,13 +246,6 @@ class AccessOm2Builder(BaseBuilder):
                 [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}"], filename
             )
 
-            match_groups = re.match(
-                r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
-            ).groups()
-            # configuration = match_groups[0]
-            # experiment = match_groups[1]
-            realm = match_groups[2]
-
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
                 variable_list = [var for var in ds if "long_name" in ds[var].attrs]
 
@@ -250,6 +254,7 @@ class AccessOm2Builder(BaseBuilder):
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
+                "member": exp_id,
                 "file_id": file_id,
             }
 
@@ -270,7 +275,7 @@ class AccessEsm15Builder(BaseBuilder):
 
         Parameters
         ----------
-        path : str or list of str
+        path: str or list of str
             Path or list of paths to crawl for assets/files.
         """
 
@@ -289,7 +294,11 @@ class AccessEsm15Builder(BaseBuilder):
                         "dim": "time",
                         "combine": "by_coords",
                     },
-                }
+                },
+                {
+                    "type": "join_new",
+                    "attribute_name": "member",
+                },
             ],
         )
 
@@ -298,9 +307,19 @@ class AccessEsm15Builder(BaseBuilder):
     @staticmethod
     def parser(file):
         try:
+            match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
+            exp_id = match_groups[0]
+            realm = match_groups[1]
+            if realm == "atm":
+                realm = "atmos"
+            elif realm == "ocn":
+                realm = "ocean"
+            elif realm != "ice":
+                raise ParserError(f"Could not translate {realm} to a realm")
+
             filename = Path(file).stem
 
-            # Get file id without any dates
+            # Get file id without any dates or exp_id
             # - iceh_m.2014-06.nc
             # - bz687a.pm107912_mon.nc
             # - bz687a.p7107912_mon.nc
@@ -310,16 +329,7 @@ class AccessEsm15Builder(BaseBuilder):
             file_id = strip_pattern_rh(
                 [r"\d{4}[-_]\d{2}", r"\d{8}", r"\d{6}"], filename
             )
-
-            match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
-            # experiment = match_groups[0]
-            realm = match_groups[1]
-            if realm == "atm":
-                realm = "atmos"
-            elif realm == "ocn":
-                realm = "ocean"
-            elif realm != "ice":
-                raise ParserError(f"Could not translate {realm} to a realm")
+            file_id = strip_pattern_rh([exp_id], file_id)
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
                 variable_list = [var for var in ds if "long_name" in ds[var].attrs]
@@ -329,6 +339,7 @@ class AccessEsm15Builder(BaseBuilder):
                 "realm": realm,
                 "variable": variable_list,
                 "filename": filename,
+                "member": exp_id,
                 "file_id": file_id,
             }
 
