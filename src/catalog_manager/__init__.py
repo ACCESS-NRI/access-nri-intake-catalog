@@ -9,6 +9,6 @@ from . import _version
 
 __version__ = _version.get_versions()["version"]
 
-here = os.path.abspath(os.path.dirname(__file__))
-cat = intake.open_catalog(os.path.join(here, "dfcatalog.yaml"))
+_here = os.path.abspath(os.path.dirname(__file__))
+cat = intake.open_catalog(os.path.join(_here, "dfcatalog.yaml"))
 data = cat.nri()
