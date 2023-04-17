@@ -229,6 +229,13 @@ class AccessOm2Builder(BaseBuilder):
     @staticmethod
     def parser(file):
         try:
+            match_groups = re.match(
+                r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
+            ).groups()
+            # configuration = match_groups[0]
+            exp_id = match_groups[1]
+            realm = match_groups[2]
+
             filename = Path(file).stem
 
             # Get file id without any dates
@@ -238,13 +245,6 @@ class AccessOm2Builder(BaseBuilder):
             file_id = strip_pattern_rh(
                 [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}"], filename
             )
-
-            match_groups = re.match(
-                r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
-            ).groups()
-            # configuration = match_groups[0]
-            exp_id = match_groups[1]
-            realm = match_groups[2]
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
                 variable_list = [var for var in ds if "long_name" in ds[var].attrs]
@@ -307,19 +307,6 @@ class AccessEsm15Builder(BaseBuilder):
     @staticmethod
     def parser(file):
         try:
-            filename = Path(file).stem
-
-            # Get file id without any dates
-            # - iceh_m.2014-06.nc
-            # - bz687a.pm107912_mon.nc
-            # - bz687a.p7107912_mon.nc
-            # - PI-GWL-B2035.pe-109904_dai.nc
-            # - PI-1pct-02.pe-011802_dai.nc_dai.nc
-            # - ocean_daily.nc-02531231
-            file_id = strip_pattern_rh(
-                [r"\d{4}[-_]\d{2}", r"\d{8}", r"\d{6}"], filename
-            )
-
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             exp_id = match_groups[0]
             realm = match_groups[1]
@@ -329,6 +316,20 @@ class AccessEsm15Builder(BaseBuilder):
                 realm = "ocean"
             elif realm != "ice":
                 raise ParserError(f"Could not translate {realm} to a realm")
+
+            filename = Path(file).stem
+
+            # Get file id without any dates or exp_id
+            # - iceh_m.2014-06.nc
+            # - bz687a.pm107912_mon.nc
+            # - bz687a.p7107912_mon.nc
+            # - PI-GWL-B2035.pe-109904_dai.nc
+            # - PI-1pct-02.pe-011802_dai.nc_dai.nc
+            # - ocean_daily.nc-02531231
+            file_id = strip_pattern_rh(
+                [r"\d{4}[-_]\d{2}", r"\d{8}", r"\d{6}"], filename
+            )
+            file_id = strip_pattern_rh([exp_id], file_id)
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
                 variable_list = [var for var in ds if "long_name" in ds[var].attrs]
