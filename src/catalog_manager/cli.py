@@ -63,9 +63,8 @@ def build():
         metadata_yaml = kwargs.pop("metadata_yaml")
         with open(metadata_yaml) as f:
             metadata = yaml.safe_load(f)
-        cat_args["name"] = metadata.pop("name")
-        # cat_args["uuid"] = metadata.pop("uuid")
-        cat_args["description"] = metadata.pop("short_description")
+        cat_args["name"] = metadata["name"]
+        cat_args["description"] = metadata["short_description"]
         cat_args["metadata"] = metadata
 
         if translator:
