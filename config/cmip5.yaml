@@ -1,11 +1,15 @@
 builder: null
 
-translator: "Cmip5Translator"
+translator: Cmip5Translator
 
 subcatalog_dir: null
 
 subcatalogs:
 
   - path:
-      - /g/data/hh5/public/apps/nci-intake-catalogue/esgf/cmip5/catalogue_latest.json
-    metadata_yaml: /g/data/tm70/intake/metadata/cmip5_cms/metadata.yaml
+      - /g/data/dk92/catalog/v2/esm/cmip5-al33/catalog.json
+    metadata_yaml: /g/data/tm70/intake/metadata/cmip5_al33/metadata.yaml
+    
+  - path:
+      - /g/data/dk92/catalog/v2/esm/cmip5-rr3/catalog.json
+    metadata_yaml: /g/data/tm70/intake/metadata/cmip5_rr3/metadata.yaml
