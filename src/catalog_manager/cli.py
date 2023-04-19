@@ -73,4 +73,4 @@ def build():
         logger.info(
             f"{msg} '{cat_args['name']}' and adding to intake-dataframe-catalog '{catalog_name}'"
         )
-        manager(**cat_args).add()
+        manager(**(cat_args | kwargs)).add()

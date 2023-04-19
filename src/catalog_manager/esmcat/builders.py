@@ -174,8 +174,7 @@ class BaseBuilder(Builder):
         )
         return {column for column, check in has_iterables.items() if check}
 
-    @staticmethod
-    def parser(file):
+    def parser(self, file):
         """
         Parse info from a file asset
 
@@ -217,23 +216,18 @@ class AccessOm2Builder(BaseBuilder):
                         "combine": "by_coords",
                     },
                 },
-                {
-                    "type": "join_new",
-                    "attribute_name": "member",
-                },
             ],
         )
 
         super().__init__(**kwargs)
 
-    @staticmethod
-    def parser(file):
+    def parser(self, file):
         try:
             match_groups = re.match(
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
             ).groups()
             # configuration = match_groups[0]
-            exp_id = match_groups[1]
+            # exp_id = match_groups[1]
             realm = match_groups[2]
 
             filename = Path(file).stem
@@ -247,14 +241,19 @@ class AccessOm2Builder(BaseBuilder):
             )
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
-                variable_list = [var for var in ds if "long_name" in ds[var].attrs]
+                variable_list = []
+                variable_long_name_list = []
+                for var in ds:
+                    if "long_name" in ds[var].attrs:
+                        variable_list.append(var)
+                        variable_long_name_list.append(ds[var].attrs["long_name"])
 
             info = {
                 "path": str(file),
                 "realm": realm,
                 "variable": variable_list,
+                "variable_long_name": variable_long_name_list,
                 "filename": filename,
-                "member": exp_id,
                 "file_id": file_id,
             }
 
@@ -269,7 +268,7 @@ class AccessOm2Builder(BaseBuilder):
 class AccessEsm15Builder(BaseBuilder):
     """Intake-esm catalog builder for ACCESS-ESM1.5 datasets"""
 
-    def __init__(self, path):
+    def __init__(self, path, ensemble=False):
         """
         Initialise a AccessEsm15Builder
 
@@ -277,6 +276,9 @@ class AccessEsm15Builder(BaseBuilder):
         ----------
         path: str or list of str
             Path or list of paths to crawl for assets/files.
+        ensemble: boolean, optional
+            Whether to treat each path as a separate member of an ensemble to join
+            along a new member dimension
         """
 
         kwargs = dict(
@@ -295,17 +297,21 @@ class AccessEsm15Builder(BaseBuilder):
                         "combine": "by_coords",
                     },
                 },
+            ],
+        )
+
+        self.ensemble = ensemble
+        if self.ensemble:
+            kwargs["aggregations"] += [
                 {
                     "type": "join_new",
                     "attribute_name": "member",
                 },
-            ],
-        )
+            ]
 
         super().__init__(**kwargs)
 
-    @staticmethod
-    def parser(file):
+    def parser(self, file):
         try:
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             exp_id = match_groups[0]
@@ -332,16 +338,30 @@ class AccessEsm15Builder(BaseBuilder):
             file_id = strip_pattern_rh([exp_id], file_id)
 
             with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
-                variable_list = [var for var in ds if "long_name" in ds[var].attrs]
+                variable_list = []
+                variable_long_name_list = []
+                variable_standard_name_list = []
+                for var in ds:
+                    if "long_name" in ds[var].attrs:
+                        variable_list.append(var)
+                        variable_long_name_list.append(ds[var].attrs["long_name"])
+                    if "standard_name" in ds[var].attrs:
+                        variable_standard_name_list.append(
+                            ds[var].attrs["standard_name"]
+                        )
 
             info = {
                 "path": str(file),
                 "realm": realm,
                 "variable": variable_list,
+                "variable_long_name": variable_long_name_list,
+                "variable_standard_name": variable_standard_name_list,
                 "filename": filename,
-                "member": exp_id,
                 "file_id": file_id,
             }
+
+            if self.ensemble:
+                info["member"] = exp_id
 
             info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
 
