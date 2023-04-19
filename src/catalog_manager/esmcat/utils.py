@@ -16,7 +16,7 @@ def get_timeinfo(ds, time_dim="time"):
 
     Parameters
     ----------
-    ds: :py:class:`xarray.Dataset`
+    ds: :py:class:`netCDF4.Dataset`
         The dataset to parse the time info from
     time_dim: str
         The name of the time dimension
@@ -25,8 +25,8 @@ def get_timeinfo(ds, time_dim="time"):
     if time_dim is None:
         return None
 
-    time_var = ds[time_dim]
-    has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
+    time_var = ds.variables[time_dim]
+    has_bounds = hasattr(time_var, "bounds") and time_var.bounds in list(ds.variables)
 
     def _todate(t):
         return cftime.num2date(t, time_var.units, calendar=time_var.calendar)

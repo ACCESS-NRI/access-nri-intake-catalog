@@ -5,8 +5,8 @@
 #PBS -q express
 #PBS -l walltime=02:00:00
 #PBS -l mem=192gb
-#PBS -l ncpus=48
-#PBS -l jobfs=10GB
+#PBS -l ncpus=96
+#PBS -l jobfs=20GB
 #PBS -l wd
 #PBS -j oe
 

@@ -10,7 +10,7 @@ from pathlib import Path
 
 import jsonschema
 
-import xarray as xr
+from netCDF4 import Dataset
 
 from ecgtools.builder import Builder, INVALID_ASSET, TRACEBACK
 
@@ -240,24 +240,42 @@ class AccessOm2Builder(BaseBuilder):
                 [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}"], filename
             )
 
-            with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
+            with Dataset(file, mode="r") as ds:
                 variable_list = []
                 variable_long_name_list = []
-                for var in ds:
-                    if "long_name" in ds[var].attrs:
+                variable_standard_name_list = []
+                variable_cell_methods_list = []
+                for var in list(ds.variables):
+                    ncattrs = ds.variables[var].ncattrs()
+                    if "long_name" in ncattrs:
                         variable_list.append(var)
-                        variable_long_name_list.append(ds[var].attrs["long_name"])
+                        variable_long_name_list.append(
+                            ds.variables[var].getncattr("long_name")
+                        )
+                    if "standard_name" in ncattrs:
+                        variable_standard_name_list.append(
+                            ds.variables[var].getncattr("standard_name")
+                        )
+                    if "cell_methods" in ncattrs:
+                        variable_cell_methods_list.append(
+                            ds.variables[var].getncattr("cell_methods")
+                        )
+
+                start_date, end_date, frequency = get_timeinfo(ds)
 
             info = {
                 "path": str(file),
                 "realm": realm,
                 "variable": variable_list,
                 "variable_long_name": variable_long_name_list,
+                "variable_standard_name": variable_standard_name_list,
+                "variable_cell_methods_name": variable_cell_methods_list,
                 "filename": filename,
                 "file_id": file_id,
+                "start_date": start_date,
+                "end_date": end_date,
+                "frequency": frequency,
             }
-
-            info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
 
             return info
 
@@ -337,18 +355,28 @@ class AccessEsm15Builder(BaseBuilder):
             )
             file_id = strip_pattern_rh([exp_id], file_id)
 
-            with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
+            with Dataset(file, mode="r") as ds:
                 variable_list = []
                 variable_long_name_list = []
                 variable_standard_name_list = []
-                for var in ds:
-                    if "long_name" in ds[var].attrs:
+                variable_cell_methods_list = []
+                for var in list(ds.variables):
+                    ncattrs = ds.variables[var].ncattrs()
+                    if "long_name" in ncattrs:
                         variable_list.append(var)
-                        variable_long_name_list.append(ds[var].attrs["long_name"])
-                    if "standard_name" in ds[var].attrs:
-                        variable_standard_name_list.append(
-                            ds[var].attrs["standard_name"]
+                        variable_long_name_list.append(
+                            ds.variables[var].getncattr("long_name")
                         )
+                    if "standard_name" in ncattrs:
+                        variable_standard_name_list.append(
+                            ds.variables[var].getncattr("standard_name")
+                        )
+                    if "cell_methods" in ncattrs:
+                        variable_cell_methods_list.append(
+                            ds.variables[var].getncattr("cell_methods")
+                        )
+
+                start_date, end_date, frequency = get_timeinfo(ds)
 
             info = {
                 "path": str(file),
@@ -356,14 +384,16 @@ class AccessEsm15Builder(BaseBuilder):
                 "variable": variable_list,
                 "variable_long_name": variable_long_name_list,
                 "variable_standard_name": variable_standard_name_list,
+                "variable_cell_methods_name": variable_cell_methods_list,
                 "filename": filename,
                 "file_id": file_id,
+                "start_date": start_date,
+                "end_date": end_date,
+                "frequency": frequency,
             }
 
             if self.ensemble:
                 info["member"] = exp_id
-
-            info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
 
             return info
 
