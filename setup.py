@@ -25,6 +25,6 @@ setup(
     ],
     entry_points={
         "console_scripts": ["metacat-build=catalog_manager.cli:build"],
-        "intake.catalogs": ["nri = catalog_manager:data"],
+        "intake.catalogs": ["accessnri = catalog_manager:data"],
     },
 )

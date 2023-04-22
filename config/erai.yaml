@@ -1,14 +1,11 @@
 builder: null
 
-translator: "EraiTranslator"
-
-metadata: null
+translator: EraiTranslator
 
 subcatalog_dir: null
 
-catalogs:
+subcatalogs:
 
-  ERAI_CMS:
-    description: "ECMWF ERA-Interim reanalysis at subdaily (3hr/6hr) frequencies catalogued by CLEX-CMS"
-    path:
-      - "/g/data/hh5/public/apps/nci-intake-catalogue/erai/catalogue.json"
+  - path:
+      - /g/data/hh5/public/apps/nci-intake-catalogue/erai/catalogue.json
+    metadata_yaml: /g/data/tm70/intake/metadata/erai/metadata.yaml

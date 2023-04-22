@@ -28,7 +28,7 @@ class DefaultTranslator:
         - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
              esmcat.df attribute. If the catalog is not an intake-esm catalog, this step is skipped.
         - If that fails, the translator will then look for the column name as an attribute on the catalog iteself
-        - If that fails, the translator will then look for the colum name in the metadata attribute of the catalog
+        - If that fails, the translator will then look for the column name in the metadata attribute of the catalog
 
         Parameters
         ----------
@@ -51,7 +51,7 @@ class DefaultTranslator:
         - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
              esmcat.df attribute. If the catalog is not an intake-esm catalog, this step is skipped.
         - If that fails, the translator will then look for the column name as an attribute on the catalog iteself
-        - If that fails, the translator will then look for the colum name in the metadata attribute of the catalog
+        - If that fails, the translator will then look for the column name in the metadata attribute of the catalog
 
         Parameters
         ----------
@@ -70,6 +70,7 @@ class DefaultTranslator:
             val = getattr(self.cat, column)
         elif column in self.cat.metadata:
             val = self.cat.metadata[column]
+            print(val)
         else:
             raise TranslatorError(
                 f"Could not translate '{column}' from {self.cat.name} using {self.__class__.__name__}"
@@ -150,10 +151,13 @@ class Cmip6Translator(DefaultTranslator):
     def _realm_frequency_translator(self, get):
         """
         Return realm and frequency from table_id (as best as possible)
+
+        TODO: should read these directly from 'realm' and 'frequency' columns
+        once these are added to the intake catalog
         """
         table_id = self.cat.df["table_id"]
         mapping = {
-            "3hr": ("multi", "3hr"),  # "atmos", "land", "ocean"
+            "3hr": ("unknown", "3hr"),  # "atmos", "land", "ocean"
             "6hrLev": ("atmos", "6hr"),
             "6hrPlev": ("atmos", "6hr"),
             "6hrPlevPt": ("atmos", "6hr"),
@@ -168,23 +172,23 @@ class Cmip6Translator(DefaultTranslator):
             "CFsubhr": ("atmos", "subhr"),
             "E1hr": ("atmos", "1hr"),
             "E1hrClimMon": ("atmos", "1hr"),
-            "E3hr": ("multi", "3hr"),  # "atmos", "land"
-            "E3hrPt": ("multi", "3hr"),  # "atmos", "land"
+            "E3hr": ("unknown", "3hr"),  # "atmos", "land"
+            "E3hrPt": ("unknown", "3hr"),  # "atmos", "land"
             "E6hrZ": ("atmos", "6hr"),
-            "Eday": ("multi", "1day"),  # "atmos", "ice", "land", "ocean"
+            "Eday": ("unknown", "1day"),  # "atmos", "ice", "land", "ocean"
             "EdayZ": ("atmos", "1day"),
-            "Efx": ("multi", "fx"),  # "atmos", "ice", "land"
-            "Emon": ("multi", "1mon"),  # "atmos", "land", "ocean"
-            "EmonZ": ("multi", "1mon"),  # "atmos", "ocean"
+            "Efx": ("unknown", "fx"),  # "atmos", "ice", "land"
+            "Emon": ("unknown", "1mon"),  # "atmos", "land", "ocean"
+            "EmonZ": ("unknown", "1mon"),  # "atmos", "ocean"
             "Esubhr": ("atmos", "subhr"),
-            "Eyr": ("multi", "1yr"),  # "land", "ocean"
-            "IfxAnt": ("ice", "fx"),
-            "IfxGre": ("ice", "fx"),
-            "ImonAnt": ("ice", "1mon"),
-            "ImonGre": ("ice", "1mon"),
-            "IyrAnt": ("ice", "1yr"),
-            "IyrGre": ("ice", "1yr"),
-            "LImon": ("multi", "1mon"),  # "ice", "land"
+            "Eyr": ("unknown", "1yr"),  # "land", "ocean"
+            "IfxAnt": ("landIce", "fx"),
+            "IfxGre": ("landIce", "fx"),
+            "ImonAnt": ("landIce", "1mon"),
+            "ImonGre": ("landIce", "1mon"),
+            "IyrAnt": ("landIce", "1yr"),
+            "IyrGre": ("landIce", "1yr"),
+            "LImon": ("unknown", "1mon"),  # "ice", "land"
             "Lmon": ("land", "1mon"),
             "Oclim": ("ocean", "1mon"),
             "Oday": ("ocean", "1day"),
@@ -192,10 +196,10 @@ class Cmip6Translator(DefaultTranslator):
             "Ofx": ("ocean", "fx"),
             "Omon": ("ocean", "1mon"),
             "Oyr": ("ocean", "1yr"),
-            "SIday": ("ice", "1day"),
-            "SImon": ("ice", "1mon"),
-            "day": ("multi", "1day"),  # "atmos", "ocean"
-            "fx": ("multi", "fx"),  # "atmos", "ice", "land"
+            "SIday": ("seaIce", "1day"),
+            "SImon": ("seaIce", "1mon"),
+            "day": ("unknown", "1day"),  # "atmos", "ocean"
+            "fx": ("unknown", "fx"),  # "atmos", "ice", "land"
         }
         ind = {"realm": 0, "frequency": 1}[get]
         return table_id.map({k: v[ind] for k, v in mapping.items()})
@@ -225,20 +229,8 @@ class Cmip5Translator(DefaultTranslator):
         """
 
         super().__init__(cat, columns)
-        self._dispatch["realm"] = self._realm_translator
         self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
-
-    def _realm_translator(self):
-        """
-        Return realm from existing realm column
-        """
-        special_cases = {"landIce": "ice", "seaIce": "ice", "ocnBgchem": "ocean"}
-
-        def _parse(s):
-            return special_cases.get(s, s)
-
-        return self.cat.df["realm"].apply(lambda s: _parse(s))
 
     def _frequency_translator(self):
         """
@@ -276,21 +268,7 @@ class EraiTranslator(DefaultTranslator):
         """
 
         super().__init__(cat, columns)
-        self._dispatch["model"] = self._model_translator
-        self._dispatch["realm"] = partial(self._realm_translator)
         self._dispatch["variable"] = self._variable_translator
-
-    def _model_translator(self):
-        """
-        Return model from source_id
-        """
-        return pd.Series(["ERA-Interim"] * len(self.cat.df))
-
-    def _realm_translator(self):
-        """
-        Return realm from exising realm column
-        """
-        return match_substrings(self.cat.df["realm"], ["atmos", "ocean", "ice", "land"])
 
     def _variable_translator(self):
         """
@@ -329,6 +307,6 @@ def match_substrings(series, substrings):
             match = re.match(rf".*{substring}.*", s, flags=re.IGNORECASE)
             if match:
                 return substring
-        raise ValueError(f"Could not match {s} to any realm")
+        raise ValueError(f"Could not match {s} to any substring")
 
     return series.apply(lambda s: _parse(s))

@@ -1,62 +1,51 @@
-builder: "AccessCm2Builder"
+builder: AccessCm2Builder
 
-translator: null # use DefaultTranslator
+translator: DefaultTranslator
 
-metadata:
-  model: "ACCESS-CM2"
+subcatalog_dir: /g/data/tm70/intake/access-cm2
 
-subcatalog_dir: "/g/data/tm70/intake/access-cm2"
+subcatalogs:
 
-catalogs:
-
-  # 2.8 TB
-  bx944:
-    description: "Standard CMIP6 historical simulation control experiment for by473, branched from ACCESS-CM2 bi889"
-    path:
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944a"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944b"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944c"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944d"
-
-  # 0.35 TB
-  by647:
-    description: "Standard CMIP6 ssp245 simulation control experiment for by578, branched from ACCESS-CM2 bx944 in 2015"
-    path:
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647a"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647b"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647c"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by647d"
-
-  # 2.1 TB
-  by473:
-    description: "Pacemaker variation of CMIP6 historical simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi889"
-    path:
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473a"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473b"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473c"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by473d"
-
-  # 0.35 GB
-  by578:
-    description: "Pacemaker variation of CMIP6 ssp245 simulation, with fixed Tropical Atlantic SSTs, branched from ACCESS-CM2 bi473 in 2015"
-    path:
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578a"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578b"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578c"
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/by578d"
-
-  # 14 TB
-  bz687:
-    description: "Present day control run"
-    path:
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/bz687"
-
-  # 24 TB
-  cj877:
-    description: "Present day control run with ACCESS-OM2 0.25 deg ocean"
-    path:
-      - "/g/data/p73/archive/non-CMIP/ACCESS-CM2/cj877"
+  - path:
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944a
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944b
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944c
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944d
+    metadata_yaml: /g/data/tm70/intake/metadata/bx944/metadata.yaml
+    ensemble: true
+    
+  - path:
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647a
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647b
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647c
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647d
+    metadata_yaml: /g/data/tm70/intake/metadata/by647/metadata.yaml
+    ensemble: true
+    
+  - path:
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473a
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473b
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473c
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473d
+    metadata_yaml: /g/data/tm70/intake/metadata/by473/metadata.yaml
+    ensemble: true
+  
+  - path:
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578a
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578b
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578c
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578d
+    metadata_yaml: /g/data/tm70/intake/metadata/by578/metadata.yaml
+    ensemble: true
+    
+  - path:
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bz687
+    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/bz687/metadata.yaml
+    
+  - path:
+      - /g/data/p73/archive/non-CMIP/ACCESS-CM2/cj877
+    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/cj877/metadata.yaml

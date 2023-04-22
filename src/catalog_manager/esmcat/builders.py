@@ -10,7 +10,7 @@ from pathlib import Path
 
 import jsonschema
 
-import xarray as xr
+from netCDF4 import Dataset
 
 from ecgtools.builder import Builder, INVALID_ASSET, TRACEBACK
 
@@ -217,10 +217,6 @@ class AccessOm2Builder(BaseBuilder):
                         "combine": "by_coords",
                     },
                 },
-                {
-                    "type": "join_new",
-                    "attribute_name": "member",
-                },
             ],
         )
 
@@ -233,8 +229,11 @@ class AccessOm2Builder(BaseBuilder):
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
             ).groups()
             # configuration = match_groups[0]
-            exp_id = match_groups[1]
+            # exp_id = match_groups[1]
             realm = match_groups[2]
+
+            if realm == "ice":
+                realm = "seaIce"
 
             filename = Path(file).stem
 
@@ -246,19 +245,42 @@ class AccessOm2Builder(BaseBuilder):
                 [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}"], filename
             )
 
-            with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
-                variable_list = [var for var in ds if "long_name" in ds[var].attrs]
+            with Dataset(file, mode="r") as ds:
+                variable_list = []
+                variable_long_name_list = []
+                variable_standard_name_list = []
+                variable_cell_methods_list = []
+                for var in list(ds.variables):
+                    ncattrs = ds.variables[var].ncattrs()
+                    if "long_name" in ncattrs:
+                        variable_list.append(var)
+                        variable_long_name_list.append(
+                            ds.variables[var].getncattr("long_name")
+                        )
+                    if "standard_name" in ncattrs:
+                        variable_standard_name_list.append(
+                            ds.variables[var].getncattr("standard_name")
+                        )
+                    if "cell_methods" in ncattrs:
+                        variable_cell_methods_list.append(
+                            ds.variables[var].getncattr("cell_methods")
+                        )
+
+                start_date, end_date, frequency = get_timeinfo(ds)
 
             info = {
                 "path": str(file),
                 "realm": realm,
                 "variable": variable_list,
+                "frequency": frequency,
+                "start_date": start_date,
+                "end_date": end_date,
+                "variable_long_name": variable_long_name_list,
+                "variable_standard_name": variable_standard_name_list,
+                "variable_cell_methods": variable_cell_methods_list,
                 "filename": filename,
-                "member": exp_id,
                 "file_id": file_id,
             }
-
-            info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
 
             return info
 
@@ -269,7 +291,7 @@ class AccessOm2Builder(BaseBuilder):
 class AccessEsm15Builder(BaseBuilder):
     """Intake-esm catalog builder for ACCESS-ESM1.5 datasets"""
 
-    def __init__(self, path):
+    def __init__(self, path, ensemble=False):
         """
         Initialise a AccessEsm15Builder
 
@@ -277,6 +299,9 @@ class AccessEsm15Builder(BaseBuilder):
         ----------
         path: str or list of str
             Path or list of paths to crawl for assets/files.
+        ensemble: boolean, optional
+            Whether to treat each path as a separate member of an ensemble to join
+            along a new member dimension
         """
 
         kwargs = dict(
@@ -295,12 +320,16 @@ class AccessEsm15Builder(BaseBuilder):
                         "combine": "by_coords",
                     },
                 },
+            ],
+        )
+
+        if ensemble:
+            kwargs["aggregations"] += [
                 {
                     "type": "join_new",
                     "attribute_name": "member",
                 },
-            ],
-        )
+            ]
 
         super().__init__(**kwargs)
 
@@ -310,12 +339,9 @@ class AccessEsm15Builder(BaseBuilder):
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             exp_id = match_groups[0]
             realm = match_groups[1]
-            if realm == "atm":
-                realm = "atmos"
-            elif realm == "ocn":
-                realm = "ocean"
-            elif realm != "ice":
-                raise ParserError(f"Could not translate {realm} to a realm")
+
+            realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
+            realm = realm_mapping[realm]
 
             filename = Path(file).stem
 
@@ -331,19 +357,43 @@ class AccessEsm15Builder(BaseBuilder):
             )
             file_id = strip_pattern_rh([exp_id], file_id)
 
-            with xr.open_dataset(file, chunks={}, decode_times=False) as ds:
-                variable_list = [var for var in ds if "long_name" in ds[var].attrs]
+            with Dataset(file, mode="r") as ds:
+                variable_list = []
+                variable_long_name_list = []
+                variable_standard_name_list = []
+                variable_cell_methods_list = []
+                for var in list(ds.variables):
+                    ncattrs = ds.variables[var].ncattrs()
+                    if "long_name" in ncattrs:
+                        variable_list.append(var)
+                        variable_long_name_list.append(
+                            ds.variables[var].getncattr("long_name")
+                        )
+                    if "standard_name" in ncattrs:
+                        variable_standard_name_list.append(
+                            ds.variables[var].getncattr("standard_name")
+                        )
+                    if "cell_methods" in ncattrs:
+                        variable_cell_methods_list.append(
+                            ds.variables[var].getncattr("cell_methods")
+                        )
+
+                start_date, end_date, frequency = get_timeinfo(ds)
 
             info = {
                 "path": str(file),
                 "realm": realm,
                 "variable": variable_list,
-                "filename": filename,
+                "frequency": frequency,
+                "start_date": start_date,
+                "end_date": end_date,
                 "member": exp_id,
+                "variable_long_name": variable_long_name_list,
+                "variable_standard_name": variable_standard_name_list,
+                "variable_cell_methods": variable_cell_methods_list,
+                "filename": filename,
                 "file_id": file_id,
             }
-
-            info["start_date"], info["end_date"], info["frequency"] = get_timeinfo(ds)
 
             return info
 

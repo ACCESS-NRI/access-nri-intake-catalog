@@ -1,26 +1,15 @@
 builder: null
 
-translator: "Cmip6Translator"
-
-metadata: null
+translator: Cmip6Translator
 
 subcatalog_dir: null
 
-catalogs:
+subcatalogs:
 
-  CMIP6_CMS:
-    description: "CMIP6 datasets catalogued by CLEX-CMS"
-    path:
-      - "/g/data/hh5/public/apps/nci-intake-catalogue/esgf/cmip6/catalogue_latest.json"
-      
-  # 417 TB
-  CMIP6_NCI_fs38:
-    description: "Australian CMIP6-era datasets catalogued by NCI"
-    path:
-      - "/g/data/dk92/catalog/v2/esm/cmip6-fs38/catalog.json"
-
-  # 947 TB
-  CMIP6_NCI_oi10:
-    description: "Replicated CMIP6-era datasets catalogued by NCI"
-    path:
-      - "/g/data/dk92/catalog/v2/esm/cmip6-oi10/catalog.json"
+  - path:
+      - /g/data/dk92/catalog/v2/esm/cmip6-fs38/catalog.json
+    metadata_yaml: /g/data/tm70/intake/metadata/cmip6_fs38/metadata.yaml
+    
+  - path:
+      - /g/data/dk92/catalog/v2/esm/cmip6-oi10/catalog.json
+    metadata_yaml: /g/data/tm70/intake/metadata/cmip6_oi10/metadata.yaml

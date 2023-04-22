@@ -1,0 +1,18 @@
+name: <name of the experiment>
+uuid: <universally unique identifier>
+short_description: >-
+  <short description of the experiment (<150 char)>
+long_description: >-
+  <long description of the experiment>
+model: null
+contact: null
+email: null
+created: null
+reference: null
+parent_experiment: null
+related_experiments:
+  - null
+notes: >-
+  null
+keywords:
+  - null
