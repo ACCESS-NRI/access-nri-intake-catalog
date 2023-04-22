@@ -230,6 +230,9 @@ class AccessOm2Builder(BaseBuilder):
             # exp_id = match_groups[1]
             realm = match_groups[2]
 
+            if realm == "ice":
+                realm = "seaIce"
+
             filename = Path(file).stem
 
             # Get file id without any dates
@@ -334,12 +337,9 @@ class AccessEsm15Builder(BaseBuilder):
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             exp_id = match_groups[0]
             realm = match_groups[1]
-            if realm == "atm":
-                realm = "atmos"
-            elif realm == "ocn":
-                realm = "ocean"
-            elif realm != "ice":
-                raise ParserError(f"Could not translate {realm} to a realm")
+
+            realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
+            realm = realm_mapping[realm]
 
             filename = Path(file).stem
 

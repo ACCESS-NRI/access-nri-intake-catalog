@@ -8,10 +8,14 @@ jsonschema:
       enum:
       - aerosol
       - atmos
-      - ice
+      - atmosChem
       - land
-      - multi
+      - landIce
+      - none
       - ocean
+      - ocnBgchem
+      - seaIce
+      - unknown
     frequency:
       type: string
       pattern: ^fx$|^subhr$|^\d+hr$|^\d+day$|^\d+mon$|^\d+yr$|^\d+dec$
