@@ -270,14 +270,14 @@ class AccessOm2Builder(BaseBuilder):
                 "path": str(file),
                 "realm": realm,
                 "variable": variable_list,
-                "variable_long_name": variable_long_name_list,
-                "variable_standard_name": variable_standard_name_list,
-                "variable_cell_methods_name": variable_cell_methods_list,
-                "filename": filename,
-                "file_id": file_id,
+                "frequency": frequency,
                 "start_date": start_date,
                 "end_date": end_date,
-                "frequency": frequency,
+                "variable_long_name": variable_long_name_list,
+                "variable_standard_name": variable_standard_name_list,
+                "variable_cell_methods": variable_cell_methods_list,
+                "filename": filename,
+                "file_id": file_id,
             }
 
             return info
@@ -382,14 +382,14 @@ class AccessEsm15Builder(BaseBuilder):
                 "path": str(file),
                 "realm": realm,
                 "variable": variable_list,
-                "variable_long_name": variable_long_name_list,
-                "variable_standard_name": variable_standard_name_list,
-                "variable_cell_methods_name": variable_cell_methods_list,
-                "filename": filename,
-                "file_id": file_id,
+                "frequency": frequency,
                 "start_date": start_date,
                 "end_date": end_date,
-                "frequency": frequency,
+                "variable_long_name": variable_long_name_list,
+                "variable_standard_name": variable_standard_name_list,
+                "variable_cell_methods": variable_cell_methods_list,
+                "filename": filename,
+                "file_id": file_id,
             }
 
             if self.ensemble:

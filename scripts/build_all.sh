@@ -5,8 +5,8 @@
 #PBS -q express
 #PBS -l walltime=02:00:00
 #PBS -l mem=192gb
-#PBS -l ncpus=96
-#PBS -l jobfs=20GB
+#PBS -l ncpus=48
+#PBS -l jobfs=10GB
 #PBS -l wd
 #PBS -j oe
 
@@ -25,7 +25,7 @@ conda activate catalog-manager-dev
 CONFIG_DIR=/g/data/tm70/ds0092/projects/nri_intake_catalog/config
 CATALOG_NAME=/g/data/tm70/intake/dfcatalog.csv
 
-configs=( cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # cmip5.yaml
+configs=( cmip6.yaml access-cm2.yaml access-esm1-5.yaml ) # cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # cmip5.yaml erai.yaml
 
 for config in "${configs[@]}"; do
     metacat-build --catalog_name=${CATALOG_NAME} ${CONFIG_DIR}/$config
