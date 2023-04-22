@@ -174,7 +174,8 @@ class BaseBuilder(Builder):
         )
         return {column for column, check in has_iterables.items() if check}
 
-    def parser(self, file):
+    @staticmethod
+    def parser(file):
         """
         Parse info from a file asset
 
@@ -221,7 +222,8 @@ class AccessOm2Builder(BaseBuilder):
 
         super().__init__(**kwargs)
 
-    def parser(self, file):
+    @staticmethod
+    def parser(file):
         try:
             match_groups = re.match(
                 r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
@@ -321,8 +323,7 @@ class AccessEsm15Builder(BaseBuilder):
             ],
         )
 
-        self.ensemble = ensemble
-        if self.ensemble:
+        if ensemble:
             kwargs["aggregations"] += [
                 {
                     "type": "join_new",
@@ -332,7 +333,8 @@ class AccessEsm15Builder(BaseBuilder):
 
         super().__init__(**kwargs)
 
-    def parser(self, file):
+    @staticmethod
+    def parser(file):
         try:
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             exp_id = match_groups[0]
@@ -385,15 +387,13 @@ class AccessEsm15Builder(BaseBuilder):
                 "frequency": frequency,
                 "start_date": start_date,
                 "end_date": end_date,
+                "member": exp_id,
                 "variable_long_name": variable_long_name_list,
                 "variable_standard_name": variable_standard_name_list,
                 "variable_cell_methods": variable_cell_methods_list,
                 "filename": filename,
                 "file_id": file_id,
             }
-
-            if self.ensemble:
-                info["member"] = exp_id
 
             return info
 
