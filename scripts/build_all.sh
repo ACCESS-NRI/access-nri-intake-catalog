@@ -6,7 +6,6 @@
 #PBS -l walltime=02:00:00
 #PBS -l mem=192gb
 #PBS -l ncpus=48
-#PBS -l jobfs=10GB
 #PBS -l wd
 #PBS -j oe
 
