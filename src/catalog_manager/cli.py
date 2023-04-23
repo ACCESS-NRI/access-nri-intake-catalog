@@ -27,6 +27,11 @@ def build():
         help="Configuration YAML file specifying the intake catalog(s) to add",
     )
     parser.add_argument(
+        "n_jobs",
+        type=int,
+        help="The n umber of jobs to parallelize across",
+    )
+    parser.add_argument(
         "--catalog_name",
         type=str,
         default="dfcatalog.csv",
@@ -35,6 +40,7 @@ def build():
 
     args = parser.parse_args()
     config = args.config
+    n_jobs = args.n_jobs
     catalog_name = args.catalog_name
 
     with open(config) as f:
@@ -73,4 +79,4 @@ def build():
         logger.info(
             f"{msg} '{cat_args['name']}' and adding to intake-dataframe-catalog '{catalog_name}'"
         )
-        manager(**(cat_args | kwargs)).add()
+        manager(**(cat_args | kwargs | {"n_jobs": n_jobs})).add()

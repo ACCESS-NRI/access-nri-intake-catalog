@@ -80,6 +80,8 @@ class BaseBuilder(Builder):
         self.storage_options = storage_options
         self.joblib_parallel_kwargs = joblib_parallel_kwargs
 
+        print(f"joblib_parallel_kwargs: {joblib_parallel_kwargs}")
+
         super().__post_init_post_parse__()
 
     def _parse(self):
@@ -191,7 +193,7 @@ class BaseBuilder(Builder):
 class AccessOm2Builder(BaseBuilder):
     """Intake-esm catalog builder for ACCESS-OM2 COSIMA datasets"""
 
-    def __init__(self, path):
+    def __init__(self, path, n_jobs):
         """
         Initialise a AccessOm2Builder
 
@@ -199,6 +201,8 @@ class AccessOm2Builder(BaseBuilder):
         ----------
         path : str or list of str
             Path or list of paths to crawl for assets/files.
+        n_jobs: int
+            The number of jobs to parallelize across
         """
 
         kwargs = dict(
@@ -218,6 +222,7 @@ class AccessOm2Builder(BaseBuilder):
                     },
                 },
             ],
+            joblib_parallel_kwargs={"n_jobs": n_jobs},
         )
 
         super().__init__(**kwargs)
