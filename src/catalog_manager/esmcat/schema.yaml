@@ -18,7 +18,14 @@ jsonschema:
       - unknown
     frequency:
       type: string
-      pattern: ^fx$|^subhr$|^\d+hr$|^\d+day$|^\d+mon$|^\d+yr$|^\d+dec$
+      oneOf:
+      - pattern: ^fx$
+      - pattern: ^subhr$
+      - pattern: ^\d+hr$
+      - pattern: ^\d+day$
+      - pattern: ^\d+mon$
+      - pattern: ^\d+yr$
+      - pattern: ^\d+dec$
     variable:
       type: array
       items:

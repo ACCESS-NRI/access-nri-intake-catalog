@@ -1,14 +1,17 @@
 name: <name of the experiment>
-uuid: <universally unique identifier>
+experiment_uuid: <universally unique identifier>
 short_description: >-
   <short description of the experiment (<150 char)>
 long_description: >-
   <long description of the experiment>
 model: null
+nominal_resolution: null
+version: null
 contact: null
 email: null
 created: null
 reference: null
+url: null
 parent_experiment: null
 related_experiments:
   - null

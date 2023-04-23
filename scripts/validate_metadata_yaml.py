@@ -8,14 +8,33 @@ schema = {
     "type": "object",
     "properties": {
         "name": {"type": "string"},
-        "uuid": {"type": "string"},
+        "experiment_uuid": {"type": "string"},
         "short_description": {"type": "string"},
         "long_description": {"type": "string"},
-        "model": {"type": ["string", "null"]},
+        "model": {
+            "oneOf": [
+                {"type": ["string", "null"]},
+                {
+                    "type": "array",
+                    "items": {"type": ["string", "null"]},
+                },
+            ]
+        },
+        "nominal_resolution": {
+            "oneOf": [
+                {"type": ["string", "null"]},
+                {
+                    "type": "array",
+                    "items": {"type": ["string", "null"]},
+                },
+            ]
+        },
+        "version": {"type": ["number", "null"]},
         "contact": {"type": ["string", "null"]},
         "email": {"type": ["string", "null"]},
         "created": {"type": ["string", "null"]},
         "reference": {"type": ["string", "null"]},
+        "url": {"type": ["string", "null"]},
         "parent_experiment": {"type": ["string", "null"]},
         "related_experiments": {
             "type": ["array", "null"],
@@ -29,14 +48,17 @@ schema = {
     },
     "required": [
         "name",
-        "uuid",
+        "experiment_uuid",
         "short_description",
         "long_description",
         "model",
+        "nominal_resolution",
+        "version",
         "contact",
         "email",
         "created",
         "reference",
+        "url",
         "parent_experiment",
         "related_experiments",
         "notes",
