@@ -1,0 +1,41 @@
+2023-04-23 16:36:24,941 - catalog_manager.cli - INFO - Building intake-esm catalog 'cosima_025deg_jra55_ryf9091_gadi' and adding to intake-dataframe-catalog '/g/data/tm70/ds0092/data/tmp/dfcatalog.csv'
+joblib_parallel_kwargs: {'n_jobs': 24}
+2023-04-23 16:37:14,320 - catalog_manager.cli - INFO - Building intake-esm catalog 'cosima_025deg_jra55_iaf_omip2_cycle1' and adding to intake-dataframe-catalog '/g/data/tm70/ds0092/data/tmp/dfcatalog.csv'
+2023-04-23 16:37:23,137 - catalog_manager.cli - INFO - Building intake-esm catalog 'cosima_025deg_jra55_iaf_omip2_cycle2' and adding to intake-dataframe-catalog '/g/data/tm70/ds0092/data/tmp/dfcatalog.csv'
+2023-04-23 16:37:29,918 - catalog_manager.cli - INFO - Building intake-esm catalog 'cosima_025deg_jra55_iaf_omip2_cycle3' and adding to intake-dataframe-catalog '/g/data/tm70/ds0092/data/tmp/dfcatalog.csv'
+2023-04-23 16:37:35,777 - catalog_manager.cli - INFO - Building intake-esm catalog 'cosima_025deg_jra55_iaf_omip2_cycle4' and adding to intake-dataframe-catalog '/g/data/tm70/ds0092/data/tmp/dfcatalog.csv'
+2023-04-23 16:37:41,670 - catalog_manager.cli - INFO - Building intake-esm catalog 'cosima_025deg_jra55_iaf_omip2_cycle5' and adding to intake-dataframe-catalog '/g/data/tm70/ds0092/data/tmp/dfcatalog.csv'
+2023-04-23 16:37:47,516 - catalog_manager.cli - INFO - Building intake-esm catalog 'cosima_025deg_jra55_iaf_omip2_cycle6' and adding to intake-dataframe-catalog '/g/data/tm70/ds0092/data/tmp/dfcatalog.csv'
+Successfully wrote ESM catalog json file to: file:///g/data/tm70/intake/access-om2/cosima_025deg_jra55_ryf9091_gadi.json
+ACCESS-OM2
+joblib_parallel_kwargs: {'n_jobs': 24}
+Successfully wrote ESM catalog json file to: file:///g/data/tm70/intake/access-om2/cosima_025deg_jra55_iaf_omip2_cycle1.json
+ACCESS-OM2
+joblib_parallel_kwargs: {'n_jobs': 24}
+Successfully wrote ESM catalog json file to: file:///g/data/tm70/intake/access-om2/cosima_025deg_jra55_iaf_omip2_cycle2.json
+ACCESS-OM2
+joblib_parallel_kwargs: {'n_jobs': 24}
+Successfully wrote ESM catalog json file to: file:///g/data/tm70/intake/access-om2/cosima_025deg_jra55_iaf_omip2_cycle3.json
+ACCESS-OM2
+joblib_parallel_kwargs: {'n_jobs': 24}
+Successfully wrote ESM catalog json file to: file:///g/data/tm70/intake/access-om2/cosima_025deg_jra55_iaf_omip2_cycle4.json
+ACCESS-OM2
+joblib_parallel_kwargs: {'n_jobs': 24}
+Successfully wrote ESM catalog json file to: file:///g/data/tm70/intake/access-om2/cosima_025deg_jra55_iaf_omip2_cycle5.json
+ACCESS-OM2
+joblib_parallel_kwargs: {'n_jobs': 24}
+Successfully wrote ESM catalog json file to: file:///g/data/tm70/intake/access-om2/cosima_025deg_jra55_iaf_omip2_cycle6.json
+ACCESS-OM2
+
+======================================================================================
+                  Resource Usage on 2023-04-23 16:37:56:
+   Job Id:             81188600.gadi-pbs
+   Project:            tm70
+   Exit Status:        0
+   Service Units:      4.12
+   NCPUs Requested:    24                     NCPUs Used: 24              
+                                           CPU Time Used: 00:12:54        
+   Memory Requested:   96.0GB                Memory Used: 35.58GB         
+   Walltime requested: 02:00:00            Walltime Used: 00:01:43        
+   JobFS requested:    100.0MB                JobFS used: 0B              
+======================================================================================
