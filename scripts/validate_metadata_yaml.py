@@ -8,7 +8,10 @@ schema = {
     "type": "object",
     "properties": {
         "name": {"type": "string"},
-        "experiment_uuid": {"type": "string"},
+        "experiment_uuid": {
+            "type": "string",
+            "format": "uuid",
+        },
         "short_description": {"type": "string"},
         "long_description": {"type": "string"},
         "model": {
