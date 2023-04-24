@@ -35,6 +35,12 @@ autoapi_dirs = ["../src/catalog_manager"]
 autoapi_add_toctree_entry = False
 autoapi_ignore = ["**.ipynb_checkpoints"]
 autoapi_python_class_content = "class"
+autoapi_options = [
+    "members",
+    "inherited-members",
+    "show-inheritance",
+    "show-module-summary",
+]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
