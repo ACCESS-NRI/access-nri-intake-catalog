@@ -7,5 +7,5 @@ sources:
       path: /g/data/tm70/intake/dfcatalog.csv
       yaml_column: yaml
     description: ''
-    driver: intake_dataframe_catalog.core.DFFileCatalog
+    driver: intake_dataframe_catalog.core.DfFileCatalog
     metadata: {}
