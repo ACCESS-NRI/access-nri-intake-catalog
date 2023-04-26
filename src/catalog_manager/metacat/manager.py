@@ -8,7 +8,7 @@ import os
 import jsonschema
 
 import intake
-from intake_dataframe_catalog.core import DFCatalogModel
+from intake_dataframe_catalog.core import DfFileCatalog
 
 from . import schema
 from .translators import DefaultTranslator
@@ -40,22 +40,15 @@ class MetacatManager:
 
         self.path = path
 
-        if os.path.exists(path):
-            dfcat = DFCatalogModel.load(
-                path,
-                yaml_column=schema["yaml_column"],
-                name_column=schema["name_column"],
-            )
-        else:
-            metadata_columns = _metacat_columns.copy()
-            metadata_columns.remove(schema["name_column"])
-            dfcat = DFCatalogModel(
-                yaml_column=schema["yaml_column"],
-                name_column=schema["name_column"],
-                metadata_columns=metadata_columns,
-            )
+        mode = "a" if os.path.exists(path) else "w"
 
-        self.dfcat = dfcat
+        self.dfcat = DfFileCatalog(
+            path=self.path,
+            yaml_column=schema["yaml_column"],
+            name_column=schema["name_column"],
+            mode=mode,
+        )
+
         self.subcat = None
         self.subcat_metadata = None
 
@@ -197,7 +190,7 @@ class MetacatManager:
             self.dfcat.add(self.subcat, row.to_dict(), overwrite=overwrite)
             overwrite = False
 
-        self.dfcat.save(self.path, **kwargs)
+        self.dfcat.save(**kwargs)
 
 
 def _open_and_translate(json_file, name, description, metadata, translator, **kwargs):

@@ -3,9 +3,10 @@ sources:
     args:
       columns_with_iterables:
       - variable
+      mode: r
       name_column: name
       path: /g/data/tm70/intake/dfcatalog.csv
       yaml_column: yaml
     description: ''
-    driver: intake_dataframe_catalog.core.DFFileCatalog
+    driver: intake_dataframe_catalog.core.DfFileCatalog
     metadata: {}
