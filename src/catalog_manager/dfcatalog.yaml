@@ -3,6 +3,7 @@ sources:
     args:
       columns_with_iterables:
       - variable
+      mode: r
       name_column: name
       path: /g/data/tm70/intake/dfcatalog.csv
       yaml_column: yaml
