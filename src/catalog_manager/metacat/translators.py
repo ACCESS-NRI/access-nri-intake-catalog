@@ -135,10 +135,8 @@ class Cmip6Translator(DefaultTranslator):
 
         super().__init__(cat, columns)
         self._dispatch["model"] = self._model_translator
-        self._dispatch["realm"] = partial(self._realm_frequency_translator, get="realm")
-        self._dispatch["frequency"] = partial(
-            self._realm_frequency_translator, get="frequency"
-        )
+        self._dispatch["realm"] = self._realm_translator
+        self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
 
     def _model_translator(self):
@@ -147,61 +145,17 @@ class Cmip6Translator(DefaultTranslator):
         """
         return self.cat.df["source_id"]
 
-    def _realm_frequency_translator(self, get):
+    def _realm_translator(self):
         """
-        Return realm and frequency from table_id (as best as possible)
+        Return realm, fixing a few issues
+        """
+        return _cmip_realm_translator(self.cat.df)
 
-        TODO: should read these directly from 'realm' and 'frequency' columns
-        once these are added to the intake catalog
+    def _frequency_translator(self):
         """
-        table_id = self.cat.df["table_id"]
-        mapping = {
-            "3hr": ("unknown", "3hr"),  # "atmos", "land", "ocean"
-            "6hrLev": ("atmos", "6hr"),
-            "6hrPlev": ("atmos", "6hr"),
-            "6hrPlevPt": ("atmos", "6hr"),
-            "AERday": ("atmos", "1day"),
-            "AERhr": ("atmos", "1hr"),
-            "AERmon": ("atmos", "1mon"),
-            "AERmonZ": ("atmos", "1mon"),
-            "Amon": ("atmos", "1mon"),
-            "CF3hr": ("atmos", "3hr"),
-            "CFday": ("atmos", "1day"),
-            "CFmon": ("atmos", "1mon"),
-            "CFsubhr": ("atmos", "subhr"),
-            "E1hr": ("atmos", "1hr"),
-            "E1hrClimMon": ("atmos", "1hr"),
-            "E3hr": ("unknown", "3hr"),  # "atmos", "land"
-            "E3hrPt": ("unknown", "3hr"),  # "atmos", "land"
-            "E6hrZ": ("atmos", "6hr"),
-            "Eday": ("unknown", "1day"),  # "atmos", "ice", "land", "ocean"
-            "EdayZ": ("atmos", "1day"),
-            "Efx": ("unknown", "fx"),  # "atmos", "ice", "land"
-            "Emon": ("unknown", "1mon"),  # "atmos", "land", "ocean"
-            "EmonZ": ("unknown", "1mon"),  # "atmos", "ocean"
-            "Esubhr": ("atmos", "subhr"),
-            "Eyr": ("unknown", "1yr"),  # "land", "ocean"
-            "IfxAnt": ("landIce", "fx"),
-            "IfxGre": ("landIce", "fx"),
-            "ImonAnt": ("landIce", "1mon"),
-            "ImonGre": ("landIce", "1mon"),
-            "IyrAnt": ("landIce", "1yr"),
-            "IyrGre": ("landIce", "1yr"),
-            "LImon": ("unknown", "1mon"),  # "ice", "land"
-            "Lmon": ("land", "1mon"),
-            "Oclim": ("ocean", "1mon"),
-            "Oday": ("ocean", "1day"),
-            "Odec": ("ocean", "1dec"),
-            "Ofx": ("ocean", "fx"),
-            "Omon": ("ocean", "1mon"),
-            "Oyr": ("ocean", "1yr"),
-            "SIday": ("seaIce", "1day"),
-            "SImon": ("seaIce", "1mon"),
-            "day": ("unknown", "1day"),  # "atmos", "ocean"
-            "fx": ("unknown", "fx"),  # "atmos", "ice", "land"
-        }
-        ind = {"realm": 0, "frequency": 1}[get]
-        return table_id.map({k: v[ind] for k, v in mapping.items()})
+        Return frequency, fixing a few issues
+        """
+        return _cmip_frequency_translator(self.cat.df)
 
     def _variable_translator(self):
         """
@@ -228,19 +182,21 @@ class Cmip5Translator(DefaultTranslator):
         """
 
         super().__init__(cat, columns)
+        self._dispatch["realm"] = self._realm_translator
         self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
 
+    def _realm_translator(self):
+        """
+        Return realm, fixing a few issues
+        """
+        return _cmip_realm_translator(self.cat.df)
+
     def _frequency_translator(self):
         """
-        Return frequency from time_frequency
+        Return frequency, fixing a few issues
         """
-
-        def _parse(s):
-            s = re.sub("clim", "", s, flags=re.IGNORECASE)
-            return f"1{s}" if s[0] in ["m", "d", "y"] else s
-
-        return self.cat.df["time_frequency"].apply(lambda s: _parse(s))
+        return _cmip_frequency_translator(self.cat.df)
 
     def _variable_translator(self):
         """
@@ -274,6 +230,49 @@ class EraiTranslator(DefaultTranslator):
         Return variable as a list
         """
         return to_list(self.cat.df["variable"])
+
+
+def _cmip_frequency_translator(df):
+    """
+    Return frequency from CMIP frequency metadata
+    """
+
+    def _parse(string):
+        for remove in ["Pt", "C.*"]:  # Remove Pt, C, and Clim
+            string = re.sub(remove, "", string)
+        string = string.replace("daily", "day")  # Some incorrect metadata
+        string = string.replace("sem", "3mon")  # CORDEX for seasonal mean
+        return f"1{string}" if string[0] in ["m", "d", "y"] else string
+
+    return df["frequency"].apply(lambda string: _parse(string))
+
+
+def _cmip_realm_translator(df):
+    """
+    Return realm from CMIP realm metadata, fixing some issues
+    """
+
+    def _parse(string):
+        if re.match("seaIce", string, flags=re.I):
+            return "seaIce"
+        elif re.match("landIce", string, flags=re.I):
+            return "landIce"
+        elif re.match("ocnBgchem", string, flags=re.I):
+            return "ocnBgchem"
+        elif re.match("atmos", string, flags=re.I):
+            return "atmos"
+        elif re.match("atmosChem", string, flags=re.I):
+            return "atmosChem"
+        elif re.match("aerosol", string, flags=re.I):
+            return "aerosol"
+        elif re.match("land", string, flags=re.I):
+            return "land"
+        elif re.match("ocean", string, flags=re.I):
+            return "ocean"
+        else:
+            return "unknown"
+
+    return df["realm"].apply(lambda string: _parse(string))
 
 
 def to_list(series):

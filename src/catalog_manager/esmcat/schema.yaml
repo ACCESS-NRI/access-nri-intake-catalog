@@ -5,6 +5,7 @@ jsonschema:
     path:
       type: string
     realm:
+      type: string
       enum:
       - aerosol
       - atmos

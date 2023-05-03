@@ -13,8 +13,11 @@ from intake_dataframe_catalog.core import DfFileCatalog
 from . import schema
 from .translators import DefaultTranslator
 
-
-_metacat_columns = list(schema["jsonschema"]["properties"].keys())
+_jsonschema_properties = schema["jsonschema"]["properties"]
+_metacat_columns = list(_jsonschema_properties.keys())
+_columns_with_iterables = [
+    col for col, desc in _jsonschema_properties.items() if desc["type"] == "array"
+]
 
 
 class CatalogExistsError(Exception):
@@ -47,6 +50,7 @@ class MetacatManager:
             yaml_column=schema["yaml_column"],
             name_column=schema["name_column"],
             mode=mode,
+            columns_with_iterables=_columns_with_iterables,
         )
 
         self.subcat = None

@@ -9,6 +9,7 @@ jsonschema:
     description:
       type: string
     realm:
+      type: string
       enum:
       - aerosol
       - atmos

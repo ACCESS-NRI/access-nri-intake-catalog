@@ -22,10 +22,10 @@
 CATALOG_NAME=/g/data/tm70/intake/dfcatalog.csv
 
 # Path to location of config YAML files
-CONFIG_DIR=/g/data/tm70/ds0092/projects/nri_intake_catalog/config
+CONFIG_DIR=/g/data/tm70/ds0092/projects/access-nri-intake-catalog/config
 
 # Config files to process
-CONFIGS=( cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # cmip5.yaml erai.yaml
+CONFIGS=( cmip6.yaml cmip5.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # erai.yaml
 
 conda activate catalog-manager-dev
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )

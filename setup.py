@@ -6,7 +6,7 @@ setup(
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     author="ACCESS-NRI",
-    url="https://github.com/ACCESS-NRI/nri_intake_catalog",
+    url="https://github.com/ACCESS-NRI/access-nri-intake-catalog",
     description="Tools and configuration info for managing ACCESS-NRI's intake catalogue",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
@@ -25,6 +25,6 @@ setup(
     ],
     entry_points={
         "console_scripts": ["metacat-build=catalog_manager.cli:build"],
-        "intake.catalogs": ["accessnri = catalog_manager:data"],
+        "intake.catalogs": ["access_nri = catalog_manager:data"],
     },
 )

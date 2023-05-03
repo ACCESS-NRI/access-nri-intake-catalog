@@ -1,5 +1,5 @@
 sources:
-  accessnri:
+  access_nri:
     args:
       columns_with_iterables:
       - variable
