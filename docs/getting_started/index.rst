@@ -33,13 +33,13 @@ The catalog is not yet available in one of the pre-built analysis environments o
     $ conda install -c conda-forge -y jupyterlab
     $ pip install --no-deps -e .
 
-#. Now start an ARE JupyterLab session, specifying the following Advanced options:
+#. |  Now start an ARE JupyterLab session, specifying the following Advanced options:
 
-    * :code:`/g/data/hh5/public/modules` under "Module directories";
-    * :code:`conda/analysis3` under "Modules";
-    * :code:`/g/data3/hh5/public/apps/miniconda3` under "Python or Conda virtual environment base";
-    * :code:`nri-cat` under "Conda environment". 
-  
-  From this session, you should be able to run the example notebooks in the `notebooks directory of this repo <https://github.com/ACCESS-NRI/nri_intake_catalog/tree/main/notebooks>`_. Note, static renderings of these notebooks are also included in the :ref:`How-to guides <How_tos>` section of this documentation.
+   * :code:`/g/data/hh5/public/modules` under "Module directories";
+   * :code:`conda/analysis3` under "Modules";
+   * :code:`/g/data3/hh5/public/apps/miniconda3` under "Python or Conda virtual environment base";
+   * :code:`nri-cat` under "Conda environment". 
+   
+   | From this session, you should be able to run the example notebooks in the `notebooks directory of this repo <https://github.com/ACCESS-NRI/nri_intake_catalog/tree/main/notebooks>`_. Note, static renderings of these notebooks are also included in the :ref:`How-to guides <How_tos>` section of this documentation.
 
 

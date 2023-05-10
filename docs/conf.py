@@ -25,7 +25,7 @@ extensions = [
     "numpydoc",
     "sphinx.ext.napoleon",
     "autoapi.extension",
-    "nbsphinx",
+    "myst_nb",
     "sphinx_panels",
     "sphinx_copybutton",
 ]
@@ -54,17 +54,25 @@ master_doc = "index"
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
+# Config myst-nb
+nb_execution_excludepatterns = [
+    "example_usage.ipynb", 
+    "building_intake-esm_catalogs.ipynb"
+]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "pydata_sphinx_theme"
-html_static_path = []  # ['_static']
+html_theme = "sphinx_book_theme"
+html_static_path = ['_static']
+html_context = {
+    "github_user": "dougiesquire",
+    "github_repo": "access-nri-intake-catalog",
+    "github_version": "main",
+    "doc_path": "./docs",
+}
 html_theme_options = {
     "use_edit_page_button": True,
     "github_url": "https://github.com/ACCESS-NRI/access-nri-intake-catalog",
 }
 
-# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-# html_show_copyright = True
-copyright = "(C) Copyright 2023 ACCESS-NRI"
