@@ -19,7 +19,7 @@ dependencies = [
     "intake-dataframe-catalog>=0.1.0",
     "intake-esm>=2023.4.20",
     "jsonschema",
-    "netcdf4==1.6.0",
+    "netcdf4",
 ]
 dynamic = ["version"]
 
