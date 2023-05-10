@@ -8,6 +8,7 @@ dependencies:
   - numpydoc
   - sphinx
   - sphinx-autobuild
+  - pre-commit
   - pip
   - pip:
     - sphinx-book-theme

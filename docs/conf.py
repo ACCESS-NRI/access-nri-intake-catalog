@@ -56,15 +56,15 @@ pygments_style = "sphinx"
 
 # Config myst-nb
 nb_execution_excludepatterns = [
-    "example_usage.ipynb", 
-    "building_intake-esm_catalogs.ipynb"
+    "example_usage.ipynb",
+    "building_intake-esm_catalogs.ipynb",
 ]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_book_theme"
-html_static_path = ['_static']
+html_static_path = ["_static"]
 html_context = {
     "github_user": "dougiesquire",
     "github_repo": "access-nri-intake-catalog",
@@ -75,4 +75,3 @@ html_theme_options = {
     "use_edit_page_button": True,
     "github_url": "https://github.com/ACCESS-NRI/access-nri-intake-catalog",
 }
-
