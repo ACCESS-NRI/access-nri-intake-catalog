@@ -1,3 +1,52 @@
+[project]
+name = "catalog_manager"
+authors = [
+    { name = "ACCESS-NRI" },
+]
+description = "Intake catalog managed by ACCESS-NRI and associated tools"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "cftime",
+    "ecgtools>=2022.10.07",
+    "intake-dataframe-catalog>=0.1.0",
+    "intake-esm>=2023.4.20",
+    "jsonschema",
+    "netcdf4==1.6.0",
+]
+dynamic = ["version"]
+
+[project.scripts]
+metacat-build = "catalog_manager.cli:build"
+
+[project.entry-points."intake.catalogs"]
+access_nri = "catalog_manager:data"
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools >= 61.0.0",
+  "versioneer[toml]",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "src/catalog_manager/_version.py"
+versionfile_build = "catalog_manager/_version.py"
+tag_prefix = "v"
+parentdir_prefix = "catalog-manager-"
+
 [tool.ruff]
 target-version = "py39"
 exclude = [
@@ -43,4 +92,4 @@ select = [
 max-complexity = 18
 
 [tool.ruff.isort]
-known-first-party = ["catalog-manager"]
+known-first-party = ["catalog_manager"]
