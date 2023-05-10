@@ -4,7 +4,9 @@ channels:
   - defaults
 dependencies:
   - python==3.11
+  - hdf5
   - ipython
+  - numpy
   - numpydoc
   - sphinx
   - sphinx-autobuild
