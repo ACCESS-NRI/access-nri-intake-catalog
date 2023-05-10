@@ -3,16 +3,18 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python==3.10
+  - python==3.11
   - ipython
-  - nbsphinx
   - numpydoc
   - sphinx
   - sphinx-autobuild
+  - pre-commit
   - pip
   - pip:
-    - pydata-sphinx-theme
+    - sphinx-book-theme
     - sphinxcontrib-napoleon
     - sphinx-autoapi
     - sphinx-copybutton
     - sphinx-panels
+    - myst-nb
+    - -e ..
