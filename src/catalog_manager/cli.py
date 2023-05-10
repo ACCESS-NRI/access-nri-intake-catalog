@@ -1,8 +1,8 @@
 import argparse
 import logging
 
-import yaml
 import jsonschema
+import yaml
 
 from catalog_manager import esmcat, metacat
 

@@ -5,9 +5,8 @@
 
 import os
 
-import jsonschema
-
 import intake
+import jsonschema
 from intake_dataframe_catalog.core import DfFileCatalog
 
 from . import schema

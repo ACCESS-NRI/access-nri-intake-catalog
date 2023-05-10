@@ -1,7 +1,8 @@
 import argparse
-import yaml
 import glob
+
 import jsonschema
+import yaml
 
 schema = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
