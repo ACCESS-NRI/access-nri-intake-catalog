@@ -2262,4 +2262,3 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "setup":
         setup_command()
-
