@@ -4,18 +4,10 @@
 """ Tools for managing intake-dataframe-catalog metacatalogs """
 
 import os
+
 import yaml
 
 _here = os.path.abspath(os.path.dirname(__file__))
 
-with open(os.path.join(_here, "schema.yaml"), "r") as fpath:
+with open(os.path.join(_here, "schema.yaml")) as fpath:
     schema = yaml.safe_load(fpath)
-
-from .manager import MetacatManager
-
-from .translators import (
-    DefaultTranslator,
-    Cmip6Translator,
-    Cmip5Translator,
-    EraiTranslator,
-)

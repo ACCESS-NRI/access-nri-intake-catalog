@@ -4,11 +4,10 @@
 """ Tools for generating intake-esm catalogs """
 
 import os
+
 import yaml
 
 _here = os.path.abspath(os.path.dirname(__file__))
 
-with open(os.path.join(_here, "schema.yaml"), "r") as fpath:
+with open(os.path.join(_here, "schema.yaml")) as fpath:
     schema = yaml.safe_load(fpath)
-
-from .builders import AccessOm2Builder, AccessEsm15Builder, AccessCm2Builder

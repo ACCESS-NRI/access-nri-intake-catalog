@@ -3,16 +3,14 @@
 
 """ Builders for generating intake-esm catalogs """
 
+import multiprocessing
 import re
 import traceback
-import multiprocessing
 from pathlib import Path
 
 import jsonschema
-
+from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 from netCDF4 import Dataset
-
-from ecgtools.builder import Builder, INVALID_ASSET, TRACEBACK
 
 from . import schema
 from .utils import get_timeinfo, strip_pattern_rh
