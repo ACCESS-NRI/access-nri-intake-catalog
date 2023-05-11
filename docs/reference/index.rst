@@ -7,7 +7,7 @@ Reference
    :maxdepth: 1
    :hidden:
 
-   API_reference
+   api
 
 The ACCESS-NRI Intake catalog is managed using a purpose-built Python library called `access-nri-intake`. The `access-nri-intake` library includes:
 
