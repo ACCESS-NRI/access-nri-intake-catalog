@@ -24,7 +24,7 @@ The idea is that users will:
 The ACCESS-NRI catalog, and the tools that make it work, are still a work in progress. We value your feedback, especially in the form of reporting issues/bugs or suggesting ways to improve the catalog.
 
 .. note::
-   Please open an issue `here <https://github.com/ACCESS-NRI/nri_intake_catalog/issues>`_ if you have any questions after reading this documentation.
+   Please open an issue `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues>`_ if you have any questions after reading this documentation.
 
 
 .. panels::

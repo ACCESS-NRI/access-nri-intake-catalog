@@ -8,4 +8,4 @@ This documentation has been auto-generated using `sphinx-autoapi <https://sphinx
 .. toctree::
    :maxdepth: 2
 
-   ../autoapi/catalog_manager/index
+   ../autoapi/access_nri_intake/index

@@ -4,7 +4,7 @@ import logging
 import jsonschema
 import yaml
 
-from catalog_manager import esmcat, metacat
+from access_nri_intake import esmcat, metacat
 
 
 class MetadataCheckError(Exception):
@@ -194,7 +194,7 @@ def build():
     parser.add_argument(
         "--catalog_name",
         type=str,
-        default="dfcatalog.csv",
+        default="metacatalog.csv",
         help="The path to the intake-dataframe-catalog",
     )
 

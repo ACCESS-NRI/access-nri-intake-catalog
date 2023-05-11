@@ -18,7 +18,7 @@ can build the documentation locally by running:
 .. code-block:: bash
 
     $ conda env create -f docs/environment-doc.yml
-    $ conda activate catalog-manager-doc
+    $ conda activate access-nri-intake-doc
     $ pip install --no-deps -e .
     $ cd docs/
     $ make html

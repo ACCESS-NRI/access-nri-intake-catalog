@@ -19,4 +19,4 @@ These pages provide some how-to guides in the form of Jupyter notebooks that can
 .. _building intake-esm catalogs: building_intake-esm_catalogs.ipynb
 
 .. note::
-   If you'd like to see a new how-to, or you find any issues, please open an issue `here <https://github.com/ACCESS-NRI/nri_intake_catalog/issues>`_.
+   If you'd like to see a new how-to, or you find any issues, please open an issue `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues>`_.

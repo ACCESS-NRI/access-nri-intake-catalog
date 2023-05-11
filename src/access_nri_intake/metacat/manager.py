@@ -76,14 +76,14 @@ class MetacatManager:
             The name of the catalog
         description: str
             Description of the contents of the catalog
-        builder: subclass of :py:class:`catalog_manager.esmcat.BaseBuilder`
+        builder: subclass of :py:class:`access_nri_catalog.esmcat.BaseBuilder`
             The builder to use to build the intake-esm catalog
         path: str or list of str
             Path or list of paths to crawl for assets/files to add to the catalog.
-        translator: :py:class:`~catalog_manager.metacat.translators.DefaultTranslator`
-            An instance of the :py:class:`~catalog_manager.metacat.translators.DefaultTranslator` class
+        translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`
+            An instance of the :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator` class
             for translating info in the intake-esm catalog into intake-dataframe-catalog column metadata.
-            Defaults to catalog_manager.metacat.translators.DefaultTranslator.
+            Defaults to access_nri_catalog.metacat.translators.DefaultTranslator.
         metadata: dict, optional
             Additional info to store in the intake cat.metadata attribute. This info will be available
             to the translator and to users of the catalog
@@ -139,8 +139,8 @@ class MetacatManager:
             Description of the contents of the catalog
         path: str
             The path to the intake-esm catalog JSON file
-        translator: :py:class:`~catalog_manager.metacat.translators.DefaultTranslator`
-            An instance of the :py:class:`~catalog_manager.metacat.translators.DefaultTranslator` class for
+        translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`
+            An instance of the :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator` class for
             translating intake-esm column metadata into intake-dataframe-catalog column metadata
         metadata: dict, optional
             Additional info to store in the intake cat.metadata attribute. This info will be available to

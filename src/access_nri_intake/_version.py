@@ -45,7 +45,7 @@ def get_config():
     cfg.style = "pep440"
     cfg.tag_prefix = "v"
     cfg.parentdir_prefix = ""
-    cfg.versionfile_source = "src/catalog_manager/_version.py"
+    cfg.versionfile_source = "src/access_nri_intake/_version.py"
     cfg.verbose = False
     return cfg
 
