@@ -1,4 +1,4 @@
-name: catalog-manager-dev
+name: access-nri-intake-dev
 channels:
   - conda-forge
   - accessnri

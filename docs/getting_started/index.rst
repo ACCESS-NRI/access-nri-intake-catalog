@@ -26,8 +26,8 @@ The catalog is not yet available in one of the pre-built analysis environments o
 
 #. Clone this repo and install the ACCESS-NRI catalog and some other packages::
 
-    $ git clone git@github.com:ACCESS-NRI/nri_intake_catalog.git
-    $ cd nri_intake_catalog
+    $ git clone git@github.com:ACCESS-NRI/access-nri-intake-catalog.git
+    $ cd access-nri-intake-catalog
     $ conda env create --name nri-cat -f environment-dev.yaml
     $ conda activate nri-cat
     $ conda install -c conda-forge -y jupyterlab
@@ -40,6 +40,6 @@ The catalog is not yet available in one of the pre-built analysis environments o
    * :code:`/g/data3/hh5/public/apps/miniconda3` under "Python or Conda virtual environment base";
    * :code:`nri-cat` under "Conda environment". 
    
-   | From this session, you should be able to run the example notebooks in the `notebooks directory of this repo <https://github.com/ACCESS-NRI/nri_intake_catalog/tree/main/notebooks>`_. Note, static renderings of these notebooks are also included in the :ref:`How-to guides <How_tos>` section of this documentation.
+   | From this session, you should be able to run the example notebooks in the `notebooks directory of this repo <https://github.com/ACCESS-NRI/access-nri-intake-catalog/tree/main/notebooks>`_. Note, static renderings of these notebooks are also included in the :ref:`How-to guides <How_tos>` section of this documentation.
 
 

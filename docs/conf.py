@@ -31,7 +31,7 @@ extensions = [
 ]
 
 # autoapi directives
-autoapi_dirs = ["../src/catalog_manager"]
+autoapi_dirs = ["../src/access_nri_intake"]
 autoapi_add_toctree_entry = False
 autoapi_ignore = ["**.ipynb_checkpoints"]
 autoapi_python_class_content = "class"

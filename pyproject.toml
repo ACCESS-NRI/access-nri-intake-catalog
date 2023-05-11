@@ -1,5 +1,5 @@
 [project]
-name = "catalog_manager"
+name = "access_nri_intake"
 authors = [
     { name = "ACCESS-NRI" },
 ]
@@ -24,10 +24,10 @@ dependencies = [
 dynamic = ["version"]
 
 [project.scripts]
-metacat-build = "catalog_manager.cli:build"
+metacat-build = "access_nri_intake.cli:build"
 
 [project.entry-points."intake.catalogs"]
-access_nri = "catalog_manager:data"
+access_nri = "access_nri_intake:data"
 
 [build-system]
 build-backend = "setuptools.build_meta"
@@ -42,10 +42,10 @@ where = ["src"]
 [tool.versioneer]
 VCS = "git"
 style = "pep440"
-versionfile_source = "src/catalog_manager/_version.py"
-versionfile_build = "catalog_manager/_version.py"
+versionfile_source = "src/access_nri_intake/_version.py"
+versionfile_build = "access_nri_intake/_version.py"
 tag_prefix = "v"
-parentdir_prefix = "catalog-manager-"
+parentdir_prefix = "access-nri-intake-"
 
 [tool.ruff]
 target-version = "py39"
@@ -92,4 +92,4 @@ select = [
 max-complexity = 18
 
 [tool.ruff.isort]
-known-first-party = ["catalog_manager"]
+known-first-party = ["access_nri_intake"]

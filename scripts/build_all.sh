@@ -27,7 +27,7 @@ CONFIG_DIR=/g/data/tm70/ds0092/projects/access-nri-intake-catalog/config
 # Config files to process
 CONFIGS=( cmip6.yaml cmip5.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # erai.yaml
 
-conda activate catalog-manager-dev
+conda activate access-nri-intake-dev
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
 metacat-build --catalog_name=${CATALOG_NAME} ${config_paths[@]}
 
