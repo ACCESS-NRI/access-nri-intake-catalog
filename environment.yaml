@@ -11,4 +11,5 @@ dependencies:
   - intake-esm>=2023.4.20
   - jsonschema
   - netcdf4
+  - pooch
   - pre-commit

@@ -9,13 +9,17 @@ import intake
 import jsonschema
 from intake_dataframe_catalog.core import DfFileCatalog
 
-from . import schema
+from . import (
+    CORE_COLUMNS,
+    JSONSCHEMA,
+    NAME_COLUMN,
+    TRANSLATOR_GROUPBY_COLUMNS,
+    YAML_COLUMN,
+)
 from .translators import DefaultTranslator
 
-_jsonschema_properties = schema["jsonschema"]["properties"]
-_metacat_columns = list(_jsonschema_properties.keys())
-_columns_with_iterables = [
-    col for col, desc in _jsonschema_properties.items() if desc["type"] == "array"
+columns_with_iterables = [
+    col for col, desc in JSONSCHEMA["properties"].items() if desc["type"] == "array"
 ]
 
 
@@ -46,10 +50,10 @@ class MetacatManager:
 
         self.dfcat = DfFileCatalog(
             path=self.path,
-            yaml_column=schema["yaml_column"],
-            name_column=schema["name_column"],
+            yaml_column=YAML_COLUMN,
+            name_column=NAME_COLUMN,
             mode=mode,
-            columns_with_iterables=_columns_with_iterables,
+            columns_with_iterables=columns_with_iterables,
         )
 
         self.subcat = None
@@ -175,10 +179,10 @@ class MetacatManager:
         """
 
         # Overwrite the catalog name with the name_column entry in metadata
-        name = self.subcat_metadata[schema["name_column"]].unique()
+        name = self.subcat_metadata[NAME_COLUMN].unique()
         if len(name) != 1:
             raise ValueError(
-                f"Metadata column '{schema['name_column']}' must be the same for all rows "
+                f"Metadata column '{NAME_COLUMN}' must be the same for all rows "
                 "since this corresponds to the catalog name"
             )
         name = name[0]
@@ -186,7 +190,7 @@ class MetacatManager:
 
         # Validate df_metadata against schema
         for idx, row in self.subcat_metadata.iterrows():
-            jsonschema.validate(row.to_dict(), schema["jsonschema"])
+            jsonschema.validate(row.to_dict(), JSONSCHEMA)
 
         overwrite = True
         for _, row in self.subcat_metadata.iterrows():
@@ -206,8 +210,6 @@ def _open_and_translate(json_file, name, description, metadata, translator, **kw
     cat.description = description
     cat.metadata = metadata
 
-    metadata = translator(cat, _metacat_columns).translate(
-        schema["translator_groupby_columns"]
-    )
+    metadata = translator(cat, CORE_COLUMNS).translate(TRANSLATOR_GROUPBY_COLUMNS)
 
     return cat, metadata
