@@ -27,12 +27,12 @@ class CatalogExistsError(Exception):
 
 class MetacatManager:
     """
-    Add/update intake (sub)catalogs in an intake-dataframe-catalog (metacatalog)
+    Add/update intake sources in an intake-dataframe-catalog (metacatalog)
     """
 
     def __init__(self, path):
         """
-        Initialise a CatalogManager instance to add/update intake (sub)catalogs in a
+        Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog metacatalog
 
         Parameters

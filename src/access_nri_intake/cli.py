@@ -1,3 +1,6 @@
+# Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
 import logging
 
@@ -26,32 +29,32 @@ def _parse_config_yamls(config_yamls):
 
         builder = config.get("builder")
         translator = config.get("translator")
-        subcatalog_dir = config.get("subcatalog_dir")
-        subcatalogs = config.get("subcatalogs")
+        source_dir = config.get("source_dir")
+        sources = config.get("sources")
 
         config_args = {}
         if builder:
             method = "build_esm"
             config_args["builder"] = getattr(builders, builder)
-            config_args["directory"] = subcatalog_dir
+            config_args["directory"] = source_dir
             config_args["overwrite"] = True
         else:
             method = "load"
 
-        for kwargs in subcatalogs:
-            subcat_args = config_args
+        for kwargs in sources:
+            source_args = config_args
 
-            subcat_args["path"] = kwargs.pop("path")
+            source_args["path"] = kwargs.pop("path")
             metadata_yaml = kwargs.pop("metadata_yaml")
             metadata = load_metadata_yaml(metadata_yaml)
-            subcat_args["name"] = metadata["name"]
-            subcat_args["description"] = metadata["description"]
-            subcat_args["metadata"] = metadata
+            source_args["name"] = metadata["name"]
+            source_args["description"] = metadata["description"]
+            source_args["metadata"] = metadata
 
             if translator:
-                subcat_args["translator"] = getattr(translators, translator)
+                source_args["translator"] = getattr(translators, translator)
 
-            args.append((method, subcat_args | kwargs))
+            args.append((method, source_args | kwargs))
 
     return args
 
@@ -118,10 +121,10 @@ def build():
     config_yamls = args.config_yaml
     catalog_name = args.catalog_name
 
-    parsed_subcats = _parse_config_yamls(config_yamls)
-    _check_args([parsed_subcat[1] for parsed_subcat in parsed_subcats])
+    parsed_sources = _parse_config_yamls(config_yamls)
+    _check_args([parsed_source[1] for parsed_source in parsed_sources])
 
-    for (method, args) in parsed_subcats:
+    for (method, args) in parsed_sources:
         man = manager.MetacatManager(path=catalog_name)
         logger.info(f"Adding '{args['name']}' to metacatalog '{catalog_name}'")
         getattr(man, method)(**args).add()

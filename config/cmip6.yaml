@@ -2,9 +2,9 @@ builder: null
 
 translator: Cmip6Translator
 
-subcatalog_dir: null
+source_dir: null
 
-subcatalogs:
+sources:
 
   - path:
       - /g/data/dk92/catalog/v2/esm/cmip6-fs38/catalog.json

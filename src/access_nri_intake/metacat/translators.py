@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Tools for translating metadata in an intake subcatalog into a metadata table to use in an intake-dataframe-catalog
+Tools for translating metadata in an intake source into a metadata table to use in an intake-dataframe-catalog
 """
 
 import re
