@@ -4,17 +4,21 @@ import logging
 import jsonschema
 import yaml
 
-from access_nri_intake import esmcat, metacat
+from . import esmcat, metacat, utils
 
 
 class MetadataCheckError(Exception):
     pass
 
 
-def _parse_config_yamls(config_yamls):
+def _load_metadata_yaml(path):
     """
-    Parse a list of configuration YAML files into a list of tuples of
-    MetacatManager methods and args to pass to the methods
+    Load a metadata.yaml file, leaving dates as strings and loading arrays as tuples
+
+    Parameters
+    ----------
+    paths: str
+        The path to the metadata.yaml
     """
 
     class NoDatesSafeLoader(yaml.SafeLoader):
@@ -33,7 +37,31 @@ def _parse_config_yamls(config_yamls):
                     (tag, regexp) for tag, regexp in mappings if tag != tag_to_remove
                 ]
 
+    def tuple_constructor(self, node):
+        """
+        yaml constructor to make leaf sequences into tuples
+
+        See https://stackoverflow.com/questions/39553008/how-to-read-a-python-tuple-using-pyyaml
+        """
+        seq = self.construct_sequence(node)
+        if seq and isinstance(seq[0], (list, tuple)):
+            return seq
+        return tuple(seq)
+
     NoDatesSafeLoader.remove_implicit_resolver("tag:yaml.org,2002:timestamp")
+    NoDatesSafeLoader.add_constructor("tag:yaml.org,2002:seq", tuple_constructor)
+
+    with open(path) as fpath:
+        metadata = yaml.load(fpath, Loader=NoDatesSafeLoader)
+
+    return metadata
+
+
+def _parse_config_yamls(config_yamls):
+    """
+    Parse a list of configuration YAML files into a list of tuples of
+    MetacatManager methods and args to pass to the methods
+    """
 
     args = []
     for config_yaml in config_yamls:
@@ -59,10 +87,9 @@ def _parse_config_yamls(config_yamls):
 
             subcat_args["path"] = kwargs.pop("path")
             metadata_yaml = kwargs.pop("metadata_yaml")
-            with open(metadata_yaml) as fpath:
-                metadata = yaml.load(fpath, Loader=NoDatesSafeLoader)
+            metadata = _load_metadata_yaml(metadata_yaml)
             subcat_args["name"] = metadata["name"]
-            subcat_args["description"] = metadata["short_description"]
+            subcat_args["description"] = metadata["description"]
             subcat_args["metadata"] = metadata
 
             if translator:
@@ -78,80 +105,13 @@ def _check_args(args_list):
     Run some checks on the parsed argmuents to be passed to the MetacatManager
     """
 
-    # TO DO: This should come from a common source
-    metadata_schema = {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "type": "object",
-        "properties": {
-            "name": {"type": "string"},
-            "experiment_uuid": {
-                "type": "string",
-                "format": "uuid",
-            },
-            "short_description": {"type": "string"},
-            "long_description": {"type": "string"},
-            "model": {
-                "oneOf": [
-                    {"type": ["string", "null"]},
-                    {
-                        "type": "array",
-                        "items": {"type": ["string", "null"]},
-                    },
-                ]
-            },
-            "nominal_resolution": {
-                "oneOf": [
-                    {"type": ["string", "null"]},
-                    {
-                        "type": "array",
-                        "items": {"type": ["string", "null"]},
-                    },
-                ]
-            },
-            "version": {"type": ["number", "null"]},
-            "contact": {"type": ["string", "null"]},
-            "email": {"type": ["string", "null"]},
-            "created": {"type": ["string", "null"]},
-            "reference": {"type": ["string", "null"]},
-            "url": {"type": ["string", "null"]},
-            "parent_experiment": {"type": ["string", "null"]},
-            "related_experiments": {
-                "type": ["array", "null"],
-                "items": {"type": ["string", "null"]},
-            },
-            "notes": {"type": ["string", "null"]},
-            "keywords": {
-                "type": ["array", "null"],
-                "items": {"type": ["string", "null"]},
-            },
-        },
-        "required": [
-            "name",
-            "experiment_uuid",
-            "short_description",
-            "long_description",
-            "model",
-            "nominal_resolution",
-            "version",
-            "contact",
-            "email",
-            "created",
-            "reference",
-            "url",
-            "parent_experiment",
-            "related_experiments",
-            "notes",
-            "keywords",
-        ],
-    }
-
     names = []
     uuids = []
     for args in args_list:
         names.append(args["name"])
         uuids.append(args["metadata"]["experiment_uuid"])
         try:
-            jsonschema.validate(args["metadata"], metadata_schema)
+            utils.validate_against_schema(args["metadata"], metacat.schema)
         except jsonschema.exceptions.ValidationError:
             raise MetadataCheckError(
                 f"Failed to validate metadata.yaml for {args['name']}. See traceback for details."
