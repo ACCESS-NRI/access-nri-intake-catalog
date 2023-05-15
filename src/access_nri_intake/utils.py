@@ -6,6 +6,7 @@
 import json
 from warnings import warn
 
+import jsonschema
 import pooch
 
 
@@ -41,3 +42,26 @@ def get_catalog_jsonschema(url, known_hash, required):
     schema["required"] = req
 
     return schema
+
+
+def validate_against_schema(instance, schema):
+    """
+    Validate a dictionary againsta a jsonschema, allowing for tuples as arrays
+
+    Parameters
+    ----------
+    instance: dict
+        The instance to validate
+    schema: dict
+        The jsonschema
+    """
+
+    Validator = jsonschema.validators.validator_for(schema)
+    type_checker = Validator.TYPE_CHECKER.redefine(
+        "array", lambda checker, instance: isinstance(instance, (list, tuple))
+    )
+    TupleAllowingValidator = jsonschema.validators.extend(
+        Validator, type_checker=type_checker
+    )
+
+    TupleAllowingValidator(schema).validate(instance)

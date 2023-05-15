@@ -9,6 +9,9 @@ import re
 from functools import partial
 
 import pandas as pd
+import tlz
+
+from . import COLUMNS_WITH_ITERABLES
 
 
 class TranslatorError(Exception):
@@ -27,7 +30,7 @@ class DefaultTranslator:
 
         - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
              esmcat.df attribute. If the catalog is not an intake-esm catalog, this step is skipped.
-        - If that fails, the translator will then look for the column name as an attribute on the catalog iteself
+        - If that fails, the translator will then look for the column name as an attribute on the catalog itself
         - If that fails, the translator will then look for the column name in the metadata attribute of the catalog
 
         Parameters
@@ -50,7 +53,7 @@ class DefaultTranslator:
         Try to translate a column from a catalog using the default translator. This translator works as follows:
         - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
              esmcat.df attribute. If the catalog is not an intake-esm catalog, this step is skipped.
-        - If that fails, the translator will then look for the column name as an attribute on the catalog iteself
+        - If that fails, the translator will then look for the column name as an attribute on the catalog itself
         - If that fails, the translator will then look for the column name in the metadata attribute of the catalog
 
         Parameters
@@ -88,18 +91,24 @@ class DefaultTranslator:
             Core metadata columns to group by before merging metadata across remaining core columns.
         """
 
-        def _list_unique(series):
-            # TODO: This could be made more robust
-            iterable_entries = isinstance(series.iloc[0], (list, tuple, set))
-            uniques = sorted(
-                set(
-                    series.drop_duplicates()
-                    .apply(lambda x: x if iterable_entries else [x])
-                    .sum()
-                )
-            )
+        def _find_unique(series):
+            """
+            Return a set of unique values in a series
+            """
+
+            values = series.dropna()
+            iterable_entries = series.name in COLUMNS_WITH_ITERABLES
+            type_ = type(series.iloc[0])
+
+            if iterable_entries:
+                values = tlz.concat(values)
+
+            uniques = tuple(set(values))
+
             return (
-                uniques[0] if (len(uniques) == 1) & (not iterable_entries) else uniques
+                uniques[0]
+                if (len(uniques) == 1) & (not iterable_entries)
+                else type_(uniques)
             )
 
         df = pd.concat(
@@ -109,7 +118,7 @@ class DefaultTranslator:
         ungrouped_columns = list(set(self.columns) - set(groupby))
         df_grouped = (
             df.groupby(groupby)
-            .agg({col: _list_unique for col in ungrouped_columns})
+            .agg({col: _find_unique for col in ungrouped_columns})
             .reset_index()
         )
 
@@ -143,7 +152,7 @@ class Cmip6Translator(DefaultTranslator):
         """
         Return model from source_id
         """
-        return self.cat.df["source_id"]
+        return to_tuple(self.cat.df["source_id"])
 
     def _realm_translator(self):
         """
@@ -159,9 +168,9 @@ class Cmip6Translator(DefaultTranslator):
 
     def _variable_translator(self):
         """
-        Return variable as a list
+        Return variable as a tuple
         """
-        return to_list(self.cat.df["variable_id"])
+        return to_tuple(self.cat.df["variable_id"])
 
 
 class Cmip5Translator(DefaultTranslator):
@@ -182,9 +191,16 @@ class Cmip5Translator(DefaultTranslator):
         """
 
         super().__init__(cat, columns)
+        self._dispatch["model"] = self._model_translator
         self._dispatch["realm"] = self._realm_translator
         self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
+
+    def _model_translator(self):
+        """
+        Return variable as a tuple
+        """
+        return to_tuple(self.cat.df["model"])
 
     def _realm_translator(self):
         """
@@ -200,9 +216,9 @@ class Cmip5Translator(DefaultTranslator):
 
     def _variable_translator(self):
         """
-        Return variable as a list
+        Return variable as a tuple
         """
-        return to_list(self.cat.df["variable"])
+        return to_tuple(self.cat.df["variable"])
 
 
 class EraiTranslator(DefaultTranslator):
@@ -227,9 +243,9 @@ class EraiTranslator(DefaultTranslator):
 
     def _variable_translator(self):
         """
-        Return variable as a list
+        Return variable as a tuple
         """
-        return to_list(self.cat.df["variable"])
+        return to_tuple(self.cat.df["variable"])
 
 
 def _cmip_frequency_translator(df):
@@ -242,7 +258,7 @@ def _cmip_frequency_translator(df):
             string = re.sub(remove, "", string)
         string = string.replace("daily", "day")  # Some incorrect metadata
         string = string.replace("sem", "3mon")  # CORDEX for seasonal mean
-        return f"1{string}" if string[0] in ["m", "d", "y"] else string
+        return (f"1{string}",) if string[0] in ["m", "d", "y"] else (string,)
 
     return df["frequency"].apply(lambda string: _parse(string))
 
@@ -253,38 +269,44 @@ def _cmip_realm_translator(df):
     """
 
     def _parse(string):
-        if re.match("seaIce", string, flags=re.I):
-            return "seaIce"
-        elif re.match("landIce", string, flags=re.I):
-            return "landIce"
-        elif re.match("ocnBgchem", string, flags=re.I):
-            return "ocnBgchem"
-        elif re.match("atmos", string, flags=re.I):
-            return "atmos"
-        elif re.match("atmosChem", string, flags=re.I):
-            return "atmosChem"
-        elif re.match("aerosol", string, flags=re.I):
-            return "aerosol"
-        elif re.match("land", string, flags=re.I):
-            return "land"
-        elif re.match("ocean", string, flags=re.I):
-            return "ocean"
-        else:
-            return "unknown"
+        raw_realms = string.split(" ")
+        realms = []
+        for realm in raw_realms:
+            if re.match("na", realm, flags=re.I):
+                realms.append("none")
+            elif re.match("seaIce", realm, flags=re.I):
+                realms.append("seaIce")
+            elif re.match("landIce", realm, flags=re.I):
+                realms.append("landIce")
+            elif re.match("ocnBgchem", realm, flags=re.I):
+                realms.append("ocnBgchem")
+            elif re.match("atmos", realm, flags=re.I):
+                realms.append("atmos")
+            elif re.match("atmosChem", realm, flags=re.I):
+                realms.append("atmosChem")
+            elif re.match("aerosol", realm, flags=re.I):
+                realms.append("aerosol")
+            elif re.match("land", realm, flags=re.I):
+                realms.append("land")
+            elif re.match("ocean", realm, flags=re.I):
+                realms.append("ocean")
+            else:
+                realms.append("unknown")
+        return tuple(set(realms))
 
     return df["realm"].apply(lambda string: _parse(string))
 
 
-def to_list(series):
+def to_tuple(series):
     """
-    Make entries in the provided series a list
+    Make entries in the provided series a tuple
 
     Parameters
     ----------
     series: :py:class:`~pandas.Series`
         A pandas Series or another object with an `apply` method
     """
-    return series.apply(lambda x: [x])
+    return series.apply(lambda x: (x,))
 
 
 def match_substrings(series, substrings):

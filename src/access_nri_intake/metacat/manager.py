@@ -6,10 +6,11 @@
 import os
 
 import intake
-import jsonschema
 from intake_dataframe_catalog.core import DfFileCatalog
 
+from ..utils import validate_against_schema
 from . import (
+    COLUMNS_WITH_ITERABLES,
     CORE_COLUMNS,
     JSONSCHEMA,
     NAME_COLUMN,
@@ -17,10 +18,6 @@ from . import (
     YAML_COLUMN,
 )
 from .translators import DefaultTranslator
-
-columns_with_iterables = [
-    col for col, desc in JSONSCHEMA["properties"].items() if desc["type"] == "array"
-]
 
 
 class CatalogExistsError(Exception):
@@ -53,11 +50,11 @@ class MetacatManager:
             yaml_column=YAML_COLUMN,
             name_column=NAME_COLUMN,
             mode=mode,
-            columns_with_iterables=columns_with_iterables,
+            columns_with_iterables=COLUMNS_WITH_ITERABLES,
         )
 
-        self.subcat = None
-        self.subcat_metadata = None
+        self.source = None
+        self.source_metadata = None
 
     def build_esm(
         self,
@@ -112,7 +109,7 @@ class MetacatManager:
         builder = builder(path, **kwargs).build()
         builder.save(name=name, description=description, directory=directory)
 
-        self.subcat, self.subcat_metadata = _open_and_translate(
+        self.source, self.source_metadata = _open_and_translate(
             json_file,
             name,
             description,
@@ -162,7 +159,7 @@ class MetacatManager:
 
         metadata = metadata or {}
 
-        self.subcat, self.subcat_metadata = _open_and_translate(
+        self.source, self.source_metadata = _open_and_translate(
             path, name, description, metadata, translator, **kwargs
         )
 
@@ -179,22 +176,22 @@ class MetacatManager:
         """
 
         # Overwrite the catalog name with the name_column entry in metadata
-        name = self.subcat_metadata[NAME_COLUMN].unique()
+        name = self.source_metadata[NAME_COLUMN].unique()
         if len(name) != 1:
             raise ValueError(
                 f"Metadata column '{NAME_COLUMN}' must be the same for all rows "
                 "since this corresponds to the catalog name"
             )
         name = name[0]
-        self.subcat.name = name
+        self.source.name = name
 
         # Validate df_metadata against schema
-        for idx, row in self.subcat_metadata.iterrows():
-            jsonschema.validate(row.to_dict(), JSONSCHEMA)
+        for idx, row in self.source_metadata.iterrows():
+            validate_against_schema(row.to_dict(), JSONSCHEMA)
 
         overwrite = True
-        for _, row in self.subcat_metadata.iterrows():
-            self.dfcat.add(self.subcat, row.to_dict(), overwrite=overwrite)
+        for _, row in self.source_metadata.iterrows():
+            self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
             overwrite = False
 
         self.dfcat.save(**kwargs)

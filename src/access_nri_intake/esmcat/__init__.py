@@ -17,7 +17,7 @@ CORE_COLUMNS = [
 PATH_COLUMN = "path"
 VARIABLE_COLUMN = "variable"
 
-SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/21db6b6dad8fd03cce7b32f39c1b012255946226/file_asset.json"
+SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/783ccf045e8e8e3dfbe35046c2b91a5b5e4e4874/file_asset.json"
 SCHEMA_HASH = "2a09030653f495939c90a22e95dd1c4587c8695f7f07e17b9129a6491469f9fc"
 
 JSONSCHEMA = get_catalog_jsonschema(
