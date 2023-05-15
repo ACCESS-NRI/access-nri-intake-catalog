@@ -8,8 +8,8 @@ import re
 import traceback
 from pathlib import Path
 
+import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
-from netCDF4 import Dataset
 
 from ..utils import validate_against_schema
 from . import CATALOG_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
@@ -32,7 +32,7 @@ class BaseBuilder(Builder):
         depth=0,
         exclude_patterns=None,
         include_patterns=None,
-        data_format="netcdf4",
+        data_format="netcdf",
         groupby_attrs=None,
         aggregations=None,
         storage_options=None,
@@ -243,26 +243,26 @@ class AccessOm2Builder(BaseBuilder):
                 [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}", r"\d{2}"], filename
             )
 
-            with Dataset(file, mode="r") as ds:
+            with xr.open_dataset(
+                file,
+                chunks={},
+                decode_cf=False,
+                decode_times=False,
+                decode_coords=False,
+            ) as ds:
                 variable_list = []
                 variable_long_name_list = []
                 variable_standard_name_list = []
                 variable_cell_methods_list = []
-                for var in list(ds.variables):
-                    ncattrs = ds.variables[var].ncattrs()
-                    if "long_name" in ncattrs:
+                for var in ds.data_vars:
+                    attrs = ds[var].attrs
+                    if "long_name" in attrs:
                         variable_list.append(var)
-                        variable_long_name_list.append(
-                            ds.variables[var].getncattr("long_name")
-                        )
-                    if "standard_name" in ncattrs:
-                        variable_standard_name_list.append(
-                            ds.variables[var].getncattr("standard_name")
-                        )
-                    if "cell_methods" in ncattrs:
-                        variable_cell_methods_list.append(
-                            ds.variables[var].getncattr("cell_methods")
-                        )
+                        variable_long_name_list.append(attrs["long_name"])
+                    if "standard_name" in attrs:
+                        variable_standard_name_list.append(attrs["standard_name"])
+                    if "cell_methods" in attrs:
+                        variable_cell_methods_list.append(attrs["cell_methods"])
 
                 start_date, end_date, frequency = get_timeinfo(ds)
 
@@ -355,26 +355,26 @@ class AccessEsm15Builder(BaseBuilder):
             )
             file_id = strip_pattern_rh([exp_id], file_id)
 
-            with Dataset(file, mode="r") as ds:
+            with xr.open_dataset(
+                file,
+                chunks={},
+                decode_cf=False,
+                decode_times=False,
+                decode_coords=False,
+            ) as ds:
                 variable_list = []
                 variable_long_name_list = []
                 variable_standard_name_list = []
                 variable_cell_methods_list = []
-                for var in list(ds.variables):
-                    ncattrs = ds.variables[var].ncattrs()
-                    if "long_name" in ncattrs:
+                for var in ds.data_vars:
+                    attrs = ds[var].attrs
+                    if "long_name" in attrs:
                         variable_list.append(var)
-                        variable_long_name_list.append(
-                            ds.variables[var].getncattr("long_name")
-                        )
-                    if "standard_name" in ncattrs:
-                        variable_standard_name_list.append(
-                            ds.variables[var].getncattr("standard_name")
-                        )
-                    if "cell_methods" in ncattrs:
-                        variable_cell_methods_list.append(
-                            ds.variables[var].getncattr("cell_methods")
-                        )
+                        variable_long_name_list.append(attrs["long_name"])
+                    if "standard_name" in attrs:
+                        variable_standard_name_list.append(attrs["standard_name"])
+                    if "cell_methods" in attrs:
+                        variable_cell_methods_list.append(attrs["cell_methods"])
 
                 start_date, end_date, frequency = get_timeinfo(ds)
 
