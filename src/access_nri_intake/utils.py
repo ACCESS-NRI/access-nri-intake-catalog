@@ -8,11 +8,13 @@ from warnings import warn
 
 import jsonschema
 import pooch
+import yaml
 
 
 def get_catalog_jsonschema(url, known_hash, required):
     """
-    Download and return a jsonschema from a url and adjust the entries in the "required" key
+    Download a jsonschema from a url. Returns the unaltered jsonschema and a version with the "required" key
+    matching the properties provided.
 
     Parameters
     ----------
@@ -30,23 +32,70 @@ def get_catalog_jsonschema(url, known_hash, required):
     with open(schema_file) as fpath:
         schema = json.load(fpath)
 
+    catalog_schema = schema.copy()
     req = []
     for col in required:
-        if col not in schema["properties"]:
+        if col not in catalog_schema["properties"]:
             warn(
                 f"Required column {col} does not exist in schema. Entries in this column will not be validated"
             )
         else:
             req.append(col)
 
-    schema["required"] = req
+    catalog_schema["required"] = req
 
-    return schema
+    return schema, catalog_schema
+
+
+def load_metadata_yaml(path):
+    """
+    Load a metadata.yaml file, leaving dates as strings and loading arrays as tuples
+
+    Parameters
+    ----------
+    paths: str
+        The path to the metadata.yaml
+    """
+
+    class NoDatesSafeLoader(yaml.SafeLoader):
+        @classmethod
+        def remove_implicit_resolver(cls, tag_to_remove):
+            """
+            Remove implicit resolvers for a particular tag
+
+            See https://stackoverflow.com/questions/34667108/ignore-dates-and-times-while-parsing-yaml
+            """
+            if "yaml_implicit_resolvers" not in cls.__dict__:
+                cls.yaml_implicit_resolvers = cls.yaml_implicit_resolvers.copy()
+
+            for first_letter, mappings in cls.yaml_implicit_resolvers.items():
+                cls.yaml_implicit_resolvers[first_letter] = [
+                    (tag, regexp) for tag, regexp in mappings if tag != tag_to_remove
+                ]
+
+    def tuple_constructor(self, node):
+        """
+        yaml constructor to make leaf sequences into tuples
+
+        See https://stackoverflow.com/questions/39553008/how-to-read-a-python-tuple-using-pyyaml
+        """
+        seq = self.construct_sequence(node)
+        if seq and isinstance(seq[0], (list, tuple)):
+            return seq
+        return tuple(seq)
+
+    NoDatesSafeLoader.remove_implicit_resolver("tag:yaml.org,2002:timestamp")
+    NoDatesSafeLoader.add_constructor("tag:yaml.org,2002:seq", tuple_constructor)
+
+    with open(path) as fpath:
+        metadata = yaml.load(fpath, Loader=NoDatesSafeLoader)
+
+    return metadata
 
 
 def validate_against_schema(instance, schema):
     """
-    Validate a dictionary againsta a jsonschema, allowing for tuples as arrays
+    Validate a dictionary against a jsonschema, allowing for tuples as arrays
 
     Parameters
     ----------

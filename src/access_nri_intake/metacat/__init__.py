@@ -18,13 +18,15 @@ YAML_COLUMN = "yaml"
 NAME_COLUMN = "name"
 TRANSLATOR_GROUPBY_COLUMNS = ["model", "realm", "frequency"]
 
-SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/783ccf045e8e8e3dfbe35046c2b91a5b5e4e4874/experiment_asset.json"
-SCHEMA_HASH = "73d4d864caeebde14d30fa3e698a13aa3013fec5a981a92039d1e7dfa3c306a2"
+SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/4e3d10e563d7c1c9f66e9ab92a2926cdec3d6893/experiment_asset.json"
+SCHEMA_HASH = "b18cf5bdd06a6f5bcdc71dfc80f7336c63eb49f6d6f75c2cd3371e59eee5488b"
 
-JSONSCHEMA = get_catalog_jsonschema(
+METADATA_JSONSCHEMA, CATALOG_JSONSCHEMA = get_catalog_jsonschema(
     url=SCHEMA_URL, known_hash=SCHEMA_HASH, required=CORE_COLUMNS
 )
 
 COLUMNS_WITH_ITERABLES = [
-    col for col in CORE_COLUMNS if JSONSCHEMA["properties"][col]["type"] == "array"
+    col
+    for col in CORE_COLUMNS
+    if CATALOG_JSONSCHEMA["properties"][col]["type"] == "array"
 ]

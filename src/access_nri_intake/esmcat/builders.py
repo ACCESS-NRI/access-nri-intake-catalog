@@ -12,7 +12,7 @@ from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 from netCDF4 import Dataset
 
 from ..utils import validate_against_schema
-from . import JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
+from . import CATALOG_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import get_timeinfo, strip_pattern_rh
 
 
@@ -139,7 +139,7 @@ class BaseBuilder(Builder):
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
-                validate_against_schema(info, JSONSCHEMA)
+                validate_against_schema(info, CATALOG_JSONSCHEMA)
                 return self
 
         raise ParserError(

@@ -4,57 +4,13 @@ import logging
 import jsonschema
 import yaml
 
-from . import esmcat, metacat, utils
+from .esmcat import builders
+from .metacat import METADATA_JSONSCHEMA, manager, translators
+from .utils import load_metadata_yaml, validate_against_schema
 
 
 class MetadataCheckError(Exception):
     pass
-
-
-def _load_metadata_yaml(path):
-    """
-    Load a metadata.yaml file, leaving dates as strings and loading arrays as tuples
-
-    Parameters
-    ----------
-    paths: str
-        The path to the metadata.yaml
-    """
-
-    class NoDatesSafeLoader(yaml.SafeLoader):
-        @classmethod
-        def remove_implicit_resolver(cls, tag_to_remove):
-            """
-            Remove implicit resolvers for a particular tag
-
-            See https://stackoverflow.com/questions/34667108/ignore-dates-and-times-while-parsing-yaml
-            """
-            if "yaml_implicit_resolvers" not in cls.__dict__:
-                cls.yaml_implicit_resolvers = cls.yaml_implicit_resolvers.copy()
-
-            for first_letter, mappings in cls.yaml_implicit_resolvers.items():
-                cls.yaml_implicit_resolvers[first_letter] = [
-                    (tag, regexp) for tag, regexp in mappings if tag != tag_to_remove
-                ]
-
-    def tuple_constructor(self, node):
-        """
-        yaml constructor to make leaf sequences into tuples
-
-        See https://stackoverflow.com/questions/39553008/how-to-read-a-python-tuple-using-pyyaml
-        """
-        seq = self.construct_sequence(node)
-        if seq and isinstance(seq[0], (list, tuple)):
-            return seq
-        return tuple(seq)
-
-    NoDatesSafeLoader.remove_implicit_resolver("tag:yaml.org,2002:timestamp")
-    NoDatesSafeLoader.add_constructor("tag:yaml.org,2002:seq", tuple_constructor)
-
-    with open(path) as fpath:
-        metadata = yaml.load(fpath, Loader=NoDatesSafeLoader)
-
-    return metadata
 
 
 def _parse_config_yamls(config_yamls):
@@ -75,27 +31,27 @@ def _parse_config_yamls(config_yamls):
 
         config_args = {}
         if builder:
-            manager = "build_esm"
-            config_args["builder"] = getattr(esmcat, builder)
+            method = "build_esm"
+            config_args["builder"] = getattr(builders, builder)
             config_args["directory"] = subcatalog_dir
             config_args["overwrite"] = True
         else:
-            manager = "load"
+            method = "load"
 
         for kwargs in subcatalogs:
             subcat_args = config_args
 
             subcat_args["path"] = kwargs.pop("path")
             metadata_yaml = kwargs.pop("metadata_yaml")
-            metadata = _load_metadata_yaml(metadata_yaml)
+            metadata = load_metadata_yaml(metadata_yaml)
             subcat_args["name"] = metadata["name"]
             subcat_args["description"] = metadata["description"]
             subcat_args["metadata"] = metadata
 
             if translator:
-                subcat_args["translator"] = getattr(metacat.translators, translator)
+                subcat_args["translator"] = getattr(translators, translator)
 
-            args.append((manager, subcat_args | kwargs))
+            args.append((method, subcat_args | kwargs))
 
     return args
 
@@ -111,7 +67,7 @@ def _check_args(args_list):
         names.append(args["name"])
         uuids.append(args["metadata"]["experiment_uuid"])
         try:
-            utils.validate_against_schema(args["metadata"], metacat.schema)
+            validate_against_schema(args["metadata"], METADATA_JSONSCHEMA)
         except jsonschema.exceptions.ValidationError:
             raise MetadataCheckError(
                 f"Failed to validate metadata.yaml for {args['name']}. See traceback for details."
@@ -166,6 +122,6 @@ def build():
     _check_args([parsed_subcat[1] for parsed_subcat in parsed_subcats])
 
     for (method, args) in parsed_subcats:
-        manager = metacat.MetacatManager(path=catalog_name)
+        man = manager.MetacatManager(path=catalog_name)
         logger.info(f"Adding '{args['name']}' to metacatalog '{catalog_name}'")
-        getattr(manager, method)(**args).add()
+        getattr(man, method)(**args).add()

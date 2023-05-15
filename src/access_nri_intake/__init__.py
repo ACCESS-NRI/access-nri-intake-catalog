@@ -3,12 +3,10 @@
 
 import os
 
-import intake
-
 from . import _version
 
 __version__ = _version.get_versions()["version"]
 
 _here = os.path.abspath(os.path.dirname(__file__))
-cat = intake.open_catalog(os.path.join(_here, "metacatalog.yaml"))
-data = cat.access_nri()
+# cat = intake.open_catalog(os.path.join(_here, "metacatalog.yaml"))
+# data = cat.access_nri()

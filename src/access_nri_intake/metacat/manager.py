@@ -10,9 +10,9 @@ from intake_dataframe_catalog.core import DfFileCatalog
 
 from ..utils import validate_against_schema
 from . import (
+    CATALOG_JSONSCHEMA,
     COLUMNS_WITH_ITERABLES,
     CORE_COLUMNS,
-    JSONSCHEMA,
     NAME_COLUMN,
     TRANSLATOR_GROUPBY_COLUMNS,
     YAML_COLUMN,
@@ -187,7 +187,7 @@ class MetacatManager:
 
         # Validate df_metadata against schema
         for idx, row in self.source_metadata.iterrows():
-            validate_against_schema(row.to_dict(), JSONSCHEMA)
+            validate_against_schema(row.to_dict(), CATALOG_JSONSCHEMA)
 
         overwrite = True
         for _, row in self.source_metadata.iterrows():

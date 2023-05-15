@@ -29,7 +29,8 @@ class DefaultTranslator:
         Initialise a DefaultTranslator. This Translator works as follows:
 
         - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
-             esmcat.df attribute. If the catalog is not an intake-esm catalog, this step is skipped.
+             esmcat.df attribute, casting iterable columns to tuples. If the catalog is not an intake-esm catalog,
+             this step is skipped.
         - If that fails, the translator will then look for the column name as an attribute on the catalog itself
         - If that fails, the translator will then look for the column name in the metadata attribute of the catalog
 
@@ -52,7 +53,8 @@ class DefaultTranslator:
         """
         Try to translate a column from a catalog using the default translator. This translator works as follows:
         - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
-             esmcat.df attribute. If the catalog is not an intake-esm catalog, this step is skipped.
+             esmcat.df attribute, casting iterable columns to tuples. If the catalog is not an intake-esm catalog,
+             this step is skipped.
         - If that fails, the translator will then look for the column name as an attribute on the catalog itself
         - If that fails, the translator will then look for the column name in the metadata attribute of the catalog
 
@@ -63,7 +65,15 @@ class DefaultTranslator:
         """
         if hasattr(self.cat, "esmcat"):
             try:
-                return self.cat.df[column]
+                series = self.cat.df[column]
+
+                # Cast to tuples
+                if column in self.cat.esmcat.columns_with_iterables:
+                    return series.apply(tuple)
+                elif column in COLUMNS_WITH_ITERABLES:
+                    return to_tuple(series)
+                else:
+                    return series
             except KeyError:
                 len_df = len(self.cat.df)
         else:
