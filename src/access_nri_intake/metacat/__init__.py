@@ -3,11 +3,30 @@
 
 """ Tools for managing intake-dataframe-catalog metacatalogs """
 
-import os
 
-import yaml
+from ..utils import get_catalog_jsonschema
 
-_here = os.path.abspath(os.path.dirname(__file__))
+CORE_COLUMNS = [
+    "name",
+    "model",
+    "description",
+    "realm",
+    "frequency",
+    "variable",
+]
+YAML_COLUMN = "yaml"
+NAME_COLUMN = "name"
+TRANSLATOR_GROUPBY_COLUMNS = ["model", "realm", "frequency"]
 
-with open(os.path.join(_here, "schema.yaml")) as fpath:
-    schema = yaml.safe_load(fpath)
+SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/4e3d10e563d7c1c9f66e9ab92a2926cdec3d6893/experiment_asset.json"
+SCHEMA_HASH = "b18cf5bdd06a6f5bcdc71dfc80f7336c63eb49f6d6f75c2cd3371e59eee5488b"
+
+METADATA_JSONSCHEMA, CATALOG_JSONSCHEMA = get_catalog_jsonschema(
+    url=SCHEMA_URL, known_hash=SCHEMA_HASH, required=CORE_COLUMNS
+)
+
+COLUMNS_WITH_ITERABLES = [
+    col
+    for col in CORE_COLUMNS
+    if CATALOG_JSONSCHEMA["properties"][col]["type"] == "array"
+]

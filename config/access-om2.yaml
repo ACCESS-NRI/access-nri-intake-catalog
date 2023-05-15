@@ -2,9 +2,9 @@ builder: AccessOm2Builder
 
 translator: DefaultTranslator
 
-subcatalog_dir: /g/data/tm70/intake/access-om2
+source_dir: /g/data/tm70/intake/access-om2
 
-subcatalogs:
+sources:
 
   - path:
       - /g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi

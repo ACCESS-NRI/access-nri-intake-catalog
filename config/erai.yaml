@@ -2,9 +2,9 @@ builder: null
 
 translator: EraiTranslator
 
-subcatalog_dir: null
+source_dir: null
 
-subcatalogs:
+sources:
 
   - path:
       - /g/data/hh5/public/apps/nci-intake-catalogue/erai/catalogue.json

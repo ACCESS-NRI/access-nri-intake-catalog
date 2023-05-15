@@ -2,9 +2,9 @@ builder: AccessEsm15Builder
 
 translator: DefaultTranslator
 
-subcatalog_dir: /g/data/tm70/intake/access-esm1-5
+source_dir: /g/data/tm70/intake/access-esm1-5
 
-subcatalogs:
+sources:
 
   - path:
       - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2035

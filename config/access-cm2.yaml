@@ -2,9 +2,9 @@ builder: AccessCm2Builder
 
 translator: DefaultTranslator
 
-subcatalog_dir: /g/data/tm70/intake/access-cm2
+source_dir: /g/data/tm70/intake/access-cm2
 
-subcatalogs:
+sources:
 
   - path:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944

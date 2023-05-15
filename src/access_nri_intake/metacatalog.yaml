@@ -2,6 +2,9 @@ sources:
   access_nri:
     args:
       columns_with_iterables:
+      - model
+      - realm
+      - frequency
       - variable
       mode: r
       name_column: name

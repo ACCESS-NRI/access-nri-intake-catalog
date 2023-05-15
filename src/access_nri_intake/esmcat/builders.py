@@ -8,11 +8,11 @@ import re
 import traceback
 from pathlib import Path
 
-import jsonschema
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 from netCDF4 import Dataset
 
-from . import schema
+from ..utils import validate_against_schema
+from . import CATALOG_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import get_timeinfo, strip_pattern_rh
 
 
@@ -93,8 +93,8 @@ class BaseBuilder(Builder):
     def _save(self, name, description, directory):
         super().save(
             name=name,
-            path_column_name=schema["path_column"],
-            variable_column_name=schema["variable_column"],
+            path_column_name=PATH_COLUMN,
+            variable_column_name=VARIABLE_COLUMN,
             data_format=self.data_format,
             groupby_attrs=self.groupby_attrs,
             aggregations=self.aggregations,
@@ -139,7 +139,7 @@ class BaseBuilder(Builder):
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
-                jsonschema.validate(info, schema["jsonschema"])
+                validate_against_schema(info, CATALOG_JSONSCHEMA)
                 return self
 
         raise ParserError(
@@ -240,7 +240,7 @@ class AccessOm2Builder(BaseBuilder):
             # - iceh.057-daily.nc
             # - oceanbgc-3d-caco3-1-yearly-mean-y_2015.nc
             file_id = strip_pattern_rh(
-                [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}"], filename
+                [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}", r"\d{2}"], filename
             )
 
             with Dataset(file, mode="r") as ds:

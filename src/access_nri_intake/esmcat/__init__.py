@@ -3,11 +3,23 @@
 
 """ Tools for generating intake-esm catalogs """
 
-import os
 
-import yaml
+from ..utils import get_catalog_jsonschema
 
-_here = os.path.abspath(os.path.dirname(__file__))
+CORE_COLUMNS = [
+    "path",
+    "realm",
+    "frequency",
+    "variable",
+    "start_date",
+    "end_date",
+]
+PATH_COLUMN = "path"
+VARIABLE_COLUMN = "variable"
 
-with open(os.path.join(_here, "schema.yaml")) as fpath:
-    schema = yaml.safe_load(fpath)
+SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/4e3d10e563d7c1c9f66e9ab92a2926cdec3d6893/file_asset.json"
+SCHEMA_HASH = "2a09030653f495939c90a22e95dd1c4587c8695f7f07e17b9129a6491469f9fc"
+
+_, CATALOG_JSONSCHEMA = get_catalog_jsonschema(
+    url=SCHEMA_URL, known_hash=SCHEMA_HASH, required=CORE_COLUMNS
+)

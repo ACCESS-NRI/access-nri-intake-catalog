@@ -19,7 +19,7 @@
 #####################################################
 
 # Path to metacatalog
-CATALOG_NAME=/g/data/tm70/intake/dfcatalog.csv
+CATALOG_NAME=/g/data/tm70/intake/metacatalog.csv
 
 # Path to location of config YAML files
 CONFIG_DIR=/g/data/tm70/ds0092/projects/access-nri-intake-catalog/config
