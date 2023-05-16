@@ -24,21 +24,18 @@ The catalog is not yet available in one of the pre-built analysis environments o
     $ module load conda/analysis3
     $ conda deactivate
 
-#. Clone this repo and install the ACCESS-NRI catalog and some other packages::
+#. Create a new conda environment containing the access-nri-intake package and some additional useful packages::
 
-    $ git clone git@github.com:ACCESS-NRI/access-nri-intake-catalog.git
-    $ cd access-nri-intake-catalog
-    $ conda env create --name nri-cat -f environment-dev.yaml
-    $ conda activate nri-cat
-    $ conda install -c conda-forge -y jupyterlab
-    $ pip install --no-deps -e .
+    $ conda create -n access-nri-catalog -y \
+    $     -c conda-forge -c accessnri \
+    $     jupyterlab dask-labextension matplotlib access-nri-intake
 
 #. |  Now start an ARE JupyterLab session, specifying the following Advanced options:
 
    * :code:`/g/data/hh5/public/modules` under "Module directories";
    * :code:`conda/analysis3` under "Modules";
    * :code:`/g/data3/hh5/public/apps/miniconda3` under "Python or Conda virtual environment base";
-   * :code:`nri-cat` under "Conda environment". 
+   * :code:`access-nri-catalog` under "Conda environment". 
    
    | From this session, you should be able to run the example notebooks in the `notebooks directory of this repo <https://github.com/ACCESS-NRI/access-nri-intake-catalog/tree/main/notebooks>`_. Note, static renderings of these notebooks are also included in the :ref:`How-to guides <How_tos>` section of this documentation.
 
