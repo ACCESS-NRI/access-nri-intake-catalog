@@ -2,7 +2,7 @@
 
 #PBS -P tm70
 #PBS -l storage=gdata/tm70+gdata/ik11+gdata/cj50+gdata/hh5+gdata/p73+gdata/dk92
-#PBS -q express
+#PBS -q normal
 #PBS -l walltime=02:00:00
 #PBS -l mem=192gb
 #PBS -l ncpus=48

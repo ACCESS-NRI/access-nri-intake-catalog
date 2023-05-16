@@ -12,7 +12,7 @@ sources:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944b
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944c
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944d
-    metadata_yaml: /g/data/tm70/intake/metadata/bx944/metadata.yaml
+    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944/metadata.yaml
     ensemble: true
     
   - path:
@@ -21,7 +21,7 @@ sources:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647b
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647c
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647d
-    metadata_yaml: /g/data/tm70/intake/metadata/by647/metadata.yaml
+    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647/metadata.yaml
     ensemble: true
     
   - path:
@@ -30,7 +30,7 @@ sources:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473b
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473c
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473d
-    metadata_yaml: /g/data/tm70/intake/metadata/by473/metadata.yaml
+    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473/metadata.yaml
     ensemble: true
   
   - path:
@@ -39,7 +39,7 @@ sources:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578b
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578c
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578d
-    metadata_yaml: /g/data/tm70/intake/metadata/by578/metadata.yaml
+    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578/metadata.yaml
     ensemble: true
     
   - path:
