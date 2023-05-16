@@ -1,0 +1,40 @@
+{% set data = load_setup_py_data(setup_file='../setup.py', from_recipe_dir=True) %}
+{% set version = data.get('version') %}
+
+package:
+  name: access-nri-intake
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/a/access-nri-intake/access_nri_intake-{{ version }}.tar.gz"
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python
+    - pip
+    - versioneer
+  run:
+    - python >=3.9
+    - cftime
+    - ecgtools>=2022.10.07
+    - intake-dataframe-catalog>=0.1.1
+    - intake-esm>=2023.4.20
+    - jsonschema
+    - pooch
+    - xarray
+
+about:
+  home: https://github.com/ACCESS-NRI/access-nri-intake-catalog
+  license: Apache Software
+  license_family: APACHE
+  summary: "Tools and configuration info used to manage ACCESS-NRI's intake catalogue"
+  doc_url: https://access-nri-intake-catalog.readthedocs.io/en/latest/
+
+extra:
+  recipe-maintainers:
+    - dougiesquire

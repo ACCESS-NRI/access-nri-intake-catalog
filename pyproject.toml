@@ -19,7 +19,8 @@ dependencies = [
     "intake-dataframe-catalog>=0.1.0",
     "intake-esm>=2023.4.20",
     "jsonschema",
-    "netcdf4",
+    "pooch",
+    "xarray",
 ]
 dynamic = ["version"]
 
@@ -38,6 +39,9 @@ requires = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+access_nri_intake = ["*.yaml"]
 
 [tool.versioneer]
 VCS = "git"
