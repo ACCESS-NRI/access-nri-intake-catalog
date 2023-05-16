@@ -8,6 +8,7 @@ import intake
 from .. import __version__
 
 _here = os.path.abspath(os.path.dirname(__file__))
-data = intake.open_catalog(os.path.join(_here, "metacatalog.yaml")).access_nri(
-    version=f"v{__version__}"
+_cat = intake.open_catalog(os.path.join(_here, "metacatalog.yaml"))(
+    version_=f"v{__version__}"
 )
+data = _cat.access_nri

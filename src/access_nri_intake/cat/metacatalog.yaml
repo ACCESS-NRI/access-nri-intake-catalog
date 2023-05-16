@@ -1,3 +1,9 @@
+metadata:
+  parameters:
+    version_:
+      description: "Catalog version"
+      type: str
+
 sources:
   access_nri:
     args:
@@ -8,8 +14,10 @@ sources:
       - variable
       mode: r
       name_column: name
-      path: /g/data/tm70/intake/{{version}}/metacatalog.csv
+      path: /g/data/tm70/intake/{{version_}}/metacatalog.csv
       yaml_column: yaml
     description: ''
     driver: intake_dataframe_catalog.core.DfFileCatalog
     metadata: {}
+    
+
