@@ -240,7 +240,14 @@ class AccessOm2Builder(BaseBuilder):
             # - iceh.057-daily.nc
             # - oceanbgc-3d-caco3-1-yearly-mean-y_2015.nc
             file_id = strip_pattern_rh(
-                [r"\d{4}[-_]\d{2}", r"\d{4}", r"\d{3}", r"\d{2}"], filename
+                [
+                    r"\d{4}[-_]\d{2}[-_]\d{2}",
+                    r"\d{4}[-_]\d{2}",
+                    r"\d{4}",
+                    r"\d{3}",
+                    r"\d{2}",
+                ],
+                filename,
             )
 
             with xr.open_dataset(
