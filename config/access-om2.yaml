@@ -2,8 +2,6 @@ builder: AccessOm2Builder
 
 translator: DefaultTranslator
 
-source_dir: /g/data/tm70/intake/access-om2
-
 sources:
 
   - path:

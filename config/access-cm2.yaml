@@ -2,8 +2,6 @@ builder: AccessCm2Builder
 
 translator: DefaultTranslator
 
-source_dir: /g/data/tm70/intake/access-cm2
-
 sources:
 
   - path:

@@ -34,3 +34,17 @@ You can also run `pre-commit` manually at any point to format your code::
     pytest src
 
 #. Once you are happy with your contribution, navigate to `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/pulls>`_ and open a new pull request to merge your branch of your fork with the main branch of the base.
+
+Preparing a new release
+-----------------------
+
+New code releases to PyPI and conda are published automatically when a tag is pushed to Github. A corresponding version of the catalog files on Gadi must also be generated. To publish a new release::
+
+    $ export RELEASE=vX.X.X
+    $ # Create git tags
+    $ git commit --allow-empty -m "Release $RELEASE"
+    $ git tag -a $RELEASE -m "Version $RELEASE"
+    $ # Build the corresponding version of the catalog (make sure this job finishes successfully before progressing)
+    $ qsub ./bin/build_all.sh
+    $ # Push the tag to github to trigger the code release
+    $ git push --tags

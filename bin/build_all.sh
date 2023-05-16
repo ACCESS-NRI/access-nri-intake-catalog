@@ -18,16 +18,23 @@
 #
 #####################################################
 
-# Path to metacatalog
-CATALOG_NAME=/g/data/tm70/intake/metacatalog.csv
-
-# Path to location of config YAML files
-CONFIG_DIR=/g/data/tm70/ds0092/projects/access-nri-intake-catalog/config
-
-# Config files to process
-CONFIGS=( cmip6.yaml cmip5.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # erai.yaml
+set -e
 
 conda activate access-nri-intake-dev
+
+OUTPUT_BASE_PATH=/g/data/tm70/intake
+CONFIG_DIR=/g/data/tm70/ds0092/projects/access-nri-intake-catalog/config
+CONFIGS=( cmip6.yaml cmip5.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # erai.yaml
+
+# Get current version and set up the directories
+version=$(python ../setup.py --version)
+version_path=${OUTPUT_BASE_PATH}/v${version}
+build_path=${version_path}/sources
+mkdir ${version_path}
+mkdir ${build_path}
+
+metacatalog_file=${version_path}/metacatalog.csv
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
-metacat-build --catalog_name=${CATALOG_NAME} ${config_paths[@]}
+
+metacat-build --build_path=${build_path} --metacatalog_file=${metacatalog_file} ${config_paths[@]}
 

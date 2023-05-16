@@ -16,10 +16,10 @@ class MetadataCheckError(Exception):
     pass
 
 
-def _parse_config_yamls(config_yamls):
+def _parse_inputs(config_yamls, build_path):
     """
-    Parse a list of configuration YAML files into a list of tuples of
-    MetacatManager methods and args to pass to the methods
+    Parse inputs into a list of tuples of MetacatManager methods and args to
+    pass to the methods
     """
 
     args = []
@@ -29,14 +29,13 @@ def _parse_config_yamls(config_yamls):
 
         builder = config.get("builder")
         translator = config.get("translator")
-        source_dir = config.get("source_dir")
         sources = config.get("sources")
 
         config_args = {}
         if builder:
             method = "build_esm"
             config_args["builder"] = getattr(builders, builder)
-            config_args["directory"] = source_dir
+            config_args["directory"] = build_path
             config_args["overwrite"] = True
         else:
             method = "load"
@@ -110,21 +109,33 @@ def build():
         nargs="+",
         help="Configuration YAML file(s) specifying the intake catalog(s) to add",
     )
+
     parser.add_argument(
-        "--catalog_name",
+        "--build_path",
         type=str,
-        default="metacatalog.csv",
-        help="The path to the intake-dataframe-catalog",
+        default="./",
+        help=(
+            "Directory in which to build the intake catalog(s). Ignored if builder is null in config (i.e. if ",
+            "adding an existing catalog)",
+        ),
+    )
+
+    parser.add_argument(
+        "--metacatalog_file",
+        type=str,
+        default="./metacatalog.csv",
+        help="The path to the intake-dataframe-catalog metacatalog",
     )
 
     args = parser.parse_args()
     config_yamls = args.config_yaml
-    catalog_name = args.catalog_name
+    build_path = args.build_path
+    metacatalog_file = args.metacatalog_file
 
-    parsed_sources = _parse_config_yamls(config_yamls)
+    parsed_sources = _parse_inputs(config_yamls, build_path)
     _check_args([parsed_source[1] for parsed_source in parsed_sources])
 
     for (method, args) in parsed_sources:
-        man = manager.MetacatManager(path=catalog_name)
-        logger.info(f"Adding '{args['name']}' to metacatalog '{catalog_name}'")
+        man = manager.MetacatManager(path=metacatalog_file)
+        logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_file}'")
         getattr(man, method)(**args).add()
