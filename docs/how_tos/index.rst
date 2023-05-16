@@ -7,8 +7,8 @@ How-to guides
    :maxdepth: 1
    :hidden:
 
-   example_usage
-   building_intake-esm_catalogs
+   example_usage.ipynb
+   building_intake-esm_catalogs.ipynb
 
 These pages provide some how-to guides in the form of Jupyter notebooks that can be run on Gadi:
 

@@ -14,10 +14,10 @@ sources:
       - variable
       mode: r
       name_column: name
-      path: /g/data/tm70/intake/{{version_}}/metacatalog.csv
+      path: "/g/data/tm70/intake/{{version_}}/metacatalog.csv"
       yaml_column: yaml
     description: ''
     driver: intake_dataframe_catalog.core.DfFileCatalog
-    metadata: {}
-    
+    metadata:
+      version: "{{version_}}"
 
