@@ -20,12 +20,13 @@ requirements:
     - versioneer
   run:
     - python >=3.9
-#    - intake
-#    - pandas
-
-test:
-  imports:
-    - access_nri_intake
+    - cftime
+    - ecgtools>=2022.10.07
+    - intake-dataframe-catalog>=0.1.1
+    - intake-esm>=2023.4.20
+    - jsonschema
+    - pooch
+    - xarray
 
 about:
   home: https://github.com/ACCESS-NRI/access-nri-intake-catalog

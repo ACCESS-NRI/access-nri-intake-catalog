@@ -40,6 +40,9 @@ requires = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+access_nri_intake = ["*.yaml"]
+
 [tool.versioneer]
 VCS = "git"
 style = "pep440"
