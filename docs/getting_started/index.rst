@@ -37,6 +37,6 @@ The catalog is not yet available in one of the pre-built analysis environments o
    * :code:`/g/data3/hh5/public/apps/miniconda3` under "Python or Conda virtual environment base";
    * :code:`access-nri-catalog` under "Conda environment". 
    
-   | From this session, you should be able to run the example notebooks in the `notebooks directory of this repo <https://github.com/ACCESS-NRI/access-nri-intake-catalog/tree/main/notebooks>`_. Note, static renderings of these notebooks are also included in the :ref:`How-to guides <How_tos>` section of this documentation.
+   | From this session, you should be able to run the example notebooks in the `docs/how_tos directory of this repo <https://github.com/ACCESS-NRI/access-nri-intake-catalog/tree/main/docs/how_tos>`_. Note, static renderings of these notebooks are also included in the :ref:`How-to guides <How_tos>` section of this documentation.
 
 
