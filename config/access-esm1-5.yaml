@@ -2,8 +2,6 @@ builder: AccessEsm15Builder
 
 translator: DefaultTranslator
 
-source_dir: /g/data/tm70/intake/access-esm1-5
-
 sources:
 
   - path:

@@ -28,7 +28,7 @@ dynamic = ["version"]
 metacat-build = "access_nri_intake.cli:build"
 
 [project.entry-points."intake.catalogs"]
-access_nri = "access_nri_intake:data"
+access_nri = "access_nri_intake.cat:data"
 
 [build-system]
 build-backend = "setuptools.build_meta"

@@ -2,8 +2,6 @@ builder: null
 
 translator: EraiTranslator
 
-source_dir: null
-
 sources:
 
   - path:

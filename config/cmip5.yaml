@@ -2,8 +2,6 @@ builder: null
 
 translator: Cmip5Translator
 
-source_dir: null
-
 sources:
 
   - path:
