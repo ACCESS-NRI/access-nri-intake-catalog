@@ -16,7 +16,7 @@ sources:
       name_column: name
       path: "/g/data/tm70/intake/{{version_}}/metacatalog.csv"
       yaml_column: yaml
-    description: ''
+    description: "ACCESS-NRI intake catalog"
     driver: intake_dataframe_catalog.core.DfFileCatalog
     metadata:
       version: "{{version_}}"
