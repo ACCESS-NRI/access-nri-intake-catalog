@@ -45,6 +45,7 @@ New code releases to PyPI and conda are published automatically when a tag is pu
     $ git commit --allow-empty -m "Release $RELEASE"
     $ git tag -a $RELEASE -m "Version $RELEASE"
     $ # Build the corresponding version of the catalog (make sure this job finishes successfully before progressing)
-    $ qsub ./bin/build_all.sh
+    $ cd bin
+    $ qsub build_all.sh
     $ # Push the tag to github to trigger the code release
     $ git push --tags

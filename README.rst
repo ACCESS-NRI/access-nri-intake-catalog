@@ -4,7 +4,7 @@ ACCESS-NRI Intake Catalog
 
 **Tools and configuration info used to manage ACCESS-NRI's intake catalog**
 
-Note, this is under development. Things might change/break frequently and without warning.
+Note, this project is under development. Things might change/break frequently and without warning.
 
 ------------
 
