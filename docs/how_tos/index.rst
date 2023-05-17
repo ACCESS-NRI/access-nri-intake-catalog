@@ -15,8 +15,8 @@ These pages provide some how-to guides in the form of Jupyter notebooks that can
 * The notebook on `example usage of the ACCESS-NRI catalog`_ demonstrates the basic functions of the ACCESS-NRI Intake catalog including searching for experiment subcatalogs, loading subcatalogs, searching for datasets in subcatalogs and loading data from subcatalogs.
 * The notebook on `building your own intake-esm catalog`_ demonstrates how to build your own intake-esm catalog for data from an experiment you have just run (for example).
 
-.. _example usage of the ACCESS-NRI catalog: example_usage
-.. _building your own intake-esm catalog: building_intake-esm_catalogs
+.. _example usage of the ACCESS-NRI catalog: example_usage.html
+.. _building your own intake-esm catalog: building_intake-esm_catalogs.html
 
 .. note::
    If you'd like to see a new how-to, or you find any issues, please open an issue `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues>`_.
