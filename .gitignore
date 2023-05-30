@@ -130,3 +130,4 @@ dmypy.json
 
 sandpit.ipynb
 *.DS_Store
+bin/build_all.sh.o*

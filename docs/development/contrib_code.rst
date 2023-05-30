@@ -1,7 +1,8 @@
 Contributing code
 =================
 
-Code contributions are handled through "pull requests" on GitHub. The following describes how to go about making your contributions and submitting a pull request.
+Code contributions are handled through "pull requests" on GitHub. The following describes how to go about making your 
+contributions and submitting a pull request.
 
 #. Fork this respository.
 
@@ -17,11 +18,13 @@ Code contributions are handled through "pull requests" on GitHub. The following 
     $ conda env create -f environment-dev.yml
     $ conda activate access-nri-intake-dev
 
-#. Install `access-nri-intake` using the editable flag (meaning any changes you make to the package will be reflected directly in your environment without having to reinstall)::
+#. Install `access-nri-intake` using the editable flag (meaning any changes you make to the package will be reflected 
+directly in your environment without having to reinstall)::
 
     $ pip install --no-deps -e .
 
-#. This project uses `black` to format code and `flake8` for linting. We use `pre-commit` to ensure these have been run. Please set up commit hooks by running the following. This will mean that `black` and `flake8` are run whenever you make a commit::
+#. This project uses `black` to format code and `flake8` for linting. We use `pre-commit` to ensure these have been run. 
+Please set up commit hooks by running the following. This will mean that `black` and `flake8` are run whenever you make a commit::
 
     pre-commit install
 
@@ -29,23 +32,50 @@ You can also run `pre-commit` manually at any point to format your code::
 
     pre-commit run --all-files
 
-#. Start making and committing your edits, including adding docstrings to functions and adding unit tests to check that your contributions are doing what they're suppose to. Please try to follow `numpydoc style <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for docstrings. To run the test suite::
+#. Start making and committing your edits, including adding docstrings to functions and adding unit tests to check that 
+your contributions are doing what they're suppose to. Please try to follow `numpydoc style 
+<https://numpydoc.readthedocs.io/en/latest/format.html>`_ for docstrings. To run the test suite::
 
     pytest src
 
-#. Once you are happy with your contribution, navigate to `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/pulls>`_ and open a new pull request to merge your branch of your fork with the main branch of the base.
+#. Once you are happy with your contribution, navigate to `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/pulls>`_ 
+and open a new pull request to merge your branch of your fork with the main branch of the base.
 
 Preparing a new release
 -----------------------
 
-New code releases to PyPI and conda are published automatically when a tag is pushed to Github. A corresponding version of the catalog files on Gadi must also be generated. To publish a new release::
+New releases to PyPI and conda are published automatically when a tag is pushed to Github. A new release may or may not include 
+an update to the catalog files on Gadi and associated 
+`data package <https://intake.readthedocs.io/en/latest/data-packages.html>`_ module :code:`access_nri_intake.cat`. If it does, 
+the person doing the release must ensure that the version of the new catalog matches the version of the new release by carefully 
+following all steps below. Ideally steps 1 and 2 below will be done in a PR and merged before commencing step 3. If the release 
+does not include an update to the catalog on Gadi, skip the first two steps below:
+
+#. [OPTIONAL] Create a new version of the catalog on Gadi (this will take about 45 mins)::
 
     $ export RELEASE=vX.X.X
-    $ # Create git tags
+    $ cd bin
+    $ qsub -v version=${RELEASE} build_all.sh
+    
+#. [OPTIONAL] Upon successful completion of the previous step, the :code:`access_nri_intake` data package module will be updated 
+   to point at the new version just created. Commit this update::
+   
+   $ cd ../
+   $ git add src/access_nri_intake/cat
+   $ git commit "Update catalog to $RELEASE"
+
+#. Go to https://github.com/ACCESS-NRI/access-nri-intake-catalog
+
+#. Click on "Releases"/"Draft new release" on the right-hand side of the screen
+
+#. Enter the new version (vX.X.X) as the tag and release title. Add a brief description of the release.
+
+#. Click on "Publish release". This should create the release on GitHub and trigger the workflow that builds and uploads 
+   the new version to PyPI and conda
+
+Alternatively (any discouraged), one can trigger the new release from the command line. Replace steps 3 onwards with::
+
+    $ git fetch --all --tags
     $ git commit --allow-empty -m "Release $RELEASE"
     $ git tag -a $RELEASE -m "Version $RELEASE"
-    $ # Build the corresponding version of the catalog (make sure this job finishes successfully before progressing)
-    $ cd bin
-    $ qsub build_all.sh
-    $ # Push the tag to github to trigger the code release
     $ git push --tags
