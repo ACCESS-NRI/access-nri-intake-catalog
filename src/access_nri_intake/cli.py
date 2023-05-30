@@ -125,7 +125,7 @@ def build():
     parser.add_argument(
         "--metacatalog_file",
         type=str,
-        default="catalog.csv",
+        default="metacatalog.csv",
         help="The name of the intake-dataframe-catalog metacatalog.",
     )
 
@@ -173,7 +173,6 @@ def build():
     cat.description = "ACCESS-NRI intake catalog"
     yaml_dict = yaml.safe_load(cat.yaml())
 
-    yaml_dict["sources"]["access_nri"]["args"]["path"]
     yaml_dict["sources"]["access_nri"]["args"]["path"] = os.path.join(
         build_base_path, "{{version}}", metacatalog_file
     )

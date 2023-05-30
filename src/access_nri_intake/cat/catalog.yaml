@@ -13,10 +13,10 @@ sources:
     description: ACCESS-NRI intake catalog
     driver: intake_dataframe_catalog.core.DfFileCatalog
     metadata:
-      storage: gdata/cj50+gdata/dk92+gdata/ik11+gdata/p73
+      storage: gdata/cj50+gdata/ik11+gdata/p73+gdata/dk92
       version: '{{version}}'
     parameters:
       version:
-        default: v0.0.4+0.gf069985.dirty
+        default: v0.0.5
         description: Catalog version
         type: str
