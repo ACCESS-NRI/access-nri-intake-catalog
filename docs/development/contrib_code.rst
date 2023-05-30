@@ -44,20 +44,21 @@ and open a new pull request to merge your branch of your fork with the main bran
 Preparing a new release
 -----------------------
 
-New releases to PyPI and conda are published automatically when a tag is pushed to Github. The :code:`access_nri_intake` package 
-includes the corresponding version of the catalog on Gadi as a `data package 
-<https://intake.readthedocs.io/en/latest/data-packages.html>'_ module. It is therefore very important when preparing a release 
-to make sure that the catalog version for the new release exists on Gadi by following these steps. Ideally steps 1 and 2 below 
-will be done in a PR:
+New releases to PyPI and conda are published automatically when a tag is pushed to Github. A new release may or may not include 
+an update to the catalog files on Gadi and associated 
+`data package <https://intake.readthedocs.io/en/latest/data-packages.html>`_ module :code:`access_nri_intake.cat`. If it does, 
+the person doing the release must ensure that the version of the new catalog matches the version of the new release by carefully 
+following all steps below. Ideally steps 1 and 2 below will be done in a PR and merged before commencing step 3. If the release 
+does not include an update to the catalog on Gadi, skip the first two steps below:
 
-#. Create a new version of the catalog on Gadi with the correct version (this will take about 45 mins)::
+#. [OPTIONAL] Create a new version of the catalog on Gadi (this will take about 45 mins)::
 
     $ export RELEASE=vX.X.X
     $ cd bin
     $ qsub -v version=${RELEASE} build_all.sh
     
-#. Upon successful completion of the previous step, the :code:`access_nri_intake` data package module will be updated to point at 
-   the new version just created. Commit this update::
+#. [OPTIONAL] Upon successful completion of the previous step, the :code:`access_nri_intake` data package module will be updated 
+   to point at the new version just created. Commit this update::
    
    $ cd ../
    $ git add src/access_nri_intake/cat
@@ -72,7 +73,7 @@ will be done in a PR:
 #. Click on "Publish release". This should create the release on GitHub and trigger the workflow that builds and uploads 
    the new version to PyPI and conda
 
-Alternatively (any discouraged), one can trigger the new release from the command line. Pick up at step 3::
+Alternatively (any discouraged), one can trigger the new release from the command line. Replace steps 3 onwards with::
 
     $ git fetch --all --tags
     $ git commit --allow-empty -m "Release $RELEASE"
