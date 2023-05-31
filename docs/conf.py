@@ -11,6 +11,7 @@ print(sys.executable)
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 html_title = "ACCESS-NRI Intake catalog"
+html_logo = "_static/accessnri_logo.svg"
 project = "ACCESS-NRI Intake catalog"
 copyright = "2023, ACCESS-NRI"
 author = "ACCESS-NRI"
