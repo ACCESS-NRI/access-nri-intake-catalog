@@ -13,7 +13,7 @@ Note, this project is under development. Things might change/break frequently an
 +---------------+----------------------+
 | Package       | |pypi| |conda|       |
 +---------------+----------------------+
-| CI/CD         | |cd|                 |
+| CI/CD         | |pre-commit| |cd|    |
 +---------------+----------------------+
 | Development   | |black|              |
 +---------------+----------------------+
