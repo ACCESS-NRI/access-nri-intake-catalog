@@ -42,7 +42,7 @@ requires = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-access_nri_intake = ["cat/metacatalog.yaml"]
+access_nri_intake = ["cat/catalog.yaml"]
 
 [tool.versioneer]
 VCS = "git"
