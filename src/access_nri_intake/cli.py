@@ -148,7 +148,7 @@ def build():
     # Create the build directories
     build_base_path = os.path.abspath(build_base_path)
     build_path = os.path.join(build_base_path, version, "source")
-    metacatalog_file = os.path.join(build_base_path, version, metacatalog_file)
+    metacatalog_path = os.path.join(build_base_path, version, metacatalog_file)
     os.makedirs(build_path, exist_ok=True)
 
     # Parse inputs to pass to MetacatManager
@@ -157,8 +157,8 @@ def build():
 
     # Build the catalog
     for (method, args) in parsed_sources:
-        man = manager.MetacatManager(path=metacatalog_file)
-        logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_file}'")
+        man = manager.MetacatManager(path=metacatalog_path)
+        logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_path}'")
         getattr(man, method)(**args).add()
 
     # Write catalog yaml file
