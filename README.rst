@@ -32,6 +32,10 @@ Note, this project is under development. Things might change/break frequently an
         :target: https://anaconda.org/accessnri/access-nri-intake
         :alt: Conda package
 
+.. |pre-commit| image:: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/pre-commit.yaml/badge.svg
+        :target: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/pre-commit.yaml
+        :alt: Pre-commit status
+        
 .. |cd| image:: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/cd.yml/badge.svg
         :target: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/cd.yml
         :alt: Package CD status
