@@ -9,9 +9,6 @@ print(sys.executable)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-
-html_title = "ACCESS-NRI Intake catalog"
-html_logo = "_static/accessnri_logo.svg"
 project = "ACCESS-NRI Intake catalog"
 copyright = "2023, ACCESS-NRI"
 author = "ACCESS-NRI"
@@ -30,6 +27,9 @@ extensions = [
     "sphinx_panels",
     "sphinx_copybutton",
 ]
+
+# Don't load the bootstrap 4 CSS classes relevant to panels
+panels_add_bootstrap_css = False
 
 # autoapi directives
 autoapi_dirs = ["../src/access_nri_intake"]
@@ -75,4 +75,8 @@ html_context = {
 html_theme_options = {
     "use_edit_page_button": True,
     "github_url": "https://github.com/ACCESS-NRI/access-nri-intake-catalog",
+    "logo": {
+        "image_light": "_static/accessnri_light.png",
+        "image_dark": "_static/accessnri_dark.png",
+    },
 }

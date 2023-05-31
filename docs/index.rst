@@ -20,39 +20,38 @@ This documentation aims to support a broad range of users, from people just want
     :column: col-lg-4 col-md-4 col-sm-4 col-xs-12 p-2
 
     ---
+    :header: bg-info
+
+    **I'm a catalog user**
+    ^^^^^^^^^^^^^^^^^^^^^^
 
     .. link-button:: Getting_started
             :type: ref
-            :text: I'm a catalog user
-            :classes: btn-block stretched-link font-weight-bold
+            :text: I want to use the ACCESS-NRI Intake catalog to find and load some data.
+            :classes: btn-block stretched-link
 
-    +++
-
-    I want to use the ACCESS-NRI Intake catalog to find and load some data.
 
     ---
+    :header: bg-info
+
+    **I'm a catalog contributor**
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     .. link-button:: How_tos
             :type: ref
-            :text: I'm a catalog contributor
-            :classes: btn-block stretched-link font-weight-bold
-
-    +++
-
-    I want to catalog my own data to make easy it for myself and others to find and load.
+            :text: I want to catalog my own data to make it easy to find and load.
+            :classes: btn-block stretched-link
 
     ---
+    :header: bg-info
+
+    **I'm a catalog developer**
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     
     .. link-button:: Reference
             :type: ref
-            :text: I'm a catalog developer
-            :classes: btn-block stretched-link font-weight-bold
-
-    
-    +++
-
-    I want to help develop the tools that ACCESS-NRI use to manage the Intake catalog.
-
+            :text: I want to help develop the tools that ACCESS-NRI use to manage the Intake catalog.
+            :classes: btn-block stretched-link
 
 .. note::
    The ACCESS-NRI Intake catalog, and the tools that support it, are still a work in progress. We value your feedback, 
