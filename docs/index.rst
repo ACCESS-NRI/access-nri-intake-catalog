@@ -5,7 +5,7 @@ ACCESS-NRI Intake catalog
    :maxdepth: 1
    :hidden:
 
-   getting_started/index
+   using_the_catalog/index
    how_tos/index
    reference/index
    development/index
@@ -25,7 +25,7 @@ This documentation aims to support a broad range of users, from people just want
     **I'm a catalog user**
     ^^^^^^^^^^^^^^^^^^^^^^
 
-    .. link-button:: Getting_started
+    .. link-button:: using_the_catalog
             :type: ref
             :text: I want to use the ACCESS-NRI Intake catalog to find and load some data.
             :classes: btn-block stretched-link
