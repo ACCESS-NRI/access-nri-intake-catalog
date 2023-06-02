@@ -73,19 +73,7 @@ def load_metadata_yaml(path):
                     (tag, regexp) for tag, regexp in mappings if tag != tag_to_remove
                 ]
 
-    def tuple_constructor(self, node):
-        """
-        yaml constructor to make leaf sequences into tuples
-
-        See https://stackoverflow.com/questions/39553008/how-to-read-a-python-tuple-using-pyyaml
-        """
-        seq = self.construct_sequence(node)
-        if seq and isinstance(seq[0], (list, tuple)):
-            return seq
-        return tuple(seq)
-
     NoDatesSafeLoader.remove_implicit_resolver("tag:yaml.org,2002:timestamp")
-    NoDatesSafeLoader.add_constructor("tag:yaml.org,2002:seq", tuple_constructor)
 
     with open(path) as fpath:
         metadata = yaml.load(fpath, Loader=NoDatesSafeLoader)

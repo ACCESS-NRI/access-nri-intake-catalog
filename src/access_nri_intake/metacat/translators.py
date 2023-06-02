@@ -83,6 +83,8 @@ class DefaultTranslator:
             val = getattr(self.cat, column)
         elif column in self.cat.metadata:
             val = self.cat.metadata[column]
+            if isinstance(val, list):
+                val = tuple(val)
         else:
             raise TranslatorError(
                 f"Could not translate '{column}' from {self.cat.name} using {self.__class__.__name__}"
