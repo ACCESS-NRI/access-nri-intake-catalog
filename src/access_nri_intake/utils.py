@@ -49,7 +49,7 @@ def get_catalog_jsonschema(url, known_hash, required):
 
 def load_metadata_yaml(path):
     """
-    Load a metadata.yaml file, leaving dates as strings and loading arrays as tuples
+    Load a metadata.yaml file, leaving dates as strings
 
     Parameters
     ----------
