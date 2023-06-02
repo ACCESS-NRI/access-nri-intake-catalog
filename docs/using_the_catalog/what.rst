@@ -1,7 +1,7 @@
-.. what_is_the_catalog:
+.. what:
 
-What is the ACCESS-NRI Intake catalog?
-======================================
+What is it?
+===========
 
 .. note::
    These docs assume readers have a basic knowledge of Python and are familiar with the Python package, xarray. If you're not familiar with xarray, check out the excellent `xarray tutorial webpage <https://tutorial.xarray.dev/intro.html>`_.
