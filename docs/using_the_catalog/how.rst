@@ -25,10 +25,10 @@ In order to use the catalog, you will need to have the following:
 
       Catalog users will only be able to load data from projects that they have access to.
 
-#. **Access to the** :code:`xp65` **or** :code:`hh5` **projects**: these projects provide public analysis environments in which the ACCESS-NRI catalog is installed (along with many other useful packages).
+#. **Access to the** :code:`xp65` **or** :code:`hh5` **projects**: these projects provide public analysis environments in which the ACCESS-NRI catalog is installed (along with many other useful packages). Alternatively, you can install the catalog into your own environment.
 
-.. note::
-   The ACCESS-NRI catalog is not yet installed in the :code:`hh5` environments, so for now you'll have to use the :code:`xp65` environment.
+   .. note::
+      The ACCESS-NRI catalog is actually not yet installed in the :code:`hh5` environments, so for now you'll have to use the :code:`xp65` environment.
 
 Installing the catalog
 ^^^^^^^^^^^^^^^^^^^^^^
