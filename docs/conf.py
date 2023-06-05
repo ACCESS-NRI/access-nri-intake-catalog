@@ -22,7 +22,8 @@ extensions = [
     #    "IPython.sphinxext.ipython_console_highlighting",
     "numpydoc",
     "sphinx.ext.napoleon",
-    "autoapi.extension",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "myst_nb",
     "sphinx_panels",
     "sphinx_copybutton",
@@ -31,23 +32,29 @@ extensions = [
 # Don't load the bootstrap 4 CSS classes relevant to panels
 panels_add_bootstrap_css = False
 
+autosummary_generate = True
+autodoc_typehints = "none"
+autodoc_member_order = "groupwise"
+
+# Config numpydoc
+numpydoc_show_class_members = True
+numpydoc_show_inherited_class_members = False
+numpydoc_class_members_toctree = False
+
 # autoapi directives
-autoapi_dirs = ["../src/access_nri_intake"]
-autoapi_add_toctree_entry = False
-autoapi_ignore = ["**.ipynb_checkpoints"]
-autoapi_python_class_content = "class"
-autoapi_options = [
-    "members",
-    "inherited-members",
-    "show-inheritance",
-    "show-module-summary",
-]
+# autoapi_dirs = ["../src/access_nri_intake"]
+# autoapi_add_toctree_entry = False
+# autoapi_ignore = ["**.ipynb_checkpoints"]
+# autoapi_python_class_content = "class"
+# autoapi_options = [
+#     "members",
+#     "inherited-members",
+#     "show-inheritance",
+#     "show-module-summary",
+# ]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
-
-# The suffix of source filenames.
-source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
@@ -57,7 +64,7 @@ pygments_style = "sphinx"
 
 # Config myst-nb
 nb_execution_excludepatterns = [
-    "example_usage.ipynb",
+    "tutorial.ipynb",
     "building_intake-esm_catalogs.ipynb",
 ]
 
