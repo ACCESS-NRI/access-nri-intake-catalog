@@ -1,6 +1,8 @@
 ACCESS-NRI Intake catalog
 =========================
 
+.. role:: black
+
 .. toctree::
    :maxdepth: 1
    :hidden:
