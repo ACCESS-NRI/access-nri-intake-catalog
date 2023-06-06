@@ -1,6 +1,6 @@
 ---
 name: Catalog data request
-about: Issue template for requesting data be added to the catalog
+about: Create an issue to request data be added to the catalog
 title: "[DATA REQUEST] Add <name of data product>"
 labels: ''
 assignees: ''
@@ -16,6 +16,7 @@ assignees: ''
 <Please replace this text with the base path to the data product on Gadi>
 
 # Checklist
+
 Add a "x" between the brackets to all that apply
 - [] This data product is stable (unlikely to change substantially or move)
 - [] This data product is of use to the broader community
