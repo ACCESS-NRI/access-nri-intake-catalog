@@ -15,3 +15,5 @@ ACCESS-NRI provides tools to make it quick and easy for users to create Intake-E
    :maxdepth: 2
 
    builders
+   tutorial
+   builder_create
