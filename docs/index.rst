@@ -5,8 +5,8 @@ ACCESS-NRI Intake catalog
    :maxdepth: 1
    :hidden:
 
-   using_the_catalog/index
-   how_tos/index
+   usage/index
+   datastore_creation/index
    reference/index
    development/index
    
@@ -25,7 +25,7 @@ This documentation aims to support a broad range of users, from people just want
     **I'm a catalog user**
     ^^^^^^^^^^^^^^^^^^^^^^
 
-    .. link-button:: using_the_catalog
+    .. link-button:: usage
             :type: ref
             :text: I want to use the ACCESS-NRI Intake catalog to find and load some data.
             :classes: btn-block stretched-link
@@ -37,7 +37,7 @@ This documentation aims to support a broad range of users, from people just want
     **I'm a catalog contributor**
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    .. link-button:: How_tos
+    .. link-button:: datastore_creation
             :type: ref
             :text: I want to catalog my own data to make it easy to find and load.
             :classes: btn-block stretched-link

@@ -27,6 +27,7 @@ extensions = [
     "myst_nb",
     "sphinx_panels",
     "sphinx_copybutton",
+    "sphinx_togglebutton",
 ]
 
 # Don't load the bootstrap 4 CSS classes relevant to panels

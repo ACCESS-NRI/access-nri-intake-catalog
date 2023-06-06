@@ -1,4 +1,4 @@
-.. _using_the_catalog:
+.. _usage:
 
 Using the catalog
 =================
@@ -11,4 +11,4 @@ The ACCESS-NRI Intake catalog provides a way for Python users to peruse, search 
    what
    how
    tutorial
-   
+   faq

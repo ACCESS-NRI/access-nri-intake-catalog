@@ -17,6 +17,7 @@ dependencies:
     - sphinxcontrib-napoleon
     - sphinx-autoapi
     - sphinx-copybutton
+    - sphinx-togglebutton
     - sphinx-panels
     - myst-nb
     - -e ..
