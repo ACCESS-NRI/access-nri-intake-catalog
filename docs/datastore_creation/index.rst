@@ -17,3 +17,5 @@ ACCESS-NRI provides tools to make it quick and easy for users to create Intake-E
    builders
    tutorial
    builder_create
+   adding
+   
