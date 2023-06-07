@@ -26,10 +26,10 @@ dependencies = [
 dynamic = ["version"]
 
 [project.scripts]
-metacat-build = "access_nri_intake.cli:build"
+catalog-build = "access_nri_intake.cli:build"
 
 [project.entry-points."intake.catalogs"]
-access_nri = "access_nri_intake.cat:data"
+access_nri = "access_nri_intake.data:data"
 
 [build-system]
 build-backend = "setuptools.build_meta"
@@ -42,7 +42,7 @@ requires = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-access_nri_intake = ["cat/catalog.yaml"]
+access_nri_intake = ["data/catalog.yaml"]
 
 [tool.versioneer]
 VCS = "git"

@@ -9,8 +9,9 @@ import jsonschema
 import yaml
 
 from . import __version__
-from .esmcat import builders
-from .metacat import METADATA_JSONSCHEMA, manager, translators
+from .catalog import METADATA_JSONSCHEMA, translators
+from .catalog.manager import MetacatManager
+from .source import builders
 from .utils import load_metadata_yaml, validate_against_schema
 
 
@@ -157,7 +158,7 @@ def build():
 
     # Build the catalog
     for (method, args) in parsed_sources:
-        man = manager.MetacatManager(path=metacatalog_path)
+        man = MetacatManager(path=metacatalog_path)
         logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_path}'")
         getattr(man, method)(**args).add()
 
