@@ -25,10 +25,11 @@ contributions and submitting a pull request.
       $ git remote add upstream git@github.com:ACCESS-NRI/access-nri-intake-catalog.git
       $ git checkout -b <issue#_description> main
 
-   .. note:
+   .. note::
 
-      The above assumes that you have ssh keys set up to access GitHub. If you don't, replace :code:`git@github.com:` 
-      with :code:`https://github.com/`.
+      The above assumes that you have 
+      `ssh keys set up to access GitHub <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent>`_. 
+      If you don't, replace :code:`git@github.com:` with :code:`https://github.com/`.
 
 #. Install :code:`access-nri-intake`'s dependencies into a new conda environment::
 
