@@ -4,12 +4,20 @@ What is it?
 ===========
 
 .. note::
-   These docs assume readers have a basic knowledge of Python and are familiar with the Python package, xarray. If you're not familiar with xarray, check out the excellent `xarray tutorial webpage <https://tutorial.xarray.dev/intro.html>`_.
+   These docs assume readers have a basic knowledge of Python and are familiar with the Python 
+   package, xarray. If you're not familiar with xarray, check out the excellent `xarray tutorial 
+   webpage <https://tutorial.xarray.dev/intro.html>`_.
 
 The short, high-level description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ACCESS-NRI catalog is essentially a table of climate data products that exist on Gadi. Each entry in the table corresponds to a different product, and the columns contain attributes associated with each product--things like the models, frequencies and variables available in each product. Users can search on the attributes to find a the products that might be useful to them. For example, a user might want to know which data products contain variables X, Y and Z at monthly frequency. The ACCESS-NRI catalog enables users to find products that satisfy their query and to subsequently load their data without having to know the location and structure of the underlying files.
+The ACCESS-NRI catalog is essentially a table of climate data products that exist on Gadi. Each 
+entry in the table corresponds to a different product, and the columns contain attributes associated 
+with each product--things like the models, frequencies and variables available in each product. 
+Users can search on the attributes to find a the products that might be useful to them. For example, 
+a user might want to know which data products contain variables X, Y and Z at monthly frequency. 
+The ACCESS-NRI catalog enables users to find products that satisfy their query and to subsequently 
+load their data without having to know the location and structure of the underlying files.
 
 .. _what_detailed:
 
@@ -20,22 +28,41 @@ The ACCESS-NRI catalog provides a catalog of Intake sources and associated metad
 
 .. topic:: Wait, what are "Intake sources"?
 
-   "Intake" is a Python package that provides a general interface for loading data in Python. Intake provides a set of data loaders (called "drivers") that allow users to load a wide range of data formats into familiar Python data structures (e.g. a pandas dataframe or xarray Dataset) using the exact same code. Some drivers are built into Intake, and some are provided by other "plugin" packages. Documentation of the Intake package can be found `here <https://intake.readthedocs.io/en/latest/index.html>`_ and a list of available Intake drivers can be found `here <https://intake.readthedocs.io/en/latest/plugin-directory.html>`_.
+   "Intake" is a Python package that provides a general interface for loading data in Python. 
+   Intake provides a set of data loaders (called "drivers") that allow users to load a wide range of 
+   data formats into familiar Python data structures (e.g. a pandas dataframe or xarray Dataset) 
+   using the exact same code. Some drivers are built into Intake, and some are provided by other 
+   "plugin" packages. Documentation of the Intake package can be found 
+   `here <https://intake.readthedocs.io/en/latest/index.html>`_ and a list of available Intake drivers 
+   can be found `here <https://intake.readthedocs.io/en/latest/plugin-directory.html>`_.
 
-   "Intake sources" describe data that can be loaded using an Intake driver. For example, an Intake source might describe a simple csv file to be opened using the inbuilt Intake "csv" driver, or it might describe a set of netcdf files to be opened using the plugin Intake-ESM "esm_datastore" driver.
+   "Intake sources" describe data that can be loaded using an Intake driver. For example, an Intake 
+   source might describe a simple csv file to be opened using the inbuilt Intake "csv" driver, or it 
+   might describe a set of netcdf files to be opened using the plugin Intake-ESM "esm_datastore" 
+   driver.
 
-The entries in the ACCESS-NRI catalog are Intake-ESM datastores for climate data products that exist on Gadi.
+The entries in the ACCESS-NRI catalog are Intake-ESM datastores for climate data products that exist 
+on Gadi.
 
 .. topic:: Wait, what are "Intake-ESM datastores"?
 
-   Intake-ESM datastores are a type of Intake source that describes a climate data product comprising many files (e.g. netcdf files). Users can search across metadata associated with each file (e.g. a variable name) and open contiguous files into xarray Datasets for subsequent analysis. For example, NCI provides Intake-ESM datastores for the CMIP5 and CMIP6 data collections available on Gadi. In `their documentation <https://opus.nci.org.au/pages/viewpage.action?pageId=213713098>`_ they demonstrate how to execute a search across these datastores to find and open a few datasets.
+   Intake-ESM datastores are a type of Intake source that describes a climate data product comprising 
+   many files (e.g. netcdf files). Users can search across metadata associated with each file (e.g. 
+   a variable name) and open contiguous files into xarray Datasets for subsequent analysis. For 
+   example, NCI provides Intake-ESM datastores for the CMIP5 and CMIP6 data collections available on 
+   Gadi. In `their documentation <https://opus.nci.org.au/pages/viewpage.action?pageId=213713098>`_ 
+   they demonstrate how to execute a search across these datastores to find and open a few datasets.
 
-   Intake-ESM datastores are often also referred to as Intake-ESM "catalogs". In this sense, the ACCESS-NRI catalog can be though of as providing a catalog of catalogs. To try and avoid confusion in these docs, we will use the term "datastore" instead of "catalog" when referring to Intake-ESM.
+   Intake-ESM datastores are often also referred to as Intake-ESM "catalogs". In this sense, the 
+   ACCESS-NRI catalog can be though of as providing a catalog of catalogs. To try and avoid confusion 
+   in these docs, we will use the term "datastore" instead of "catalog" when referring to Intake-ESM.
    
    .. note::
-      The CMIP5 and CMIP6 Intake-ESM datastores generated by NCI are available as entries in the ACCESS-NRI catalog.
+      The CMIP5 and CMIP6 Intake-ESM datastores generated by NCI are available as entries in the 
+      ACCESS-NRI catalog.
 
-A set of core metadata attributes are associated with each entry in the ACCESS-NRI catalog. At the moment these include:
+A set of core metadata attributes are associated with each entry in the ACCESS-NRI catalog. At the 
+moment these include:
 
 * The name of the data product
 * A short description of the data product
@@ -44,9 +71,11 @@ A set of core metadata attributes are associated with each entry in the ACCESS-N
 * The frequency(/ies) available 
 * The variable(s) available
 
-A simple search API allows users to filter the entries in the catalog based on these metadata attributes. The idea is that users will:
+A simple search API allows users to filter the entries in the catalog based on these metadata 
+attributes. The idea is that users will:
 
-#. search the ACCESS-NRI catalog for data products containing the models, variables etc that are of interest to them.
+#. search the ACCESS-NRI catalog for data products containing the models, variables etc that are of 
+   interest to them.
 #. open the Intake-ESM datastore(s) for the filtered product(s). 
-#. possibly query further on the files within the datastores(s) and eventually open some data as xarray Dataset(s) to analyse.
-
+#. possibly query further on the files within the datastores(s) and eventually open some data as 
+   xarray Dataset(s) to analyse.

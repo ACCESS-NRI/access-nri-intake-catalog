@@ -1,21 +1,22 @@
 ACCESS-NRI Intake catalog
 =========================
 
-.. role:: black
-
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :hidden:
 
    usage/index
    datastore_creation/index
+   contributing/index
    reference/index
-   development/index
-   
 
-Welcome to the documentation for the ACCESS-NRI Intake catalog. The catalog aims to provide a way for Python users to discover and load data across a broad range of climate data products available on the Australian NCI supercomputer Gadi.
+Welcome to the documentation for the ACCESS-NRI Intake catalog. The catalog aims to provide a way for 
+Python users to discover and load data across a broad range of climate data products available on the 
+Australian NCI supercomputer Gadi.
 
-This documentation aims to support a broad range of users, from people just wanting to use the catalog, to developers wanting to help develop the tools that support it. Please click on the panel below that best describes you:
+This documentation aims to support a broad range of users, from people just wanting to use the catalog, 
+to developers wanting to help develop the tools that support it. Please click on the panel below that 
+best describes you:
 
 .. panels::
     :card: + intro-card text-center
@@ -50,14 +51,15 @@ This documentation aims to support a broad range of users, from people just want
     **I'm a catalog developer**
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     
-    .. link-button:: Reference
+    .. link-button:: contributing
             :type: ref
             :text: I want to help develop the tools that ACCESS-NRI use to manage the Intake catalog.
             :classes: btn-block stretched-link
 
 .. note::
-   The ACCESS-NRI Intake catalog, and the tools that support it, are still a work in progress. We value your feedback, 
-   especially in the form of reporting issues/bugs or suggesting ways to improve the catalog. Please open an issue 
-   `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues>`_ if you have any questions after reading 
-   this documentation.
+   The ACCESS-NRI Intake catalog, and the tools that support it, are still a work in progress. We 
+   value your feedback, especially in the form of reporting issues/bugs or suggesting ways to improve 
+   the catalog. Please open an issue 
+   `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/new/choose>`_ if you have any 
+   questions after reading this documentation.
 
