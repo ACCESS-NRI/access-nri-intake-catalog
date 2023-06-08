@@ -4,7 +4,7 @@ Adding datastores to the catalog
 ================================
 
 Adding your datastore to the ACCESS-NRI catalog is an easy way to make your data findable and useable by others 
-in the community. If you've created an Intake-ESM datastore for your data using one of the :code:`access-nri-intake` 
+in the community. If you've created an Intake-ESM datastore for your data using one of the access-nri-intake 
 Builders, then it should be trivial to add it to the catalog. In addition to your functioning datastore, all that's 
 required is a file called :code:`metadata.yaml` containing the following:
 
@@ -21,6 +21,6 @@ Please don't feel like you need to have a datastore and :code:`metadata.yaml` re
 we're happy to help you through the process.
 
 .. note::
-   Datastores don't have to have been created by :code:`access-nri-intake` Builders in order to be added to the 
+   Datastores don't have to have been created by access-nri-intake Builders in order to be added to the 
    catalog. If you have an Intake-ESM datastore (or indeed another type of Intake Source) that you think should be in the 
    catalog, please open a catalog data request.

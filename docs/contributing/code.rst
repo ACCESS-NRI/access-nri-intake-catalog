@@ -3,7 +3,10 @@
 Contributing code
 =================
 
-Contributions to code are welcome. Please start by opening an issue 
+Documentation of the code that supports the ACCESS-NRI catalog and how it fits together can be found in the 
+:ref:`reference` section. Contributions to code are welcome. 
+
+If you'd like to contribute code, please start by opening an issue 
 `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/new/choose>`_ describing what you would like
 to contribute and why. Repo maintainers might discuss the issue with you a little and then invite you to submit a 
 "pull request".
@@ -31,12 +34,12 @@ contributions and submitting a pull request.
       `ssh keys set up to access GitHub <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent>`_. 
       If you don't, replace :code:`git@github.com:` with :code:`https://github.com/`.
 
-#. Install :code:`access-nri-intake`'s dependencies into a new conda environment::
+#. Install access-nri-intake's dependencies into a new conda environment::
 
       $ conda env create -f environment-dev.yml
       $ conda activate access-nri-intake-dev
 
-#. Install :code:`access-nri-intake` using the editable flag (meaning any changes you make to the package will be 
+#. Install access-nri-intake using the editable flag (meaning any changes you make to the package will be 
    reflected directly in your environment without having to reinstall)::
 
       $ pip install --no-deps -e .
@@ -51,9 +54,9 @@ contributions and submitting a pull request.
 
       pre-commit run --all-files
 
-#. Start making and committing your edits, including adding docstrings to functions and adding unit tests to check that 
-   your contributions are doing what they're suppose to. Please try to follow `numpydoc style 
-   <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for docstrings. To run the test suite::
+#. Start making and committing your edits, including adding docstrings to functions, updating the documentation where 
+   appropriate, and adding unit tests to check that your contributions are doing what they're suppose to. Please try to 
+   follow `numpydoc style <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for docstrings. To run the test suite::
 
       pytest src
 
@@ -65,7 +68,7 @@ contributions and submitting a pull request.
    and open a new pull request to merge your branch of your fork with the main branch of the base.
 
 Preparing a new release
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 New releases to PyPI and conda are published automatically when a tag is pushed to Github. A new release may or may not include 
 an update to the catalog files on Gadi and associated 

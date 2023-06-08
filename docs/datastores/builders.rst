@@ -3,14 +3,14 @@
 Datastore Builders
 ==================
 
-The same Python package that includes the ACCESS-NRI catalog, :code:`access-nri-intake`, also includes a 
+The same Python package that includes the ACCESS-NRI catalog, access-nri-intake, also includes a 
 set of Intake-ESM datastore Builders for different ACCESS model outputs. In general, building an Intake-ESM 
 datastore for your model output should be as simple as passing your output base directory to an appropriate 
 Builder.
 
-The :code:`access-nri-intake` package is installed in the :code:`xp65` and :code:`hh5` analysis environments, 
-or users can install it into their own environment (see :ref:`installation` for details). The Builders can 
-be imported from the :code:`access_nri_intake.source.builders` submodule.
+The access-nri-intake package is installed in the :code:`xp65` and :code:`hh5` analysis environments, or 
+users can install it into their own environment (see :ref:`installation` for details). The Builders can be 
+imported from the :code:`access_nri_intake.source.builders` submodule.
 
 There are currently three Builders available. Their public APIs are given below.
 

@@ -6,10 +6,10 @@ ACCESS-NRI Intake catalog
    :hidden:
 
    usage/index
-   datastore_creation/index
+   datastores/index
+   management/index
    contributing/index
-   reference/index
-
+   
 Welcome to the documentation for the ACCESS-NRI Intake catalog. The catalog aims to provide a way for 
 Python users to discover and load data across a broad range of climate data products available on the 
 Australian NCI supercomputer Gadi.
@@ -40,7 +40,7 @@ best describes you:
     **I'm a catalog contributor**
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    .. link-button:: datastore_creation
+    .. link-button:: datastore_create
             :type: ref
             :text: I want to catalog my own data to make it easy to find and load.
             :classes: btn-block stretched-link
@@ -51,7 +51,7 @@ best describes you:
     **I'm a catalog developer**
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     
-    .. link-button:: contributing
+    .. link-button:: management
             :type: ref
             :text: I want to help develop the tools that ACCESS-NRI use to manage the Intake catalog.
             :classes: btn-block stretched-link

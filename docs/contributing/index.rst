@@ -10,5 +10,5 @@ Contributions to the ACCESS-NRI Intake catalog are always welcome and could come
 
    issues
    sources
-   docs
    code
+   docs

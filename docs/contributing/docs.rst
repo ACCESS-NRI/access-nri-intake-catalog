@@ -13,7 +13,7 @@ This documentation is written in reStructuredText. You can follow the convention
 helpful guides can be found `here <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_ and 
 `here <https://github.com/ralsina/rst-cheatsheet/blob/master/rst-cheatsheet.rst>`_.
 
-Contributions to documentation should be submitted via pull requests to the :code:`access-nri-intake` 
+Contributions to documentation should be submitted via pull requests to the access-nri-intake 
 `core repository <https://github.com/ACCESS-NRI/access-nri-intake-catalog>`_. Follow the steps in the :ref:`code` 
 section, replacing step 3 with the following::
 

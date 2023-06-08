@@ -1,4 +1,4 @@
-.. _datastore_creation:
+.. _datastore_create:
 
 Creating Intake-ESM datastores
 ==============================
