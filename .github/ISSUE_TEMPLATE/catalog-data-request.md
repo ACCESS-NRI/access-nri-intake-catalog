@@ -2,7 +2,7 @@
 name: Catalog data request
 about: Create an issue to request data be added to the catalog
 title: "[DATA REQUEST] Add <name of data product>"
-labels: ''
+labels: data request
 assignees: ''
 
 ---
