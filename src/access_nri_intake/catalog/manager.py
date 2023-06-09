@@ -190,7 +190,7 @@ class CatalogManager:
         name = name[0]
         self.source.name = name
 
-        # Validate df_metadata against schema
+        # Validate source_metadata against schema
         for idx, row in self.source_metadata.iterrows():
             validate_against_schema(row.to_dict(), CATALOG_JSONSCHEMA)
 

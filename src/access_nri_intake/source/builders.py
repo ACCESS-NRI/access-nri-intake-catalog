@@ -12,7 +12,7 @@ import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
-from . import CATALOG_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
+from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import get_timeinfo, strip_pattern_rh
 
 
@@ -139,7 +139,7 @@ class BaseBuilder(Builder):
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
-                validate_against_schema(info, CATALOG_JSONSCHEMA)
+                validate_against_schema(info, ESM_JSONSCHEMA)
                 return self
 
         raise ParserError(
@@ -183,7 +183,7 @@ class BaseBuilder(Builder):
             The path to the file
         """
         # This method should be overwritten
-        pass
+        raise NotImplementedError
 
 
 class AccessOm2Builder(BaseBuilder):

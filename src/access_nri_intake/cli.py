@@ -11,7 +11,7 @@ import jsonschema
 import yaml
 
 from . import __version__
-from .catalog import METADATA_JSONSCHEMA, translators
+from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .source import builders
 from .utils import load_metadata_yaml, validate_against_schema
@@ -74,7 +74,7 @@ def _check_args(args_list):
         names.append(args["name"])
         uuids.append(args["metadata"]["experiment_uuid"])
         try:
-            validate_against_schema(args["metadata"], METADATA_JSONSCHEMA)
+            validate_against_schema(args["metadata"], EXP_JSONSCHEMA)
         except jsonschema.exceptions.ValidationError:
             raise MetadataCheckError(
                 f"Failed to validate metadata.yaml for {args['name']}. See traceback for details."
@@ -95,7 +95,7 @@ def _check_args(args_list):
 
 def build():
     """
-    Build an intake-dataframe-catalog metacatalog from YAML configuration file(s).
+    Build an intake-dataframe-catalog from YAML configuration file(s).
     """
 
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -103,13 +103,13 @@ def build():
     logger = logging.getLogger(__name__)
 
     parser = argparse.ArgumentParser(
-        description="Build an intake-dataframe-catalog metacatalog from YAML configuration file(s)."
+        description="Build an intake-dataframe-catalog from YAML configuration file(s)."
     )
     parser.add_argument(
         "config_yaml",
         type=str,
         nargs="+",
-        help="Configuration YAML file(s) specifying the intake source(s) to add.",
+        help="Configuration YAML file(s) specifying the Intake source(s) to add.",
     )
 
     parser.add_argument(
@@ -117,32 +117,34 @@ def build():
         type=str,
         default="./",
         help=(
-            "Directory in which to build the intake metacatalog and source(s). A directory with name equal to "
-            "the version (see the `--version` argument) of the catalog being built will be created here. The "
-            "metacatalog file (see the `--metacatalog_file` argument) will be written into this version "
-            "directory, and any new intake source(s) will be written into a 'source' directory within the version "
-            "directory.",
+            "Directory in which to build the catalog and source(s). A directory with name equal to the "
+            "version (see the `--version` argument) of the catalog being built will be created here. The "
+            "catalog file (see the `--catalog_file` argument) will be written into this version directory, "
+            "and any new intake source(s) will be written into a 'source' directory within the version "
+            "directory. Defaults to the current work directory."
         ),
     )
 
     parser.add_argument(
-        "--metacatalog_file",
+        "--catalog_file",
         type=str,
         default="metacatalog.csv",
-        help="The name of the intake-dataframe-catalog metacatalog.",
+        help="The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'",
     )
 
     parser.add_argument(
         "--version",
         type=str,
         default=__version__,
-        help=("The version of the catalog to build/add to."),
+        help=(
+            "The version of the catalog to build/add to. Defaults to the current version of access-nri-intake."
+        ),
     )
 
     args = parser.parse_args()
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
-    metacatalog_file = args.metacatalog_file
+    catalog_file = args.catalog_file
     version = args.version
 
     if not version.startswith("v"):
@@ -151,7 +153,7 @@ def build():
     # Create the build directories
     build_base_path = os.path.abspath(build_base_path)
     build_path = os.path.join(build_base_path, version, "source")
-    metacatalog_path = os.path.join(build_base_path, version, metacatalog_file)
+    metacatalog_path = os.path.join(build_base_path, version, catalog_file)
     os.makedirs(build_path, exist_ok=True)
 
     # Parse inputs to pass to CatalogManager
@@ -177,7 +179,7 @@ def build():
     yaml_dict = yaml.safe_load(cat.yaml())
 
     yaml_dict["sources"]["access_nri"]["args"]["path"] = os.path.join(
-        build_base_path, "{{version}}", metacatalog_file
+        build_base_path, "{{version}}", catalog_file
     )
     yaml_dict["sources"]["access_nri"]["args"]["mode"] = "r"
     yaml_dict["sources"]["access_nri"]["metadata"] = {

@@ -4,7 +4,7 @@
 """ Tools for managing intake-dataframe-catalogs """
 
 
-from ..utils import get_catalog_jsonschema
+from ..utils import get_jsonschema
 
 CORE_COLUMNS = [
     "name",
@@ -21,7 +21,7 @@ TRANSLATOR_GROUPBY_COLUMNS = ["model", "realm", "frequency"]
 SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/4e3d10e563d7c1c9f66e9ab92a2926cdec3d6893/experiment_asset.json"
 SCHEMA_HASH = "b18cf5bdd06a6f5bcdc71dfc80f7336c63eb49f6d6f75c2cd3371e59eee5488b"
 
-METADATA_JSONSCHEMA, CATALOG_JSONSCHEMA = get_catalog_jsonschema(
+EXP_JSONSCHEMA, CATALOG_JSONSCHEMA = get_jsonschema(
     url=SCHEMA_URL, known_hash=SCHEMA_HASH, required=CORE_COLUMNS
 )
 

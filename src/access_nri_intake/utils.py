@@ -11,7 +11,7 @@ import pooch
 import yaml
 
 
-def get_catalog_jsonschema(url, known_hash, required):
+def get_jsonschema(url, known_hash, required):
     """
     Download a jsonschema from a url. Returns the unaltered jsonschema and a version with the "required" key
     matching the properties provided.
@@ -32,19 +32,19 @@ def get_catalog_jsonschema(url, known_hash, required):
     with open(schema_file) as fpath:
         schema = json.load(fpath)
 
-    catalog_schema = schema.copy()
+    schema_required = schema.copy()
     req = []
     for col in required:
-        if col not in catalog_schema["properties"]:
+        if col not in schema_required["properties"]:
             warn(
                 f"Required column {col} does not exist in schema. Entries in this column will not be validated"
             )
         else:
             req.append(col)
 
-    catalog_schema["required"] = req
+    schema_required["required"] = req
 
-    return schema, catalog_schema
+    return schema, schema_required
 
 
 def load_metadata_yaml(path):
