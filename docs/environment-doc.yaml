@@ -13,9 +13,10 @@ dependencies:
   - pre-commit
   - pip
   - pip:
+    - sphinx-autoapi
     - sphinx-book-theme
-    - sphinxcontrib-napoleon
     - sphinx-copybutton
     - sphinx-panels
+    - sphinxcontrib-napoleon
     - myst-nb
     - -e ..
