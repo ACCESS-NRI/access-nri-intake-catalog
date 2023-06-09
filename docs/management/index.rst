@@ -17,3 +17,4 @@ of access-nri-intake and how they can be used to build and manage the catalog.
    catalog
    building
    schema
+   release
