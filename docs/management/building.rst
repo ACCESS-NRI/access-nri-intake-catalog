@@ -3,10 +3,9 @@
 Building the catalog
 ====================
 
-Configuration files
-^^^^^^^^^^^^^^^^^^^
-
-The :code:`catalog-build` script can be used as follows::
+The access-nri-intake package includes a command line script called :code:`catalog-build` for building 
+catalogs using the tools described in the previous sections from :ref:`config_files` that specify the 
+paths to sources and which Builders and Translators to use. It can be used as follows::
 
    $ catalog-build --help
    usage: catalog-build [-h] [--build_base_path BUILD_BASE_PATH] [--catalog_file CATALOG_FILE]
@@ -32,3 +31,17 @@ The :code:`catalog-build` script can be used as follows::
      --version VERSION     The version of the catalog to build/add to. Defaults to the current version of
                            access-nri-intake.
 
+The ACCESS-NRI catalog is built using this script by submitting the :code:`build_all.sh` shell script 
+in the :code:`bin/` directory of https://github.com/ACCESS-NRI/access-nri-intake-catalog.
+
+.. _config_files:
+
+Configuration files
+^^^^^^^^^^^^^^^^^^^
+
+:code:`metadata.yaml` files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Ensure that there is core metadata associated with all data products
+* Are add to the Intake-ESM datastore source :code:`.metadata` attribute, so are available to the 
+  Translators. E.g., the product descriptions in the ACCESS-NRI catalog come from here.
