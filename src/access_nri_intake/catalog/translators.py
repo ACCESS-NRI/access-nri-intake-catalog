@@ -15,34 +15,35 @@ from . import COLUMNS_WITH_ITERABLES
 
 
 class TranslatorError(Exception):
+    "Generic Exception for the Translator classes"
     pass
 
 
 class DefaultTranslator:
     """
-    Default Translator for translating metadata in an intake catalog into a :py:class:`~pandas.DataFrame`
+    Default Translator for translating metadata in an intake datastore into a :py:class:`~pandas.DataFrame`
     of metadata for use in an intake-dataframe-catalog.
     """
 
-    def __init__(self, cat, columns):
+    def __init__(self, source, columns):
         """
         Initialise a DefaultTranslator. This Translator works as follows:
 
-        - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
-             esmcat.df attribute, casting iterable columns to tuples. If the catalog is not an intake-esm catalog,
-             this step is skipped.
-        - If that fails, the translator will then look for the column name as an attribute on the catalog itself
-        - If that fails, the translator will then look for the column name in the metadata attribute of the catalog
+        - If the input source is an intake-esm datastore, the translator will first look for the column in the
+          esmcat.df attribute, casting iterable columns to tuples. If the source is not an intake-esm datastore,
+          this step is skipped.
+        - If that fails, the translator will then look for the column name as an attribute on the source itself
+        - If that fails, the translator will then look for the column name in the metadata attribute of the source
 
         Parameters
         ----------
-        cat: :py:class:`~intake.DataSource`
-            The catalog to use to do the translations
+        source: :py:class:`~intake.DataSource`
+            The source to translate from
         columns: list of str
-            The columns to translate
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
         """
 
-        self.cat = cat
+        self.source = source
         self.columns = columns
         self._dispatch = {
             column: partial(self._default_translator, column=column)
@@ -51,43 +52,43 @@ class DefaultTranslator:
 
     def _default_translator(self, column):
         """
-        Try to translate a column from a catalog using the default translator. This translator works as follows:
-        - If the input catalog is an intake-esm catalog, the translator will first look for the column in the
-             esmcat.df attribute, casting iterable columns to tuples. If the catalog is not an intake-esm catalog,
+        Try to translate a column from a source using the default translator. This translator works as follows:
+        - If the input source is an intake-esm datastore, the translator will first look for the column in the
+             esmcat.df attribute, casting iterable columns to tuples. If the source is not an intake-esm datastore,
              this step is skipped.
-        - If that fails, the translator will then look for the column name as an attribute on the catalog itself
-        - If that fails, the translator will then look for the column name in the metadata attribute of the catalog
+        - If that fails, the translator will then look for the column name as an attribute on the source itself
+        - If that fails, the translator will then look for the column name in the metadata attribute of the source
 
         Parameters
         ----------
         column: str
             The column to translate, e.g. "frequency"
         """
-        if hasattr(self.cat, "esmcat"):
+        if hasattr(self.source, "esmcat"):
             try:
-                series = self.cat.df[column]
+                series = self.source.df[column]
 
                 # Cast to tuples
-                if column in self.cat.esmcat.columns_with_iterables:
+                if column in self.source.esmcat.columns_with_iterables:
                     return series.apply(tuple)
                 elif column in COLUMNS_WITH_ITERABLES:
                     return to_tuple(series)
                 else:
                     return series
             except KeyError:
-                len_df = len(self.cat.df)
+                len_df = len(self.source.df)
         else:
             len_df = 1
 
-        if hasattr(self.cat, column):
-            val = getattr(self.cat, column)
-        elif column in self.cat.metadata:
-            val = self.cat.metadata[column]
+        if hasattr(self.source, column):
+            val = getattr(self.source, column)
+        elif column in self.source.metadata:
+            val = self.source.metadata[column]
             if isinstance(val, list):
                 val = tuple(val)
         else:
             raise TranslatorError(
-                f"Could not translate '{column}' from {self.cat.name} using {self.__class__.__name__}"
+                f"Could not translate '{column}' from {self.source.name} using {self.__class__.__name__}"
             )
 
         return pd.Series([val] * len_df)
@@ -139,22 +140,22 @@ class DefaultTranslator:
 
 class Cmip6Translator(DefaultTranslator):
     """
-    CMIP6 Translator for translating metadata from the NCI CMIP6 intake catalogs.
+    CMIP6 Translator for translating metadata from the NCI CMIP6 intake datastores.
     """
 
-    def __init__(self, cat, columns):
+    def __init__(self, source, columns):
         """
         Initialise a Cmip6Translator
 
         Parameters
         ----------
-        cat: :py:class:`~intake.DataSource`
-            The NCI CMIP6 intake-esm catalog
+        source: :py:class:`~intake.DataSource`
+            The NCI CMIP6 intake-esm datastore
         columns: list of str
-            The columns to translate
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
         """
 
-        super().__init__(cat, columns)
+        super().__init__(source, columns)
         self._dispatch["model"] = self._model_translator
         self._dispatch["realm"] = self._realm_translator
         self._dispatch["frequency"] = self._frequency_translator
@@ -164,45 +165,45 @@ class Cmip6Translator(DefaultTranslator):
         """
         Return model from source_id
         """
-        return to_tuple(self.cat.df["source_id"])
+        return to_tuple(self.source.df["source_id"])
 
     def _realm_translator(self):
         """
         Return realm, fixing a few issues
         """
-        return _cmip_realm_translator(self.cat.df)
+        return _cmip_realm_translator(self.source.df)
 
     def _frequency_translator(self):
         """
         Return frequency, fixing a few issues
         """
-        return _cmip_frequency_translator(self.cat.df)
+        return _cmip_frequency_translator(self.source.df)
 
     def _variable_translator(self):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.cat.df["variable_id"])
+        return to_tuple(self.source.df["variable_id"])
 
 
 class Cmip5Translator(DefaultTranslator):
     """
-    CMIP5 Translator for translating metadata from the NCI CMIP5 intake catalogs.
+    CMIP5 Translator for translating metadata from the NCI CMIP5 intake datastores.
     """
 
-    def __init__(self, cat, columns):
+    def __init__(self, source, columns):
         """
         Initialise a Cmip5Translator
 
         Parameters
         ----------
-        cat: :py:class:`~intake.DataSource`
-            The NCI CMIP5 intake-esm catalog
+        source: :py:class:`~intake.DataSource`
+            The NCI CMIP5 intake-esm datastore
         columns: list of str
-            The columns to translate
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
         """
 
-        super().__init__(cat, columns)
+        super().__init__(source, columns)
         self._dispatch["model"] = self._model_translator
         self._dispatch["realm"] = self._realm_translator
         self._dispatch["frequency"] = self._frequency_translator
@@ -212,52 +213,52 @@ class Cmip5Translator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.cat.df["model"])
+        return to_tuple(self.source.df["model"])
 
     def _realm_translator(self):
         """
         Return realm, fixing a few issues
         """
-        return _cmip_realm_translator(self.cat.df)
+        return _cmip_realm_translator(self.source.df)
 
     def _frequency_translator(self):
         """
         Return frequency, fixing a few issues
         """
-        return _cmip_frequency_translator(self.cat.df)
+        return _cmip_frequency_translator(self.source.df)
 
     def _variable_translator(self):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.cat.df["variable"])
+        return to_tuple(self.source.df["variable"])
 
 
 class EraiTranslator(DefaultTranslator):
     """
-    ERAI Translator for translating metadata from the NCI ERA-Interim intake catalogs.
+    ERAI Translator for translating metadata from the NCI ERA-Interim intake datastore.
     """
 
-    def __init__(self, cat, columns):
+    def __init__(self, source, columns):
         """
         Initialise a EraiTranslator
 
         Parameters
         ----------
-        cat: :py:class:`~intake.DataSource`
-            The NCI ERA-Interim intake-esm catalog
+        source: :py:class:`~intake.DataSource`
+            The NCI ERA-Interim intake-esm datastore
         columns: list of str
-            The columns to translate
+            The columns to translate (these are the core columns in the intake-dataframe-catalog)
         """
 
-        super().__init__(cat, columns)
+        super().__init__(source, columns)
         self._dispatch["variable"] = self._variable_translator
 
     def _variable_translator(self):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.cat.df["variable"])
+        return to_tuple(self.source.df["variable"])
 
 
 def _cmip_frequency_translator(df):

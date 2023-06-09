@@ -41,6 +41,6 @@ ACCESS-CM2 output: :code:`AccessCm2Builder`
 
 .. note::
 
-   ACCESS-NRI is here to help. If you have ACCESS model output that isn't compatible with the existing set of 
-   Builders, please open an issue 
+   If you have ACCESS model output that isn't compatible with the existing set of Builders, check out the
+   :ref:`builder_create` section or open an issue 
    `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/new/choose>`_.

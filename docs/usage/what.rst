@@ -38,8 +38,11 @@ The ACCESS-NRI catalog provides a catalog of Intake sources and associated metad
 
    "Intake sources" describe data that can be loaded using an Intake driver. For example, an Intake 
    source might describe a simple csv file to be opened using the inbuilt Intake "csv" driver, or it 
-   might describe a set of netcdf files to be opened using the plugin Intake-ESM "esm_datastore" 
-   driver.
+   might describe a set of netcdf files to be opened using the plugin 
+   `Intake-ESM <https://intake-esm.readthedocs.io/en/stable/>`_ "esm_datastore" driver. In fact, the 
+   ACCESS-NRI catalog itself is a type of Intake source that uses the plugin 
+   `Intake-dataframe-catalog <https://intake-dataframe-catalog.readthedocs.io/en/latest/?badge=latest>`_ 
+   "df_catalog" driver.
 
 The entries in the ACCESS-NRI catalog are Intake-ESM datastores for climate data products that exist 
 on Gadi.
