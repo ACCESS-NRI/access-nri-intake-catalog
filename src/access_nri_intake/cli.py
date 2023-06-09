@@ -1,6 +1,8 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+""" Command line interface for access-nri-intake """
+
 import argparse
 import logging
 import os
@@ -10,7 +12,7 @@ import yaml
 
 from . import __version__
 from .catalog import METADATA_JSONSCHEMA, translators
-from .catalog.manager import MetacatManager
+from .catalog.manager import CatalogManager
 from .source import builders
 from .utils import load_metadata_yaml, validate_against_schema
 
@@ -21,7 +23,7 @@ class MetadataCheckError(Exception):
 
 def _parse_inputs(config_yamls, build_path):
     """
-    Parse inputs into a list of tuples of MetacatManager methods and args to
+    Parse inputs into a list of tuples of CatalogManager methods and args to
     pass to the methods
     """
 
@@ -63,7 +65,7 @@ def _parse_inputs(config_yamls, build_path):
 
 def _check_args(args_list):
     """
-    Run some checks on the parsed argmuents to be passed to the MetacatManager
+    Run some checks on the parsed argmuents to be passed to the CatalogManager
     """
 
     names = []
@@ -152,13 +154,13 @@ def build():
     metacatalog_path = os.path.join(build_base_path, version, metacatalog_file)
     os.makedirs(build_path, exist_ok=True)
 
-    # Parse inputs to pass to MetacatManager
+    # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_inputs(config_yamls, build_path)
     _check_args([parsed_source[1] for parsed_source in parsed_sources])
 
     # Build the catalog
     for (method, args) in parsed_sources:
-        man = MetacatManager(path=metacatalog_path)
+        man = CatalogManager(path=metacatalog_path)
         logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_path}'")
         getattr(man, method)(**args).add()
 

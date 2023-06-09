@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Manager for adding/updating intake catalogs in an intake-dataframe-catalog (metacatalogs) """
+""" Manager for adding/updating intake sources in an intake-dataframe-catalog """
 
 import os
 
@@ -20,20 +20,20 @@ from . import (
 from .translators import DefaultTranslator
 
 
-class CatalogExistsError(Exception):
-    "Exception for trying to write catalog that already exists"
+class CatalogManagerError(Exception):
+    "Generic Exception for the CatalogManager class"
     pass
 
 
-class MetacatManager:
+class CatalogManager:
     """
-    Add/update intake sources in an intake-dataframe-catalog (metacatalog)
+    Add/update intake sources in an intake-dataframe-catalog
     """
 
     def __init__(self, path):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
-        intake-dataframe-catalog metacatalog
+        intake-dataframe-catalog
 
         Parameters
         ----------
@@ -101,7 +101,7 @@ class MetacatManager:
         json_file = os.path.abspath(f"{os.path.join(directory, name)}.json")
         if os.path.isfile(json_file):
             if not overwrite:
-                raise CatalogExistsError(
+                raise CatalogManagerError(
                     f"A catalog already exists for {name}. To overwrite, "
                     "pass `overwrite=True` to CatalogBuilder.build"
                 )
@@ -130,7 +130,7 @@ class MetacatManager:
         **kwargs,
     ):
         """
-        Load an existing intake catalog and add it to the metacatalog
+        Load an existing intake catalog and add it to the catalog
 
         Parameters
         ----------
@@ -167,13 +167,18 @@ class MetacatManager:
 
     def add(self, **kwargs):
         """
-        Add the catalog to an intake-dataframe-catalog
+        Add a source to the catalog
 
         Parameters
         ----------
         kwargs: dict, optional
             Additional keyword arguments passed to :py:func:`~pandas.DataFrame.to_csv`.
         """
+
+        if self.source is None:
+            raise CatalogManagerError(
+                "To add a source to the catalog you must first load or build the source"
+            )
 
         # Overwrite the catalog name with the name_column entry in metadata
         name = self.source_metadata[NAME_COLUMN].unique()

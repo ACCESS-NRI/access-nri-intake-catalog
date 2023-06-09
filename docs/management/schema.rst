@@ -1,0 +1,4 @@
+.. _schema:
+
+Updating schema
+===============
