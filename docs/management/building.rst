@@ -32,16 +32,54 @@ paths to sources and which Builders and Translators to use. It can be used as fo
                            access-nri-intake.
 
 The ACCESS-NRI catalog is built using this script by submitting the :code:`build_all.sh` shell script 
-in the :code:`bin/` directory of https://github.com/ACCESS-NRI/access-nri-intake-catalog.
+in the :code:`bin/` directory of https://github.com/ACCESS-NRI/access-nri-intake-catalog. See the section 
+on :ref:`release` for more details.
 
 .. _config_files:
 
 Configuration files
 ^^^^^^^^^^^^^^^^^^^
 
+The :code:`catalog-build` script reads configuration files like the ones found in 
+https://github.com/ACCESS-NRI/access-nri-intake-catalog/config (these are the configuration files used to 
+build the ACCESS-NRI catalog). Configuration files should include the Builder and Translator to use along 
+with a list of sources to process. As a minimum, each source should specify the path(s) to pass to the 
+Builder and the path to the :ref:`metadata.yaml <metadata>` file for that source. Additional 
+:code:`kwargs` to pass to the Builder can also be specified. As an example, a configuration file might 
+look something like::
+
+   builder: AccessCm2Builder
+
+   translator: DefaultTranslator
+
+   sources:
+
+     - path:
+         - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944
+         - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944a
+         - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944b
+         - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944c
+         - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944d
+       metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944/metadata.yaml
+       ensemble: true
+
+In most cases, adding a new Intake-ESM datastore to the ACCESS-NRI catalog should be as simple as adding 
+a new entry to the `configuration files <https://github.com/ACCESS-NRI/access-nri-intake-catalog/config>`_ 
+and rebuilding the catalog.
+
+.. _metadata:
+
 :code:`metadata.yaml` files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Ensure that there is core metadata associated with all data products
-* Are add to the Intake-ESM datastore source :code:`.metadata` attribute, so are available to the 
-  Translators. E.g., the product descriptions in the ACCESS-NRI catalog come from here.
+Each source in the catalog must have an associated :code:`metadata.yaml` file that includes key high-level 
+metadata about the data product. This is to ensure that there is core metadata associated with all data 
+products in the catalog. Additionally, this core metadata is added to the corresponding Intake-ESM 
+datastore's `.metadata` attribute, meaning it is available to Translators and to catalog users wanting to 
+know more about a particular product. The :code:`metadata.yaml` file should include the following:
+
+.. include:: ../../metadata.yaml
+   :literal:
+
+Ideally this file will live in the base output directory of your model run so that it's easy for others to 
+find, even if they aren't using the catalog (but it doesn't have to).

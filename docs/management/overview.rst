@@ -33,9 +33,10 @@ More detailed documentation of access-nri-intake source code is provided in the 
 Schema
 ^^^^^^
 
-Entries in the ACCESS-NRI catalog are validated against the schema at https://github.com/ACCESS-NRI/schema. 
-These schema are downloaded locally the first time :code:`access_nri_intake` is imported. Details are provided 
-in the following sections.
+The schema used by access-nri-intake to validate entries used in an intake-dataframe-catalog can be found at 
+https://github.com/ACCESS-NRI/schema. At the moment, these are simple jsonschema describing the required and 
+expected metadata and their allowable types/fields. These schema are downloaded locally the first time 
+:code:`access_nri_intake` is imported. Details are provided in the following sections.
 
 .. note::
 
