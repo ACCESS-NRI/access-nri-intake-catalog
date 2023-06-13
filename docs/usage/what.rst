@@ -13,18 +13,18 @@ The short, high-level description
 
 The ACCESS-NRI catalog is essentially a table of climate data products that exist on Gadi. Each 
 entry in the table corresponds to a different product, and the columns contain attributes associated 
-with each product--things like the models, frequencies and variables available in each product. 
-Users can search on the attributes to find a the products that might be useful to them. For example, 
-a user might want to know which data products contain variables X, Y and Z at monthly frequency. 
-The ACCESS-NRI catalog enables users to find products that satisfy their query and to subsequently 
-load their data without having to know the location and structure of the underlying files.
+with each product--things like the models, frequencies and variables available. Users can search on 
+the attributes to find the products that might be useful to them. For example, a user might want to 
+know which data products contain variables X, Y and Z at monthly frequency. The ACCESS-NRI catalog 
+enables users to find products that satisfy their query and to subsequently load their data without 
+having to know the location and structure of the underlying files.
 
 .. _what_detailed:
 
 The more detailed description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ACCESS-NRI catalog provides a catalog of Intake sources and associated metadata.
+The ACCESS-NRI catalog provides a catalog of *Intake sources* and associated metadata.
 
 .. topic:: Wait, what are "Intake sources"?
 
@@ -44,7 +44,7 @@ The ACCESS-NRI catalog provides a catalog of Intake sources and associated metad
    `Intake-dataframe-catalog <https://intake-dataframe-catalog.readthedocs.io/en/latest/?badge=latest>`_ 
    "df_catalog" driver.
 
-The entries in the ACCESS-NRI catalog are Intake-ESM datastores for climate data products that exist 
+The entries in the ACCESS-NRI catalog are *Intake-ESM datastores* for climate data products that exist 
 on Gadi.
 
 .. topic:: Wait, what are "Intake-ESM datastores"?

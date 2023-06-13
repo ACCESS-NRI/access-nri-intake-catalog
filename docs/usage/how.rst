@@ -39,7 +39,7 @@ In order to use the catalog, you will need to have the following:
    analysis environments in which the ACCESS-NRI catalog is installed (along with many other useful 
    packages). Alternatively, you can install the catalog into your own environment.
 
-   .. attention::
+   .. warning::
       The ACCESS-NRI catalog is actually not yet installed in the :code:`hh5` environments, so for now 
       you'll have to use the :code:`xp65` environment.
 
@@ -85,7 +85,7 @@ compute nodes. NCI documentation for the ARE JupyterLab app can be found
 After `logging in to the ARE <https://are.nci.org.au/>`_ using your NCI credentials and clicking the 
 JupyterLab icon, you’ll arrive at a page to configure your JupyterLab session. Many of the configuration 
 options are hopefully self-explanatory, but a few must be set carefully to ensure the catalog and the 
-data it references are available. In particular:
+data it references are available from your session. In particular:
 
 * **Setting the storage flags**: in addition to being a member of the projects you want to access, you 
   also have to explicity tell the JupyterLab app that you want to access them in your session. Specify 
@@ -103,6 +103,6 @@ data it references are available. In particular:
   session. As mentioned above, the easiest way to do this is to use either the :code:`xp65` or 
   :code:`hh5` public analysis environments. You can activate the :code:`xp65` environment within your 
   JupyterLab session using the "Advanced options" to set the "Module directories" to 
-  :code:`/g/data/xp65/public/modules` and "Modules" to :code:`conda/are`. Similarly, to use the `hh5` 
-  environment, set "Module directories" to :code:`/g/data/hh5/public/modules` and "Modules" to 
-  :code:`conda/analysis3`.
+  :code:`/g/data/xp65/public/modules` and "Modules" to :code:`conda/are`. Similarly, to use the 
+  :code:`hh5` environment, set "Module directories" to :code:`/g/data/hh5/public/modules` and "Modules" 
+  to :code:`conda/analysis3`.

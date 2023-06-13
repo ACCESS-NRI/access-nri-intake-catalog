@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Builders for generating Intake-ESM catalogs """
+""" Builders for generating Intake-ESM datastores """
 
 import multiprocessing
 import re
@@ -22,7 +22,7 @@ class ParserError(Exception):
 
 class BaseBuilder(Builder):
     """
-    Base class for creating intake-esm catalog builders. Not intended for direct use.
+    Base class for creating Intake-ESM datastore builders. Not intended for direct use.
     This builds on the ecgtools.Builder class.
     """
 
@@ -107,21 +107,21 @@ class BaseBuilder(Builder):
 
     def save(self, name, description, directory=None):
         """
-        Save catalog contents to a file.
+        Save datastore contents to a file.
 
         Parameters
         ----------
         name: str
-            The name of the file to save the catalog to.
+            The name of the file to save the datastore to.
         description : str
             Detailed multi-line description of the collection.
         directory: str, optional
-            The directory to save the catalog to. If None, use the current directory.
+            The directory to save the datastore to. If None, use the current directory.
         """
 
         if self.df.empty:
             raise ValueError(
-                "intake-esm catalog has not yet been built. Please run `.build()` first"
+                "Intake-ESM datastore has not yet been built. Please run `.build()` first"
             )
 
         self._save(name, description, directory)
@@ -148,7 +148,7 @@ class BaseBuilder(Builder):
 
     def build(self):
         """
-        Builds a catalog from a list of netCDF files or zarr stores.
+        Builds a datastore from a list of netCDF files or zarr stores.
         """
 
         self.get_assets().validate_parser().parse().clean_dataframe()
@@ -187,7 +187,7 @@ class BaseBuilder(Builder):
 
 
 class AccessOm2Builder(BaseBuilder):
-    """Intake-esm catalog builder for ACCESS-OM2 COSIMA datasets"""
+    """Intake-ESM datastore builder for ACCESS-OM2 COSIMA datasets"""
 
     def __init__(self, path):
         """
@@ -294,7 +294,7 @@ class AccessOm2Builder(BaseBuilder):
 
 
 class AccessEsm15Builder(BaseBuilder):
-    """Intake-esm catalog builder for ACCESS-ESM1.5 datasets"""
+    """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
 
     def __init__(self, path, ensemble=False):
         """
@@ -408,6 +408,6 @@ class AccessEsm15Builder(BaseBuilder):
 
 # Include this so it is in the documentation
 class AccessCm2Builder(AccessEsm15Builder):
-    """Intake-esm catalog builder for ACCESS-CM2 datasets"""
+    """Intake-ESM datastore builder for ACCESS-CM2 datasets"""
 
     pass

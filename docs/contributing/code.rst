@@ -4,7 +4,7 @@ Contributing code
 =================
 
 Documentation of the code that supports the ACCESS-NRI catalog and how it fits together can be found in the 
-:ref:`reference` section. Contributions to code are welcome. 
+:ref:`management` section. Contributions to code are welcome. 
 
 If you'd like to contribute code, please start by opening an issue 
 `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/new/choose>`_ describing what you would like
@@ -60,7 +60,7 @@ contributions and submitting a pull request.
 
       pytest src
 
-   .. attention::
+   .. warning::
 
       pytest is not actually set up yet on this project, but it's coming soon.
 

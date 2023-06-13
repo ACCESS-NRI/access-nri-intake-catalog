@@ -75,8 +75,11 @@ and rebuilding the catalog.
 Each source in the catalog must have an associated :code:`metadata.yaml` file that includes key high-level 
 metadata about the data product. This is to ensure that there is core metadata associated with all data 
 products in the catalog. Additionally, this core metadata is added to the corresponding Intake-ESM 
-datastore's `.metadata` attribute, meaning it is available to Translators and to catalog users wanting to 
-know more about a particular product. The :code:`metadata.yaml` file should include the following:
+datastore's :code:`metadata` attribute, meaning it is available to Translators and to catalog users wanting 
+to know more about a particular product. The contents of the :code:`metadata.yaml` files are validated against 
+:code:`access_nri_intake.catalog.EXP_JSONSCHEMA` (see :ref:`catalog`) when the script :code:`catalog-build` 
+is called to ensure that all required metadata is available prior to building the catalog. The 
+:code:`metadata.yaml` file should include the following:
 
 .. include:: ../../metadata.yaml
    :literal:

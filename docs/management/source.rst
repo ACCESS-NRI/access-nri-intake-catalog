@@ -3,7 +3,7 @@
 Building sources
 ================
 
-Each entry in an intake-dataframe-catalog refers to an Intake source. Intake sources may be pre-generated (e.g. 
+Each entry in an intake-dataframe-catalog refers to an Intake source. Sources may be pre-generated (e.g. 
 the `CMIP5 and CMIP6 Intake-ESM datastore sources managed by NCI <https://opus.nci.org.au/pages/viewpage.action?pageId=213713098>`_) 
 or they can be built using the :code:`access_nri_intake.source` sub-package. Currently, 
 :code:`access_nri_intake.source` only supports building Intake-ESM datastore sources.
@@ -17,7 +17,8 @@ unless the schema is changed (see :ref:`schema`), in which case the new schema i
 .. note::
 
    The "required" field in the downloaded schema is replaced with :code:`access_nri_intake.source.CORE_COLUMNS`
-   prior to saving to :code:`access_nri_intake.source.ESM_JSONSCHEMA` to allow this field to be customized.
+   prior to saving to :code:`access_nri_intake.source.ESM_JSONSCHEMA` to allow this field to be customized 
+   within access-nri-intake
 
 Builders
 ^^^^^^^^

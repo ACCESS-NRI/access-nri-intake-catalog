@@ -26,7 +26,7 @@ Translators
 ^^^^^^^^^^^
 
 Translators receive an Intake source to translate from and a list of metadata columns to target (these 
-are the columns in the intake-dataframe-catalog), and return a dataframe of translated data when the 
+are the columns in the intake-dataframe-catalog), and return a dataframe of translated data when their 
 :code:`translate` method is called. The returned dataframe has rows containing tuples of unique values 
 of the translated metadata after grouping by the metadata columns specified in
 :code:`access_nri_intake.catalog.TRANSLATOR_GROUPBY_COLUMNS`.
@@ -40,8 +40,8 @@ which operates as follows:
   Intake-ESM datastore, this step is skipped.
 * If that fails, the translator will then look for the column name as an attribute on the source 
   itself
-* If that fails, the translator will then look for the column name in the metadata attribute of the 
-  source
+* If that fails, the translator will then look for the column name in the :code:`metadata` attribute of 
+  the source
 
 The :code:`access_nri_intake.catalog.translators.DefaultTranslator` is appropriate for Intake-ESM 
 datastore sources built using :code:`access_nri_intake.source.builders` because the schema used to validate 

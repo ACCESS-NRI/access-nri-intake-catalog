@@ -3,6 +3,7 @@
 
 """
 Tools for translating metadata in an intake source into a metadata table to use in an intake-dataframe-catalog
+like the ACCESS-NRI catalog
 """
 
 import re

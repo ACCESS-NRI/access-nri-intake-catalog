@@ -3,8 +3,8 @@
 Preparing a new release
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-New releases to PyPI and conda are published automatically when a tag is pushed to Github. A new release may or may not include 
-an update to the catalog files on Gadi and associated 
+New releases of access-nri-intake to PyPI and conda are published automatically when a tag is pushed to Github. A new release may 
+or may not include an update to the ACCESS-NRI catalog files on Gadi and associated 
 `data sub-package <https://intake.readthedocs.io/en/latest/data-packages.html>`_ :code:`access_nri_intake.data`. If it does, the 
 person doing the release must ensure that the version of the new catalog matches the version of the new release by carefully 
 following all steps below. Steps 1 and 2 below should be done in a PR and merged before commencing step 3. If the release does 

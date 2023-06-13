@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Tools for managing intake-dataframe-catalogs """
+""" Tools for managing intake-dataframe-catalogs like the ACCESS-NRI catalog """
 
 
 from ..utils import get_jsonschema

@@ -15,7 +15,7 @@ Python users to discover and load data across a broad range of climate data prod
 Australian NCI supercomputer Gadi.
 
 This documentation aims to support a broad range of users, from people just wanting to use the catalog, 
-to developers wanting to help develop the tools that support it. Please click on the panel below that 
+to developers wanting to help improve the tools that support it. Please click on the panel below that 
 best describes you:
 
 .. panels::

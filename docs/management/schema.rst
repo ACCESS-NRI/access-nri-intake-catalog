@@ -7,7 +7,9 @@ A specific commit of the schema `here <https://github.com/ACCESS-NRI/schema/blob
 downloaded when :code:`access_nri_intake.source` is first imported. This schema is used to validated Intake-ESM 
 datastore entries. Similarly a specific commit of the schema 
 `here <https://github.com/ACCESS-NRI/schema/blob/main/experiment_asset.json>`_ is downloaded when 
-:code:`access_nri_intake.catalog` is first imported and this is used to validate intake-dataframe-entries. 
+:code:`access_nri_intake.catalog` is first imported and this is used to validate intake-dataframe-catalog 
+entries.
+
 Schema can be updated by updating the file(s) at https://github.com/ACCESS-NRI/schema and editing the 
 appropriate :code:`SCHEMA_URL` path(s) in :code:`access_nri_intake.source.__init__` and 
 :code:`access_nri_intake.catalog.__init__`. A hash for the updated schema files is also required (as 

@@ -16,7 +16,8 @@ When report bugs, please include:
   version, installed libraries, and catalog version.
 
   .. note::
-     You can check your catalog version by looking at the :code:`metadata` attribute of you catalog instance
+     You can check your catalog version by looking at the :code:`metadata` attribute of your ACCESS-NRI catalog 
+     instance
 
 * Detailed steps to reproduce the bug, ideally a 
   `Minimal, Complete and Verifiable Example <https://matthewrocklin.com/minimal-bug-reports>`_. If possible, a 

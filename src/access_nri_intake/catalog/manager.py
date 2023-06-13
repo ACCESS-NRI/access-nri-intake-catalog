@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Manager for adding/updating intake sources in an intake-dataframe-catalog """
+""" Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog """
 
 import os
 
@@ -27,13 +27,13 @@ class CatalogManagerError(Exception):
 
 class CatalogManager:
     """
-    Add/update intake sources in an intake-dataframe-catalog
+    Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
     def __init__(self, path):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
-        intake-dataframe-catalog
+        intake-dataframe-catalog like the ACCESS-NRI catalog
 
         Parameters
         ----------
