@@ -9,8 +9,6 @@ print(sys.executable)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-
-html_title = "ACCESS-NRI Intake catalog"
 project = "ACCESS-NRI Intake catalog"
 copyright = "2023, ACCESS-NRI"
 author = "ACCESS-NRI"
@@ -24,17 +22,31 @@ extensions = [
     #    "IPython.sphinxext.ipython_console_highlighting",
     "numpydoc",
     "sphinx.ext.napoleon",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "autoapi.extension",
     "myst_nb",
     "sphinx_panels",
     "sphinx_copybutton",
 ]
 
+# Don't load the bootstrap 4 CSS classes relevant to panels
+panels_add_bootstrap_css = False
+
+autosummary_generate = False
+autodoc_typehints = "none"
+autodoc_member_order = "groupwise"
+
+# Config numpydoc
+numpydoc_show_class_members = True
+numpydoc_show_inherited_class_members = True
+numpydoc_class_members_toctree = False
+
 # autoapi directives
 autoapi_dirs = ["../src/access_nri_intake"]
 autoapi_add_toctree_entry = False
-autoapi_ignore = ["**.ipynb_checkpoints"]
-autoapi_python_class_content = "class"
+autoapi_ignore = ["*/*.ipynb_checkpoints"]
+autoapi_python_class_content = "both"
 autoapi_options = [
     "members",
     "inherited-members",
@@ -45,9 +57,6 @@ autoapi_options = [
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
-# The suffix of source filenames.
-source_suffix = ".rst"
-
 # The master toctree document.
 master_doc = "index"
 
@@ -56,7 +65,7 @@ pygments_style = "sphinx"
 
 # Config myst-nb
 nb_execution_excludepatterns = [
-    "example_usage.ipynb",
+    "tutorial.ipynb",
     "building_intake-esm_catalogs.ipynb",
 ]
 
@@ -74,4 +83,8 @@ html_context = {
 html_theme_options = {
     "use_edit_page_button": True,
     "github_url": "https://github.com/ACCESS-NRI/access-nri-intake-catalog",
+    "logo": {
+        "image_light": "_static/accessnri_light.png",
+        "image_dark": "_static/accessnri_dark.png",
+    },
 }

@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Shared utilities for writing intake-esm builders and their parsers """
+""" Shared utilities for writing Intake-ESM builders and their parsers """
 
 import re
 
@@ -73,8 +73,8 @@ def strip_pattern_rh(patterns, string):
     Sequentially strip a list of regex patterns from a string, starting from the right
     hand side. Then replace any "-" and "." with "_" and then remove double or dangling "_".
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     patterns: list of str
         The list of regex patterns to strip
     string: str

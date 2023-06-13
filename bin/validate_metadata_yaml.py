@@ -4,7 +4,7 @@
 import argparse
 import glob
 
-from access_nri_intake.metacat import METADATA_JSONSCHEMA
+from access_nri_intake.catalog import METADATA_JSONSCHEMA
 from access_nri_intake.utils import load_metadata_yaml, validate_against_schema
 
 

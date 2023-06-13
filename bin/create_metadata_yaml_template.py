@@ -5,7 +5,7 @@ import argparse
 
 import yaml
 
-from access_nri_intake.metacat import METADATA_JSONSCHEMA
+from access_nri_intake.catalog import METADATA_JSONSCHEMA
 
 
 def main():

@@ -1,91 +1,65 @@
-Documentation for ACCESS-NRI's Intake catalog
-=============================================
+ACCESS-NRI Intake catalog
+=========================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :hidden:
 
-   getting_started/index
-   how_tos/index
-   reference/index
-   development/index
+   usage/index
+   datastores/index
+   management/index
+   contributing/index
    
+Welcome to the documentation for the ACCESS-NRI Intake catalog. The catalog aims to provide a way for 
+Python users to discover and load data across a broad range of climate data products available on the 
+Australian NCI supercomputer Gadi.
 
-Welcome to the documentation for ACCESS-NRI's Intake catalog. The catalog aims to provide a way for users to discover and load data across a broad range of climate data products, including ACCESS model runs.
-
-The premise of the ACCESS-NRI catalog is to provide a ("meta") catalog of ("sub") catalogs, which each correspond to different "experiments". An experiment may be a particular model run, for example.
-
-The idea is that users will:
-
-* Query on metadata shared across the different subcatalogs to find the experiments that interest them.
-* Open those subcatalogs (which may have different/additional metadata than the outer catalog).
-* Query further on the subcatalogs and eventually load some data.
-
-The ACCESS-NRI catalog, and the tools that make it work, are still a work in progress. We value your feedback, especially in the form of reporting issues/bugs or suggesting ways to improve the catalog.
-
-.. note::
-   Please open an issue `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues>`_ if you have any questions after reading this documentation.
-
+This documentation aims to support a broad range of users, from people just wanting to use the catalog, 
+to developers wanting to help improve the tools that support it. Please click on the panel below that 
+best describes you:
 
 .. panels::
     :card: + intro-card text-center
+    :column: col-lg-4 col-md-4 col-sm-4 col-xs-12 p-2
 
     ---
-    :img-top: _static/play.svg
+    :header: bg-info
 
-    **Getting started**
+    **I'm a catalog user**
+    ^^^^^^^^^^^^^^^^^^^^^^
 
-    Information about how to get started with the ACCESS-NRI Intake catalog.
-
-
-    +++
-
-    .. link-button:: Getting_started
+    .. link-button:: usage
             :type: ref
-            :text: To get started
-            :classes: btn-block btn-secondary stretched-link
+            :text: I want to use the ACCESS-NRI Intake catalog to find and load some data.
+            :classes: btn-block stretched-link
+
 
     ---
-    :img-top: _static/question.svg
+    :header: bg-info
 
-    **How-to guides**
+    **I'm a catalog contributor**
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    Selection of how-to guides in the form of executable Jupyter notebooks.
-
-
-    +++
-
-    .. link-button:: How_tos
+    .. link-button:: datastore_create
             :type: ref
-            :text: To selection of how-to guides
-            :classes: btn-block btn-secondary stretched-link
+            :text: I want to catalog my own data to make it easy to find and load.
+            :classes: btn-block stretched-link
 
     ---
-    :img-top: _static/book.svg
+    :header: bg-info
 
-    **Reference**
+    **I'm a catalog developer**
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     
-    Detailed documentation of the tools and configuration used to build and manage the ACCESS-NRI Intake catalog.
-
-
-    +++
-
-    .. link-button:: Reference
+    .. link-button:: management
             :type: ref
-            :text: To docs on cataloging tools
-            :classes: btn-block btn-secondary stretched-link
+            :text: I want to help develop the tools that ACCESS-NRI use to manage the Intake catalog.
+            :classes: btn-block stretched-link
 
-    ---
-    :img-top: _static/code.svg
+.. note::
+   The ACCESS-NRI Intake catalog, and the tools that support it, are still a work in progress. We 
+   value your feedback, especially in the form of reporting issues/bugs or suggesting ways to improve 
+   the catalog. Please open an issue 
+   `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/new/choose>`_ if you have any 
+   questions after reading this documentation.
 
-    **Contributing**
-
-    Information on how to contribute to the ACCESS-NRI Intake catalog and a history of changes made so far.
-
-
-    +++
-
-    .. link-button:: Contributing
-            :type: ref
-            :text: To info on contributing
-            :classes: btn-block btn-secondary stretched-link
