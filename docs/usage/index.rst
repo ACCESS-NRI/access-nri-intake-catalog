@@ -12,5 +12,5 @@ sections we give an overview of the catalog and demonstrate how to use it.
 
    what
    how
-   tutorial
+   quickstart
    faq

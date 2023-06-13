@@ -17,6 +17,6 @@ use these tools. These sections may be of interest to users running ACCESS model
    :maxdepth: 1
 
    builders
-   tutorial
+   quickstart
    adding
    
