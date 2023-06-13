@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create an issue to report a bug
-title: "[Bug] <description of the bug>"
+title: "[BUG] <description of the bug>"
 labels: bug
 assignees: ''
 
