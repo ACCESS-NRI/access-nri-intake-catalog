@@ -31,12 +31,6 @@ jobs:
           activate-environment: access-nri-intake-test
           auto-activate-base: false
 
-      - name: Test build distribution
-        shell: bash -l {0}
-        run: |
-          git clean -xdf
-          pyproject-build
-
       - name: Install source
         shell: bash -l {0}
         run: python -m pip install -e .

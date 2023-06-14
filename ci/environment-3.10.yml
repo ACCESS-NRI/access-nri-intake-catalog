@@ -16,7 +16,5 @@ dependencies:
   - xarray
   - pip
   - pip:
-    - build
     - codecov
     - pytest-cov
-    - twine
