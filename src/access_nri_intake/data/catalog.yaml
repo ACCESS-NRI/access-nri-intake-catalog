@@ -17,6 +17,6 @@ sources:
       version: '{{version}}'
     parameters:
       version:
-        default: v0.0.6
+        default: v0.0.7
         description: Catalog version
         type: str
