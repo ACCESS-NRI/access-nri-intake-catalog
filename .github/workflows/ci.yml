@@ -1,0 +1,55 @@
+name: CI
+
+on: [pull_request, push, workflow_dispatch]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.0
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Setup conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          python-version: ${{ matrix.python-version }}
+          environment-file: ci/environment-${{ matrix.python-version }}.yml
+          activate-environment: access-nri-intake-test
+          auto-activate-base: false
+
+      - name: Test build distribution
+        shell: bash -l {0}
+        run: |
+          git clean -xdf
+          pyproject-build
+
+      - name: Install source
+        shell: bash -l {0}
+        run: python -m pip install -e .
+
+      - name: List installed packages
+        shell: bash -l {0}
+        run: conda list
+
+      - name: Run tests
+        shell: bash -l {0}
+        run: python -m pytest -s .
+
+      - name: Upload code coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml

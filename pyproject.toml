@@ -41,6 +41,9 @@ requires = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.pytest.ini_options]
+addopts = "--cov=./src --cov-report=xml"
+
 [tool.setuptools.package-data]
 access_nri_intake = ["data/catalog.yaml"]
 
