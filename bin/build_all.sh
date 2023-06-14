@@ -32,5 +32,8 @@ CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.ya
 
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
 
-catalog-build --build_base_path=${OUTPUT_BASE_PATH} --version=${version} ${config_paths[@]}
-
+if [ -z "$version" ]; then
+    catalog-build --build_base_path=${OUTPUT_BASE_PATH} ${config_paths[@]}
+else
+    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --version=${version} ${config_paths[@]}
+fi

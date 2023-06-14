@@ -1,0 +1,20 @@
+name: access-nri-intake-test
+channels:
+  - conda-forge
+  - accessnri
+  - defaults
+dependencies:
+  - python==3.9
+  - cftime
+  - ecgtools>=2022.10.07
+  - intake-dataframe-catalog>=0.1.1
+  - intake-esm>=2023.4.20
+  - jsonschema
+  - pooch
+  - pre-commit
+  - pytest
+  - xarray
+  - pip
+  - pip:
+    - codecov
+    - pytest-cov

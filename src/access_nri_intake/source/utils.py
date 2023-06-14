@@ -68,25 +68,40 @@ def get_timeinfo(ds, time_dim="time"):
     )
 
 
-def strip_pattern_rh(patterns, string):
+def redact_time_stamps(string, fill="X"):
     """
-    Sequentially strip a list of regex patterns from a string, starting from the right
-    hand side. Then replace any "-" and "." with "_" and then remove double or dangling "_".
+    Sequentially try to redact time stamps from a filename string, starting from the right hand side.
+    Then replace any "-" and "." with "_". E.g. "bz687a.pm107912_mon.nc" is redacted to
+    bz687a.pmXXXXXX_mon.nc
 
     Parameters
     ----------
-    patterns: list of str
-        The list of regex patterns to strip
     string: str
-        A filename with the suffixe (e.g. .nc) removed
+        A filename with the suffix (e.g. .nc) removed
+    fill: str, optional
+        The string to replace the digits in the time stamp with
     """
+
+    # TODO: this function is a horrible hack
+
+    # Patterns are removed in this order. Matching stops once a match is made
+    patterns = [
+        r"\d{4}[-_]\d{2}[-_]\d{2}",
+        r"\d{4}[-_]\d{2}",
+        r"\d{8}",
+        r"\d{6}",
+        r"\d{4}",
+        r"\d{3}",
+        r"\d{2}",
+    ]
 
     # Strip first matched pattern
     stripped = string
     for pattern in patterns:
         match = re.match(rf"^.*({pattern}(?!.*{pattern})).*$", stripped)
         if match:
-            stripped = stripped[: match.start(1)] + stripped[match.end(1) :]
+            replace = re.sub(r"\d", fill, match.group(1))
+            stripped = stripped[: match.start(1)] + replace + stripped[match.end(1) :]
             break
 
     # Enforce Python characters

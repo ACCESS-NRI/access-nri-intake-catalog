@@ -13,7 +13,7 @@ from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import get_timeinfo, strip_pattern_rh
+from .utils import get_timeinfo, redact_time_stamps
 
 
 class ParserError(Exception):
@@ -235,20 +235,8 @@ class AccessOm2Builder(BaseBuilder):
 
             filename = Path(file).stem
 
-            # Get file id without any dates
-            # - ocean-3d-v-1-monthly-pow02-ym_1958_04.nc
-            # - iceh.057-daily.nc
-            # - oceanbgc-3d-caco3-1-yearly-mean-y_2015.nc
-            file_id = strip_pattern_rh(
-                [
-                    r"\d{4}[-_]\d{2}[-_]\d{2}",
-                    r"\d{4}[-_]\d{2}",
-                    r"\d{4}",
-                    r"\d{3}",
-                    r"\d{2}",
-                ],
-                filename,
-            )
+            # Get file id from filename without any time stamps
+            file_id = redact_time_stamps(filename)
 
             with xr.open_dataset(
                 file,
@@ -350,17 +338,9 @@ class AccessEsm15Builder(BaseBuilder):
 
             filename = Path(file).stem
 
-            # Get file id without any dates or exp_id
-            # - iceh_m.2014-06.nc
-            # - bz687a.pm107912_mon.nc
-            # - bz687a.p7107912_mon.nc
-            # - PI-GWL-B2035.pe-109904_dai.nc
-            # - PI-1pct-02.pe-011802_dai.nc_dai.nc
-            # - ocean_daily.nc-02531231
-            file_id = strip_pattern_rh(
-                [r"\d{4}[-_]\d{2}", r"\d{8}", r"\d{6}"], filename
-            )
-            file_id = strip_pattern_rh([exp_id], file_id)
+            # Get file id from filename without any time stamps or exp_id
+            file_id = re.sub(exp_id, "", filename)
+            file_id = redact_time_stamps(file_id)
 
             with xr.open_dataset(
                 file,
