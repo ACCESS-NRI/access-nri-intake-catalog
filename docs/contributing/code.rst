@@ -36,8 +36,8 @@ contributions and submitting a pull request.
 
 #. Install access-nri-intake's dependencies into a new conda environment::
 
-      $ conda env create -f environment-dev.yml
-      $ conda activate access-nri-intake-dev
+      $ conda env create -f ci/environment-3.11.yml
+      $ conda activate access-nri-intake-test
 
 #. Install access-nri-intake using the editable flag (meaning any changes you make to the package will be 
    reflected directly in your environment without having to reinstall)::
@@ -58,11 +58,7 @@ contributions and submitting a pull request.
    appropriate, and adding unit tests to check that your contributions are doing what they're suppose to. Please try to 
    follow `numpydoc style <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for docstrings. To run the test suite::
 
-      pytest src
-
-   .. warning::
-
-      pytest is not actually set up yet on this project, but it's coming soon.
+      pytest .
 
 #. Once you are happy with your contribution, go `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/pulls>`_ 
    and open a new pull request to merge your branch of your fork with the main branch of the base.
