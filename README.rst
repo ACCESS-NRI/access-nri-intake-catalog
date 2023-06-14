@@ -15,7 +15,7 @@ Note, this project is under development. Things might change/break frequently an
 +---------------+----------------------+
 | CI/CD         | |pre-commit| |cd|    |
 +---------------+----------------------+
-| Development   | |black|              |
+| Development   | |codecov| |black|    |
 +---------------+----------------------+
 | License       | |license|            |
 +---------------+----------------------+
@@ -39,6 +39,10 @@ Note, this project is under development. Things might change/break frequently an
 .. |cd| image:: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/cd.yml/badge.svg
         :target: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/cd.yml
         :alt: Package CD status
+
+.. |codecov| image:: https://codecov.io/gh/ACCESS-NRI/access-nri-intake-catalog/branch/main/graph/badge.svg?token=DAC1NK32LM
+        :target: https://codecov.io/gh/ACCESS-NRI/access-nri-intake-catalog
+        :alt: Code test coverage
         
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
         :target: https://github.com/python/black
