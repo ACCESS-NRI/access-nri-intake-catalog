@@ -191,5 +191,5 @@ def build():
     }
 
     _here = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(_here, "cat", "catalog.yaml"), "w") as fobj:
+    with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
         yaml.dump(yaml_dict, fobj)

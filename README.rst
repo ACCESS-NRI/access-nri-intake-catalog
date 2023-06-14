@@ -13,9 +13,9 @@ Note, this project is under development. Things might change/break frequently an
 +---------------+----------------------+
 | Package       | |pypi| |conda|       |
 +---------------+----------------------+
-| CI/CD         | |pre-commit| |cd|    |
+| CI/CD         | |ci| |cd|            |
 +---------------+----------------------+
-| Development   | |black|              |
+| Development   | |codecov| |black|    |
 +---------------+----------------------+
 | License       | |license|            |
 +---------------+----------------------+
@@ -32,13 +32,17 @@ Note, this project is under development. Things might change/break frequently an
         :target: https://anaconda.org/accessnri/access-nri-intake
         :alt: Conda package
 
-.. |pre-commit| image:: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/pre-commit.yaml/badge.svg
-        :target: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/pre-commit.yaml
-        :alt: Pre-commit status
+.. |ci| image:: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/ci.yml/badge.svg
+        :target: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/ci.yml
+        :alt: Package CI status
         
 .. |cd| image:: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/cd.yml/badge.svg
         :target: https://github.com/ACCESS-NRI/access-nri-intake-catalog/actions/workflows/cd.yml
         :alt: Package CD status
+
+.. |codecov| image:: https://codecov.io/gh/ACCESS-NRI/access-nri-intake-catalog/branch/main/graph/badge.svg?token=DAC1NK32LM
+        :target: https://codecov.io/gh/ACCESS-NRI/access-nri-intake-catalog
+        :alt: Code test coverage
         
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
         :target: https://github.com/python/black
