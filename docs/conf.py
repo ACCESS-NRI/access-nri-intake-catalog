@@ -65,8 +65,8 @@ pygments_style = "sphinx"
 
 # Config myst-nb
 nb_execution_excludepatterns = [
-    "tutorial.ipynb",
-    "building_intake-esm_catalogs.ipynb",
+    "quickstart.ipynb",
+    "chunking.ipynb",
 ]
 
 # -- Options for HTML output -------------------------------------------------
