@@ -6,6 +6,8 @@ ACCESS-NRI Intake Catalog
 
 Note, this project is under development. Things might change/break frequently and without warning.
 
+Read the `documentation here <https://access-nri-intake-catalog.readthedocs.io/en/latest/index.html>`_. 
+
 ------------
 
 +---------------+----------------------+
