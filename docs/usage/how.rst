@@ -22,10 +22,7 @@ In order to use the catalog, you will need to have the following:
 #. **Access to the projects that house the data you're interested in**: the catalog references data 
    products across multiple projects on Gadi.  Currently, data is included from the following projects:
 
-   * ACCESS-CM2 and ACCESS-ESM1.5 data: :code:`p73`
-   * ACCESS-OM2 data: :code:`ik11`, :code:`cj50`
-   * CMIP5 data: :code:`dk92`, :code:`al33`, :code:`rr3`
-   * CMIP6 data: :code:`dk92`, :code:`fs38`, :code:`oi10`
+   .. include:: ../project_list.rst
 
    If you wish to be able to access all the data in the catalog, you will need to be a member of all 
    these projects. See the `NCI documentation for how to join projects 
@@ -90,9 +87,11 @@ data it references are available from your session. In particular:
 * **Setting the storage flags**: in addition to being a member of the projects you want to access, you 
   also have to explicity tell the JupyterLab app that you want to access them in your session. Specify 
   the project storage paths by entering them in the “Storage” dropdown. To allow access to all data 
-  products in the catalog enter 
-  :code:`gdata/p73+gdata/ik11+gdata/cj50+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10`. If you 
-  want to use the :code:`xp65` or :code:`hh5` analysis environment, you'll also need to add 
+  products in the catalog enter:
+
+  .. include:: ../storage_flags.rst
+
+  If you want to use the :code:`xp65` or :code:`hh5` analysis environment, you'll also need to add 
   :code:`gdata/xp65` or :code:`gdata/hh5`, respectively.
 
   .. attention::

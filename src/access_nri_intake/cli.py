@@ -173,7 +173,7 @@ def build():
             project |= set(esm_ds.df["path"].map(_get_project))
 
         project |= {_get_project(path) for path in args["path"]}
-    storage_flags = "+".join([f"gdata/{proj}" for proj in project])
+    storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project]))
 
     # Build the catalog
     for method, args in parsed_sources:
