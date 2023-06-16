@@ -9,6 +9,7 @@ import os
 
 import jsonschema
 import yaml
+from intake import open_esm_datastore
 
 from . import __version__
 from .catalog import EXP_JSONSCHEMA, translators
@@ -160,19 +161,27 @@ def build():
     parsed_sources = _parse_inputs(config_yamls, build_path)
     _check_args([parsed_source[1] for parsed_source in parsed_sources])
 
+    # Get the project storage flags
+    def _get_project(path):
+        return os.path.normpath(path).split(os.sep)[3]
+
+    project = set()
+    for method, args in parsed_sources:
+        if method == "load":
+            # This is a hack but I don't know how else to get the storage from pre-built datastores
+            esm_ds = open_esm_datastore(args["path"][0])
+            project |= set(esm_ds.df["path"].map(_get_project))
+
+        project |= {_get_project(path) for path in args["path"]}
+    storage_flags = "+".join([f"gdata/{proj}" for proj in project])
+
     # Build the catalog
-    for (method, args) in parsed_sources:
+    for method, args in parsed_sources:
         man = CatalogManager(path=metacatalog_path)
         logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_path}'")
         getattr(man, method)(**args).add()
 
     # Write catalog yaml file
-    storage = set()
-    for (_, args) in parsed_sources:
-        storage |= {
-            f"gdata/{os.path.normpath(path).split(os.sep)[3]}" for path in args["path"]
-        }
-
     cat = man.dfcat
     cat.name = "access_nri"
     cat.description = "ACCESS-NRI intake catalog"
@@ -184,7 +193,7 @@ def build():
     yaml_dict["sources"]["access_nri"]["args"]["mode"] = "r"
     yaml_dict["sources"]["access_nri"]["metadata"] = {
         "version": "{{version}}",
-        "storage": "+".join(list(storage)),
+        "storage": "+".join(list(storage_flags)),
     }
     yaml_dict["sources"]["access_nri"]["parameters"] = {
         "version": {"description": "Catalog version", "type": "str", "default": version}
