@@ -185,18 +185,20 @@ def parse_access_ncfile(file):
 
         start_date, end_date, frequency = get_timeinfo(ds)
 
-    if filename_frequency != frequency:
-        msg = (
-            f"The frequency '{filename_frequency}' determined from filename {filename} does not "
-            f"match the frequency '{frequency}' determined from the file contents."
-        )
-        if frequency == "fx":
-            frequency = filename_frequency
-        warnings.warn(f"{msg} Using '{frequency}'.")
+    if filename_frequency:
+        if filename_frequency != frequency:
+            msg = (
+                f"The frequency '{filename_frequency}' determined from filename {filename} does not "
+                f"match the frequency '{frequency}' determined from the file contents."
+            )
+            if frequency == "fx":
+                frequency = filename_frequency
+            warnings.warn(f"{msg} Using '{frequency}'.")
 
     outputs = (
         filename,
         file_id,
+        filename_timestamp,
         frequency,
         start_date,
         end_date,

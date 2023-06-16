@@ -234,6 +234,7 @@ class AccessOm2Builder(BaseBuilder):
             (
                 filename,
                 file_id,
+                _,
                 frequency,
                 start_date,
                 end_date,
@@ -321,6 +322,7 @@ class AccessEsm15Builder(BaseBuilder):
             (
                 filename,
                 file_id,
+                _,
                 frequency,
                 start_date,
                 end_date,
