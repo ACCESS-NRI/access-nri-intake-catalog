@@ -6,14 +6,12 @@
 import multiprocessing
 import re
 import traceback
-from pathlib import Path
 
-import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import get_timeinfo, redact_time_stamps
+from .utils import parse_access_ncfile
 
 
 class ParserError(Exception):
@@ -233,33 +231,17 @@ class AccessOm2Builder(BaseBuilder):
             if realm == "ice":
                 realm = "seaIce"
 
-            filename = Path(file).stem
-
-            # Get file id from filename without any time stamps
-            file_id = redact_time_stamps(filename)
-
-            with xr.open_dataset(
-                file,
-                chunks={},
-                decode_cf=False,
-                decode_times=False,
-                decode_coords=False,
-            ) as ds:
-                variable_list = []
-                variable_long_name_list = []
-                variable_standard_name_list = []
-                variable_cell_methods_list = []
-                for var in ds.data_vars:
-                    attrs = ds[var].attrs
-                    if "long_name" in attrs:
-                        variable_list.append(var)
-                        variable_long_name_list.append(attrs["long_name"])
-                    if "standard_name" in attrs:
-                        variable_standard_name_list.append(attrs["standard_name"])
-                    if "cell_methods" in attrs:
-                        variable_cell_methods_list.append(attrs["cell_methods"])
-
-                start_date, end_date, frequency = get_timeinfo(ds)
+            (
+                filename,
+                file_id,
+                frequency,
+                start_date,
+                end_date,
+                variable_list,
+                variable_long_name_list,
+                variable_standard_name_list,
+                variable_cell_methods_list,
+            ) = parse_access_ncfile(file)
 
             info = {
                 "path": str(file),
@@ -336,34 +318,20 @@ class AccessEsm15Builder(BaseBuilder):
             realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
             realm = realm_mapping[realm]
 
-            filename = Path(file).stem
+            (
+                filename,
+                file_id,
+                frequency,
+                start_date,
+                end_date,
+                variable_list,
+                variable_long_name_list,
+                variable_standard_name_list,
+                variable_cell_methods_list,
+            ) = parse_access_ncfile(file)
 
-            # Get file id from filename without any time stamps or exp_id
-            file_id = re.sub(exp_id, "", filename)
-            file_id = redact_time_stamps(file_id)
-
-            with xr.open_dataset(
-                file,
-                chunks={},
-                decode_cf=False,
-                decode_times=False,
-                decode_coords=False,
-            ) as ds:
-                variable_list = []
-                variable_long_name_list = []
-                variable_standard_name_list = []
-                variable_cell_methods_list = []
-                for var in ds.data_vars:
-                    attrs = ds[var].attrs
-                    if "long_name" in attrs:
-                        variable_list.append(var)
-                        variable_long_name_list.append(attrs["long_name"])
-                    if "standard_name" in attrs:
-                        variable_standard_name_list.append(attrs["standard_name"])
-                    if "cell_methods" in attrs:
-                        variable_cell_methods_list.append(attrs["cell_methods"])
-
-                start_date, end_date, frequency = get_timeinfo(ds)
+            # Remove exp_id from file id so that members can be part of the same dataset
+            file_id = re.sub(exp_id, "", file_id).strip("_")
 
             info = {
                 "path": str(file),

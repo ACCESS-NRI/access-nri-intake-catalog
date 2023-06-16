@@ -4,8 +4,15 @@
 """ Shared utilities for writing Intake-ESM builders and their parsers """
 
 import re
+import warnings
+from pathlib import Path
 
 import cftime
+import xarray as xr
+
+
+class EmptyFileError(Exception):
+    pass
 
 
 def get_timeinfo(ds, time_dim="time"):
@@ -22,11 +29,11 @@ def get_timeinfo(ds, time_dim="time"):
         The name of the time dimension
     """
 
-    if time_dim is None:
-        return None
-
     time_var = ds[time_dim]
     has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
+
+    if len(time_var) == 0:
+        raise EmptyFileError("This file has a valid unlimited dimension, but no data")
 
     def _todate(t):
         return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
@@ -130,9 +137,73 @@ def parse_access_filename(filename):
             file_id = file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
             break
 
-    # Enforce Python characters
+    # Remove non-python characters from file ids
     file_id = re.sub(r"[-.]", "_", file_id)
-    file_id = re.sub(r"__", "_", file_id).strip("_")
+    file_id = re.sub(r"_+", "_", file_id).strip("_")
 
-    # Remove any double or dangling _
     return file_id, timestamp, frequency
+
+
+def parse_access_ncfile(file):
+    """
+    Get Intake-ESM datastore entry info from an ACCESS netcdf file
+
+    Parameters
+    ----------
+    file: str
+        The path to the netcdf file
+
+    Returns
+    -------
+    """
+
+    file = Path(file)
+    filename = file.name
+
+    file_id, filename_timestamp, filename_frequency = parse_access_filename(file.stem)
+
+    with xr.open_dataset(
+        file,
+        chunks={},
+        decode_cf=False,
+        decode_times=False,
+        decode_coords=False,
+    ) as ds:
+        variable_list = []
+        variable_long_name_list = []
+        variable_standard_name_list = []
+        variable_cell_methods_list = []
+        for var in ds.data_vars:
+            attrs = ds[var].attrs
+            if "long_name" in attrs:
+                variable_list.append(var)
+                variable_long_name_list.append(attrs["long_name"])
+            if "standard_name" in attrs:
+                variable_standard_name_list.append(attrs["standard_name"])
+            if "cell_methods" in attrs:
+                variable_cell_methods_list.append(attrs["cell_methods"])
+
+        start_date, end_date, frequency = get_timeinfo(ds)
+
+    if filename_frequency != frequency:
+        msg = (
+            f"The frequency '{filename_frequency}' determined from filename {filename} does not "
+            f"match the frequency '{frequency}' determined from the file contents."
+        )
+        if frequency == "fx":
+            frequency = filename_frequency
+        warnings.warn(f"{msg} Using '{frequency}'.")
+
+    outputs = (
+        filename,
+        file_id,
+        frequency,
+        start_date,
+        end_date,
+        variable_list,
+        variable_long_name_list,
+        variable_standard_name_list,
+        variable_cell_methods_list,
+    )
+
+    return outputs
