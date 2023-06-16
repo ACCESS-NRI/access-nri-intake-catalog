@@ -24,17 +24,6 @@ def storage_includes():
         fobj.write("\n".join(project_list) + "\n")
 
 
-def generate_storage_flags():
-    here = os.path.abspath(os.path.dirname(__file__))
-    with open(
-        os.path.join(here, "..", "src", "access_nri_intake", "data", "catalog.yaml")
-    ) as fobj:
-        contents = yaml.safe_load(fobj)
-    storage_flags = contents["sources"]["access_nri"]["metadata"]["storage"]
-    with open("storage_flags.rst", "w") as fobj:
-        fobj.write(f".. code-block::\n\n   {storage_flags}")
-
-
 if __name__ == "__main__":
     print("Generating documentation includes... ", end="")
     storage_includes()
