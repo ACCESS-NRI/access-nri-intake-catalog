@@ -68,44 +68,71 @@ def get_timeinfo(ds, time_dim="time"):
     )
 
 
-def redact_time_stamps(string, fill="X"):
+def parse_access_filename(filename):
     """
-    Sequentially try to redact time stamps from a filename string, starting from the right hand side.
-    Then replace any "-" and "." with "_". E.g. "bz687a.pm107912_mon.nc" is redacted to
-    bz687a.pmXXXXXX_mon.nc
+    Parse an ACCESS model filename and return a file id and any time information
 
     Parameters
     ----------
-    string: str
-        A filename with the suffix (e.g. .nc) removed
-    fill: str, optional
-        The string to replace the digits in the time stamp with
+    filename: str
+        The filename to parse with the extension removed
+
+    Returns
+    -------
+    file_id: str
+        The file id constructed by redacting time information and replacing non-python characters
+        with underscores
+    timestamp: str
+        A string of the redacted time information (e.g. "1990-01")
+    frequency: str
+        The frequency of the file if available in the filename
     """
 
-    # TODO: this function is a horrible hack
+    # ACCESS output file patterns
+    patterns = {
+        r"^iceh.*\.(\d{4}-\d{2}-\d{2})$",
+        r"^iceh.*\.(\d{4}-\d{2})$",
+        r"^iceh.*\.(\d{4}-\d{2})-.[^\d].*",
+        r"^iceh.*\.(\d{3})-.[^\d].*",
+        r"^ocean.*[^\d]_(\d{4}_\d{2}_\d{2})$",
+        r"^ocean.*[^\d]_(\d{4}_\d{2})$",
+        r"^ocean.*[^\d]_(\d{4})$",
+        r"^ocean.*[^\d]_(\d{2})$",
+        r"^.*\.p.(\d{6})_.*",
+        r"^.*\.p.-(\d{6})_.*",
+    }
+    # Frequency translations
+    frequencies = {
+        "daily": "1day",
+        "_dai$": "1day",
+        "month": "1mon",
+        "_mon$": "1mon",
+        "yearly": "1yr",
+        "_ann$": "1yr",
+    }
+    redaction_fill = "X"
 
-    # Patterns are removed in this order. Matching stops once a match is made
-    patterns = [
-        r"\d{4}[-_]\d{2}[-_]\d{2}",
-        r"\d{4}[-_]\d{2}",
-        r"\d{8}",
-        r"\d{6}",
-        r"\d{4}",
-        r"\d{3}",
-        r"\d{2}",
-    ]
+    # Try to determine frequency
+    frequency = None
+    for pattern, freq in frequencies.items():
+        if re.search(pattern, filename):
+            frequency = freq
+            break
 
-    # Strip first matched pattern
-    stripped = string
+    # Parse file id
+    file_id = filename
+    timestamp = None
     for pattern in patterns:
-        match = re.match(rf"^.*({pattern}(?!.*{pattern})).*$", stripped)
+        match = re.match(pattern, file_id)
         if match:
-            replace = re.sub(r"\d", fill, match.group(1))
-            stripped = stripped[: match.start(1)] + replace + stripped[match.end(1) :]
+            timestamp = match.group(1)
+            redaction = re.sub(r"\d", redaction_fill, timestamp)
+            file_id = file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
             break
 
     # Enforce Python characters
-    stripped = re.sub(r"[-.]", "_", stripped)
+    file_id = re.sub(r"[-.]", "_", file_id)
+    file_id = re.sub(r"__", "_", file_id).strip("_")
 
     # Remove any double or dangling _
-    return re.sub(r"__", "_", stripped).strip("_")
+    return file_id, timestamp, frequency
