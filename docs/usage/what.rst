@@ -82,3 +82,10 @@ attributes. The idea is that users will:
 #. open the Intake-ESM datastore(s) for the filtered product(s). 
 #. possibly query further on the files within the datastores(s) and eventually open some data as 
    xarray Dataset(s) to analyse.
+
+The following shows a schematic of the general process for using the catalog to load xarray Datasets 
+from one or more data products.
+
+.. image:: ../_static/catalog_flow.svg
+  :align: center
+  :width: 650
