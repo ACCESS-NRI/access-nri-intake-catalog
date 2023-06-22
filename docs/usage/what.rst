@@ -84,9 +84,3 @@ attributes. The idea is that users will:
    A "dataset" here is a set of files that can be readily opened and combined for analysis.
 #. open the datasets of interest as xarray Dataset(s).
 #. perform some analysis on the xarray Dataset(s).
-
-This process is illustrated in the schematic below.
-
-.. image:: ../_static/catalog_flow.svg
-  :align: center
-  :width: 650
