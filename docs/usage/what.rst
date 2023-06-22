@@ -77,8 +77,10 @@ moment these include:
 A simple search API allows users to filter the entries in the catalog based on these metadata 
 attributes. The idea is that users will:
 
-#. search the ACCESS-NRI catalog for data products containing the models, variables etc that are of 
-   interest to them.
-#. open the Intake-ESM datastore(s) for the filtered product(s). 
-#. possibly query further on the files within the datastores(s) and eventually open some data as 
-   xarray Dataset(s) to analyse.
+#. search the ACCESS-NRI catalog for data products, e.g. products containing the models, variables etc 
+   that are of interest to them.
+#. open the Intake-ESM datastore(s) for the product(s) of interest. 
+#. search the Intake-ESM datastore(s) for the datasets within each product that are of interest to them.
+   A "dataset" here is a set of files that can be readily opened and combined for analysis.
+#. open the datasets of interest as xarray Dataset(s).
+#. perform some analysis on the xarray Dataset(s).

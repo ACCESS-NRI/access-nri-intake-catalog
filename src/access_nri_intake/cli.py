@@ -193,7 +193,7 @@ def build():
     yaml_dict["sources"]["access_nri"]["args"]["mode"] = "r"
     yaml_dict["sources"]["access_nri"]["metadata"] = {
         "version": "{{version}}",
-        "storage": "+".join(list(storage_flags)),
+        "storage": storage_flags,
     }
     yaml_dict["sources"]["access_nri"]["parameters"] = {
         "version": {"description": "Catalog version", "type": "str", "default": version}
