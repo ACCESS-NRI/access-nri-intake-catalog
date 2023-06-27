@@ -47,9 +47,10 @@ def get_jsonschema(url, known_hash, required):
     return schema, schema_required
 
 
-def load_metadata_yaml(path):
+def load_metadata_yaml(path, jsonschema):
     """
-    Load a metadata.yaml file, leaving dates as strings
+    Load a metadata.yaml file, leaving dates as strings, and validate against a jsonschema,
+    allowing for tuples as arrays
 
     Parameters
     ----------
@@ -77,6 +78,8 @@ def load_metadata_yaml(path):
 
     with open(path) as fpath:
         metadata = yaml.load(fpath, Loader=NoDatesSafeLoader)
+
+    validate_against_schema(metadata, jsonschema)
 
     return metadata
 

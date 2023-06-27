@@ -15,7 +15,7 @@ from . import __version__
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .source import builders
-from .utils import load_metadata_yaml, validate_against_schema
+from .utils import load_metadata_yaml
 
 
 class MetadataCheckError(Exception):
@@ -51,7 +51,12 @@ def _parse_inputs(config_yamls, build_path):
 
             source_args["path"] = kwargs.pop("path")
             metadata_yaml = kwargs.pop("metadata_yaml")
-            metadata = load_metadata_yaml(metadata_yaml)
+            try:
+                metadata = load_metadata_yaml(metadata_yaml, EXP_JSONSCHEMA)
+            except jsonschema.exceptions.ValidationError:
+                raise MetadataCheckError(
+                    f"Failed to validate metadata.yaml for {args['name']}. See traceback for details."
+                )
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
             source_args["metadata"] = metadata
@@ -74,12 +79,6 @@ def _check_args(args_list):
     for args in args_list:
         names.append(args["name"])
         uuids.append(args["metadata"]["experiment_uuid"])
-        try:
-            validate_against_schema(args["metadata"], EXP_JSONSCHEMA)
-        except jsonschema.exceptions.ValidationError:
-            raise MetadataCheckError(
-                f"Failed to validate metadata.yaml for {args['name']}. See traceback for details."
-            )
 
     if len(names) != len(set(names)):
         seen = set()

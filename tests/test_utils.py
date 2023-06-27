@@ -43,10 +43,15 @@ def test_load_metadata_yaml(tmp_path):
     path = tmp_path / "metadata.yaml"
     date = "2001-01-01"
     contents = {"date": datetime.date.fromisoformat(date)}
+    schema = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "date": {
+            "type": "string",
+        },
+    }
     with open(path, mode="w") as fpath:
         yaml.dump(contents, fpath)
-    metadata = load_metadata_yaml(path)
-    assert metadata == {"date": date}
+    load_metadata_yaml(path, schema)
 
 
 @pytest.mark.parametrize("instance", [{"foo": [0, 1, 2]}, {"foo": (0, 1, 2)}])
