@@ -73,7 +73,7 @@ class DefaultTranslator:
                 if column in self.source.esmcat.columns_with_iterables:
                     return series.apply(tuple)
                 elif column in COLUMNS_WITH_ITERABLES:
-                    return to_tuple(series)
+                    return _to_tuple(series)
                 else:
                     return series
             except KeyError:
@@ -166,7 +166,7 @@ class Cmip6Translator(DefaultTranslator):
         """
         Return model from source_id
         """
-        return to_tuple(self.source.df["source_id"])
+        return _to_tuple(self.source.df["source_id"])
 
     def _realm_translator(self):
         """
@@ -184,7 +184,7 @@ class Cmip6Translator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.source.df["variable_id"])
+        return _to_tuple(self.source.df["variable_id"])
 
 
 class Cmip5Translator(DefaultTranslator):
@@ -214,7 +214,7 @@ class Cmip5Translator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.source.df["model"])
+        return _to_tuple(self.source.df["model"])
 
     def _realm_translator(self):
         """
@@ -232,7 +232,7 @@ class Cmip5Translator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.source.df["variable"])
+        return _to_tuple(self.source.df["variable"])
 
 
 class EraiTranslator(DefaultTranslator):
@@ -259,7 +259,7 @@ class EraiTranslator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.source.df["variable"])
+        return _to_tuple(self.source.df["variable"])
 
 
 def _cmip_frequency_translator(df):
@@ -311,7 +311,7 @@ def _cmip_realm_translator(df):
     return df["realm"].apply(lambda string: _parse(string))
 
 
-def to_tuple(series):
+def _to_tuple(series):
     """
     Make entries in the provided series a tuple
 
@@ -321,26 +321,3 @@ def to_tuple(series):
         A pandas Series or another object with an `apply` method
     """
     return series.apply(lambda x: (x,))
-
-
-def match_substrings(series, substrings):
-    """
-    Search for a list of substrings in each entry, ignoring case, and return the
-    one that's found.
-
-    Parameters
-    ----------
-    series: :py:class:`~pandas.Series`
-        A pandas Series or another object with an `apply` method
-    substrings: list of str
-        A list of substrings to try and match on each entry in series
-    """
-
-    def _parse(s):
-        for substring in substrings:
-            match = re.match(rf".*{substring}.*", s, flags=re.IGNORECASE)
-            if match:
-                return substring
-        raise ValueError(f"Could not match {s} to any substring")
-
-    return series.apply(lambda s: _parse(s))
