@@ -3,7 +3,7 @@
 
 import pytest
 
-from access_nri_intake.source.utils import parse_access_filename
+from access_nri_intake.source.utils import parse_access_filename, parse_access_ncfile
 
 
 @pytest.mark.parametrize(
@@ -69,3 +69,215 @@ from access_nri_intake.source.utils import parse_access_filename
 )
 def test_parse_access_filename(filename, expected):
     assert parse_access_filename(filename) == expected
+
+
+@pytest.mark.parametrize(
+    "filename, expected",
+    [
+        (
+            "access-om2/output000/ocean/ocean.nc",
+            (
+                "ocean.nc",
+                "ocean",
+                None,
+                "1yr",
+                "1900-01-01, 00:00:00",
+                "1910-01-01, 00:00:00",
+                ["temp", "time_bounds"],
+                ["Conservative temperature", "time axis boundaries"],
+                ["sea_water_conservative_temperature"],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-om2/output000/ocean/ocean_month.nc",
+            (
+                "ocean_month.nc",
+                "ocean_month",
+                None,
+                "1mon",
+                "1900-01-01, 00:00:00",
+                "1910-01-01, 00:00:00",
+                ["mld", "time_bounds"],
+                [
+                    "mixed layer depth determined by density criteria",
+                    "time axis boundaries",
+                ],
+                ["ocean_mixed_layer_thickness_defined_by_sigma_t"],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-om2/output000/ocean/ocean_month_inst_nobounds.nc",
+            (
+                "ocean_month_inst_nobounds.nc",
+                "ocean_month_inst_nobounds",
+                None,
+                "1mon",
+                "1900-01-16, 12:00:00",
+                "1900-01-16, 12:00:00",
+                ["mld"],
+                ["mixed layer depth determined by density criteria"],
+                ["ocean_mixed_layer_thickness_defined_by_sigma_t"],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-om2/output000/ice/OUTPUT/iceh.1900-01.nc",
+            (
+                "iceh.1900-01.nc",
+                "iceh_XXXX_XX",
+                "1900-01",
+                "1mon",
+                "1900-01-01, 00:00:00",
+                "1900-02-01, 00:00:00",
+                ["TLAT", "TLON", "aice_m", "tarea", "time_bounds"],
+                [
+                    "T grid center latitude",
+                    "T grid center longitude",
+                    "ice area  (aggregate)",
+                    "area of T grid cells",
+                    "boundaries for time-averaging interval",
+                ],
+                [],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-cm2/mem1/history/atm/netCDF/by578a.pd201501_dai.nc",
+            (
+                "by578a.pd201501_dai.nc",
+                "by578a_pdXXXXXX_dai",
+                "201501",
+                "1day",
+                "2015-01-01, 00:00:00",
+                "2015-02-01, 00:00:00",
+                ["fld_s03i236"],
+                ["TEMPERATURE AT 1.5M"],
+                ["air_temperature"],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-cm2/mem1/history/ice/iceh_d.2015-01.nc",
+            (
+                "iceh_d.2015-01.nc",
+                "iceh_d_XXXX_XX",
+                "2015-01",
+                "1day",
+                "2015-01-01, 00:00:00",
+                "2015-02-01, 00:00:00",
+                ["TLAT", "TLON", "aice", "tarea", "time_bounds"],
+                [
+                    "T grid center latitude",
+                    "T grid center longitude",
+                    "ice area  (aggregate)",
+                    "area of T grid cells",
+                    "boundaries for time-averaging interval",
+                ],
+                [],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-cm2/mem1/history/ocn/ocean_daily.nc-20150630",
+            (
+                "ocean_daily.nc-20150630",
+                "ocean_daily",
+                None,
+                "1day",
+                "2015-01-01, 00:00:00",
+                "2015-07-01, 00:00:00",
+                ["sst", "time_bounds"],
+                ["Potential temperature", "time axis boundaries"],
+                ["sea_surface_temperature"],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-cm2/mem1/history/ocn/ocean_scalar.nc-20150630",
+            (
+                "ocean_scalar.nc-20150630",
+                "ocean_scalar",
+                None,
+                "1mon",
+                "2015-01-01, 00:00:00",
+                "2015-07-01, 00:00:00",
+                ["temp_global_ave", "time_bounds"],
+                ["Global mean temp in liquid seawater", "time axis boundaries"],
+                ["sea_water_potential_temperature"],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-esm1-5/history/atm/netCDF/HI-C-05-r1.pa-185001_mon.nc",
+            (
+                "HI-C-05-r1.pa-185001_mon.nc",
+                "HI_C_05_r1_pa_XXXXXX_mon",
+                "185001",
+                "1mon",
+                "1850-01-01, 00:00:00",
+                "1850-02-01, 00:00:00",
+                ["fld_s03i236"],
+                ["TEMPERATURE AT 1.5M"],
+                ["air_temperature"],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-esm1-5/history/ice/iceh.1850-01.nc",
+            (
+                "iceh.1850-01.nc",
+                "iceh_XXXX_XX",
+                "1850-01",
+                "1mon",
+                "1850-01-01, 00:00:00",
+                "1850-02-01, 00:00:00",
+                ["TLAT", "TLON", "aice", "tarea", "time_bounds"],
+                [
+                    "T grid center latitude",
+                    "T grid center longitude",
+                    "ice area  (aggregate)",
+                    "area of T grid cells",
+                    "boundaries for time-averaging interval",
+                ],
+                [],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-esm1-5/history/ocn/ocean_bgc_ann.nc-18501231",
+            (
+                "ocean_bgc_ann.nc-18501231",
+                "ocean_bgc_ann",
+                None,
+                "1yr",
+                "1849-12-30, 00:00:00",
+                "1850-12-30, 00:00:00",
+                ["fgco2_raw", "time_bounds"],
+                ["Flux into ocean - DIC, inc. anth.", "time axis boundaries"],
+                [],
+                ["time: mean"],
+            ),
+        ),
+        (
+            "access-esm1-5/history/ocn/ocean_bgc.nc-18501231",
+            (
+                "ocean_bgc.nc-18501231",
+                "ocean_bgc",
+                None,
+                "1mon",
+                "1849-12-30, 00:00:00",
+                "1850-12-30, 00:00:00",
+                ["o2", "time_bounds"],
+                ["o2", "time axis boundaries"],
+                [],
+                ["time: mean"],
+            ),
+        ),
+    ],
+)
+def test_parse_access_ncfile(test_data, filename, expected):
+    file = test_data / filename
+
+    assert parse_access_ncfile(file) == expected

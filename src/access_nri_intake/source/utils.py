@@ -178,10 +178,10 @@ def parse_access_ncfile(file):
             if "long_name" in attrs:
                 variable_list.append(var)
                 variable_long_name_list.append(attrs["long_name"])
-            if "standard_name" in attrs:
-                variable_standard_name_list.append(attrs["standard_name"])
-            if "cell_methods" in attrs:
-                variable_cell_methods_list.append(attrs["cell_methods"])
+                if "standard_name" in attrs:
+                    variable_standard_name_list.append(attrs["standard_name"])
+                if "cell_methods" in attrs:
+                    variable_cell_methods_list.append(attrs["cell_methods"])
 
         start_date, end_date, frequency = get_timeinfo(ds)
 
