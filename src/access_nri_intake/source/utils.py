@@ -29,50 +29,54 @@ def get_timeinfo(ds, time_dim="time"):
         The name of the time dimension
     """
 
-    time_var = ds[time_dim]
-    has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
-
-    if len(time_var) == 0:
-        raise EmptyFileError("This file has a valid unlimited dimension, but no data")
-
     def _todate(t):
         return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
 
-    if has_bounds:
-        bounds_var = ds.variables[time_var.bounds]
-        start_time = _todate(bounds_var[0, 0])
-        end_time = _todate(bounds_var[-1, 1])
-    else:
-        start_time = _todate(time_var[0])
-        end_time = _todate(time_var[-1])
+    time_format = "%Y-%m-%d, %H:%M:%S"
+    start_time = "none"
+    end_time = "none"
+    frequency = "fx"
 
-    if len(time_var) > 1 or has_bounds:
+    if time_dim in ds:
+        time_var = ds[time_dim]
+
+        if len(time_var) == 0:
+            raise EmptyFileError(
+                "This file has a valid unlimited dimension, but no data"
+            )
+
+        has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
         if has_bounds:
-            next_time = _todate(bounds_var[0, 1])
+            bounds_var = ds.variables[time_var.bounds]
+            ts = _todate(bounds_var[0, 0])
+            te = _todate(bounds_var[-1, 1])
         else:
-            next_time = _todate(time_var[1])
+            ts = _todate(time_var[0])
+            te = _todate(time_var[-1])
 
-        dt = next_time - start_time
-        # TODO: This is not a very good way to get the frequency
-        if dt.days >= 365:
-            years = round(dt.days / 365)
-            frequency = f"{years}yr"
-        elif dt.days >= 28:
-            months = round(dt.days / 30)
-            frequency = f"{months}mon"
-        elif dt.days >= 1:
-            frequency = f"{dt.days}day"
-        else:
-            frequency = f"{dt.seconds // 3600}hr"
-    else:
-        # single time value in this file and no averaging
-        frequency = "fx"
+        if len(time_var) > 1 or has_bounds:
+            if has_bounds:
+                t1 = _todate(bounds_var[0, 1])
+            else:
+                t1 = _todate(time_var[1])
 
-    return (
-        start_time.strftime("%Y-%m-%d, %H:%M:%S"),
-        end_time.strftime("%Y-%m-%d, %H:%M:%S"),
-        frequency,
-    )
+            dt = t1 - ts
+            # TODO: This is not a very good way to get the frequency
+            if dt.days >= 365:
+                years = round(dt.days / 365)
+                frequency = f"{years}yr"
+            elif dt.days >= 28:
+                months = round(dt.days / 30)
+                frequency = f"{months}mon"
+            elif dt.days >= 1:
+                frequency = f"{dt.days}day"
+            else:
+                frequency = f"{dt.seconds // 3600}hr"
+
+        start_time = ts.strftime(time_format)
+        end_time = te.strftime(time_format)
+
+    return (start_time, end_time, frequency)
 
 
 def parse_access_filename(filename):

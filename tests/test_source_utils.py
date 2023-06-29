@@ -75,6 +75,21 @@ def test_parse_access_filename(filename, expected):
     "filename, expected",
     [
         (
+            "access-om2/output000/ocean/ocean_grid.nc",
+            (
+                "ocean_grid.nc",
+                "ocean_grid",
+                None,
+                "fx",
+                "none",
+                "none",
+                ["geolat_t", "geolon_t"],
+                ["tracer latitude", "tracer longitude"],
+                [],
+                ["time: point", "time: point"],
+            ),
+        ),
+        (
             "access-om2/output000/ocean/ocean.nc",
             (
                 "ocean.nc",
