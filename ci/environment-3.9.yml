@@ -4,8 +4,9 @@ channels:
   - accessnri
   - defaults
 dependencies:
-  - python==3.9
+  - python>=3.9.2 # see https://github.com/dask/distributed/issues/7956
   - cftime
+  - dask
   - ecgtools>=2022.10.07
   - intake-dataframe-catalog>=0.1.1
   - intake-esm>=2023.4.20
