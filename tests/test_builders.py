@@ -1,6 +1,8 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+from pathlib import Path
+
 import intake
 import pandas as pd
 import pytest
@@ -37,7 +39,7 @@ def test_builder_build(
     Test the various steps of the build process
     """
     Builder = getattr(builders, builder)
-    path = [str(test_data / basedir) for basedir in basedirs]
+    path = [str(test_data / Path(basedir)) for basedir in basedirs]
     builder = Builder(path, **kwargs)
 
     builder.get_assets()

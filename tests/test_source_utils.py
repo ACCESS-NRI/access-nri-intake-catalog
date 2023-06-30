@@ -1,6 +1,8 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+from pathlib import Path
+
 import pytest
 
 from access_nri_intake.source.utils import parse_access_filename, parse_access_ncfile
@@ -293,6 +295,6 @@ def test_parse_access_filename(filename, expected):
     ],
 )
 def test_parse_access_ncfile(test_data, filename, expected):
-    file = test_data / filename
+    file = str(test_data / Path(filename))
 
     assert parse_access_ncfile(file) == expected
