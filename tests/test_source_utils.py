@@ -159,7 +159,7 @@ def test_parse_access_filename(filename, expected):
             ),
         ),
         (
-            "access-cm2/mem1/history/atm/netCDF/by578a.pd201501_dai.nc",
+            "access-cm2/by578/history/atm/netCDF/by578a.pd201501_dai.nc",
             (
                 "by578a.pd201501_dai.nc",
                 "by578a_pdXXXXXX_dai",
@@ -174,7 +174,7 @@ def test_parse_access_filename(filename, expected):
             ),
         ),
         (
-            "access-cm2/mem1/history/ice/iceh_d.2015-01.nc",
+            "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
             (
                 "iceh_d.2015-01.nc",
                 "iceh_d_XXXX_XX",
@@ -195,7 +195,7 @@ def test_parse_access_filename(filename, expected):
             ),
         ),
         (
-            "access-cm2/mem1/history/ocn/ocean_daily.nc-20150630",
+            "access-cm2/by578/history/ocn/ocean_daily.nc-20150630",
             (
                 "ocean_daily.nc-20150630",
                 "ocean_daily",
@@ -210,7 +210,7 @@ def test_parse_access_filename(filename, expected):
             ),
         ),
         (
-            "access-cm2/mem1/history/ocn/ocean_scalar.nc-20150630",
+            "access-cm2/by578/history/ocn/ocean_scalar.nc-20150630",
             (
                 "ocean_scalar.nc-20150630",
                 "ocean_scalar",

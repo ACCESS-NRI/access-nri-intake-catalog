@@ -189,6 +189,9 @@ def parse_access_ncfile(file):
 
         start_date, end_date, frequency = get_timeinfo(ds)
 
+    if not variable_list:
+        raise EmptyFileError("This file contains no variables")
+
     if filename_frequency:
         if filename_frequency != frequency:
             msg = (
