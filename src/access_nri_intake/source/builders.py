@@ -267,7 +267,7 @@ class AccessOm2Builder(BaseBuilder):
 class AccessEsm15Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
 
-    def __init__(self, path, ensemble=False):
+    def __init__(self, path, ensemble):
         """
         Initialise a AccessEsm15Builder
 
@@ -275,7 +275,7 @@ class AccessEsm15Builder(BaseBuilder):
         ----------
         path: str or list of str
             Path or list of paths to crawl for assets/files.
-        ensemble: boolean, optional
+        ensemble: boolean
             Whether to treat each path as a separate member of an ensemble to join
             along a new member dimension
         """
