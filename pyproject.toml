@@ -58,7 +58,7 @@ addopts = "--cov=./src --cov-report=xml"
 [tool.coverage.run]
 omit = [
     "src/access_nri_intake/_version.py",
-    "src/access_nri_intake/data",
+    "src/access_nri_intake/data/__init__.py",
 ]
 
 [tool.ruff]
