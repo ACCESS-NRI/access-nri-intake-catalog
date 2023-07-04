@@ -1,10 +1,14 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+import intake
 import pandas as pd
 import pytest
 
+from access_nri_intake.catalog import CORE_COLUMNS
 from access_nri_intake.catalog.translators import (
+    Cmip5Translator,
+    Cmip6Translator,
     _cmip_frequency_translator,
     _cmip_realm_translator,
     _to_tuple,
@@ -127,3 +131,13 @@ def test_to_tuple(input):
     """Test the _to_tuple function"""
     series = pd.Series(input)
     assert all(_to_tuple(series).map(type) == tuple)
+
+
+def test_Cmip5Translator(test_data):
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
+    Cmip5Translator(esmds, CORE_COLUMNS).translate()
+
+
+def test_Cmip6Translator(test_data):
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip6-oi10.json")
+    Cmip6Translator(esmds, CORE_COLUMNS).translate()

@@ -93,49 +93,52 @@ class DefaultTranslator:
 
         return pd.Series([val] * len_df)
 
-    def translate(self, groupby):
+    def translate(self, groupby=None):
         """
         Return the translated :py:class:`~pandas.DataFrame` of metadata and merge into set of
         set of rows with unique values of the columns specified.
 
         Parameters
         ----------
-        groupby: list of str
+        groupby: list of str, optional
             Core metadata columns to group by before merging metadata across remaining core columns.
         """
 
-        def _find_unique(series):
+        def _unique_values(series):
             """
-            Return a set of unique values in a series
+            Return unique values in a series
             """
 
             values = series.dropna()
             iterable_entries = series.name in COLUMNS_WITH_ITERABLES
-            type_ = type(series.iloc[0])
 
             if iterable_entries:
+                type_ = type(values.iloc[0])
                 values = tlz.concat(values)
-
-            uniques = tuple(set(values))
-
-            return (
-                uniques[0]
-                if (len(uniques) == 1) & (not iterable_entries)
-                else type_(uniques)
-            )
+                return type_(set(values))
+            else:
+                series_array = series.to_numpy()
+                if all(series_array[0] == series_array):
+                    return series_array[0]
+                else:
+                    raise TranslatorError(
+                        f"Column '{series.name}' contains multiple values within a merged group. In order to be able "
+                        f"to merge, the entries in column '{series.name}' must be of iterable type list, tuple or set."
+                    )
 
         df = pd.concat(
             {col: func() for col, func in self._dispatch.items()}, axis="columns"
         )
 
-        ungrouped_columns = list(set(self.columns) - set(groupby))
-        df_grouped = (
-            df.groupby(groupby)
-            .agg({col: _find_unique for col in ungrouped_columns})
-            .reset_index()
-        )
+        if groupby:
+            ungrouped_columns = list(set(self.columns) - set(groupby))
+            df = (
+                df.groupby(groupby)
+                .agg({col: _unique_values for col in ungrouped_columns})
+                .reset_index()
+            )
 
-        return df_grouped[self.columns]  # Preserve ordering
+        return df[self.columns]  # Preserve ordering
 
 
 class Cmip6Translator(DefaultTranslator):
