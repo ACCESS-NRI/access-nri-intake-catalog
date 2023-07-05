@@ -6,7 +6,6 @@ Tools for translating metadata in an intake source into a metadata table to use 
 like the ACCESS-NRI catalog
 """
 
-import re
 from functools import partial
 
 import pandas as pd
@@ -73,7 +72,7 @@ class DefaultTranslator:
                 if column in self.source.esmcat.columns_with_iterables:
                     return series.apply(tuple)
                 elif column in COLUMNS_WITH_ITERABLES:
-                    return to_tuple(series)
+                    return _to_tuple(series)
                 else:
                     return series
             except KeyError:
@@ -94,49 +93,52 @@ class DefaultTranslator:
 
         return pd.Series([val] * len_df)
 
-    def translate(self, groupby):
+    def translate(self, groupby=None):
         """
         Return the translated :py:class:`~pandas.DataFrame` of metadata and merge into set of
         set of rows with unique values of the columns specified.
 
         Parameters
         ----------
-        groupby: list of str
+        groupby: list of str, optional
             Core metadata columns to group by before merging metadata across remaining core columns.
         """
 
-        def _find_unique(series):
+        def _unique_values(series):
             """
-            Return a set of unique values in a series
+            Return unique values in a series
             """
 
             values = series.dropna()
             iterable_entries = series.name in COLUMNS_WITH_ITERABLES
-            type_ = type(series.iloc[0])
 
             if iterable_entries:
+                type_ = type(values.iloc[0])
                 values = tlz.concat(values)
-
-            uniques = tuple(set(values))
-
-            return (
-                uniques[0]
-                if (len(uniques) == 1) & (not iterable_entries)
-                else type_(uniques)
-            )
+                return type_(set(values))
+            else:
+                series_array = series.to_numpy()
+                if all(series_array[0] == series_array):
+                    return series_array[0]
+                else:
+                    raise TranslatorError(
+                        f"Column '{series.name}' contains multiple values within a merged group. In order to be able "
+                        f"to merge, the entries in column '{series.name}' must be of iterable type list, tuple or set."
+                    )
 
         df = pd.concat(
             {col: func() for col, func in self._dispatch.items()}, axis="columns"
         )
 
-        ungrouped_columns = list(set(self.columns) - set(groupby))
-        df_grouped = (
-            df.groupby(groupby)
-            .agg({col: _find_unique for col in ungrouped_columns})
-            .reset_index()
-        )
+        if groupby:
+            ungrouped_columns = list(set(self.columns) - set(groupby))
+            df = (
+                df.groupby(groupby)
+                .agg({col: _unique_values for col in ungrouped_columns})
+                .reset_index()
+            )
 
-        return df_grouped[self.columns]  # Preserve ordering
+        return df[self.columns]  # Preserve ordering
 
 
 class Cmip6Translator(DefaultTranslator):
@@ -166,25 +168,25 @@ class Cmip6Translator(DefaultTranslator):
         """
         Return model from source_id
         """
-        return to_tuple(self.source.df["source_id"])
+        return _to_tuple(self.source.df["source_id"])
 
     def _realm_translator(self):
         """
         Return realm, fixing a few issues
         """
-        return _cmip_realm_translator(self.source.df)
+        return _cmip_realm_translator(self.source.df["realm"])
 
     def _frequency_translator(self):
         """
         Return frequency, fixing a few issues
         """
-        return _cmip_frequency_translator(self.source.df)
+        return _to_tuple(_cmip_frequency_translator(self.source.df["frequency"]))
 
     def _variable_translator(self):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.source.df["variable_id"])
+        return _to_tuple(self.source.df["variable_id"])
 
 
 class Cmip5Translator(DefaultTranslator):
@@ -214,25 +216,25 @@ class Cmip5Translator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.source.df["model"])
+        return _to_tuple(self.source.df["model"])
 
     def _realm_translator(self):
         """
         Return realm, fixing a few issues
         """
-        return _cmip_realm_translator(self.source.df)
+        return _cmip_realm_translator(self.source.df["realm"])
 
     def _frequency_translator(self):
         """
         Return frequency, fixing a few issues
         """
-        return _cmip_frequency_translator(self.source.df)
+        return _to_tuple(_cmip_frequency_translator(self.source.df["frequency"]))
 
     def _variable_translator(self):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.source.df["variable"])
+        return _to_tuple(self.source.df["variable"])
 
 
 class EraiTranslator(DefaultTranslator):
@@ -249,7 +251,7 @@ class EraiTranslator(DefaultTranslator):
         source: :py:class:`~intake.DataSource`
             The NCI ERA-Interim intake-esm datastore
         columns: list of str
-            The columns to translate (these are the core columns in the intake-dataframe-catalog)
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
         """
 
         super().__init__(source, columns)
@@ -259,61 +261,69 @@ class EraiTranslator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return to_tuple(self.source.df["variable"])
+        return _to_tuple(self.source.df["variable"])
 
 
-def _cmip_frequency_translator(df):
+def _cmip_frequency_translator(series):
     """
     Return frequency from CMIP frequency metadata
     """
 
-    def _parse(string):
-        for remove in ["Pt", "C.*"]:  # Remove Pt, C, and Clim
-            string = re.sub(remove, "", string)
-        string = string.replace("daily", "day")  # Some incorrect metadata
-        string = string.replace("sem", "3mon")  # CORDEX for seasonal mean
-        return (f"1{string}",) if string[0] in ["m", "d", "y"] else (string,)
+    def _translate(string):
+        translations = {
+            "3hrPt": "3hr",
+            "6hrPt": "6hr",
+            "daily": "1day",
+            "day": "1day",
+            "mon": "1mon",
+            "monC": "1mon",
+            "monClim": "1mon",
+            "monPt": "1mon",
+            "sem": "3mon",
+            "subhrPt": "subhr",
+            "yr": "1yr",
+            "yrPt": "1yr",
+        }
 
-    return df["frequency"].apply(lambda string: _parse(string))
+        try:
+            return translations[string]
+        except KeyError:
+            return string
+
+    return series.apply(lambda string: _translate(string))
 
 
-def _cmip_realm_translator(df):
+def _cmip_realm_translator(series):
     """
-    Return realm from CMIP realm metadata, fixing some issues
+    Return realm from CMIP realm metadata, fixing some issues. This function returns
+    a tuple as there are sometimes multiple realms per cmip asset
     """
 
-    def _parse(string):
+    def _translate(string):
+        translations = {
+            "na": "none",
+            "landonly": "land",
+            "ocnBgChem": "ocnBgchem",
+            "seaice": "seaIce",
+        }
+
         raw_realms = string.split(" ")
         realms = []
         for realm in raw_realms:
-            if re.match("na", realm, flags=re.I):
-                realms.append("none")
-            elif re.match("seaIce", realm, flags=re.I):
-                realms.append("seaIce")
-            elif re.match("landIce", realm, flags=re.I):
-                realms.append("landIce")
-            elif re.match("ocnBgchem", realm, flags=re.I):
-                realms.append("ocnBgchem")
-            elif re.match("atmos", realm, flags=re.I):
-                realms.append("atmos")
-            elif re.match("atmosChem", realm, flags=re.I):
-                realms.append("atmosChem")
-            elif re.match("aerosol", realm, flags=re.I):
-                realms.append("aerosol")
-            elif re.match("land", realm, flags=re.I):
-                realms.append("land")
-            elif re.match("ocean", realm, flags=re.I):
-                realms.append("ocean")
-            else:
-                realms.append("unknown")
-        return tuple(set(realms))
+            try:
+                realm = translations[realm]
+            except KeyError:
+                pass
+            if realm not in realms:
+                realms.append(realm)
+        return tuple(realms)
 
-    return df["realm"].apply(lambda string: _parse(string))
+    return series.apply(lambda string: _translate(string))
 
 
-def to_tuple(series):
+def _to_tuple(series):
     """
-    Make entries in the provided series a tuple
+    Make each entry in the provided series a tuple
 
     Parameters
     ----------
@@ -321,26 +331,3 @@ def to_tuple(series):
         A pandas Series or another object with an `apply` method
     """
     return series.apply(lambda x: (x,))
-
-
-def match_substrings(series, substrings):
-    """
-    Search for a list of substrings in each entry, ignoring case, and return the
-    one that's found.
-
-    Parameters
-    ----------
-    series: :py:class:`~pandas.Series`
-        A pandas Series or another object with an `apply` method
-    substrings: list of str
-        A list of substrings to try and match on each entry in series
-    """
-
-    def _parse(s):
-        for substring in substrings:
-            match = re.match(rf".*{substring}.*", s, flags=re.IGNORECASE)
-            if match:
-                return substring
-        raise ValueError(f"Could not match {s} to any substring")
-
-    return series.apply(lambda s: _parse(s))

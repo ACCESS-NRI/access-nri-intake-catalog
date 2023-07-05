@@ -1,0 +1,6 @@
+path,frequency,realm,version,variable,mode,date_range,level,product,code,ecmwf_name,long_name,standard_name,cell_methods,parameter
+/g/data/ub4/erai/netcdf/6hr/atmos/oper_an_sfc/v01/al/al_6hrs_ERAI_historical_an-sfc_19790101_19790131.nc,6hr,atmos,v01,al,an-sfc,19790101_19790131,surface,analysis,174.0,AL,Albedo [0-1],surface_albedo,,174.128
+/g/data/ub4/erai/netcdf/fx/ei_invariant_075x075_90N0E90S35925E.nc,fx,land,v01,anor,,19790101_20190831,surface,analysis,162.0,ANOR,Angle of sub-gridscale orography [rad],,,162.128
+/g/data/ub4/erai/netcdf/6hr/land/oper_an_sfc/v01/asn/asn_6hrs_ERAI_historical_land_19790101_19791231.nc,6hr,land,v01,asn,land,19790101_19791231,surface,land,32.0,ASN,Snow albedo [0-1],surface_albedo_where_snow,,32.128
+/g/data/ub4/erai/netcdf/3hr/atmos/oper_fc_sfc/v01/blh/blh_3hrs_ERAI_historical_fc-sfc_19790101_19790131.nc,3hr,atmos,v01,blh,fc-sfc,19790101_19790131,surface,forecast,159.0,BLH,Boundary layer height [m],,,159.128
+/g/data/ub4/erai/netcdf/3hr/atmos/oper_fc_sfc/v01/cape/cape_3hrs_ERAI_historical_fc-sfc_19790101_19790131.nc,3hr,atmos,v01,cape,fc-sfc,19790101_19790131,surface,forecast,59.0,CAPE,Convective available potential energy [J Kg**-1],atmosphere_convective_available_potential_energy_wrt_surface,,59.128

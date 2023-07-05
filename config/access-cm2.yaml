@@ -4,46 +4,48 @@ translator: DefaultTranslator
 
 sources:
 
-  - path:
+  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944/metadata.yaml
+    path:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944a
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944b
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944c
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944d
-    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/bx944/metadata.yaml
     ensemble: true
     
-  - path:
+  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647/metadata.yaml
+    path:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647a
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647b
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647c
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647d
-    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by647/metadata.yaml
     ensemble: true
     
-  - path:
+  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473/metadata.yaml
+    path:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473a
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473b
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473c
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473d
-    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by473/metadata.yaml
     ensemble: true
   
-  - path:
+  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578/metadata.yaml
+    path:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578a
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578b
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578c
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578d
-    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/by578/metadata.yaml
     ensemble: true
     
-  - path:
+  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/bz687/metadata.yaml
+    path:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/bz687
-    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/bz687/metadata.yaml
+    ensemble: false
     
-  - path:
+  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/cj877/metadata.yaml
+    path:
       - /g/data/p73/archive/non-CMIP/ACCESS-CM2/cj877
-    metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-CM2/cj877/metadata.yaml
+    ensemble: false

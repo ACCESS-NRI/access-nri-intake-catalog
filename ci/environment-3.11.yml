@@ -7,11 +7,13 @@ dependencies:
   - python==3.11
   - cftime
   - ecgtools>=2022.10.07
+  - fsspec<=2023.5.0 # see https://github.com/ncar-xdev/ecgtools/issues/160
   - intake-dataframe-catalog>=0.1.1
   - intake-esm>=2023.4.20
   - jsonschema
   - pooch
   - pre-commit
+  - pydantic<2.0 # see https://github.com/intake/intake-esm/issues/617, https://github.com/ncar-xdev/ecgtools/issues/161
   - pytest
   - xarray
   - pip

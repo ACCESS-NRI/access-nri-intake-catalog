@@ -6,6 +6,7 @@
 import argparse
 import logging
 import os
+import re
 
 import jsonschema
 import yaml
@@ -15,7 +16,7 @@ from . import __version__
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .source import builders
-from .utils import load_metadata_yaml, validate_against_schema
+from .utils import load_metadata_yaml
 
 
 class MetadataCheckError(Exception):
@@ -51,7 +52,12 @@ def _parse_inputs(config_yamls, build_path):
 
             source_args["path"] = kwargs.pop("path")
             metadata_yaml = kwargs.pop("metadata_yaml")
-            metadata = load_metadata_yaml(metadata_yaml)
+            try:
+                metadata = load_metadata_yaml(metadata_yaml, EXP_JSONSCHEMA)
+            except jsonschema.exceptions.ValidationError:
+                raise MetadataCheckError(
+                    f"Failed to validate metadata.yaml for {args['name']}. See traceback for details."
+                )
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
             source_args["metadata"] = metadata
@@ -74,12 +80,6 @@ def _check_args(args_list):
     for args in args_list:
         names.append(args["name"])
         uuids.append(args["metadata"]["experiment_uuid"])
-        try:
-            validate_against_schema(args["metadata"], EXP_JSONSCHEMA)
-        except jsonschema.exceptions.ValidationError:
-            raise MetadataCheckError(
-                f"Failed to validate metadata.yaml for {args['name']}. See traceback for details."
-            )
 
     if len(names) != len(set(names)):
         seen = set()
@@ -142,11 +142,21 @@ def build():
         ),
     )
 
+    parser.add_argument(
+        "--no_update",
+        default=False,
+        action="store_true",
+        help=(
+            "Set this if you don't want to update the access_nri_intake.data (e.g. if running a test)"
+        ),
+    )
+
     args = parser.parse_args()
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
     catalog_file = args.catalog_file
     version = args.version
+    update = not args.no_update
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -163,7 +173,8 @@ def build():
 
     # Get the project storage flags
     def _get_project(path):
-        return os.path.normpath(path).split(os.sep)[3]
+        match = re.match(r"/g/data/([^/]*)/.*", path)
+        return match.groups()[0] if match else None
 
     project = set()
     for method, args in parsed_sources:
@@ -200,5 +211,6 @@ def build():
     }
 
     _here = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
-        yaml.dump(yaml_dict, fobj)
+    if update:
+        with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
+            yaml.dump(yaml_dict, fobj)
