@@ -24,6 +24,10 @@ def test_CatalogManager_init(tmp_path):
     assert cat.mode == "w"
     assert hasattr(cat, "dfcat")
 
+    with pytest.raises(CatalogManagerError) as excinfo:
+        cat.add()
+    assert "first load or build the source" in str(excinfo.value)
+
 
 @pytest.mark.parametrize(
     "builder, basedir, kwargs",
@@ -89,6 +93,26 @@ def test_CatalogManager_load(tmp_path, test_data, translator, datastore, metadat
 
     cat = CatalogManager(path)
     assert cat.mode == "a"
+
+
+def test_CatalogManager_load_error(tmp_path, test_data):
+    """Test loading and adding an Intake-ESM datastore"""
+    path = str(tmp_path / "cat.csv")
+    cat = CatalogManager(path)
+
+    # Test can load when path is len 1 list
+    path = str(test_data / "esm_datastore/cmip5-al33.json")
+    args = dict(
+        name="test",
+        description="test",
+        translator=Cmip5Translator,
+    )
+    cat.load(**args, path=[path])
+
+    # Test fails when len > 1
+    with pytest.raises(ValueError) as excinfo:
+        cat.load(**args, path=[path, path])
+    assert "Only a single JSON file" in str(excinfo.value)
 
 
 def test_CatalogManager_all(tmp_path, test_data):
