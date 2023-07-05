@@ -10,6 +10,7 @@ from access_nri_intake.catalog.translators import (
     Cmip5Translator,
     Cmip6Translator,
     DefaultTranslator,
+    EraiTranslator,
     TranslatorError,
     _cmip_frequency_translator,
     _cmip_realm_translator,
@@ -163,6 +164,26 @@ def test_DefaultTranslator(test_data, name, description, something):
         assert len(df) == 1
 
 
+def test_DefaultTranslator_list2tuple(test_data):
+    """Test that DefaultTranslator casts lists in .metadata to tuples"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
+    esmds.metadata = dict(
+        alist=[
+            0,
+        ]
+    )
+    df = DefaultTranslator(esmds, ["alist"]).translate()
+    assert all(df["alist"] == (0,))
+
+
+def test_DefaultTranslator_error(test_data):
+    """Test error is raised when column is unavailable"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
+    with pytest.raises(TranslatorError) as excinfo:
+        DefaultTranslator(esmds, ["foo"]).translate()
+    assert "Could not translate" in str(excinfo.value)
+
+
 @pytest.mark.parametrize(
     "groupby, n_entries",
     [
@@ -174,6 +195,7 @@ def test_DefaultTranslator(test_data, name, description, something):
     ],
 )
 def test_Cmip5Translator(test_data, groupby, n_entries):
+    "Test CMIP5 datastore translator" ""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
     esmds.name = "name"
     esmds.description = "description"
@@ -193,8 +215,32 @@ def test_Cmip5Translator(test_data, groupby, n_entries):
     ],
 )
 def test_Cmip6Translator(test_data, groupby, n_entries):
+    "Test CMIP6 datastore translator" ""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip6-oi10.json")
     esmds.name = "name"
     esmds.description = "description"
     df = Cmip6Translator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (TRANSLATOR_GROUPBY_COLUMNS, 4),
+        (["variable"], 5),
+        (["realm"], 2),
+        (["frequency"], 3),
+        (["description"], 1),
+    ],
+)
+def test_EraiTranslator(test_data, groupby, n_entries):
+    "Test ERA-Interim datastore translator" ""
+    model = ("ERA-Interim",)
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/erai.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    esmds.metadata = dict(model=model)
+    df = EraiTranslator(esmds, CORE_COLUMNS).translate(groupby)
+    assert all(df["model"] == model)
     assert len(df) == n_entries
