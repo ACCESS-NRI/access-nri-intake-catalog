@@ -5,10 +5,12 @@ import intake
 import pandas as pd
 import pytest
 
-from access_nri_intake.catalog import CORE_COLUMNS
+from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
     Cmip5Translator,
     Cmip6Translator,
+    DefaultTranslator,
+    TranslatorError,
     _cmip_frequency_translator,
     _cmip_realm_translator,
     _to_tuple,
@@ -133,11 +135,66 @@ def test_to_tuple(input):
     assert all(_to_tuple(series).map(type) == tuple)
 
 
-def test_Cmip5Translator(test_data):
+@pytest.mark.parametrize("name", ["name", None])
+@pytest.mark.parametrize("description", ["description", None])
+@pytest.mark.parametrize("something", ["something", None])
+def test_DefaultTranslator(test_data, name, description, something):
+    """Test the various steps of the DefaultTranslator"""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
-    Cmip5Translator(esmds, CORE_COLUMNS).translate()
+    esmds.name = name
+    esmds.description = description
+    esmds.metadata = dict(something=something)
+    columns = ["name", "description", "something", "variable", "version"]
+
+    df = DefaultTranslator(esmds, columns).translate()
+    assert all(df["name"].to_numpy() == name)
+    assert all(df["description"].to_numpy() == description)
+    assert all(df["something"].to_numpy() == something)
+    assert all(df["variable"].map(type) == tuple)
+    assert all(df["version"].str.startswith("v"))
+
+    if name:
+        with pytest.raises(TranslatorError) as excinfo:
+            DefaultTranslator(esmds, columns).translate(["name"])
+        assert "Column 'version' contains multiple values" in str(excinfo.value)
+
+        columns.remove("version")
+        df = DefaultTranslator(esmds, columns).translate(["name"])
+        assert len(df) == 1
 
 
-def test_Cmip6Translator(test_data):
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (TRANSLATOR_GROUPBY_COLUMNS, 5),
+        (["realm"], 3),
+        (["frequency"], 2),
+        (["name"], 1),
+    ],
+)
+def test_Cmip5Translator(test_data, groupby, n_entries):
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = Cmip5Translator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (TRANSLATOR_GROUPBY_COLUMNS, 5),
+        (["variable"], 4),
+        (["realm"], 2),
+        (["frequency"], 2),
+        (["description"], 1),
+    ],
+)
+def test_Cmip6Translator(test_data, groupby, n_entries):
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip6-oi10.json")
-    Cmip6Translator(esmds, CORE_COLUMNS).translate()
+    esmds.name = "name"
+    esmds.description = "description"
+    df = Cmip6Translator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
