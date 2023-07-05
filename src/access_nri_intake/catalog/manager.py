@@ -43,13 +43,13 @@ class CatalogManager:
 
         self.path = path
 
-        mode = "a" if os.path.exists(path) else "w"
+        self.mode = "a" if os.path.exists(path) else "w"
 
         self.dfcat = DfFileCatalog(
             path=self.path,
             yaml_column=YAML_COLUMN,
             name_column=NAME_COLUMN,
-            mode=mode,
+            mode=self.mode,
             columns_with_iterables=COLUMNS_WITH_ITERABLES,
         )
 
@@ -69,29 +69,29 @@ class CatalogManager:
         **kwargs,
     ):
         """
-        Build an intake-esm catalog
+        Build an Intake-ESM datastore
 
         Parameters
         ----------
         name: str
-            The name of the catalog
+            The name of the Intake-ESM datastore
         description: str
-            Description of the contents of the catalog
-        builder: subclass of :py:class:`access_nri_catalog.esmcat.BaseBuilder`
-            The builder to use to build the intake-esm catalog
+            Description of the contents of the Intake-ESM datastore
+        builder: subclass of :py:class:`access_nri_intake.source.builders.BaseBuilder`
+            The builder to use to build the Intake-ESM datastore
         path: str or list of str
-            Path or list of paths to crawl for assets/files to add to the catalog.
-        translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`
-            An instance of the :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator` class
-            for translating info in the intake-esm catalog into intake-dataframe-catalog column metadata.
-            Defaults to access_nri_catalog.metacat.translators.DefaultTranslator.
+            Path or list of paths to crawl for assets/files to add to the Intake-ESM datastore.
+        translator: :py:class:`~access_nri_intake.catalog.translators.DefaultTranslator`
+            An instance of the :py:class:`~access_nri_intake.catalog.translators.DefaultTranslator` class
+            for translating info in the Intake-ESM datastore into intake-dataframe-catalog column metadata.
+            Defaults to access_nri_intake.catalog.translators.DefaultTranslator.
         metadata: dict, optional
             Additional info to store in the intake cat.metadata attribute. This info will be available
-            to the translator and to users of the catalog
+            to the translator and to users of the Intake-ESM datastore
         directory: str
-            The directory to save the catalog to. If None, use the current directory
+            The directory to save the Intake-ESM datastore to. If None, use the current directory
         overwrite: bool, optional
-            Whether to overwrite any existing catalog(s) with the same name
+            Whether to overwrite any existing entries in the catalog with the same name
         kwargs: dict
             Additional kwargs to pass to the builder
         """
@@ -102,7 +102,7 @@ class CatalogManager:
         if os.path.isfile(json_file):
             if not overwrite:
                 raise CatalogManagerError(
-                    f"A catalog already exists for {name}. To overwrite, "
+                    f"An Intake-ESM datastore already exists for {name}. To overwrite, "
                     "pass `overwrite=True` to CatalogBuilder.build"
                 )
 
