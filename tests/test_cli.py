@@ -1,11 +1,16 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+import argparse
 import os
+import tempfile
+from pathlib import Path
+from unittest import mock
 
+import intake
 import pytest
 
-from access_nri_intake.cli import MetadataCheckError, _check_args
+from access_nri_intake.cli import MetadataCheckError, _check_args, build
 
 
 def test_entrypoint():
@@ -82,3 +87,30 @@ def test_check_args(args, raises):
         assert "exp0" in str(excinfo.value)
     else:
         _check_args(args)
+
+
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        config_yaml=[
+            "./tests/data/config/access-om2.yaml",
+            "./tests/data/config/cmip5.yaml",
+        ],
+        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        catalog_file="cat.csv",
+        version="v0.0.0",
+        no_update=True,
+    ),
+)
+def test_build(mockargs):
+    """Test full catalog build process from config files"""
+    build()
+
+    # Try to open the catalog
+    build_path = (
+        Path(mockargs.return_value.build_base_path)
+        / mockargs.return_value.version
+        / mockargs.return_value.catalog_file
+    )
+    cat = intake.open_df_catalog(build_path)
+    assert len(cat) == 2

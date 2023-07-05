@@ -6,6 +6,7 @@
 import argparse
 import logging
 import os
+import re
 
 import jsonschema
 import yaml
@@ -141,11 +142,21 @@ def build():
         ),
     )
 
+    parser.add_argument(
+        "--no_update",
+        default=False,
+        action="store_true",
+        help=(
+            "Set this if you don't want to update the access_nri_intake.data (e.g. if running a test)"
+        ),
+    )
+
     args = parser.parse_args()
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
     catalog_file = args.catalog_file
     version = args.version
+    update = not args.no_update
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -162,7 +173,8 @@ def build():
 
     # Get the project storage flags
     def _get_project(path):
-        return os.path.normpath(path).split(os.sep)[3]
+        match = re.match(r"/g/data/([^/]*)/.*", path)
+        return match.groups()[0] if match else None
 
     project = set()
     for method, args in parsed_sources:
@@ -199,5 +211,6 @@ def build():
     }
 
     _here = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
-        yaml.dump(yaml_dict, fobj)
+    if update:
+        with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
+            yaml.dump(yaml_dict, fobj)

@@ -184,8 +184,8 @@ class CatalogManager:
         name = self.source_metadata[NAME_COLUMN].unique()
         if len(name) != 1:
             raise ValueError(
-                f"Metadata column '{NAME_COLUMN}' must be the same for all rows "
-                "since this corresponds to the catalog name"
+                f"Metadata column '{NAME_COLUMN}' must be the same for all rows in source_metadata "
+                "since this corresponds to the source name"
             )
         name = name[0]
         self.source.name = name
