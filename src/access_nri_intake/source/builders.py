@@ -76,7 +76,7 @@ class BaseBuilder(Builder):
         self.storage_options = storage_options
         self.joblib_parallel_kwargs = joblib_parallel_kwargs
 
-        super().__post_init_post_parse__()
+        super().__post_init__()
 
     def _parse(self):
         super().parse(parsing_func=self.parser)

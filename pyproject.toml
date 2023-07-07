@@ -15,10 +15,10 @@ classifiers = [
 ]
 dependencies = [
     "cftime",
-    "ecgtools>=2022.10.07",
+    "ecgtools>=2023.7.??",
     "intake>=0.7.0",
     "intake-dataframe-catalog>=0.2.2",
-    "intake-esm>=2023.4.20",
+    "intake-esm>=2023.7.??",
     "jsonschema",
     "pooch",
     "xarray",
