@@ -24,7 +24,7 @@ if [ ! $# -eq 0 ]; then
     version=$1
 fi
 
-conda activate access-nri-intake-dev
+conda activate access-nri-intake-test
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog
 CONFIG_DIR=/g/data/tm70/ds0092/projects/access-nri-intake-catalog/config
