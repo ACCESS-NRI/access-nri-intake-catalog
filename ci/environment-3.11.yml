@@ -6,9 +6,9 @@ channels:
 dependencies:
   - python==3.11
   - cftime
-  - ecgtools>=2023.7.??
-  - intake-dataframe-catalog>=0.1.1
-  - intake-esm>=2023.7.??
+  - ecgtools>=2023.7.7
+  - intake-dataframe-catalog>=0.2.2
+  - intake-esm>=2023.7.7
   - jsonschema
   - pooch
   - pre-commit
