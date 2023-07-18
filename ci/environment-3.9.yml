@@ -6,14 +6,12 @@ channels:
 dependencies:
   - python>=3.9.2 # see https://github.com/dask/distributed/issues/7956
   - cftime
-  - ecgtools>=2022.10.07
-  - fsspec<=2023.5.0 # see https://github.com/ncar-xdev/ecgtools/issues/160
-  - intake-dataframe-catalog>=0.1.1
-  - intake-esm>=2023.4.20
+  - ecgtools>=2023.7.13
+  - intake-dataframe-catalog>=0.2.2
+  - intake-esm>=2023.7.7
   - jsonschema
   - pooch
   - pre-commit
-  - pydantic<2.0 # see https://github.com/intake/intake-esm/issues/617, https://github.com/ncar-xdev/ecgtools/issues    /161
   - pytest
   - xarray
   - pip
