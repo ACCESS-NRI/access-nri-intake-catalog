@@ -60,7 +60,7 @@ sources:
     path:
       - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle6
   
-  - metadata_yaml: /g/data/tm70/intake/metadata/01deg_jra55v13_ryf9091/metadata.yaml
+  - metadata_yaml: /g/data/ik11/outputs/access-om2-01/01deg_jra55v13_ryf9091/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-01/01deg_jra55v13_ryf9091
     
@@ -87,4 +87,4 @@ sources:
   - metadata_yaml: /g/data/tm70/intake/metadata/01deg_jra55v150_iaf_cycle1/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-01/01deg_jra55v150_iaf_cycle1
-  
+ 
