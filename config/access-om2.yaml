@@ -7,6 +7,7 @@ sources:
   - metadata_yaml: /g/data/tm70/intake/metadata/1deg_jra55_ryf9091_gadi/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi
+      
     
   - metadata_yaml: /g/data/tm70/intake/metadata/1deg_jra55_iaf_omip2_cycle1/metadata.yaml
     path:
@@ -31,10 +32,193 @@ sources:
   - metadata_yaml: /g/data/tm70/intake/metadata/1deg_jra55_iaf_omip2_cycle6/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle6
+      
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle1/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle1
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle2/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle2
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle3/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle3
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle4/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle4
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle5/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle5
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle6/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle6
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle7/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle7
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle8/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle8
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle9/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle9
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle10/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle10
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle11/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle11
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle12/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle12
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle13/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle13
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle14/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle14
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle15/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle15
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle16/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle16
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle17/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle17
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle18/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle18
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle19/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle19
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle20/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle20
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle21/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle21
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle22/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle22
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle23/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle23
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle24/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle24
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle25/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle25
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle26/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle26
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle27/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle27
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle28/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle28
 
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle29/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle29
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle30/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle30
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle31/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle31
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle32/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle32
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle33/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle33
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle34/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle34
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle35/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle35
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle36/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle36
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle37/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle37
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle38/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle38
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle39/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle39
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle40/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle40
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle41/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle41
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle42/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle42
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle43/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle43
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle44/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle44
+      
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle45/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle45
+      
+      
   - metadata_yaml: /g/data/tm70/intake/metadata/025deg_jra55_ryf9091_gadi/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-025/025deg_jra55_ryf9091_gadi
+      
 
   - metadata_yaml: /g/data/tm70/intake/metadata/025deg_jra55_iaf_omip2_cycle1/metadata.yaml
     path:
@@ -59,10 +243,12 @@ sources:
   - metadata_yaml: /g/data/tm70/intake/metadata/025deg_jra55_iaf_omip2_cycle6/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle6
+      
   
   - metadata_yaml: /g/data/tm70/intake/metadata/01deg_jra55v13_ryf9091/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-01/01deg_jra55v13_ryf9091
+      
     
   - metadata_yaml: /g/data/tm70/intake/metadata/01deg_jra55v140_iaf/metadata.yaml
     path:
@@ -83,6 +269,7 @@ sources:
   - metadata_yaml: /g/data/tm70/intake/metadata/01deg_jra55v140_iaf_cycle4_jra55v150_extension/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-01/01deg_jra55v140_iaf_cycle4_jra55v150_extension
+      
     
   - metadata_yaml: /g/data/tm70/intake/metadata/01deg_jra55v150_iaf_cycle1/metadata.yaml
     path:
