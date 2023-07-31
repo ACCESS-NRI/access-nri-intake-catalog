@@ -35,10 +35,10 @@ In order to use the catalog, you will need to have the following:
       Catalog users will only be able to load data from projects that they have access to.
 
 #. **An installation of the catalog**: the catalog is pre-installed in the 
-   `CLEX CMS "analysis3" conda environment <http://climate-cms.wikis.unsw.edu.au/Conda>`_ and the 
-   ACCESS-NRI "access-med" conda environment. Users are encouraged to use one of these environments to 
-   use the catalog. Alternatively, you can install the catalog into your own environment as described 
-   below.
+   `CLEX CMS "analysis3" conda environment <http://climate-cms.wikis.unsw.edu.au/Conda>`_ (>=23.04) and 
+   the ACCESS-NRI "access-med" conda environment (all versions). Users are encouraged to use one of these
+   environments to use the catalog. Alternatively, you can install the catalog into your own environment 
+   as described below.
 
    .. attention::
       In order to use the CLEX CMS conda environments, you will need to also be a member of the 
@@ -105,6 +105,6 @@ data it references are available from your session. In particular:
   session. As mentioned above, the easiest way to do this is to use either the :code:`hh5` or 
   :code:`xp65` public analysis environments. You can activate the :code:`hh5` environment within your 
   JupyterLab session using the "Advanced options" to set the "Module directories" to 
-  :code:`/g/data/hh5/public/modules` and "Modules" to :code:`conda/analysis3`. Similarly, to use the 
-  :code:`xp65` environment, set "Module directories" to :code:`/g/data/xp65/public/modules` and "Modules" 
-  to :code:`conda/are`.
+  :code:`/g/data/hh5/public/modules` and "Modules" to :code:`conda/analysis3-unstable`. Similarly, to use 
+  the :code:`xp65` environment, set "Module directories" to :code:`/g/data/xp65/public/modules` and 
+  "Modules" to :code:`conda/are`.
