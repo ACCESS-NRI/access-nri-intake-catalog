@@ -19,26 +19,30 @@ In order to use the catalog, you will need to have the following:
    Note you will need to join a project with a compute allocation. If you don't know what project is 
    appropriate you will need to seek help from your local group or IT support.
 
+#. **Access to the** :code:`xp65` **project**: this project houses the catalog table files. See the 
+   `NCI documentation for how to join projects <https://opus.nci.org.au/display/Help/How+to+connect+to+a+project>`_.
+
 #. **Access to the projects that house the data you're interested in**: the catalog references data 
    products across multiple projects on Gadi.  Currently, data is included from the following projects:
 
    .. include:: ../project_list.rst
 
    If you wish to be able to access all the data in the catalog, you will need to be a member of all 
-   these projects. See the `NCI documentation for how to join projects 
-   <https://opus.nci.org.au/display/Help/How+to+connect+to+a+project>`_.
+   these projects. 
 
    .. attention::
 
       Catalog users will only be able to load data from projects that they have access to.
 
-#. **Access to the** :code:`xp65` **or** :code:`hh5` **projects**: these projects provide public 
-   analysis environments in which the ACCESS-NRI catalog is installed (along with many other useful 
-   packages). Alternatively, you can install the catalog into your own environment.
+#. **An installation of the catalog**: the catalog is pre-installed in the 
+   `CLEX CMS "analysis3" conda environment <http://climate-cms.wikis.unsw.edu.au/Conda>`_ and the 
+   ACCESS-NRI "access-med" conda environment. Users are encouraged to use one of these environments to 
+   use the catalog. Alternatively, you can install the catalog into your own environment as described 
+   below.
 
-   .. warning::
-      The ACCESS-NRI catalog is actually not yet installed in the :code:`hh5` environments, so for now 
-      you'll have to use the :code:`xp65` environment.
+   .. attention::
+      In order to use the CLEX CMS conda environments, you will need to also be a member of the 
+      :code:`hh5` project
 
 .. _installation:
 
@@ -46,7 +50,7 @@ Installing the catalog
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Most users will not need to install the catalog themselves and will instead use the catalog through one 
-of the public analysis environments provided in either :code:`xp65` or :code:`hh5` (see below).
+of the public analysis environments provided in either :code:`hh5` or :code:`xp65` (see below).
 
 Advanced users that want to install the catalog into their own environment can do so in three ways:
 
@@ -86,22 +90,21 @@ data it references are available from your session. In particular:
 
 * **Setting the storage flags**: in addition to being a member of the projects you want to access, you 
   also have to explicity tell the JupyterLab app that you want to access them in your session. Specify 
-  the project storage paths by entering them in the “Storage” dropdown. To allow access to all data 
-  products in the catalog enter:
+  the project storage paths by entering them in the “Storage” dropdown. To allow access to the catalog 
+  and all the data products it contains enter:
 
   .. include:: ../storage_flags.rst
 
-  If you want to use the :code:`xp65` or :code:`hh5` analysis environment, you'll also need to add 
-  :code:`gdata/xp65` or :code:`gdata/hh5`, respectively.
+  If you want to use the :code:`hh5` analysis environment, you'll also need to add :code:`gdata/hh5`.
 
   .. attention::
      You need to be a member of all projects you enter here. You can see what projects you are part of 
      at `https://my.nci.org.au/mancini <https://my.nci.org.au/mancini>`_.
 
 * **Setting the environment**: you need to make sure that the catalog is installed in your JupyterLab 
-  session. As mentioned above, the easiest way to do this is to use either the :code:`xp65` or 
-  :code:`hh5` public analysis environments. You can activate the :code:`xp65` environment within your 
+  session. As mentioned above, the easiest way to do this is to use either the :code:`hh5` or 
+  :code:`xp65` public analysis environments. You can activate the :code:`hh5` environment within your 
   JupyterLab session using the "Advanced options" to set the "Module directories" to 
-  :code:`/g/data/xp65/public/modules` and "Modules" to :code:`conda/are`. Similarly, to use the 
-  :code:`hh5` environment, set "Module directories" to :code:`/g/data/hh5/public/modules` and "Modules" 
-  to :code:`conda/analysis3`.
+  :code:`/g/data/hh5/public/modules` and "Modules" to :code:`conda/analysis3`. Similarly, to use the 
+  :code:`xp65` environment, set "Module directories" to :code:`/g/data/xp65/public/modules` and "Modules" 
+  to :code:`conda/are`.
