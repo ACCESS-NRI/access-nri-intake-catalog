@@ -4,8 +4,13 @@
 from pathlib import Path
 
 import pytest
+import xarray as xr
 
-from access_nri_intake.source.utils import parse_access_filename, parse_access_ncfile
+from access_nri_intake.source.utils import (
+    get_timeinfo,
+    parse_access_filename,
+    parse_access_ncfile,
+)
 
 
 @pytest.mark.parametrize(
@@ -298,3 +303,41 @@ def test_parse_access_ncfile(test_data, filename, expected):
     file = str(test_data / Path(filename))
 
     assert parse_access_ncfile(file) == expected
+
+
+@pytest.mark.parametrize(
+    "start_end, expected",
+    [
+        ([0.0, 0.00625], ("1900-01-01, 00:00:00", "1900-01-01, 00:09:00", "subhr")),
+        ([0.0, 0.125], ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr")),
+        ([0.0, 0.25], ("1900-01-01, 00:00:00", "1900-01-01, 06:00:00", "6hr")),
+        ([0.0, 1.0], ("1900-01-01, 00:00:00", "1900-01-02, 00:00:00", "1day")),
+        ([0.0, 31.0], ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon")),
+        ([0.0, 90.0], ("1900-01-01, 00:00:00", "1900-04-01, 00:00:00", "3mon")),
+        ([0.0, 365.0], ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr")),
+        ([0.0, 730.0], ("1900-01-01, 00:00:00", "1902-01-01, 00:00:00", "2yr")),
+    ],
+)
+@pytest.mark.parametrize("bounds", [True, False])
+def test_get_timeinfo(start_end, expected, bounds):
+    if bounds:
+        time = (start_end[0] + start_end[1]) / 2
+        ds = xr.Dataset(
+            data_vars={
+                "dummy": ("time", [0]),
+                "time_bounds": (("time", "nv"), [start_end]),
+            },
+            coords={"time": [time]},
+        )
+        ds["time"].attrs = dict(bounds="time_bounds")
+    else:
+        ds = xr.Dataset(
+            data_vars={"dummy": ("time", [0, 0])},
+            coords={"time": start_end},
+        )
+
+    ds["time"].attrs |= dict(
+        units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
+    )
+
+    assert get_timeinfo(ds) == expected
