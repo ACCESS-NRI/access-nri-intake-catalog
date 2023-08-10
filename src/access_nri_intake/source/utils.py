@@ -70,8 +70,11 @@ def get_timeinfo(ds, time_dim="time"):
                 frequency = f"{months}mon"
             elif dt.days >= 1:
                 frequency = f"{dt.days}day"
+            elif dt.seconds >= 3600:
+                hours = round(dt.seconds / 3600)
+                frequency = f"{hours}hr"
             else:
-                frequency = f"{dt.seconds // 3600}hr"
+                frequency = "subhr"
 
         start_time = ts.strftime(time_format)
         end_time = te.strftime(time_format)
