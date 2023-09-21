@@ -17,50 +17,53 @@ from access_nri_intake.source.utils import (
     "filename, expected",
     [
         # Example ACCESS-CM2 filenames
-        ("bz687a.pm107912_mon", ("bz687a_pmXXXXXX_mon", "107912", "1mon")),
-        ("bz687a.p7107912_mon", ("bz687a_p7XXXXXX_mon", "107912", "1mon")),
-        ("bz687a.p7107912_dai", ("bz687a_p7XXXXXX_dai", "107912", "1day")),
+        ("bz687a.pm107912_mon", ("bz687a_pmXXXXXX_mon", "107912", (1, "mon"))),
+        ("bz687a.p7107912_mon", ("bz687a_p7XXXXXX_mon", "107912", (1, "mon"))),
+        ("bz687a.p7107912_dai", ("bz687a_p7XXXXXX_dai", "107912", (1, "day"))),
         ("iceh_m.2014-06", ("iceh_m_XXXX_XX", "2014-06", None)),
-        ("iceh.1917-05-daily", ("iceh_XXXX_XX_daily", "1917-05", "1day")),
-        ("ocean_bgc_ann", ("ocean_bgc_ann", None, "1yr")),
-        ("ocean_daily", ("ocean_daily", None, "1day")),
+        ("iceh.1917-05-daily", ("iceh_XXXX_XX_daily", "1917-05", (1, "day"))),
+        ("ocean_bgc_ann", ("ocean_bgc_ann", None, (1, "yr"))),
+        ("ocean_daily", ("ocean_daily", None, (1, "day"))),
         # Example ACCESS-ESM1.5 filenames
         (
             "PI-GWL-B2035.pe-109904_dai",
-            ("PI_GWL_B2035_pe_XXXXXX_dai", "109904", "1day"),
+            ("PI_GWL_B2035_pe_XXXXXX_dai", "109904", (1, "day")),
         ),
         (
             "PI-GWL-B2035.pa-109904_mon",
-            ("PI_GWL_B2035_pa_XXXXXX_mon", "109904", "1mon"),
+            ("PI_GWL_B2035_pa_XXXXXX_mon", "109904", (1, "mon")),
         ),
         (
             "PI-1pct-02.pe-011802_dai.nc_dai",
-            ("PI_1pct_02_pe_XXXXXX_dai_nc_dai", "011802", "1day"),
+            ("PI_1pct_02_pe_XXXXXX_dai_nc_dai", "011802", (1, "day")),
         ),
         ("iceh.1917-05", ("iceh_XXXX_XX", "1917-05", None)),
         # Example ACCESS-OM2 filenames
-        ("iceh.057-daily", ("iceh_XXX_daily", "057", "1day")),
+        ("iceh.057-daily", ("iceh_XXX_daily", "057", (1, "day"))),
         ("ocean", ("ocean", None, None)),
-        ("ocean_month", ("ocean_month", None, "1mon")),
-        ("ocean_daily_3d_vhrho_nt_07", ("ocean_daily_3d_vhrho_nt_XX", "07", "1day")),
+        ("ocean_month", ("ocean_month", None, (1, "mon"))),
+        (
+            "ocean_daily_3d_vhrho_nt_07",
+            ("ocean_daily_3d_vhrho_nt_XX", "07", (1, "day")),
+        ),
         (
             "oceanbgc-3d-caco3-1-yearly-mean-y_2015",
-            ("oceanbgc_3d_caco3_1_yearly_mean_y_XXXX", "2015", "1yr"),
+            ("oceanbgc_3d_caco3_1_yearly_mean_y_XXXX", "2015", (1, "yr")),
         ),
         (
             "oceanbgc-2d-wdet100-1-daily-mean-y_2015",
-            ("oceanbgc_2d_wdet100_1_daily_mean_y_XXXX", "2015", "1day"),
+            ("oceanbgc_2d_wdet100_1_daily_mean_y_XXXX", "2015", (1, "day")),
         ),
         (
             "ocean-3d-v-1-monthly-pow02-ym_1958_04",
-            ("ocean_3d_v_1_monthly_pow02_ym_XXXX_XX", "1958_04", "1mon"),
+            ("ocean_3d_v_1_monthly_pow02_ym_XXXX_XX", "1958_04", (1, "mon")),
         ),
         (
             "ocean-2d-sfc_salt_flux_restore-1-monthly-mean-ym_1958_04",
             (
                 "ocean_2d_sfc_salt_flux_restore_1_monthly_mean_ym_XXXX_XX",
                 "1958_04",
-                "1mon",
+                (1, "mon"),
             ),
         ),
         (
@@ -68,7 +71,7 @@ from access_nri_intake.source.utils import (
             (
                 "oceanbgc_3d_phy_1_daily_mean_3_sigfig_5_daily_ymd_XXXX_XX_XX",
                 "2020_12_01",
-                "1day",
+                (1, "day"),
             ),
         ),
         ("iceh.1985-08-31", ("iceh_XXXX_XX_XX", "1985-08-31", None)),
@@ -136,8 +139,8 @@ def test_parse_access_filename(filename, expected):
                 "ocean_month_inst_nobounds",
                 None,
                 "1mon",
-                "1900-01-16, 12:00:00",
-                "1900-01-16, 12:00:00",
+                "1900-01-01, 00:00:00",
+                "1900-02-01, 00:00:00",
                 ["mld"],
                 ["mixed layer depth determined by density criteria"],
                 ["ocean_mixed_layer_thickness_defined_by_sigma_t"],
@@ -306,38 +309,137 @@ def test_parse_access_ncfile(test_data, filename, expected):
 
 
 @pytest.mark.parametrize(
-    "start_end, expected",
+    "times, bounds, ffreq, expected",
     [
-        ([0.0, 0.00625], ("1900-01-01, 00:00:00", "1900-01-01, 00:09:00", "subhr")),
-        ([0.0, 0.125], ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr")),
-        ([0.0, 0.25], ("1900-01-01, 00:00:00", "1900-01-01, 06:00:00", "6hr")),
-        ([0.0, 1.0], ("1900-01-01, 00:00:00", "1900-01-02, 00:00:00", "1day")),
-        ([0.0, 31.0], ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon")),
-        ([0.0, 90.0], ("1900-01-01, 00:00:00", "1900-04-01, 00:00:00", "3mon")),
-        ([0.0, 365.0], ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr")),
-        ([0.0, 730.0], ("1900-01-01, 00:00:00", "1902-01-01, 00:00:00", "2yr")),
+        (
+            [365 / 2],
+            False,
+            (1, "yr"),
+            ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr"),
+        ),
+        (
+            [31 / 2],
+            False,
+            (1, "mon"),
+            ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon"),
+        ),
+        (
+            [1.5 / 24],
+            False,
+            (3, "hr"),
+            ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr"),
+        ),
+        (
+            [0.0, 9 / 60 / 24],
+            True,
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 00:09:00", "subhr"),
+        ),
+        (
+            [0.0, 3 / 24],
+            True,
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr"),
+        ),
+        (
+            [0.0, 6 / 24],
+            True,
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 06:00:00", "6hr"),
+        ),
+        (
+            [0.0, 1.0],
+            True,
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-02, 00:00:00", "1day"),
+        ),
+        (
+            [0.0, 31.0],
+            True,
+            None,
+            ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon"),
+        ),
+        (
+            [0.0, 90.0],
+            True,
+            None,
+            ("1900-01-01, 00:00:00", "1900-04-01, 00:00:00", "3mon"),
+        ),
+        (
+            [0.0, 365.0],
+            True,
+            None,
+            ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr"),
+        ),
+        (
+            [0.0, 730.0],
+            True,
+            None,
+            ("1900-01-01, 00:00:00", "1902-01-01, 00:00:00", "2yr"),
+        ),
+        (
+            [1.5 / 24, 4.5 / 24],
+            False,
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 06:00:00", "3hr"),
+        ),
+        (
+            [3 / 24, 9 / 24],
+            False,
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 12:00:00", "6hr"),
+        ),
+        (
+            [0.5, 1.5],
+            False,
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-03, 00:00:00", "1day"),
+        ),
+        (
+            [31 / 2, 45],
+            False,
+            None,
+            ("1900-01-01, 00:00:00", "1900-03-01, 00:00:00", "1mon"),
+        ),
+        (
+            [45, 135.5],
+            False,
+            None,
+            ("1900-01-01, 00:00:00", "1900-07-01, 00:00:00", "3mon"),
+        ),
+        (
+            [365 / 2, 365 + 365 / 2],
+            False,
+            None,
+            ("1900-01-01, 00:00:00", "1902-01-01, 00:00:00", "1yr"),
+        ),
+        (
+            [365, 3 * 365],
+            False,
+            None,
+            ("1900-01-01, 00:00:00", "1904-01-01, 00:00:00", "2yr"),
+        ),
     ],
 )
-@pytest.mark.parametrize("bounds", [True, False])
-def test_get_timeinfo(start_end, expected, bounds):
+def test_get_timeinfo(times, bounds, ffreq, expected):
     if bounds:
-        time = (start_end[0] + start_end[1]) / 2
+        time = (times[0] + times[1]) / 2
         ds = xr.Dataset(
             data_vars={
                 "dummy": ("time", [0]),
-                "time_bounds": (("time", "nv"), [start_end]),
+                "time_bounds": (("time", "nv"), [(times[0], times[1])]),
             },
             coords={"time": [time]},
         )
         ds["time"].attrs = dict(bounds="time_bounds")
     else:
         ds = xr.Dataset(
-            data_vars={"dummy": ("time", [0, 0])},
-            coords={"time": start_end},
+            data_vars={"dummy": ("time", [0] * len(times))},
+            coords={"time": times},
         )
 
     ds["time"].attrs |= dict(
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
 
-    assert get_timeinfo(ds) == expected
+    assert get_timeinfo(ds, filename_frequency=ffreq, time_dim="time") == expected

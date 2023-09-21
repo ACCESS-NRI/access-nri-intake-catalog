@@ -62,8 +62,8 @@ def _guess_start_end_dates(ts, te, frequency):
 
 def get_timeinfo(ds, filename_frequency, time_dim):
     """
-    Get start date, end date and frequency of a xarray dataset. Stolen and slightly adapted
-    from cosima cookbook, see
+    Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
+    cosima cookbook, see
     https://github.com/COSIMA/cosima-cookbook/blob/master/cosima_cookbook/database.py#L565
 
     Parameters
