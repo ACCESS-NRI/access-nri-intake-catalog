@@ -248,6 +248,7 @@ def parse_access_ncfile(file, time_dim="time"):
         variable_long_name_list = []
         variable_standard_name_list = []
         variable_cell_methods_list = []
+        variable_units_list = []
         for var in ds.data_vars:
             attrs = ds[var].attrs
             if "long_name" in attrs:
@@ -255,8 +256,16 @@ def parse_access_ncfile(file, time_dim="time"):
                 variable_long_name_list.append(attrs["long_name"])
                 if "standard_name" in attrs:
                     variable_standard_name_list.append(attrs["standard_name"])
+                else:
+                    variable_standard_name_list.append(None)
                 if "cell_methods" in attrs:
                     variable_cell_methods_list.append(attrs["cell_methods"])
+                else:
+                    variable_cell_methods_list.append(None)
+                if "units" in attrs:
+                    variable_units_list.append(attrs["units"])
+                else:
+                    variable_units_list.append(None)
 
         start_date, end_date, frequency = get_timeinfo(ds, filename_frequency, time_dim)
 
@@ -274,6 +283,7 @@ def parse_access_ncfile(file, time_dim="time"):
         variable_long_name_list,
         variable_standard_name_list,
         variable_cell_methods_list,
+        variable_units_list,
     )
 
     return outputs
