@@ -242,6 +242,7 @@ class AccessOm2Builder(BaseBuilder):
                 variable_long_name_list,
                 variable_standard_name_list,
                 variable_cell_methods_list,
+                variable_units_list,
             ) = parse_access_ncfile(file)
 
             info = {
@@ -254,6 +255,7 @@ class AccessOm2Builder(BaseBuilder):
                 "variable_long_name": variable_long_name_list,
                 "variable_standard_name": variable_standard_name_list,
                 "variable_cell_methods": variable_cell_methods_list,
+                "variable_units": variable_units_list,
                 "filename": filename,
                 "file_id": file_id,
             }
@@ -330,6 +332,7 @@ class AccessEsm15Builder(BaseBuilder):
                 variable_long_name_list,
                 variable_standard_name_list,
                 variable_cell_methods_list,
+                variable_units_list,
             ) = parse_access_ncfile(file)
 
             # Remove exp_id from file id so that members can be part of the same dataset
@@ -346,6 +349,7 @@ class AccessEsm15Builder(BaseBuilder):
                 "variable_long_name": variable_long_name_list,
                 "variable_standard_name": variable_standard_name_list,
                 "variable_cell_methods": variable_cell_methods_list,
+                "variable_units": variable_units_list,
                 "filename": filename,
                 "file_id": file_id,
             }
