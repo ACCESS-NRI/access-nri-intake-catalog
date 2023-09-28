@@ -5,6 +5,7 @@
 
 import re
 import warnings
+from datetime import timedelta
 from pathlib import Path
 
 import cftime
@@ -15,10 +16,56 @@ class EmptyFileError(Exception):
     pass
 
 
-def get_timeinfo(ds, time_dim="time"):
+def _add_month_start(time, n):
+    """Add months to cftime datetime and truncate to start"""
+    year = time.year + ((time.month + n - 1) // 12)
+    month = (time.month + n - 1) % 12 + 1
+    return time.replace(
+        year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+def _add_year_start(time, n):
+    """Add years to cftime datetime and truncate to start"""
+    return time.replace(
+        year=time.year + n, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+def _guess_start_end_dates(ts, te, frequency):
+    """Guess the start and end bounded times for a given frequency"""
+    warnings.warn(
+        "Time coordinate does not include bounds information. Guessing "
+        "start and end times."
+    )
+    num, unit = frequency
+    if unit == "yr":
+        step_back = -int(num / 2)
+        step_fwd = num + step_back
+        ts = _add_year_start(ts, step_back)
+        te = _add_year_start(te, step_fwd)
+    elif unit == "mon":
+        step_back = -int(num / 2)
+        step_fwd = num + step_back
+        ts = _add_month_start(ts, step_back)
+        te = _add_month_start(te, step_fwd)
+    elif unit == "day":
+        dt = timedelta(days=num) / 2
+        ts = ts - dt
+        te = te + dt
+    elif unit == "hr":
+        dt = timedelta(hours=num) / 2
+        ts = ts - dt
+        te = te + dt
+    else:
+        warnings.warn("Cannot infer start and end times for subhourly frequencies.")
+    return ts, te
+
+
+def get_timeinfo(ds, filename_frequency, time_dim):
     """
-    Get start time, end time and frequency of a xarray dataset. Stolen and slightly adapted
-    from cosima cookbook, see
+    Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
+    cosima cookbook, see
     https://github.com/COSIMA/cosima-cookbook/blob/master/cosima_cookbook/database.py#L565
 
     Parameters
@@ -33,11 +80,12 @@ def get_timeinfo(ds, time_dim="time"):
         return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
 
     time_format = "%Y-%m-%d, %H:%M:%S"
-    start_time = "none"
-    end_time = "none"
+    start_date = "none"
+    end_date = "none"
     frequency = "fx"
+    has_time = time_dim in ds
 
-    if time_dim in ds:
+    if has_time:
         time_var = ds[time_dim]
 
         if len(time_var) == 0:
@@ -64,22 +112,40 @@ def get_timeinfo(ds, time_dim="time"):
             # TODO: This is not a very good way to get the frequency
             if dt.days >= 365:
                 years = round(dt.days / 365)
-                frequency = f"{years}yr"
+                frequency = (years, "yr")
             elif dt.days >= 28:
                 months = round(dt.days / 30)
-                frequency = f"{months}mon"
+                frequency = (months, "mon")
             elif dt.days >= 1:
-                frequency = f"{dt.days}day"
+                frequency = (dt.days, "day")
             elif dt.seconds >= 3600:
                 hours = round(dt.seconds / 3600)
-                frequency = f"{hours}hr"
+                frequency = (hours, "hr")
             else:
-                frequency = "subhr"
+                frequency = (None, "subhr")
 
-        start_time = ts.strftime(time_format)
-        end_time = te.strftime(time_format)
+    if filename_frequency:
+        if filename_frequency != frequency:
+            msg = (
+                f"The frequency '{filename_frequency}' determined from filename does not "
+                f"match the frequency '{frequency}' determined from the file contents."
+            )
+            if frequency == "fx":
+                frequency = filename_frequency
+            warnings.warn(f"{msg} Using '{frequency}'.")
 
-    return (start_time, end_time, frequency)
+    if has_time & (frequency != "fx"):
+        if not has_bounds:
+            ts, te = _guess_start_end_dates(ts, te, frequency)
+        start_date = ts.strftime(time_format)
+        end_date = te.strftime(time_format)
+
+    if frequency[0]:
+        frequency = f"{str(frequency[0])}{frequency[1]}"
+    else:
+        frequency = frequency[1]
+
+    return start_date, end_date, frequency
 
 
 def parse_access_filename(filename):
@@ -117,12 +183,12 @@ def parse_access_filename(filename):
     }
     # Frequency translations
     frequencies = {
-        "daily": "1day",
-        "_dai$": "1day",
-        "month": "1mon",
-        "_mon$": "1mon",
-        "yearly": "1yr",
-        "_ann$": "1yr",
+        "daily": (1, "day"),
+        "_dai$": (1, "day"),
+        "month": (1, "mon"),
+        "_mon$": (1, "mon"),
+        "yearly": (1, "yr"),
+        "_ann$": (1, "yr"),
     }
     redaction_fill = "X"
 
@@ -151,7 +217,7 @@ def parse_access_filename(filename):
     return file_id, timestamp, frequency
 
 
-def parse_access_ncfile(file):
+def parse_access_ncfile(file, time_dim="time"):
     """
     Get Intake-ESM datastore entry info from an ACCESS netcdf file
 
@@ -159,6 +225,8 @@ def parse_access_ncfile(file):
     ----------
     file: str
         The path to the netcdf file
+    time_dim: str
+        The name of the time dimension
 
     Returns
     -------
@@ -190,20 +258,10 @@ def parse_access_ncfile(file):
                 if "cell_methods" in attrs:
                     variable_cell_methods_list.append(attrs["cell_methods"])
 
-        start_date, end_date, frequency = get_timeinfo(ds)
+        start_date, end_date, frequency = get_timeinfo(ds, filename_frequency, time_dim)
 
     if not variable_list:
         raise EmptyFileError("This file contains no variables")
-
-    if filename_frequency:
-        if filename_frequency != frequency:
-            msg = (
-                f"The frequency '{filename_frequency}' determined from filename {filename} does not "
-                f"match the frequency '{frequency}' determined from the file contents."
-            )
-            if frequency == "fx":
-                frequency = filename_frequency
-            warnings.warn(f"{msg} Using '{frequency}'.")
 
     outputs = (
         filename,
