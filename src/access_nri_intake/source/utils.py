@@ -27,7 +27,9 @@ def _add_month_start(time, n):
 
 def _add_year_start(time, n):
     """Add years to cftime datetime and truncate to start"""
-    return time.replace(year=time.year + n, month=1, day=1, hour=0, minute=0, second=0)
+    return time.replace(
+        year=time.year + n, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
 
 
 def _guess_start_end_dates(ts, te, frequency):
@@ -81,8 +83,9 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     start_date = "none"
     end_date = "none"
     frequency = "fx"
+    has_time = time_dim in ds
 
-    if time_dim in ds:
+    if has_time:
         time_var = ds[time_dim]
 
         if len(time_var) == 0:
@@ -131,7 +134,7 @@ def get_timeinfo(ds, filename_frequency, time_dim):
                 frequency = filename_frequency
             warnings.warn(f"{msg} Using '{frequency}'.")
 
-    if frequency != "fx":
+    if has_time & (frequency != "fx"):
         if not has_bounds:
             ts, te = _guess_start_end_dates(ts, te, frequency)
         start_date = ts.strftime(time_format)
