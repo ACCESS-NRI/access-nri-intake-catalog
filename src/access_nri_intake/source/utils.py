@@ -257,15 +257,15 @@ def parse_access_ncfile(file, time_dim="time"):
                 if "standard_name" in attrs:
                     variable_standard_name_list.append(attrs["standard_name"])
                 else:
-                    variable_standard_name_list.append(None)
+                    variable_standard_name_list.append("")
                 if "cell_methods" in attrs:
                     variable_cell_methods_list.append(attrs["cell_methods"])
                 else:
-                    variable_cell_methods_list.append(None)
+                    variable_cell_methods_list.append("")
                 if "units" in attrs:
                     variable_units_list.append(attrs["units"])
                 else:
-                    variable_units_list.append(None)
+                    variable_units_list.append("")
 
         start_date, end_date, frequency = get_timeinfo(ds, filename_frequency, time_dim)
 
