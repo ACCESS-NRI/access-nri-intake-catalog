@@ -22,6 +22,7 @@ from access_nri_intake.source.utils import (
         ("bz687a.p7107912_dai", ("bz687a_p7XXXXXX_dai", "107912", (1, "day"))),
         ("iceh_m.2014-06", ("iceh_m_XXXX_XX", "2014-06", None)),
         ("iceh.1917-05-daily", ("iceh_XXXX_XX_daily", "1917-05", (1, "day"))),
+        ("iceh_03h.2016-01-3hourly", ("iceh_03h_XXXX_XX_3hourly", "2016-01", None)),
         ("ocean_bgc_ann", ("ocean_bgc_ann", None, (1, "yr"))),
         ("ocean_daily", ("ocean_daily", None, (1, "day"))),
         # Example ACCESS-ESM1.5 filenames
@@ -40,19 +41,20 @@ from access_nri_intake.source.utils import (
         ("iceh.1917-05", ("iceh_XXXX_XX", "1917-05", None)),
         # Example ACCESS-OM2 filenames
         ("iceh.057-daily", ("iceh_XXX_daily", "057", (1, "day"))),
+        ("iceh.1985-08-31", ("iceh_XXXX_XX_XX", "1985-08-31", None)),
         ("ocean", ("ocean", None, None)),
         ("ocean_month", ("ocean_month", None, (1, "mon"))),
         (
+            "ocean-2d-area_t",
+            ("ocean_2d_area_t", None, None),
+        ),
+        (
+            "ocean_daily_3d_pot_rho_1",
+            ("ocean_daily_3d_pot_rho_1", None, (1, "day")),
+        ),
+        (
             "ocean_daily_3d_vhrho_nt_07",
             ("ocean_daily_3d_vhrho_nt_XX", "07", (1, "day")),
-        ),
-        (
-            "oceanbgc-3d-caco3-1-yearly-mean-y_2015",
-            ("oceanbgc_3d_caco3_1_yearly_mean_y_XXXX", "2015", (1, "yr")),
-        ),
-        (
-            "oceanbgc-2d-wdet100-1-daily-mean-y_2015",
-            ("oceanbgc_2d_wdet100_1_daily_mean_y_XXXX", "2015", (1, "day")),
         ),
         (
             "ocean-3d-v-1-monthly-pow02-ym_1958_04",
@@ -67,6 +69,30 @@ from access_nri_intake.source.utils import (
             ),
         ),
         (
+            "ocean-2d-sea_level-540-seconds-snap-ym_2022_04_01",
+            (
+                "ocean_2d_sea_level_540_seconds_snap_ym_XXXX_XX_XX",
+                "2022_04_01",
+                None,
+            ),
+        ),
+        (
+            "ocean-3d-salt-1-daily-mean-ym_2018_10_jmax511_sigfig4",
+            (
+                "ocean_3d_salt_1_daily_mean_ym_XXXX_XX_jmax511_sigfig4",
+                "2018_10",
+                (1, "day"),
+            ),
+        ),
+        (
+            "oceanbgc-3d-caco3-1-yearly-mean-y_2015",
+            ("oceanbgc_3d_caco3_1_yearly_mean_y_XXXX", "2015", (1, "yr")),
+        ),
+        (
+            "oceanbgc-2d-wdet100-1-daily-mean-y_2015",
+            ("oceanbgc_2d_wdet100_1_daily_mean_y_XXXX", "2015", (1, "day")),
+        ),
+        (
             "oceanbgc-3d-phy-1-daily-mean-3-sigfig-5-daily-ymd_2020_12_01",
             (
                 "oceanbgc_3d_phy_1_daily_mean_3_sigfig_5_daily_ymd_XXXX_XX_XX",
@@ -74,7 +100,10 @@ from access_nri_intake.source.utils import (
                 (1, "day"),
             ),
         ),
-        ("iceh.1985-08-31", ("iceh_XXXX_XX_XX", "1985-08-31", None)),
+        (
+            "rregionPrydz_temp_xflux_adv",
+            ("rregionPrydz_temp_xflux_adv", None, None),
+        ),
     ],
 )
 def test_parse_access_filename(filename, expected):
