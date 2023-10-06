@@ -261,6 +261,7 @@ sources:
   - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle3/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle3
+      - /g/data/ik11/outputs/access-om2-01/01deg_jra55v140_iaf_cycle3
     
   - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v140_iaf_cycle4/metadata.yaml
     path:
