@@ -169,18 +169,19 @@ def parse_access_filename(filename):
     """
 
     # ACCESS output file patterns
-    patterns = {
-        r"^iceh.*\.(\d{4}-\d{2}-\d{2})$",
-        r"^iceh.*\.(\d{4}-\d{2})$",
-        r"^iceh.*\.(\d{4}-\d{2})-.[^\d].*",
-        r"^iceh.*\.(\d{3})-.[^\d].*",
-        r"^ocean.*[^\d]_(\d{4}_\d{2}_\d{2})$",
-        r"^ocean.*[^\d]_(\d{4}_\d{2})$",
-        r"^ocean.*[^\d]_(\d{4})$",
+    not_multi_digit = "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))"
+    ymd = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}"
+    ym = "\\d{4}[_,-]\\d{2}"
+    y = "\\d{4}"
+    patterns = [
+        rf"^iceh.*\.({ymd}|{ym})$",
+        rf"^iceh.*\.({ym})-{not_multi_digit}.*",
+        rf"^iceh.*\.(\d{{3}})-{not_multi_digit}.*",
+        rf"^ocean.*[_,-](?:ymd|ym|y)_({ymd}|{ym}|{y})(?:$|[_,-]{not_multi_digit}.*)",
         r"^ocean.*[^\d]_(\d{2})$",
         r"^.*\.p.(\d{6})_.*",
         r"^.*\.p.-(\d{6})_.*",
-    }
+    ]
     # Frequency translations
     frequencies = {
         "daily": (1, "day"),
