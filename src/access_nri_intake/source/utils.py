@@ -174,13 +174,13 @@ def parse_access_filename(filename):
     ym = "\\d{4}[_,-]\\d{2}"
     y = "\\d{4}"
     patterns = [
-        rf"^iceh.*\.({ymd}|{ym})$",
-        rf"^iceh.*\.({ym})-{not_multi_digit}.*",
-        rf"^iceh.*\.(\d{{3}})-{not_multi_digit}.*",
-        rf"^ocean.*[_,-](?:ymd|ym|y)_({ymd}|{ym}|{y})(?:$|[_,-]{not_multi_digit}.*)",
-        r"^ocean.*[^\d]_(\d{2})$",
-        r"^.*\.p.(\d{6})_.*",
-        r"^.*\.p.-(\d{6})_.*",
+        rf"^iceh.*\.({ymd}|{ym})$",  # ACCESS-ESM1.5/OM2 ice
+        rf"^iceh.*\.({ym})-{not_multi_digit}.*",  # ACCESS-CM2 ice
+        rf"^iceh.*\.(\d{{3}})-{not_multi_digit}.*",  # ACCESS-OM2 ice
+        rf"^ocean.*[_,-](?:ymd|ym|y)_({ymd}|{ym}|{y})(?:$|[_,-]{not_multi_digit}.*)",  # ACCESS-OM2 ocean
+        r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
+        r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
+        r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
     ]
     # Frequency translations
     frequencies = {
