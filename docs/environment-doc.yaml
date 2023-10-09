@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - python==3.11
+  - astroid<3.0 # see https://github.com/readthedocs/sphinx-autoapi/issues/407
   - hdf5
   - ipython
   - numpy

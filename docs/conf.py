@@ -45,7 +45,7 @@ numpydoc_class_members_toctree = False
 # autoapi directives
 autoapi_dirs = ["../src/access_nri_intake"]
 autoapi_add_toctree_entry = False
-autoapi_ignore = ["*/*.ipynb_checkpoints"]
+autoapi_ignore = ["*/.ipynb_checkpoints", "*/_version.py", "*/__init__.py"]
 autoapi_python_class_content = "both"
 autoapi_options = [
     "members",
