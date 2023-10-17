@@ -158,7 +158,7 @@ class CatalogManager:
 
         if isinstance(path, list):
             if len(path) != 1:
-                raise ValueError(
+                raise CatalogManagerError(
                     f"Only a single data source can be passed to CatalogManager.load. Received {len(path)}"
                 )
             path = path[0]
