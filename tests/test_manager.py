@@ -25,7 +25,7 @@ def test_CatalogManager_init(tmp_path):
     assert hasattr(cat, "dfcat")
 
     with pytest.raises(CatalogManagerError) as excinfo:
-        cat.add()
+        cat._add()
     assert "first load or build the source" in str(excinfo.value)
 
 
@@ -55,7 +55,7 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
         directory=str(tmp_path),
         **kwargs,
     )
-    cat.build_esm(**args).add()
+    cat.build_esm(**args)
 
     # Try to rebuild without setting overwrite
     with pytest.raises(CatalogManagerError) as excinfo:
@@ -63,8 +63,9 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
     assert "An Intake-ESM datastore already exists" in str(excinfo.value)
 
     # Overwrite
-    cat.build_esm(**args, overwrite=True).add()
+    cat.build_esm(**args, overwrite=True)
 
+    cat.save()
     cat = CatalogManager(path)
     assert cat.mode == "a"
 
@@ -89,7 +90,8 @@ def test_CatalogManager_load(tmp_path, test_data, translator, datastore, metadat
         translator=translator,
         metadata=metadata,
     )
-    cat.load(**args).add()
+    cat.load(**args)
+    cat.save()
 
     cat = CatalogManager(path)
     assert cat.mode == "a"
@@ -112,7 +114,7 @@ def test_CatalogManager_load_error(tmp_path, test_data):
     # Test fails when len > 1
     with pytest.raises(ValueError) as excinfo:
         cat.load(**args, path=[path, path])
-    assert "Only a single JSON file" in str(excinfo.value)
+    assert "Only a single data source" in str(excinfo.value)
 
 
 def test_CatalogManager_all(tmp_path, test_data):
@@ -129,7 +131,10 @@ def test_CatalogManager_all(tmp_path, test_data):
     )
     cat.load(
         **load_args,
-    ).add()
+    )
+    assert len(cat.dfcat) == 1
+    cat.save()
+    assert len(CatalogManager(path).dfcat) == 1
 
     # Build source
     cat.build_esm(
@@ -143,12 +148,15 @@ def test_CatalogManager_all(tmp_path, test_data):
             ]
         ),
         directory=str(tmp_path),
-    ).add()
-
+    )
+    # Still only one entry on disk
     assert len(cat.dfcat) == 2
+    assert len(CatalogManager(path).dfcat) == 1
 
     # Check that entry with same name overwrites correctly
     cat.load(
         **load_args,
-    ).add()
+    )
     assert len(cat.dfcat) == 2
+    cat.save()
+    assert len(CatalogManager(path).dfcat) == 2
