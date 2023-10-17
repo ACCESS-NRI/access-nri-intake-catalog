@@ -18,8 +18,8 @@ YAML_COLUMN = "yaml"
 NAME_COLUMN = "name"
 TRANSLATOR_GROUPBY_COLUMNS = ["model", "realm", "frequency"]
 
-SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/d4da77a0e627775c11ba394c0a3f72a2c654971c/experiment_asset.json"
-SCHEMA_HASH = "b18cf5bdd06a6f5bcdc71dfc80f7336c63eb49f6d6f75c2cd3371e59eee5488b"
+SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/36abe2fe28eb2853a54f41c5eedfd964617d9d68/experiment_asset.json"
+SCHEMA_HASH = "60d439a9ad5602464c7dad54072ac276d1fae3634f9524edcc82073a5a92616a"
 
 EXP_JSONSCHEMA, CATALOG_JSONSCHEMA = get_jsonschema(
     url=SCHEMA_URL, known_hash=SCHEMA_HASH, required=CORE_COLUMNS
