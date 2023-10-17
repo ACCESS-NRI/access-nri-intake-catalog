@@ -188,13 +188,13 @@ def build():
     storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project]))
 
     # Build the catalog
+    cm = CatalogManager(path=metacatalog_path)
     for method, args in parsed_sources:
-        man = CatalogManager(path=metacatalog_path)
         logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_path}'")
-        getattr(man, method)(**args).add()
+        getattr(cm, method)(**args)
 
     # Write catalog yaml file
-    cat = man.dfcat
+    cat = cm.dfcat
     cat.name = "access_nri"
     cat.description = "ACCESS-NRI intake catalog"
     yaml_dict = yaml.safe_load(cat.yaml())
@@ -210,6 +210,9 @@ def build():
     yaml_dict["sources"]["access_nri"]["parameters"] = {
         "version": {"description": "Catalog version", "type": "str", "default": version}
     }
+
+    # Save the catalog
+    cm.save()
 
     _here = os.path.abspath(os.path.dirname(__file__))
     if update:
