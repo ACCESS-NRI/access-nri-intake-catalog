@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
@@ -5,7 +7,7 @@ import argparse
 
 import yaml
 
-from access_nri_intake.catalog import METADATA_JSONSCHEMA
+from access_nri_intake.catalog import EXP_JSONSCHEMA
 
 
 def main():
@@ -14,8 +16,8 @@ def main():
     )
 
     template = {}
-    for name, descr in METADATA_JSONSCHEMA["properties"].items():
-        if name in METADATA_JSONSCHEMA["required"]:
+    for name, descr in EXP_JSONSCHEMA["properties"].items():
+        if name in EXP_JSONSCHEMA["required"]:
             description = f"<REQUIRED {descr['description']}>"
         else:
             description = f"<{descr['description']}>"

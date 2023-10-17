@@ -12,7 +12,7 @@ variable:
 - <The variable(s) included in the experiment (string)>
 nominal_resolution:
 - <The nominal resolution(s) of model(s) used in the experiment (string)>
-version: <The version of the experiment (number)>
+version: <The version of the experiment (number, string)>
 contact: <Contact name for the experiment (string)>
 email: <Email address of the contact for the experiment (string)>
 created: <Initial creation date of experiment (string)>
