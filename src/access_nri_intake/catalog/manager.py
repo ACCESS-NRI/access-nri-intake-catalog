@@ -69,7 +69,7 @@ class CatalogManager:
         **kwargs,
     ):
         """
-        Build an Intake-ESM datastore
+        Build an Intake-ESM datastore and add it to the catalog
 
         Parameters
         ----------
@@ -81,29 +81,30 @@ class CatalogManager:
             The builder to use to build the Intake-ESM datastore
         path: str or list of str
             Path or list of paths to crawl for assets/files to add to the Intake-ESM datastore.
-        translator: :py:class:`~access_nri_intake.catalog.translators.DefaultTranslator`
+        translator: :py:class:`~access_nri_intake.catalog.translators.DefaultTranslator`, optional
             An instance of the :py:class:`~access_nri_intake.catalog.translators.DefaultTranslator` class
             for translating info in the Intake-ESM datastore into intake-dataframe-catalog column metadata.
-            Defaults to access_nri_intake.catalog.translators.DefaultTranslator.
+            Defaults to access_nri_intake.catalog.translators.DefaultTranslator
         metadata: dict, optional
             Additional info to store in the intake cat.metadata attribute. This info will be available
             to the translator and to users of the Intake-ESM datastore
         directory: str
             The directory to save the Intake-ESM datastore to. If None, use the current directory
         overwrite: bool, optional
-            Whether to overwrite any existing entries in the catalog with the same name
+            Whether to overwrite if an Intake-ESM datastore with the same name already exists
         kwargs: dict
             Additional kwargs to pass to the builder
         """
 
         metadata = metadata or {}
+        directory = directory or ""
 
         json_file = os.path.abspath(f"{os.path.join(directory, name)}.json")
         if os.path.isfile(json_file):
             if not overwrite:
                 raise CatalogManagerError(
                     f"An Intake-ESM datastore already exists for {name}. To overwrite, "
-                    "pass `overwrite=True` to CatalogBuilder.build"
+                    "pass `overwrite=True` to CatalogBuilder.build_esm"
                 )
 
         builder = builder(path, **kwargs).build()
@@ -111,6 +112,7 @@ class CatalogManager:
 
         self.source, self.source_metadata = _open_and_translate(
             json_file,
+            "esm_datastore",
             name,
             description,
             metadata,
@@ -118,61 +120,60 @@ class CatalogManager:
             columns_with_iterables=list(builder.columns_with_iterables),
         )
 
-        return self
+        self._add()
 
     def load(
         self,
         name,
         description,
         path,
-        translator,
+        driver="esm_datastore",
+        translator=DefaultTranslator,
         metadata=None,
         **kwargs,
     ):
         """
-        Load an existing intake catalog and add it to the catalog
+        Load an existing data source using Intake and add it to the catalog
 
         Parameters
         ----------
         name: str
-            The name of the catalog
+            The name of the data source
         description: str
-            Description of the contents of the catalog
+            Description of the contents of the data source
         path: str
-            The path to the intake-esm catalog JSON file
-        translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`
+            The path to the Intake data source
+        driver: str
+            The name of the Intake driver to use to open the data source
+        translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`, optional
             An instance of the :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator` class for
-            translating intake-esm column metadata into intake-dataframe-catalog column metadata
+            translating data source metadata into intake-dataframe-catalog column metadata. Defaults to
+            access_nri_intake.catalog.translators.DefaultTranslator
         metadata: dict, optional
-            Additional info to store in the intake cat.metadata attribute. This info will be available to
-            the translator and to users of the catalog
+            Additional info to store in the intake metadata attribute for this data source. This info will be
+            available to the translator and to users of the catalog
         kwargs: dict, optional
-            Additional kwargs to pass to :py:class:`~intake.open_esm_datastore`
+            Additional kwargs to pass to :py:class:`~intake.open_<driver>`
         """
 
         if isinstance(path, list):
             if len(path) != 1:
-                raise ValueError(
-                    "Only a single JSON file can be passed to CatalogManager.load_esm. Received {len(path)}"
+                raise CatalogManagerError(
+                    f"Only a single data source can be passed to CatalogManager.load. Received {len(path)}"
                 )
             path = path[0]
 
         metadata = metadata or {}
 
         self.source, self.source_metadata = _open_and_translate(
-            path, name, description, metadata, translator, **kwargs
+            path, driver, name, description, metadata, translator, **kwargs
         )
 
-        return self
+        self._add()
 
-    def add(self, **kwargs):
+    def _add(self):
         """
         Add a source to the catalog
-
-        Parameters
-        ----------
-        kwargs: dict, optional
-            Additional keyword arguments passed to :py:func:`~pandas.DataFrame.to_csv`.
         """
 
         if self.source is None:
@@ -183,7 +184,7 @@ class CatalogManager:
         # Overwrite the catalog name with the name_column entry in metadata
         name = self.source_metadata[NAME_COLUMN].unique()
         if len(name) != 1:
-            raise ValueError(
+            raise CatalogManagerError(
                 f"Metadata column '{NAME_COLUMN}' must be the same for all rows in source_metadata "
                 "since this corresponds to the source name"
             )
@@ -199,19 +200,31 @@ class CatalogManager:
             self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
             overwrite = False
 
+    def save(self, **kwargs):
+        """
+        Save the catalog
+
+        Parameters
+        ----------
+        kwargs: dict, optional
+            Additional keyword arguments passed to :py:func:`~pandas.DataFrame.to_csv`.
+        """
         self.dfcat.save(**kwargs)
 
 
-def _open_and_translate(json_file, name, description, metadata, translator, **kwargs):
+def _open_and_translate(
+    file, driver, name, description, metadata, translator, **kwargs
+):
     """
-    Open an esm-datastore, assign name, description and metadata attrs and
+    Open an Intake data source, assign name, description and metadata attrs and
     translate using the provided translator
     """
-    cat = intake.open_esm_datastore(json_file, **kwargs)
-    cat.name = name
-    cat.description = description
-    cat.metadata = metadata
+    open_ = getattr(intake, f"open_{driver}")
+    source = open_(file, **kwargs)
+    source.name = name
+    source.description = description
+    source.metadata = metadata
 
-    metadata = translator(cat, CORE_COLUMNS).translate(TRANSLATOR_GROUPBY_COLUMNS)
+    metadata = translator(source, CORE_COLUMNS).translate(TRANSLATOR_GROUPBY_COLUMNS)
 
-    return cat, metadata
+    return source, metadata
