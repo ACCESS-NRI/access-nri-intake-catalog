@@ -112,7 +112,7 @@ def test_CatalogManager_load_error(tmp_path, test_data):
     cat.load(**args, path=[path])
 
     # Test fails when len > 1
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(CatalogManagerError) as excinfo:
         cat.load(**args, path=[path, path])
     assert "Only a single data source" in str(excinfo.value)
 
