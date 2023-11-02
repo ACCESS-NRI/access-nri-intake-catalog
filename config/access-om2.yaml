@@ -7,12 +7,22 @@ sources:
   - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi
-      
-    
+
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55v14_ryf/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55v14_ryf
+
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_era5_ryf/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_era5_ryf
+
+
   - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle1/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle1
-    
+
   - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle2/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2_cycle2
@@ -213,11 +223,31 @@ sources:
   - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle45/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_omip2spunup_cycle45
+
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_era5comparison/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_iaf_era5comparison
+
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_era5_iaf/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_era5_iaf
       
       
   - metadata_yaml: /g/data/ik11/outputs/access-om2-025/025deg_jra55_ryf9091_gadi/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-025/025deg_jra55_ryf9091_gadi
+
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2-025/025deg_jra55_ryf_era5comparison/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_ryf_era5comparison
+
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2-025/025deg_era5_ryf/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2-025/025deg_era5_ryf
       
 
   - metadata_yaml: /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle1/metadata.yaml
@@ -243,8 +273,18 @@ sources:
   - metadata_yaml: /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle6/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle6
-      
-  
+
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_era5comparison/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_era5comparison
+
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2-025/025deg_era5_iaf/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2-025/025deg_era5_iaf
+
+
   - metadata_yaml: /g/data/ik11/outputs/access-om2-01/01deg_jra55v13_ryf9091/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-01/01deg_jra55v13_ryf9091
