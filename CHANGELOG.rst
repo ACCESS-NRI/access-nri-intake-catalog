@@ -4,7 +4,7 @@ Changelog
 0.1.0
 -----
 
-Not yet released
+03/11/2023
 
 - First official release
 
