@@ -7,8 +7,8 @@ dependencies:
   - python==3.10
   - cftime
   - ecgtools>=2023.7.13
-  - intake-dataframe-catalog>=0.2.2
-  - intake-esm>=2023.7.7
+  - intake-dataframe-catalog>=0.2.3
+  - intake-esm>=2023.10.27
   - jsonschema
   - pooch
   - pre-commit
