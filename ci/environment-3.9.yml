@@ -7,7 +7,7 @@ dependencies:
   - python>=3.9.2 # see https://github.com/dask/distributed/issues/7956
   - cftime
   - ecgtools>=2023.7.13
-  - intake-dataframe-catalog>=0.2.2
+  - intake-dataframe-catalog>=0.2.3
   - intake-esm>=2023.10.27
   - jsonschema
   - pooch
