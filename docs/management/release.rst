@@ -15,6 +15,13 @@ not include an update to the catalog on Gadi, skip the first two steps below:
       $ export RELEASE=vX.X.X
       $ cd bin
       $ qsub -v version=${RELEASE} build_all.sh
+
+   #. If the `schema <https://github.com/ACCESS-NRI/schema>`_ has changed, or you have not used the intake catalog recently, this step may fail with a *Network is unreachable* error trying to download the schema json files. To workaround::
+      
+      $ module use /g/data/hh5/public/modules/; module load conda/analysis3
+      $ python3 -c "from access_nri_intake import source, catalog"
+
+      This will cache a copy of the schema in your home directory. Then re-run ``$ qsub -v version=${RELEASE} build_all.sh``
     
 #. [IF UPDATING THE CATALOG] Upon successful completion of the previous step, the :code:`access_nri_intake` data package module 
    will be updated to point at the new version just created. Commit this update::
