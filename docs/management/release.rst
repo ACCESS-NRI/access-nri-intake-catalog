@@ -16,7 +16,7 @@ not include an update to the catalog on Gadi, skip the first two steps below:
       $ cd bin
       $ qsub -v version=${RELEASE} build_all.sh
    .. note:: 
-      If the `schema <https://github.com/ACCESS-NRI/schema>`_ has changed, or you have not used the intake catalog recently, this step may fail with a *Network is unreachable* error trying to download the schema json files. To download and cache the schema, first import the `access_nri_intake.source` and `access_nri_intake.catalog` sub-packages from a Gadi node with network access (e.g. a login or ARE node). I.e., using the release version of `access_nri_intake`
+      If the `schema <https://github.com/ACCESS-NRI/schema>`_ has changed, or you have not used the intake catalog recently, this step may fail with a *Network is unreachable* error trying to download the schema json files. To download and cache the schema, first import the :code:`access_nri_intake.source` and :code:`access_nri_intake.catalog` sub-packages from a Gadi node with network access (e.g. a login or ARE node). I.e., using the release version of :code:`access_nri_intake`
       ::
          $ python3 -c "from access_nri_intake import source, catalog"
       
