@@ -75,7 +75,7 @@ nb_execution_excludepatterns = [
 html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
 html_context = {
-    "github_user": "dougiesquire",
+    "github_user": "ACCESS-NRI",
     "github_repo": "access-nri-intake-catalog",
     "github_version": "main",
     "doc_path": "./docs",
