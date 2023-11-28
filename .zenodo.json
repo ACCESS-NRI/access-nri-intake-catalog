@@ -6,19 +6,24 @@
             "name": "Squire, Dougal"
         },
         {
+            "orcid": "",
+            "affiliation": "ACCESS-NRI",
+            "name": "Steketee, Anton"
+        },
+        {
             "orcid": "0000-0002-2320-4239",
             "affiliation": "ACCESS-NRI",
             "name": "Tetley, Michael"
         },
         {
+            "orcid": "",
+            "affiliation": "ACCESS-NRI",
+            "name": "Heerdegen, Aidan"
+        },
+        {
             "orcid": "0000-0003-3891-5444",
             "affiliation": "ACCESS-NRI",
             "name": "Beucher, Romain"
-        },
-        {
-            "orcid": "",
-            "affiliation": "ACCESS-NRI",
-            "name": "Proft, Max"           
         }
     ],
 
