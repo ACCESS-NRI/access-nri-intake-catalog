@@ -1,0 +1,39 @@
+name: Update catalog on Gadi
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version'     
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        ### Latest at time of writing
+        uses: actions/checkout@v3.3.0
+      - name: Sync repository to Gadi
+        ### Latest at time of writing
+        uses: up9cloud/action-rsync@v1.3
+        env:
+          HOST: gadi.nci.org.au
+          TARGET: ${{secrets.GADI_REPO_PATH}}
+          KEY: ${{secrets.DEPLOY_KEY}}
+          USER: ${{secrets.GADI_USER}}
+      - name: Update catalog
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: gadi.nci.org.au
+          username: ${{secrets.GADI_USER}}
+          key: ${{secrets.DEPLOY_KEY}}
+          script: |
+            cd ${{secrets.GADI_REPO_PATH}}
+            export RELEASE=${{ github.event.inputs.release_version }}
+            cd bin
+            qsub -v version=${RELEASE} build_all.sh
+            cd ..
+            git add src/access_nri_intake/cat
+            git commit "Update catalog to $RELEASE"
+
+            
