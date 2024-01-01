@@ -22,7 +22,7 @@ jobs:
           KEY: ${{secrets.DEPLOY_KEY}}
           USER: ${{secrets.GADI_USER}}
       - name: Update catalog
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.0.2
         with:
           host: gadi.nci.org.au
           username: ${{secrets.GADI_USER}}
