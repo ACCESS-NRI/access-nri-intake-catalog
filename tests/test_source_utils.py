@@ -104,6 +104,47 @@ from access_nri_intake.source.utils import (
             "rregionPrydz_temp_xflux_adv",
             ("rregionPrydz_temp_xflux_adv", None, None),
         ),
+        # Example ACCESS-OM3 filenames
+        (
+            "GMOM_JRA_WD.ww3.hi.1958-01-02-00000",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "1958-01-02-00000",
+                None,
+            ),
+        ),
+        (
+            "GMOM_JRA.cice.h.1900-01-01",
+            (
+                "GMOM_JRA_cice_h_XXXX_XX_XX",
+                "1900-01-01",
+                None,
+            ),
+        ),
+        (
+            "GMOM_JRA.mom6.ocean_sfc_1900_01_01",
+            (
+                "GMOM_JRA_mom6_ocean_sfc_XXXX_XX_XX",
+                "1900_01_01",
+                None,
+            ),
+        ),
+        (
+            "GMOM_JRA.mom6.sfc_1900_01_01",
+            (
+                "GMOM_JRA_mom6_sfc_XXXX_XX_XX",
+                "1900_01_01",
+                None,
+            ),
+        ),
+        (
+            "GMOM_JRA.mom6.static",
+            (
+                "GMOM_JRA_mom6_static",
+                None,
+                None,
+            ),
+        ),
     ],
 )
 def test_parse_access_filename(filename, expected):

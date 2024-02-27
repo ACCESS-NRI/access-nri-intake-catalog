@@ -266,6 +266,91 @@ class AccessOm2Builder(BaseBuilder):
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 
+class AccessOm3Builder(BaseBuilder):
+    """Intake-ESM datastore builder for ACCESS-OM3 COSIMA datasets"""
+
+    def __init__(self, path):
+        """
+        Initialise a AccessOm3Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=2,
+            exclude_patterns=[
+                "*restart*",
+                "*MOM_IC.nc",
+                "*ocean_geometry.nc",
+                "*ocean.stats.nc",
+                "*Vertical_coordinate.nc",
+            ],
+            include_patterns=["*.nc"],
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def parser(file):
+        try:
+            (
+                filename,
+                file_id,
+                _,
+                frequency,
+                start_date,
+                end_date,
+                variable_list,
+                variable_long_name_list,
+                variable_standard_name_list,
+                variable_cell_methods_list,
+                variable_units_list,
+            ) = parse_access_ncfile(file)
+
+            if ("mom6" in filename) or ("ww3" in filename):
+                realm = "ocean"
+            elif "cice" in filename:
+                realm = "seaIce"
+            else:
+                raise ParserError(f"Cannot determine realm for file {file}")
+
+            info = {
+                "path": str(file),
+                "realm": realm,
+                "variable": variable_list,
+                "frequency": frequency,
+                "start_date": start_date,
+                "end_date": end_date,
+                "variable_long_name": variable_long_name_list,
+                "variable_standard_name": variable_standard_name_list,
+                "variable_cell_methods": variable_cell_methods_list,
+                "variable_units": variable_units_list,
+                "filename": filename,
+                "file_id": file_id,
+            }
+
+            return info
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
 class AccessEsm15Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
 

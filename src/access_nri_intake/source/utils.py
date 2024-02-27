@@ -169,7 +169,10 @@ def parse_access_filename(filename):
     """
 
     # ACCESS output file patterns
+    # TODO: these should be defined per driver to prevent new patterns from breaking old drivers
     not_multi_digit = "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))"
+    om3_components = "(?:cice|mom6|ww3)"
+    ymds = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}"
     ymd = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}"
     ym = "\\d{4}[_,-]\\d{2}"
     y = "\\d{4}"
@@ -181,6 +184,7 @@ def parse_access_filename(filename):
         r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
         r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+        rf"[^\.]*\.{om3_components}\..*({ymds}|{ymd})$",  # ACCESS-OM3
     ]
     # Frequency translations
     frequencies = {
