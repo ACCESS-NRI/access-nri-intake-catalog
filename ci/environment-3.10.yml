@@ -7,6 +7,7 @@ dependencies:
   - python==3.10
   - cftime
   - ecgtools>=2023.7.13
+  - intake==0.7.0
   - intake-dataframe-catalog>=0.2.3
   - intake-esm>=2023.10.27
   - jsonschema
