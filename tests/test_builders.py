@@ -23,6 +23,7 @@ from access_nri_intake.source import CORE_COLUMNS, builders
             7,
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 11),
+        (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
     ],
 )
 def test_builder_build(

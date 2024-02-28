@@ -1,0 +1,6 @@
+Loading parallelio/2.5.10
+  Loading requirement: hdf5/1.14.1-2 netcdf-c/4.9.2 netcdf-fortran/4.6.0
+Currently Loaded Modulefiles:
+ 1) openmpi/4.1.4(default)    4) hdf5/1.14.1-2          7) parallelio/2.5.10  
+ 2) pbs                       5) netcdf-c/4.9.2        
+ 3) intel-compiler/2021.6.0   6) netcdf-fortran/4.6.0  

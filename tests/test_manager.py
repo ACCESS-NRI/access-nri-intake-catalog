@@ -13,6 +13,7 @@ from access_nri_intake.source.builders import (
     AccessCm2Builder,
     AccessEsm15Builder,
     AccessOm2Builder,
+    AccessOm3Builder,
 )
 
 
@@ -35,6 +36,7 @@ def test_CatalogManager_init(tmp_path):
         (AccessOm2Builder, "access-om2", {}),
         (AccessCm2Builder, "access-cm2/by578", {"ensemble": False}),
         (AccessEsm15Builder, "access-esm1-5", {"ensemble": False}),
+        (AccessOm3Builder, "access-om3", {}),
     ],
 )
 def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs):

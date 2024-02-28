@@ -1,0 +1,7 @@
+experiment_uuid: 4cf0c4ee-09c9-4675-ae1f-ce46f0d848ed
+created: '2024-02-27'
+name: MOM6-CICE6-WW3-1deg_jra55do_ryf-4cf0c4ee
+model: ACCESS-OM3
+url: git@github.com:COSIMA/MOM6-CICE6-WW3.git
+contact: dougiesquire
+email: dougiesquire@gmail.com
