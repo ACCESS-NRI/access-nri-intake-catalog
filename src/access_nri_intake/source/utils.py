@@ -80,8 +80,8 @@ def get_timeinfo(ds, filename_frequency, time_dim):
         return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
 
     time_format = "%Y-%m-%d, %H:%M:%S"
-    start_date = "none"
-    end_date = "none"
+    ts = None
+    te = None
     frequency = "fx"
     has_time = time_dim in ds
 
@@ -137,7 +137,15 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     if has_time & (frequency != "fx"):
         if not has_bounds:
             ts, te = _guess_start_end_dates(ts, te, frequency)
+
+    if ts is None:
+        start_date = "none"
+    else:
         start_date = ts.strftime(time_format)
+
+    if te is None:
+        end_date = "none"
+    else:
         end_date = te.strftime(time_format)
 
     if frequency[0]:
@@ -169,7 +177,10 @@ def parse_access_filename(filename):
     """
 
     # ACCESS output file patterns
+    # TODO: these should be defined per driver to prevent new patterns from breaking old drivers
     not_multi_digit = "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))"
+    om3_components = "(?:cice|mom6|ww3)"
+    ymds = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}"
     ymd = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}"
     ym = "\\d{4}[_,-]\\d{2}"
     y = "\\d{4}"
@@ -181,6 +192,7 @@ def parse_access_filename(filename):
         r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
         r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+        rf"[^\.]*\.{om3_components}\..*({ymds}|{ymd}|{ym})$",  # ACCESS-OM3
     ]
     # Frequency translations
     frequencies = {

@@ -1,0 +1,35 @@
+laboratory path:  /scratch/tm70/ds0092/access-om3
+binary path:  /scratch/tm70/ds0092/access-om3/bin
+input path:  /scratch/tm70/ds0092/access-om3/input
+work path:  /scratch/tm70/ds0092/access-om3/work
+archive path:  /scratch/tm70/ds0092/access-om3/archive
+Pre-existing archive found at: /scratch/tm70/ds0092/access-om3/archive/MOM6-CICE6-WW3. Experiment name will remain: MOM6-CICE6-WW3
+nruns: 1 nruns_per_submit: 1 subrun: 1
+Loading input manifest: manifests/input.yaml
+Loading restart manifest: manifests/restart.yaml
+Loading exe manifest: manifests/exe.yaml
+Setting up access-om3
+Checking exe and input manifests
+Updating full hashes for 1 files in manifests/exe.yaml
+Creating restart manifest
+Writing manifests/restart.yaml
+Writing manifests/exe.yaml
+payu: Found modules in /opt/Modules/v4.3.0
+mpirun  -wdir /scratch/tm70/ds0092/access-om3/work/MOM6-CICE6-WW3 -np 48  /scratch/tm70/ds0092/access-om3/work/MOM6-CICE6-WW3/access-om3-MOM6-CICE6-WW3-3965e25
+/g/data/tm70/ds0092/model/payu/MOM6-CICE6-WW3/access-om3.err /scratch/tm70/ds0092/access-om3/archive/MOM6-CICE6-WW3/error_logs/access-om3.109393186.gadi-pbs.err
+/g/data/tm70/ds0092/model/payu/MOM6-CICE6-WW3/access-om3.out /scratch/tm70/ds0092/access-om3/archive/MOM6-CICE6-WW3/error_logs/access-om3.109393186.gadi-pbs.out
+/g/data/tm70/ds0092/model/payu/MOM6-CICE6-WW3/job.yaml /scratch/tm70/ds0092/access-om3/archive/MOM6-CICE6-WW3/error_logs/job.109393186.gadi-pbs.yaml
+/g/data/tm70/ds0092/model/payu/MOM6-CICE6-WW3/env.yaml /scratch/tm70/ds0092/access-om3/archive/MOM6-CICE6-WW3/error_logs/env.109393186.gadi-pbs.yaml
+
+======================================================================================
+                  Resource Usage on 2024-02-27 13:57:27:
+   Job Id:             109393186.gadi-pbs
+   Project:            tm70
+   Exit Status:        1
+   Service Units:      1.01
+   NCPUs Requested:    48                     NCPUs Used: 48              
+                                           CPU Time Used: 00:04:23        
+   Memory Requested:   192.0GB               Memory Used: 20.95GB         
+   Walltime requested: 01:00:00            Walltime Used: 00:00:38        
+   JobFS requested:    10.0GB                 JobFS used: 0B              
+======================================================================================

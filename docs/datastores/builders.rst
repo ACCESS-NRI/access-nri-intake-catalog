@@ -12,7 +12,7 @@ The access-nri-intake package is installed in the :code:`hh5` and :code:`xp65` a
 users can install it into their own environment (see :ref:`installation` for details). The Builders can be 
 imported from the :code:`access_nri_intake.source.builders` submodule.
 
-There are currently three Builders available. Their core public APIs are given below (their full APIs can be 
+There are currently four Builders available. Their core public APIs are given below (their full APIs can be
 found in :ref:`source_api`).
 
 .. note::
@@ -36,6 +36,13 @@ ACCESS-CM2 output: :code:`AccessCm2Builder`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: access_nri_intake.source.builders.AccessCm2Builder
+   :special-members: __init__, build, save
+   :noindex:
+
+ACCESS-OM3 output: :code:`AccessOm3Builder`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: access_nri_intake.source.builders.AccessOm3Builder
    :special-members: __init__, build, save
    :noindex:
 
