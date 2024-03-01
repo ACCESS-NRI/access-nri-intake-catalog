@@ -80,8 +80,8 @@ def get_timeinfo(ds, filename_frequency, time_dim):
         return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
 
     time_format = "%Y-%m-%d, %H:%M:%S"
-    start_date = "none"
-    end_date = "none"
+    ts = None
+    te = None
     frequency = "fx"
     has_time = time_dim in ds
 
@@ -137,7 +137,15 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     if has_time & (frequency != "fx"):
         if not has_bounds:
             ts, te = _guess_start_end_dates(ts, te, frequency)
+
+    if ts is None:
+        start_date = "none"
+    else:
         start_date = ts.strftime(time_format)
+
+    if te is None:
+        end_date = "none"
+    else:
         end_date = te.strftime(time_format)
 
     if frequency[0]:

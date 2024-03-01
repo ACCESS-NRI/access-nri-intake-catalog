@@ -544,8 +544,8 @@ def test_parse_access_filename(filename, expected):
                 "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
                 "1900-01-02-00000",
                 "fx",  # WW3 provides no time bounds
-                "none",
-                "none",
+                "1900-01-02, 00:00:00",
+                "1900-01-02, 00:00:00",
                 ["EF", "mapsta"],
                 ["1D spectral density", "map status"],
                 ["", ""],
