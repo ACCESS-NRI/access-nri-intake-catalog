@@ -27,6 +27,8 @@ dynamic = ["version"]
 
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"
+metadata-validate = "access_nri_intake.cli:metadata_validate"
+metadata-template = "access_nri_intake.cli:metadata_template"
 
 [project.entry-points."intake.catalogs"]
 access_nri = "access_nri_intake.data:data"

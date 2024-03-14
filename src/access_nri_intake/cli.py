@@ -1,9 +1,10 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Command line interface for access-nri-intake """
+""" Command line interfaces for access-nri-intake """
 
 import argparse
+import glob
 import logging
 import os
 import re
@@ -23,9 +24,9 @@ class MetadataCheckError(Exception):
     pass
 
 
-def _parse_inputs(config_yamls, build_path):
+def _parse_build_inputs(config_yamls, build_path):
     """
-    Parse inputs into a list of tuples of CatalogManager methods and args to
+    Parse build inputs into a list of tuples of CatalogManager methods and args to
     pass to the methods
     """
 
@@ -70,9 +71,9 @@ def _parse_inputs(config_yamls, build_path):
     return args
 
 
-def _check_args(args_list):
+def _check_build_args(args_list):
     """
-    Run some checks on the parsed argmuents to be passed to the CatalogManager
+    Run some checks on the parsed build argmuents to be passed to the CatalogManager
     """
 
     names = []
@@ -168,8 +169,8 @@ def build():
     os.makedirs(build_path, exist_ok=True)
 
     # Parse inputs to pass to CatalogManager
-    parsed_sources = _parse_inputs(config_yamls, build_path)
-    _check_args([parsed_source[1] for parsed_source in parsed_sources])
+    parsed_sources = _parse_build_inputs(config_yamls, build_path)
+    _check_build_args([parsed_source[1] for parsed_source in parsed_sources])
 
     # Get the project storage flags
     def _get_project(path):
@@ -218,3 +219,51 @@ def build():
     if update:
         with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
             yaml.dump(yaml_dict, fobj)
+
+
+def metadata_validate():
+    """
+    Check provided metadata.yaml file(s) against the experiment schema
+    """
+
+    parser = argparse.ArgumentParser(description="Validate a metadata.yaml file")
+    parser.add_argument(
+        "file",
+        type=str,
+        help="The path to the metadata.yaml file (can include wildcards for multiple metadata.yaml)",
+    )
+
+    args = parser.parse_args()
+    file = args.file
+
+    files = glob.glob(file)
+    if files:
+        for f in files:
+            print(f"Validating {f}... ", end="")
+            load_metadata_yaml(f, EXP_JSONSCHEMA)
+            print("success")
+    else:
+        raise FileNotFoundError(f"No such file(s): {file}")
+
+
+def metadata_template():
+    """
+    Create an empty template for a metadata.yaml file using the experiment schema
+    """
+
+    argparse.ArgumentParser(description="Generate a template for metadata.yaml")
+
+    template = {}
+    for name, descr in EXP_JSONSCHEMA["properties"].items():
+        if name in EXP_JSONSCHEMA["required"]:
+            description = f"<REQUIRED {descr['description']}>"
+        else:
+            description = f"<{descr['description']}>"
+
+        if descr["type"] == "array":
+            description = [description]
+
+        template[name] = description
+
+    with open("./metadata.yaml", "w") as outfile:
+        yaml.dump(template, outfile, default_flow_style=False, sort_keys=False)
