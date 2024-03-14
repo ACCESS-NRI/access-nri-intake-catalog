@@ -147,3 +147,16 @@ def test_metadata_validate(mockargs):
 def test_metadata_validate_glob(mockargs):
     """Test metadata_validate"""
     metadata_validate()
+
+
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        file="./does/not/exist.yaml",
+    ),
+)
+def test_metadata_validate_no_file(mockargs):
+    """Test metadata_validate"""
+    with pytest.raises(FileNotFoundError) as excinfo:
+        metadata_validate()
+    assert "No such file(s)" in str(excinfo.value)
