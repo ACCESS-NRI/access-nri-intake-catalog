@@ -86,3 +86,16 @@ is called to ensure that all required metadata is available prior to building th
 
 Ideally this file will live in the base output directory of your model run so that it's easy for others to 
 find, even if they aren't using the catalog (but it doesn't have to).
+
+.. note::
+
+   The access-nri-intake package includes some command-line utility scripts to help with creating and 
+   validating :code:`metadata.yaml` files:
+
+   * To create an empty :code:`metadata.yaml` template in the current directory::
+
+      $ metadata-template
+
+   * To validate a :code:`metadata.yaml` file (i.e. to check that required fields are present with required types)::
+
+      $ metadata-validate <path/to/metadata.yaml>
