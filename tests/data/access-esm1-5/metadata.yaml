@@ -1,0 +1,30 @@
+name: HI_C_05_r1
+experiment_uuid: a8588f4d-4507-4832-ba94-9425e6f5b1b3
+description: >-
+  Historical run using same configuration as CMIP6 ACCESS-ESM1.5 historical r1i1p1f1, 
+  but with nitrogen and phosphorus limitations disabled within CASA-CNP
+long_description: >-
+  Historical run using same configuration as CMIP6 ACCESS-ESM1.5 historical r1i1p1f1, 
+  but with nitrogen and phosphorus limitations disabled within CASA-CNP. Branched from
+  CMIP6 ACCESS-ESM1.5 piControl r1i1p1f1 in the year 161
+model:
+  - ACCESS-ESM1-5
+nominal_resolution:
+  - atmos = N96
+  - ocean = 1 degree
+version: 1
+contact: Tilo Ziehn
+email: tilo.ziehn@csiro.au
+created: null
+reference: null
+license: null
+url: null
+parent_experiment: null
+related_experiments:
+  - ca37f09c-cde0-4f27-9148-8ed94721035d
+  - 1b97f1c0-2bc4-4177-9acc-ce1f6cab5632
+  - 1c6cb3ef-de8b-4a61-a1b6-e7044c07928f
+notes: >-
+  null
+keywords:
+  - null

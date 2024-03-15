@@ -10,7 +10,12 @@ from unittest import mock
 import intake
 import pytest
 
-from access_nri_intake.cli import MetadataCheckError, _check_args, build
+from access_nri_intake.cli import (
+    MetadataCheckError,
+    _check_build_args,
+    build,
+    metadata_validate,
+)
 
 
 def test_entrypoint():
@@ -18,6 +23,12 @@ def test_entrypoint():
     Check that entry point works
     """
     exit_status = os.system("catalog-build --help")
+    assert exit_status == 0
+
+    exit_status = os.system("metadata-validate --help")
+    assert exit_status == 0
+
+    exit_status = os.system("metadata-template --help")
     assert exit_status == 0
 
 
@@ -77,16 +88,16 @@ def test_entrypoint():
         ),
     ],
 )
-def test_check_args(args, raises):
+def test_check_build_args(args, raises):
     """
     Check that non-unique names and uuids return an error
     """
     if raises:
         with pytest.raises(MetadataCheckError) as excinfo:
-            _check_args(args)
+            _check_build_args(args)
         assert "exp0" in str(excinfo.value)
     else:
-        _check_args(args)
+        _check_build_args(args)
 
 
 @mock.patch(
@@ -114,3 +125,41 @@ def test_build(mockargs):
     )
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
+
+
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        file=["./tests/data/access-om2/metadata.yaml"],
+    ),
+)
+def test_metadata_validate(mockargs):
+    """Test metadata_validate"""
+    metadata_validate()
+
+
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        file=[
+            "./tests/data/access-om2/metadata.yaml",
+            "./tests/data/access-om3/metadata.yaml",
+        ],
+    ),
+)
+def test_metadata_validate_multi(mockargs):
+    """Test metadata_validate"""
+    metadata_validate()
+
+
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        file="./does/not/exist.yaml",
+    ),
+)
+def test_metadata_validate_no_file(mockargs):
+    """Test metadata_validate"""
+    with pytest.raises(FileNotFoundError) as excinfo:
+        metadata_validate()
+    assert "No such file(s)" in str(excinfo.value)
