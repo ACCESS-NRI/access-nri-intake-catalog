@@ -96,6 +96,9 @@ find, even if they aren't using the catalog (but it doesn't have to).
 
       $ metadata-template
 
+     You'll then need to replace all the values enclosed in :code:`<>`. Fields marked as :code:`REQUIRED` are
+     required. All other fields are encouraged but can be deleted or commented out if they are not relevant.
+
    * To validate a :code:`metadata.yaml` file (i.e. to check that required fields are present with required types)::
 
       $ metadata-validate <path/to/metadata.yaml>

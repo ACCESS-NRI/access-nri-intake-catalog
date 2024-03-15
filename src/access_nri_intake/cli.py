@@ -4,7 +4,6 @@
 """ Command line interfaces for access-nri-intake """
 
 import argparse
-import glob
 import logging
 import os
 import re
@@ -229,21 +228,20 @@ def metadata_validate():
     parser = argparse.ArgumentParser(description="Validate a metadata.yaml file")
     parser.add_argument(
         "file",
-        type=str,
-        help="The path to the metadata.yaml file (can include wildcards for multiple metadata.yaml)",
+        nargs="+",
+        help="The path to the metadata.yaml file. Multiple file paths can be passed.",
     )
 
     args = parser.parse_args()
-    file = args.file
+    files = args.file
 
-    files = glob.glob(file)
-    if files:
-        for f in files:
+    for f in files:
+        if os.path.isfile(f):
             print(f"Validating {f}... ", end="")
             load_metadata_yaml(f, EXP_JSONSCHEMA)
             print("success")
-    else:
-        raise FileNotFoundError(f"No such file(s): {file}")
+        else:
+            raise FileNotFoundError(f"No such file(s): {f}")
 
 
 def metadata_template():

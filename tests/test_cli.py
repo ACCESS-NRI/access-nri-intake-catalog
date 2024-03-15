@@ -130,7 +130,7 @@ def test_build(mockargs):
 @mock.patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        file="./tests/data/access-om2/metadata.yaml",
+        file=["./tests/data/access-om2/metadata.yaml"],
     ),
 )
 def test_metadata_validate(mockargs):
@@ -141,10 +141,13 @@ def test_metadata_validate(mockargs):
 @mock.patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        file="./tests/data/*/metadata.yaml",
+        file=[
+            "./tests/data/access-om2/metadata.yaml",
+            "./tests/data/access-om3/metadata.yaml",
+        ],
     ),
 )
-def test_metadata_validate_glob(mockargs):
+def test_metadata_validate_multi(mockargs):
     """Test metadata_validate"""
     metadata_validate()
 
