@@ -4,6 +4,14 @@ Changelog
 This CHANGELOG documents only key changes between versions. For a full description 
 of all changes see https://github.com/ACCESS-NRI/access-nri-intake-catalog/releases
 
+v0.1.2
+------
+
+28/03/2024
+
+- Update schema and add wave realm
+- Expose metadata validation and template tools as console scripts
+
 v0.1.1
 ------
 
