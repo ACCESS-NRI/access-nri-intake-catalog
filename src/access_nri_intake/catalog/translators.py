@@ -84,8 +84,11 @@ class DefaultTranslator:
             val = getattr(self.source, column)
         elif column in self.source.metadata:
             val = self.source.metadata[column]
-            if isinstance(val, list):
+            # Some metadata fields can be a value _or_ array
+            if isinstance(val, (list, tuple)):
                 val = tuple(val)
+            elif column in COLUMNS_WITH_ITERABLES:
+                val = (val,)
         else:
             raise TranslatorError(
                 f"Could not translate '{column}' from {self.source.name} using {self.__class__.__name__}"
