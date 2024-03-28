@@ -3,6 +3,7 @@
 
 import pytest
 
+from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerError
 from access_nri_intake.catalog.translators import (
     Cmip5Translator,
@@ -15,6 +16,7 @@ from access_nri_intake.source.builders import (
     AccessOm2Builder,
     AccessOm3Builder,
 )
+from access_nri_intake.utils import load_metadata_yaml
 
 
 def test_CatalogManager_init(tmp_path):
@@ -44,16 +46,15 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
     path = str(tmp_path / "cat.csv")
     cat = CatalogManager(path)
 
+    metadata = load_metadata_yaml(
+        str(test_data / basedir / "metadata.yaml"), EXP_JSONSCHEMA
+    )
     args = dict(
         name="test",
         description="test",
         builder=builder,
         path=str(test_data / basedir),
-        metadata=dict(
-            model=[
-                basedir,
-            ]
-        ),
+        metadata=metadata,
         directory=str(tmp_path),
         **kwargs,
     )
@@ -138,27 +139,28 @@ def test_CatalogManager_all(tmp_path, test_data):
     cat.save()
     assert len(CatalogManager(path).dfcat) == 1
 
-    # Build source
-    cat.build_esm(
-        name="access-om2",
-        description="access-om2",
-        builder=AccessOm2Builder,
-        path=str(test_data / "access-om2"),
-        metadata=dict(
-            model=[
-                "ACCESS-OM2",
-            ]
-        ),
-        directory=str(tmp_path),
-    )
+    # Build sources
+    models = {"access-om2": AccessOm2Builder, "access-om3": AccessOm3Builder}
+    for model, builder in models.items():
+        metadata = load_metadata_yaml(
+            str(test_data / model / "metadata.yaml"), EXP_JSONSCHEMA
+        )
+        cat.build_esm(
+            name=model,
+            description=model,
+            builder=builder,
+            path=str(test_data / model),
+            metadata=metadata,
+            directory=str(tmp_path),
+        )
     # Still only one entry on disk
-    assert len(cat.dfcat) == 2
+    assert len(cat.dfcat) == len(models) + 1
     assert len(CatalogManager(path).dfcat) == 1
 
     # Check that entry with same name overwrites correctly
     cat.load(
         **load_args,
     )
-    assert len(cat.dfcat) == 2
+    assert len(cat.dfcat) == len(models) + 1
     cat.save()
-    assert len(CatalogManager(path).dfcat) == 2
+    assert len(CatalogManager(path).dfcat) == len(models) + 1

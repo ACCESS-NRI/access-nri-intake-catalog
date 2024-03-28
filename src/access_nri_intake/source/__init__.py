@@ -17,8 +17,8 @@ CORE_COLUMNS = [
 PATH_COLUMN = "path"
 VARIABLE_COLUMN = "variable"
 
-SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/25643eb437e95ee48b3fa6b620c7a0986c2c3bb0/file_asset.json"
-SCHEMA_HASH = "d7b5fcab71861f6c4b319e64cfde75f36de2bdc797f13b5b4f7029b41ce51e5a"
+SCHEMA_URL = "https://raw.githubusercontent.com/ACCESS-NRI/schema/e9055da95093ec2faa555c090fc5af17923d1566/au.org.access-nri/model/output/file-metadata/1-0-1.json"
+SCHEMA_HASH = "8f2f069fa06d81ff086b91daa6503f75615aa90385ab61ee2d1a7956dc96f9a6"
 
 _, ESM_JSONSCHEMA = get_jsonschema(
     url=SCHEMA_URL, known_hash=SCHEMA_HASH, required=CORE_COLUMNS

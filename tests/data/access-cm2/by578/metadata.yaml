@@ -1,0 +1,28 @@
+name: by578
+experiment_uuid: 1fd9e682-d393-4b17-a9cd-934c3a48a1f8
+description: >-
+  Pacemaker variation of CMIP6 ssp245 simulation with Tropical Atlantic region replaced
+  with fixed SSTs from observations
+long_description: >-
+  Pacemaker variation of CMIP6 ssp245 simulation with 5 ensemble members and Tropical
+  Atlantic region replaced with fixed SSTs from observations. Branched from parent in
+  2015
+model:
+  - ACCESS-CM2
+nominal_resolution:
+  - atmos = n96
+  - ocean = 1 degree
+version: 1
+contact: Dave Bi
+email: dave.bi@csiro.au
+created: null
+reference: null
+license: null
+url: null
+parent_experiment: 948d8676-2c56-49db-8ea1-b80572b074c8
+related_experiments:
+  - 57243597-43c0-4a8f-a404-b10cecdeb3f7
+notes: >-
+  null
+keywords:
+  - null

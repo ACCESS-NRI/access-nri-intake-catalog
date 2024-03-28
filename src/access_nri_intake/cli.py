@@ -16,7 +16,7 @@ from . import __version__
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .source import builders
-from .utils import load_metadata_yaml
+from .utils import _can_be_array, load_metadata_yaml
 
 
 class MetadataCheckError(Exception):
@@ -258,7 +258,7 @@ def metadata_template():
         else:
             description = f"<{descr['description']}>"
 
-        if descr["type"] == "array":
+        if _can_be_array(descr):
             description = [description]
 
         template[name] = description

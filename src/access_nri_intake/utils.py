@@ -105,3 +105,21 @@ def validate_against_schema(instance, schema):
     )
 
     TupleAllowingValidator(schema).validate(instance)
+
+
+def _can_be_array(field):
+    """
+    Does the schema allow the provided field to be an array?
+    """
+
+    def _is_array(field):
+        try:
+            return field["type"] == "array"
+        except KeyError:
+            return False
+
+    is_array = _is_array(field)
+    if (not is_array) and ("oneOf" in field):
+        for nfield in field["oneOf"]:
+            is_array = is_array or _is_array(nfield)
+    return is_array
