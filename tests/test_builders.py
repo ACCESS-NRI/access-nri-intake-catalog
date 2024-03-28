@@ -11,9 +11,9 @@ from access_nri_intake.source import CORE_COLUMNS, builders
 
 
 @pytest.mark.parametrize(
-    "basedirs, builder, kwargs, num_assets, num_valid_assets, num_datasets",
+    "basedirs, builder, kwargs, num_assets, num_valid_assets, num_datasets, realms",
     [
-        (["access-om2"], "AccessOm2Builder", {}, 12, 12, 6),
+        (["access-om2"], "AccessOm2Builder", {}, 12, 12, 6, ["ocean", "seaIce"]),
         (
             ["access-cm2/by578", "access-cm2/by578a"],
             "AccessCm2Builder",
@@ -21,9 +21,26 @@ from access_nri_intake.source import CORE_COLUMNS, builders
             18,
             14,
             7,
+            ["atmos", "ocean", "seaIce"],
         ),
-        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 11),
-        (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
+        (
+            ["access-esm1-5"],
+            "AccessEsm15Builder",
+            {"ensemble": False},
+            11,
+            11,
+            11,
+            ["atmos", "ocean", "seaIce"],
+        ),
+        (
+            ["access-om3"],
+            "AccessOm3Builder",
+            {},
+            12,
+            12,
+            6,
+            ["ocean", "wave", "seaIce"],
+        ),
     ],
 )
 def test_builder_build(
@@ -35,6 +52,7 @@ def test_builder_build(
     num_assets,
     num_valid_assets,
     num_datasets,
+    realms,
 ):
     """
     Test the various steps of the build process
@@ -60,6 +78,7 @@ def test_builder_build(
     )
     assert len(cat.df) == num_valid_assets
     assert len(cat) == num_datasets
+    assert sorted(cat.unique()["realm"]) == sorted(realms)
 
 
 def test_builder_columns_with_iterables(test_data):

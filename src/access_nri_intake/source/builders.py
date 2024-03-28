@@ -323,8 +323,10 @@ class AccessOm3Builder(BaseBuilder):
                 variable_units_list,
             ) = parse_access_ncfile(file)
 
-            if ("mom6" in filename) or ("ww3" in filename):
+            if "mom6" in filename:
                 realm = "ocean"
+            elif "ww3" in filename:
+                realm = "wave"
             elif "cice" in filename:
                 realm = "seaIce"
             else:
