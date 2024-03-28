@@ -11,9 +11,9 @@ from access_nri_intake.source import CORE_COLUMNS, builders
 
 
 @pytest.mark.parametrize(
-    "basedirs, builder, kwargs, num_assets, num_valid_assets, num_datasets, realms",
+    "basedirs, builder, kwargs, num_assets, num_valid_assets, num_datasets",
     [
-        (["access-om2"], "AccessOm2Builder", {}, 12, 12, 6, ["ocean", "seaIce"]),
+        (["access-om2"], "AccessOm2Builder", {}, 12, 12, 6),
         (
             ["access-cm2/by578", "access-cm2/by578a"],
             "AccessCm2Builder",
@@ -21,26 +21,9 @@ from access_nri_intake.source import CORE_COLUMNS, builders
             18,
             14,
             7,
-            ["atmos", "ocean", "seaIce"],
         ),
-        (
-            ["access-esm1-5"],
-            "AccessEsm15Builder",
-            {"ensemble": False},
-            11,
-            11,
-            11,
-            ["atmos", "ocean", "seaIce"],
-        ),
-        (
-            ["access-om3"],
-            "AccessOm3Builder",
-            {},
-            12,
-            12,
-            6,
-            ["ocean", "wave", "seaIce"],
-        ),
+        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 11),
+        (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
     ],
 )
 def test_builder_build(
@@ -52,7 +35,6 @@ def test_builder_build(
     num_assets,
     num_valid_assets,
     num_datasets,
-    realms,
 ):
     """
     Test the various steps of the build process
@@ -78,7 +60,83 @@ def test_builder_build(
     )
     assert len(cat.df) == num_valid_assets
     assert len(cat) == num_datasets
-    assert sorted(cat.unique()["realm"]) == sorted(realms)
+
+
+@pytest.mark.parametrize(
+    "filename, builder, realm, member, file_id",
+    [
+        (
+            "access-om2/output000/ocean/ocean.nc",
+            "AccessOm2Builder",
+            "ocean",
+            None,
+            "ocean",
+        ),
+        (
+            "access-om2/output000/ice/OUTPUT/iceh.1900-01.nc",
+            "AccessOm2Builder",
+            "seaIce",
+            None,
+            "iceh_XXXX_XX",
+        ),
+        (
+            "access-cm2/by578/history/atm/netCDF/by578a.pd201501_dai.nc",
+            "AccessCm2Builder",
+            "atmos",
+            "by578",
+            "a_pdXXXXXX_dai",
+        ),
+        (
+            "access-cm2/by578a/history/atm/netCDF/by578aa.pd201501_dai.nc",
+            "AccessCm2Builder",
+            "atmos",
+            "by578a",
+            "a_pdXXXXXX_dai",
+        ),
+        (
+            "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
+            "AccessCm2Builder",
+            "seaIce",
+            "by578",
+            "iceh_d_XXXX_XX",
+        ),
+        (
+            "access-cm2/by578/history/ocn/ocean_daily.nc-20150630",
+            "AccessCm2Builder",
+            "ocean",
+            "by578",
+            "ocean_daily",
+        ),
+        (
+            "access-om3/output000/GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
+            "AccessOm3Builder",
+            "ocean",
+            None,
+            "GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
+        ),
+        (
+            "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
+            "AccessOm3Builder",
+            "seaIce",
+            None,
+            "GMOM_JRA_WD_cice_h_XXXX_XX_XX",
+        ),
+        (
+            "access-om3/output000/GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
+            "AccessOm3Builder",
+            "wave",
+            None,
+            "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+        ),
+    ],
+)
+def test_builder_parser(test_data, filename, builder, realm, member, file_id):
+    Builder = getattr(builders, builder)
+    info = Builder.parser(str(test_data / filename))
+    assert info["realm"] == realm
+    if member:
+        assert info["member"] == member
+    assert info["file_id"] == file_id
 
 
 def test_builder_columns_with_iterables(test_data):

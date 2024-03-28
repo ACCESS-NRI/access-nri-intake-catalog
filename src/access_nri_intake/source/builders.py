@@ -221,12 +221,8 @@ class AccessOm2Builder(BaseBuilder):
     @staticmethod
     def parser(file):
         try:
-            match_groups = re.match(
-                r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
-            ).groups()
-            # configuration = match_groups[0]
-            # exp_id = match_groups[1]
-            realm = match_groups[2]
+            match_groups = re.match(r".*/output\d+/([^/]*)/.*\.nc", file).groups()
+            realm = match_groups[0]
 
             if realm == "ice":
                 realm = "seaIce"
