@@ -85,7 +85,7 @@ class DefaultTranslator:
         elif column in self.source.metadata:
             val = self.source.metadata[column]
             # Some metadata fields can be a value _or_ array
-            if isinstance(val, (list, tuple)):
+            if isinstance(val, (list, tuple, set)):
                 val = tuple(val)
             elif column in COLUMNS_WITH_ITERABLES:
                 val = (val,)
