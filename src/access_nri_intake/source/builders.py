@@ -221,12 +221,8 @@ class AccessOm2Builder(BaseBuilder):
     @staticmethod
     def parser(file):
         try:
-            match_groups = re.match(
-                r".*/([^/]*)/([^/]*)/output\d+/([^/]*)/.*\.nc", file
-            ).groups()
-            # configuration = match_groups[0]
-            # exp_id = match_groups[1]
-            realm = match_groups[2]
+            match_groups = re.match(r".*/output\d+/([^/]*)/.*\.nc", file).groups()
+            realm = match_groups[0]
 
             if realm == "ice":
                 realm = "seaIce"
@@ -323,8 +319,10 @@ class AccessOm3Builder(BaseBuilder):
                 variable_units_list,
             ) = parse_access_ncfile(file)
 
-            if ("mom6" in filename) or ("ww3" in filename):
+            if "mom6" in filename:
                 realm = "ocean"
+            elif "ww3" in filename:
+                realm = "wave"
             elif "cice" in filename:
                 realm = "seaIce"
             else:
