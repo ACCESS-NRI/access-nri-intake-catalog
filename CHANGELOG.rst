@@ -4,6 +4,13 @@ Changelog
 This CHANGELOG documents only key changes between versions. For a full description 
 of all changes see https://github.com/ACCESS-NRI/access-nri-intake-catalog/releases
 
+v0.1.3
+------
+
+07/05/2024
+
+- Rebuild to include updates to ERA5-forced ACCESS-OM2 runs
+
 v0.1.2
 ------
 
