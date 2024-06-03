@@ -146,10 +146,7 @@ def test_builder_columns_with_iterables(test_data):
     assert sorted(list(builder.columns_with_iterables)) == sorted(
         [
             col
-            for col, val in builder.df.applymap(type)
-            .isin([list, tuple, set])
-            .any()
-            .items()
+            for col, val in builder.df.map(type).isin([list, tuple, set]).any().items()
             if val
         ]
     )
