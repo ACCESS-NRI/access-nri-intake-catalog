@@ -18,7 +18,7 @@ dependencies = [
     "ecgtools>=2023.7.13",
     "intake==0.7.0",
     "intake-dataframe-catalog>=0.2.3",
-    "intake-esm>=2023.10.27",
+    "intake-esm>=2023.11.10",
     "jsonschema",
     "pooch",
     "xarray",
