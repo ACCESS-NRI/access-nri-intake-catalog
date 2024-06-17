@@ -52,6 +52,7 @@ autoapi_options = [
     "inherited-members",
     "show-inheritance",
     "show-module-summary",
+    "undoc-members",  # workaround for https://github.com/readthedocs/sphinx-autoapi/issues/448
 ]
 
 templates_path = ["_templates"]
