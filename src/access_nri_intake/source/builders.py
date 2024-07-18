@@ -448,3 +448,103 @@ class AccessCm2Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-CM2 datasets"""
 
     pass
+
+class AUS2200Builder(BaseBuilder):
+    """Intake-ESM datastore builder for AUS2200 datasets"""
+
+    def __init__(self, path, ensemble):
+        """
+        Initialise a AUS2200Builder
+
+        Parameters
+        ----------
+        path: str or list of str
+            Path or list of paths to crawl for assets/files.
+        ensemble: boolean
+            Whether to treat each path as a separate member of an ensemble to join
+            along a new member dimension
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=3,
+            exclude_patterns=[],
+            include_patterns=["*.nc*"],
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency", "variable"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        if ensemble:
+            kwargs["aggregations"] += [
+                {
+                    "type": "join_new",
+                    "attribute_name": "member",
+                },
+            ]
+
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def parser(fpath, fpattern):
+        try:
+            indir = "/g/data/ua8/AUS2200"
+            filepat = fpattern.split("/")[-1]
+            dirpat = "/".join(fpattern.split("/")[:-1])
+            dirpat = dirpat.replace("{","(?P<").replace("}",">[^/]+)")
+            filepat = filepat.replace("{","(?P<").replace("}",">[^_]+)")
+            tocompiledir = "^/" + dirpat + "/"
+            tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\.nc"
+
+            dir_re = re.compile(tocompiledir, re.VERBOSE)
+            file_re = re.compile(tocompilefile, re.VERBOSE)
+
+            fname = str(Path(fpath).name)
+            fbase = str(Path(fpath).parent)
+            fbase = fbase.replace(indir, "") + "/"
+            dir_match = dir_re.match(fbase).groupdict()
+            file_match = dir_re.match(fname).groupdict()
+
+            realm = 'atmos'
+            start_date, end_date = file_match['date_range'].split("_")
+            exp_id = dir_match.get('experiment', 'unknown')
+            variable = file_match.get('variable_id', 'unknown')
+            frequency = file_match.get('frequency', dir_match['frequency'])
+
+            (
+                variable_long_name,
+                variable_standard_name,
+                variable_cell_methods,
+                variable_units,
+            ) = parse_mopper_ncfile(fpath, variable)
+
+
+            info = {
+                "path": str(fpath),
+                "realm": realm,
+                "variable": variable,
+                "frequency": frequency,
+                "start_date": start_date,
+                "end_date": end_date,
+                "member": exp_id,
+                "variable_long_name": variable_long_name,
+                "variable_standard_name": variable_standard_name,
+                "variable_cell_methods": variable_cell_methods,
+                "variable_units": variable_units,
+                "filename": fname,
+                "version": product_version,
+            }
+
+            return info
+
+        except Exception:
+            return {INVALID_ASSET: fpath, TRACEBACK: traceback.format_exc()}
