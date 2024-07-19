@@ -301,7 +301,7 @@ def parse_access_ncfile(file, time_dim="time"):
 
     return outputs
 
-def parse_mopper_ncfile(fpath, fpattern=None, time_dim="time"):
+def parse_mopper_ncfile(fpath, variable, time_dim="time"):
     """
     Get Intake-ESM datastore entry info from an ACCESS netcdf file
 
@@ -309,8 +309,6 @@ def parse_mopper_ncfile(fpath, fpattern=None, time_dim="time"):
     ----------
     fpath: str
         The path to the netcdf file
-    fpattern: str
-        The pattern used by mopper to encode info in the filename
     time_dim: str
         The name of the time dimension
 
@@ -319,11 +317,7 @@ def parse_mopper_ncfile(fpath, fpattern=None, time_dim="time"):
     """
 
     fpath = Path(fpath)
-    filename = fpath.name
-
-    #out = parse_mopper_filename(filename, fpattern)
-    fpattern = "{basedir}/{product_version}/{frequency}/{variable_id}/{variable_id}_{source_id}_{experiment_id}_{frequency}"
-    variable = out
+    print(fpath, "in  parse_mopper_ncfile")
 
     with xr.open_dataset(
         fpath,
@@ -338,27 +332,13 @@ def parse_mopper_ncfile(fpath, fpattern=None, time_dim="time"):
         variable_cell_methods = get_attrs('cell_methods', 'unknown')
         variable_units = get_attrs('units', 'unknown')
 
-        #start_date, end_date, frequency = get_timeinfo(ds, filename_frequency, time_dim)
-
-    #if not variable_list:
-    #    raise EmptyFileError("This file contains no variables")
-    time_format = "%Y-%m-%d, %H:%M:%S"
-    ts, te = filename_timestamp,split("_")
-    start_date = ts.strftime(time_format)
-    end_date = te.strftime(time_format)
     outputs = (
-        filename,
-        #file_id,
-        filename_timestamp,
-        frequency,
-        start_date,
-        end_date,
-        variable,
         variable_long_name,
         variable_standard_name,
         variable_cell_methods,
         variable_units,
     )
+    print(outputs[0], "in  parse_mopper_ncfile")
 
     return outputs
 

@@ -449,12 +449,12 @@ class AccessCm2Builder(AccessEsm15Builder):
 
     pass
 
-class AUS2200Builder(BaseBuilder):
-    """Intake-ESM datastore builder for AUS2200 datasets"""
+class MopperBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for ACCESS-MOPPeR processed data"""
 
-    def __init__(self, path, ensemble):
+    def __init__(self, path, ensemble, extra):
         """
-        Initialise a AUS2200Builder
+        Initialise a MopperBuilder
 
         Parameters
         ----------
@@ -463,11 +463,13 @@ class AUS2200Builder(BaseBuilder):
         ensemble: boolean
             Whether to treat each path as a separate member of an ensemble to join
             along a new member dimension
+        fpattern: str
+            The pattern used by mopper to encode info in the filename and path
         """
 
         kwargs = dict(
             path=path,
-            depth=3,
+            depth=5,
             exclude_patterns=[],
             include_patterns=["*.nc*"],
             data_format="netcdf",
@@ -493,24 +495,26 @@ class AUS2200Builder(BaseBuilder):
             ]
 
         super().__init__(**kwargs)
+        self.fpattern = extra['fpattern']
+        print(f"just after inti {self}")
 
     @staticmethod
-    def parser(fpath, fpattern):
+    def parser(fpath, fpattern, path):
         try:
-            indir = "/g/data/ua8/AUS2200"
             filepat = fpattern.split("/")[-1]
             dirpat = "/".join(fpattern.split("/")[:-1])
             dirpat = dirpat.replace("{","(?P<").replace("}",">[^/]+)")
             filepat = filepat.replace("{","(?P<").replace("}",">[^_]+)")
             tocompiledir = "^/" + dirpat + "/"
             tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\.nc"
+            print(f"in parser {tocompiledir}")
 
             dir_re = re.compile(tocompiledir, re.VERBOSE)
             file_re = re.compile(tocompilefile, re.VERBOSE)
 
             fname = str(Path(fpath).name)
             fbase = str(Path(fpath).parent)
-            fbase = fbase.replace(indir, "") + "/"
+            fbase = fbase.replace(basedir, "") + "/"
             dir_match = dir_re.match(fbase).groupdict()
             file_match = dir_re.match(fname).groupdict()
 
