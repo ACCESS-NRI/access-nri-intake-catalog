@@ -5,7 +5,7 @@
 
 import re
 import warnings
-from datetime import timedelta
+from datetime import timedelta, datetime
 from pathlib import Path
 
 import cftime
@@ -321,12 +321,12 @@ def parse_mopper_ncfile(fpath, variable, date_range):
     # get format for dates based on dates lenght
     # dformat is the longest possible datetime format for cmor
     dformat = '%Y%m%d%H%M%S'
-    cmor_format = dformat[:(len(dd)-2)]
     if date_range == '':
         start_date = 'none'
         end_date = 'none'
     else:
         ts, te = date_range.split("-")
+        cmor_format = dformat[:(len(ts)-2)]
         ts = datetime.strptime(ts, cmor_format)
         start_date = ts.strftime(time_format)
         te = datetime.strptime(te, cmor_format)
