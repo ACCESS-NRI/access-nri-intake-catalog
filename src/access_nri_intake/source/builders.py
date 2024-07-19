@@ -9,6 +9,7 @@ import traceback
 
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 from pathlib import Path
+from textwrap import wrap
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
@@ -547,12 +548,13 @@ class MopperBuilder(BaseBuilder):
             if "min" in frequency:
                 frequency = 'subhr'
 
-            (
+            (   start_date,
+                end_date,
                 variable_long_name,
                 variable_standard_name,
                 variable_cell_methods,
                 variable_units,
-            ) = parse_mopper_ncfile(fpath, variable)
+            ) = parse_mopper_ncfile(fpath, variable, date_range)
 #PP doesn't seem to accept a variable which is a string rather than an array of string
 # I think this is unneccesary for a lot of collections where files only have a single variable
             info = {

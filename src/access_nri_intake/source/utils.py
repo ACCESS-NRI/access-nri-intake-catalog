@@ -301,7 +301,7 @@ def parse_access_ncfile(file, time_dim="time"):
 
     return outputs
 
-def parse_mopper_ncfile(fpath, variable, time_dim="time"):
+def parse_mopper_ncfile(fpath, variable, date_range):
     """
     Get Intake-ESM datastore entry info from an ACCESS netcdf file
 
@@ -309,14 +309,28 @@ def parse_mopper_ncfile(fpath, variable, time_dim="time"):
     ----------
     fpath: str
         The path to the netcdf file
-    time_dim: str
-        The name of the time dimension
+    date_range: str
+        Date_range str in cmor style from filename
 
     Returns
     -------
     """
 
-    print(fpath, "in  parse_mopper_ncfile")
+    print(date_range, "in  parse_mopper_ncfile")
+    time_format = "%Y-%m-%d, %H:%M:%S"
+    # get format for dates based on dates lenght
+    # dformat is the longest possible datetime format for cmor
+    dformat = '%Y%m%d%H%M%S'
+    cmor_format = dformat[:(len(dd)-2)]
+    if date_range == '':
+        start_date = 'none'
+        end_date = 'none'
+    else:
+        ts, te = date_range.split("-")
+        ts = datetime.strptime(ts, cmor_format)
+        start_date = ts.strftime(time_format)
+        te = datetime.strptime(te, cmor_format)
+        end_date = te.strftime(time_format)
 
     with xr.open_dataset(
         fpath,
@@ -331,7 +345,9 @@ def parse_mopper_ncfile(fpath, variable, time_dim="time"):
         variable_cell_methods = attrs.get('cell_methods', 'unknown')
         variable_units = attrs.get('units', 'unknown')
 
-    outputs = (
+    outputs = ( 
+        start_date,
+        end_date,
         variable_long_name,
         variable_standard_name,
         variable_cell_methods,
