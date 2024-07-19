@@ -66,7 +66,6 @@ def _parse_build_inputs(config_yamls, build_path):
                 source_args["translator"] = getattr(translators, translator)
            
             args.append((method, source_args | kwargs))
-            print(args)
 
     return args
 
@@ -190,7 +189,9 @@ def build():
 
     # Build the catalog
     #cm = CatalogManager(path=metacatalog_path, extra=args['extra'])
+    print('just before CatalogManage')
     cm = CatalogManager(path=metacatalog_path)
+    print('just past CatalogManage')
     for method, args in parsed_sources:
         logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_path}'")
         getattr(cm, method)(**args)

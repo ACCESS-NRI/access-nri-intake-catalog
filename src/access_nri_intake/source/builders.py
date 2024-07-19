@@ -8,10 +8,11 @@ import re
 import traceback
 
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
+from pathlib import Path
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import parse_access_ncfile
+from .utils import parse_access_ncfile, parse_mopper_ncfile
 
 
 class ParserError(Exception):
@@ -133,7 +134,7 @@ class BaseBuilder(Builder):
             raise ValueError(
                 "asset list provided is None. Please run `.get_assets()` first"
             )
-
+     
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
@@ -452,7 +453,7 @@ class AccessCm2Builder(AccessEsm15Builder):
 class MopperBuilder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-MOPPeR processed data"""
 
-    def __init__(self, path, ensemble, extra):
+    def __init__(self, path, ensemble): #, extra):
         """
         Initialise a MopperBuilder
 
@@ -495,19 +496,24 @@ class MopperBuilder(BaseBuilder):
             ]
 
         super().__init__(**kwargs)
-        self.fpattern = extra['fpattern']
-        print(f"just after inti {self}")
+        #self.fpattern = extra['fpattern']
+        #print(f"just after init {self.fpattern}")
 
-    @staticmethod
-    def parser(fpath, fpattern, path):
-        try:
+    #@staticmethod
+    def parser(self, fpath): #, fpattern, basedir):
+        #try:
+        if True:
+            print("I am here")
+            #basedir = self.path
+            #fpattern = self.fpattern
+            fpattern = "{product_version}/{frequency}/{variable_id}/{variable_id}_{source_id}_{experiment_id}_{frequency}"
+            basedir = "/g/data/ua8/AUS2200/mjo-elnino"
             filepat = fpattern.split("/")[-1]
             dirpat = "/".join(fpattern.split("/")[:-1])
             dirpat = dirpat.replace("{","(?P<").replace("}",">[^/]+)")
             filepat = filepat.replace("{","(?P<").replace("}",">[^_]+)")
             tocompiledir = "^/" + dirpat + "/"
             tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\.nc"
-            print(f"in parser {tocompiledir}")
 
             dir_re = re.compile(tocompiledir, re.VERBOSE)
             file_re = re.compile(tocompilefile, re.VERBOSE)
@@ -516,13 +522,30 @@ class MopperBuilder(BaseBuilder):
             fbase = str(Path(fpath).parent)
             fbase = fbase.replace(basedir, "") + "/"
             dir_match = dir_re.match(fbase).groupdict()
-            file_match = dir_re.match(fname).groupdict()
+            file_match = file_re.match(fname).groupdict()
 
             realm = 'atmos'
-            start_date, end_date = file_match['date_range'].split("_")
+            # time_format = "%Y-%m-%d, %H:%M:%S"
+            date_range = file_match.get('date_range', '')
+            if date_range == '':
+                start_date = 'none'
+                end_date = 'none'
+            else:
+                st, en = date_range.split("-")
+                start_date = "-".join([st[:4], st[4:6], st[6:8]])
+                end_date = "-".join([en[:4], en[4:6], en[6:8]])
+                if len(st) > 8:
+                    start_date += ", " + ":".join(wrap(st[8:],2))
+                    end_date += ", " + ":".join(wrap(en[8:],2))
             exp_id = dir_match.get('experiment', 'unknown')
+            version = dir_match.get('product_version', 'unknown')
             variable = file_match.get('variable_id', 'unknown')
+            #PP frequency in directory is expressed as "min" for subhr, while cmor only recognise
+            #PP subhr so taking from file until #min are allowed
+            #frequency = dir_match.get('frequency', file_match['frequency'])
             frequency = file_match.get('frequency', dir_match['frequency'])
+            if "min" in frequency:
+                frequency = 'subhr'
 
             (
                 variable_long_name,
@@ -530,25 +553,25 @@ class MopperBuilder(BaseBuilder):
                 variable_cell_methods,
                 variable_units,
             ) = parse_mopper_ncfile(fpath, variable)
-
-
+#PP doesn't seem to accept a variable which is a string rather than an array of string
+# I think this is unneccesary for a lot of collections where files only have a single variable
             info = {
-                "path": str(fpath),
+                "path": fpath,
                 "realm": realm,
-                "variable": variable,
-                "frequency": frequency,
+                "variable": [variable],
+                "frequency": frequency.replace("Pt",""),
                 "start_date": start_date,
                 "end_date": end_date,
                 "member": exp_id,
-                "variable_long_name": variable_long_name,
-                "variable_standard_name": variable_standard_name,
-                "variable_cell_methods": variable_cell_methods,
-                "variable_units": variable_units,
+                "variable_long_name": [variable_long_name],
+                "variable_standard_name": [variable_standard_name],
+                "variable_cell_methods": [variable_cell_methods],
+                "variable_units": [variable_units],
                 "filename": fname,
-                "version": product_version,
+                "version": version,
             }
 
             return info
 
-        except Exception:
-            return {INVALID_ASSET: fpath, TRACEBACK: traceback.format_exc()}
+        #except Exception:
+        #    return {INVALID_ASSET: fpath, TRACEBACK: traceback.format_exc()}

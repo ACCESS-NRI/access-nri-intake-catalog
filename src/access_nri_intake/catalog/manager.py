@@ -44,7 +44,6 @@ class CatalogManager:
         self.path = path
 
         self.mode = "a" if os.path.exists(path) else "w"
-        print(COLUMNS_WITH_ITERABLES)
 
         self.dfcat = DfFileCatalog(
             path=self.path,
@@ -53,6 +52,7 @@ class CatalogManager:
             mode=self.mode,
             columns_with_iterables=COLUMNS_WITH_ITERABLES,
         )
+        print('past DfFileCatalog')
 
         self.source = None
         self.source_metadata = None

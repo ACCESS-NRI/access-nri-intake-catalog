@@ -316,7 +316,6 @@ def parse_mopper_ncfile(fpath, variable, time_dim="time"):
     -------
     """
 
-    fpath = Path(fpath)
     print(fpath, "in  parse_mopper_ncfile")
 
     with xr.open_dataset(
@@ -327,10 +326,10 @@ def parse_mopper_ncfile(fpath, variable, time_dim="time"):
         decode_coords=False,
     ) as ds:
         attrs = ds[variable].attrs
-        variable_long_name = get_attrs('long_name', 'unknown')
-        variable_standard_name = get_attrs('standard_name', 'unknown')
-        variable_cell_methods = get_attrs('cell_methods', 'unknown')
-        variable_units = get_attrs('units', 'unknown')
+        variable_long_name = attrs.get('long_name', 'unknown')
+        variable_standard_name = attrs.get('standard_name', 'unknown')
+        variable_cell_methods = attrs.get('cell_methods', 'unknown')
+        variable_units = attrs.get('units', 'unknown')
 
     outputs = (
         variable_long_name,
