@@ -30,7 +30,7 @@ class CatalogManager:
     Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
-    def __init__(self, path):#, extra):
+    def __init__(self, path):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog like the ACCESS-NRI catalog
@@ -52,11 +52,9 @@ class CatalogManager:
             mode=self.mode,
             columns_with_iterables=COLUMNS_WITH_ITERABLES,
         )
-        print('past DfFileCatalog')
 
         self.source = None
         self.source_metadata = None
-        #self.kwargs = extra
 
     def build_esm(
         self,

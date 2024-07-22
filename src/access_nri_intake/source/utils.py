@@ -316,7 +316,6 @@ def parse_mopper_ncfile(fpath, variable, date_range):
     -------
     """
 
-    print(date_range, "in  parse_mopper_ncfile")
     time_format = "%Y-%m-%d, %H:%M:%S"
     # get format for dates based on dates lenght
     # dformat is the longest possible datetime format for cmor
@@ -344,16 +343,17 @@ def parse_mopper_ncfile(fpath, variable, date_range):
         variable_standard_name = attrs.get('standard_name', 'unknown')
         variable_cell_methods = attrs.get('cell_methods', 'unknown')
         variable_units = attrs.get('units', 'unknown')
+        tracking_id = ds.attrs.get('tracking_id', 'unknown')
 
     outputs = ( 
         start_date,
         end_date,
+        tracking_id,
         variable_long_name,
         variable_standard_name,
         variable_cell_methods,
         variable_units,
     )
-    print(outputs[0], "in  parse_mopper_ncfile")
 
     return outputs
 

@@ -454,7 +454,7 @@ class AccessCm2Builder(AccessEsm15Builder):
 class MopperBuilder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-MOPPeR processed data"""
 
-    def __init__(self, path, ensemble): #, extra):
+    def __init__(self, path, ensemble, fpattern, toselect): #, extra):
         """
         Initialise a MopperBuilder
 
@@ -475,7 +475,7 @@ class MopperBuilder(BaseBuilder):
             exclude_patterns=[],
             include_patterns=["*.nc*"],
             data_format="netcdf",
-            groupby_attrs=["file_id", "frequency", "variable"],
+            groupby_attrs=["file_id", "frequency"],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -497,18 +497,16 @@ class MopperBuilder(BaseBuilder):
             ]
 
         super().__init__(**kwargs)
-        #self.fpattern = extra['fpattern']
+        self.fpattern = fpattern
+        self.toselect = toselect
         #print(f"just after init {self.fpattern}")
 
     #@staticmethod
     def parser(self, fpath): #, fpattern, basedir):
         #try:
         if True:
-            print("I am here")
-            #basedir = self.path
-            #fpattern = self.fpattern
-            fpattern = "{product_version}/{frequency}/{variable_id}/{variable_id}_{source_id}_{experiment_id}_{frequency}"
-            basedir = "/g/data/ua8/AUS2200/mjo-elnino"
+            basedir = self.paths[0]
+            fpattern = self.fpattern
             filepat = fpattern.split("/")[-1]
             dirpat = "/".join(fpattern.split("/")[:-1])
             dirpat = dirpat.replace("{","(?P<").replace("}",">[^/]+)")
@@ -528,19 +526,9 @@ class MopperBuilder(BaseBuilder):
             realm = 'atmos'
             # time_format = "%Y-%m-%d, %H:%M:%S"
             date_range = file_match.get('date_range', '')
-            if date_range == '':
-                start_date = 'none'
-                end_date = 'none'
-            else:
-                st, en = date_range.split("-")
-                start_date = "-".join([st[:4], st[4:6], st[6:8]])
-                end_date = "-".join([en[:4], en[4:6], en[6:8]])
-                if len(st) > 8:
-                    start_date += ", " + ":".join(wrap(st[8:],2))
-                    end_date += ", " + ":".join(wrap(en[8:],2))
-            exp_id = dir_match.get('experiment', 'unknown')
-            version = dir_match.get('product_version', 'unknown')
-            variable = file_match.get('variable_id', 'unknown')
+            exp_id = dir_match.get('exp_id', 'unknown')
+            version = dir_match.get('version', 'unknown')
+            variable = file_match.get('variable', 'unknown')
             #PP frequency in directory is expressed as "min" for subhr, while cmor only recognise
             #PP subhr so taking from file until #min are allowed
             #frequency = dir_match.get('frequency', file_match['frequency'])
@@ -550,6 +538,7 @@ class MopperBuilder(BaseBuilder):
 
             (   start_date,
                 end_date,
+                tracking_id,
                 variable_long_name,
                 variable_standard_name,
                 variable_cell_methods,
@@ -557,8 +546,15 @@ class MopperBuilder(BaseBuilder):
             ) = parse_mopper_ncfile(fpath, variable, date_range)
 #PP doesn't seem to accept a variable which is a string rather than an array of string
 # I think this is unneccesary for a lot of collections where files only have a single variable
+            # file_id is required however we're not using it as this aren't multivariable 
+            # files, so we should be aggregate on variable not file_id
+            # so I'm assigning tracking_id as file_id instead and just resort to file_pattern
+            # should tracking-id not be retrieved
+            #fpat = fpattern.split("/")[-1]
+            file_id = variable #fpat.format(**locals())
             info = {
                 "path": fpath,
+                "file_id": file_id,
                 "realm": realm,
                 "variable": [variable],
                 "frequency": frequency.replace("Pt",""),
@@ -570,6 +566,7 @@ class MopperBuilder(BaseBuilder):
                 "variable_cell_methods": [variable_cell_methods],
                 "variable_units": [variable_units],
                 "filename": fname,
+                "tracking_id": tracking_id,
                 "version": version,
             }
 
