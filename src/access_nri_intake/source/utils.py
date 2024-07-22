@@ -192,7 +192,7 @@ def parse_access_filename(filename):
         r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
         r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
-        rf"[^\.]*\.{om3_components}\..*({ymds}|{ymd}|{ym})$",  # ACCESS-OM3
+        rf"[^\.]*\.{om3_components}\..*[\.,_]({ymds}|{ymd}|{ym}|{y})(?:$|-{not_multi_digit}.*)",  # ACCESS-OM3
     ]
     # Frequency translations
     frequencies = {
