@@ -11,11 +11,10 @@ intake-dataframe-catalog or load an existing one. Intake-ESM datastore sources c
 :ref:`translators` are specified to translate the metadata in source datastores to be compatible with the 
 catalog schema.
 
-When :code:`access_nri_intake.catalog` is first imported, it downloads and parses the a specific commit 
-of the schema at 
-https://github.com/ACCESS-NRI/schema/tree/main/au.org.access-nri/model/output/experiment-metadata. The raw 
-schema is stored in the variable :code:`access_nri_intake.catalog.EXP_JSONSCHEMA` (more on this later) and a 
-version with the "required" field replaced with :code:`access_nri_intake.catalog.CORE_COLUMNS` is stored 
+When :code:`access_nri_intake.catalog` is first imported, it downloads and parses a specific commit of the 
+schema at https://github.com/ACCESS-NRI/schema/tree/main/au.org.access-nri/model/output/experiment-metadata. 
+The raw schema is stored in the variable :code:`access_nri_intake.catalog.EXP_JSONSCHEMA` (more on this later) 
+and a version with the "required" field replaced with :code:`access_nri_intake.catalog.CORE_COLUMNS` is stored 
 in the variable :code:`access_nri_intake.catalog.CATALOG_JSONSCHEMA` (this is to allow this field to be 
 customized). The latter defines what metadata must be included in the intake-dataframe-catalog, and what 
 types and fields are allowed. Subsequent imports read the downloaded schema, unless the schema is changed 
