@@ -12,8 +12,9 @@ intake-dataframe-catalog or load an existing one. Intake-ESM datastore sources c
 catalog schema.
 
 When :code:`access_nri_intake.catalog` is first imported, it downloads and parses the a specific commit 
-of the schema at https://github.com/ACCESS-NRI/schema/blob/main/experiment_asset.json. The raw schema is 
-stored in the variable :code:`access_nri_intake.catalog.EXP_JSONSCHEMA` (more on this later) and a 
+of the schema at 
+https://github.com/ACCESS-NRI/schema/tree/main/au.org.access-nri/model/output/experiment-metadata. The raw 
+schema is stored in the variable :code:`access_nri_intake.catalog.EXP_JSONSCHEMA` (more on this later) and a 
 version with the "required" field replaced with :code:`access_nri_intake.catalog.CORE_COLUMNS` is stored 
 in the variable :code:`access_nri_intake.catalog.CATALOG_JSONSCHEMA` (this is to allow this field to be 
 customized). The latter defines what metadata must be included in the intake-dataframe-catalog, and what 
