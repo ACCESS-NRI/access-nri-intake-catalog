@@ -8,9 +8,10 @@ import xarray as xr
 
 from access_nri_intake.source.utils import (
     get_timeinfo,
-    parse_access_filename,
-    parse_access_ncfile,
+    # parse_access_filename,
+    # parse_access_ncfile,
 )
+from access_nri_intake.source.builders import BaseBuilder
 
 
 @pytest.mark.parametrize(
@@ -156,7 +157,7 @@ from access_nri_intake.source.utils import (
     ],
 )
 def test_parse_access_filename(filename, expected):
-    assert parse_access_filename(filename) == expected
+    assert BaseBuilder.parse_access_filename(filename) == expected
 
 
 @pytest.mark.parametrize(
@@ -558,7 +559,7 @@ def test_parse_access_filename(filename, expected):
 def test_parse_access_ncfile(test_data, filename, expected):
     file = str(test_data / Path(filename))
 
-    assert parse_access_ncfile(file) == expected
+    assert BaseBuilder.parse_access_ncfile(file) == expected
 
 
 @pytest.mark.parametrize(
