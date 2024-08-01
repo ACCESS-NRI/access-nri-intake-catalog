@@ -12,6 +12,36 @@ import cftime
 import xarray as xr
 
 
+# Frequency translations
+FREQUENCIES = {
+    "daily": (1, "day"),
+    "_dai$": (1, "day"),
+    "month": (1, "mon"),
+    "_mon$": (1, "mon"),
+    "yearly": (1, "yr"),
+    "_ann$": (1, "yr"),
+}
+
+# ACCESS output file patterns
+# TODO: these should be defined per builder to prevent new patterns from breaking old builders
+not_multi_digit = "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))"
+om3_components = "(?:cice|mom6|ww3)"
+ymds = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}"
+ymd = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}"
+ym = "\\d{4}[_,-]\\d{2}"
+y = "\\d{4}"
+PATTERNS = [
+    rf"^iceh.*\.({ymd}|{ym})$",  # ACCESS-ESM1.5/OM2 ice
+    rf"^iceh.*\.({ym})-{not_multi_digit}.*",  # ACCESS-CM2 ice
+    rf"^iceh.*\.(\d{{3}})-{not_multi_digit}.*",  # ACCESS-OM2 ice
+    rf"^ocean.*[_,-](?:ymd|ym|y)_({ymd}|{ym}|{y})(?:$|[_,-]{not_multi_digit}.*)",  # ACCESS-OM2 ocean
+    r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
+    r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
+    r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+    rf"[^\.]*\.{om3_components}\..*({ymds}|{ymd}|{ym})$",  # ACCESS-OM3
+]
+
+
 class EmptyFileError(Exception):
     pass
 
@@ -156,7 +186,10 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     return start_date, end_date, frequency
 
 
-def parse_access_filename(filename):
+def parse_access_filename(filename, 
+                          patterns=PATTERNS, 
+                          frequencies=FREQUENCIES,
+                          redaction_fill : str = "X"):
     """
     Parse an ACCESS model filename and return a file id and any time information
 
@@ -175,35 +208,6 @@ def parse_access_filename(filename):
     frequency: str
         The frequency of the file if available in the filename
     """
-
-    # ACCESS output file patterns
-    # TODO: these should be defined per driver to prevent new patterns from breaking old drivers
-    not_multi_digit = "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))"
-    om3_components = "(?:cice|mom6|ww3)"
-    ymds = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}"
-    ymd = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}"
-    ym = "\\d{4}[_,-]\\d{2}"
-    y = "\\d{4}"
-    patterns = [
-        rf"^iceh.*\.({ymd}|{ym})$",  # ACCESS-ESM1.5/OM2 ice
-        rf"^iceh.*\.({ym})-{not_multi_digit}.*",  # ACCESS-CM2 ice
-        rf"^iceh.*\.(\d{{3}})-{not_multi_digit}.*",  # ACCESS-OM2 ice
-        rf"^ocean.*[_,-](?:ymd|ym|y)_({ymd}|{ym}|{y})(?:$|[_,-]{not_multi_digit}.*)",  # ACCESS-OM2 ocean
-        r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
-        r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
-        r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
-        rf"[^\.]*\.{om3_components}\..*({ymds}|{ymd}|{ym})$",  # ACCESS-OM3
-    ]
-    # Frequency translations
-    frequencies = {
-        "daily": (1, "day"),
-        "_dai$": (1, "day"),
-        "month": (1, "mon"),
-        "_mon$": (1, "mon"),
-        "yearly": (1, "yr"),
-        "_ann$": (1, "yr"),
-    }
-    redaction_fill = "X"
 
     # Try to determine frequency
     frequency = None
