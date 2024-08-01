@@ -13,7 +13,38 @@ from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import PATTERNS, FREQUENCIES, EmptyFileError, get_timeinfo
+from .utils import EmptyFileError, get_timeinfo
+
+
+# Frequency translations
+FREQUENCIES = {
+    "daily": (1, "day"),
+    "_dai$": (1, "day"),
+    "month": (1, "mon"),
+    "_mon$": (1, "mon"),
+    "yearly": (1, "yr"),
+    "_ann$": (1, "yr"),
+}
+
+# ACCESS output file patterns
+PATTERNS_HELPERS = {
+    "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
+    "om3_components": "(?:cice|mom6|ww3)",
+    "ymds": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}",
+    "ymd": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}",
+    "ym": "\\d{4}[_,-]\\d{2}",
+    "y": "\\d{4}",
+}
+PATTERNS_FULLSET = [
+    rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2 ice
+    rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
+    rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
+    rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
+    r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
+    r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
+    r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+    rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
+]
 
 
 class ParserError(Exception):
@@ -25,6 +56,8 @@ class BaseBuilder(Builder):
     Base class for creating Intake-ESM datastore builders. Not intended for direct use.
     This builds on the ecgtools.Builder class.
     """
+
+    PATTERNS = []
 
     def __init__(
         self,
@@ -188,7 +221,7 @@ class BaseBuilder(Builder):
     @staticmethod
     def parse_access_filename(
         filename, 
-        patterns=PATTERNS, 
+        patterns=PATTERNS_FULLSET, 
         frequencies=FREQUENCIES, 
         redaction_fill : str = "X"
     ):
