@@ -55,7 +55,7 @@ tag_prefix = "v"
 parentdir_prefix = "access-nri-intake-"
 
 [tool.pytest.ini_options]
-addopts = "--cov=./src --cov-report=xml --cov-report=term"
+addopts = "--cov=./src --cov-report=xml"
 
 [tool.coverage.run]
 omit = [
