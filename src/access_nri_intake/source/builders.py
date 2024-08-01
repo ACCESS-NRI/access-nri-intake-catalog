@@ -6,12 +6,14 @@
 import multiprocessing
 import re
 import traceback
+from pathlib import Path
+import xarray as xr
 
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import parse_access_ncfile
+from .utils import PATTERNS, FREQUENCIES, EmptyFileError, get_timeinfo
 
 
 class ParserError(Exception):
@@ -183,6 +185,128 @@ class BaseBuilder(Builder):
         # This method should be overwritten
         raise NotImplementedError
 
+    @staticmethod
+    def parse_access_filename(
+        filename, 
+        patterns=PATTERNS, 
+        frequencies=FREQUENCIES, 
+        redaction_fill : str = "X"
+    ):
+        """
+        Parse an ACCESS model filename and return a file id and any time information
+
+        Parameters
+        ----------
+        filename: str
+            The filename to parse with the extension removed
+
+        Returns
+        -------
+        file_id: str
+            The file id constructed by redacting time information and replacing non-python characters
+            with underscores
+        timestamp: str
+            A string of the redacted time information (e.g. "1990-01")
+        frequency: str
+            The frequency of the file if available in the filename
+        """
+
+        # Try to determine frequency
+        frequency = None
+        for pattern, freq in frequencies.items():
+            if re.search(pattern, filename):
+                frequency = freq
+                break
+
+        # Parse file id
+        file_id = filename
+        timestamp = None
+        for pattern in patterns:
+            match = re.match(pattern, file_id)
+            if match:
+                timestamp = match.group(1)
+                redaction = re.sub(r"\d", redaction_fill, timestamp)
+                file_id = file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
+                break
+
+        # Remove non-python characters from file ids
+        file_id = re.sub(r"[-.]", "_", file_id)
+        file_id = re.sub(r"_+", "_", file_id).strip("_")
+
+        return file_id, timestamp, frequency
+
+    @classmethod
+    def parse_access_ncfile(cls, file, time_dim="time"):
+        """
+        Get Intake-ESM datastore entry info from an ACCESS netcdf file
+
+        Parameters
+        ----------
+        file: str
+            The path to the netcdf file
+        time_dim: str
+            The name of the time dimension
+
+        Returns
+        -------
+        """
+
+        file = Path(file)
+        filename = file.name
+
+        file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(file.stem)
+
+        with xr.open_dataset(
+            file,
+            chunks={},
+            decode_cf=False,
+            decode_times=False,
+            decode_coords=False,
+        ) as ds:
+            variable_list = []
+            variable_long_name_list = []
+            variable_standard_name_list = []
+            variable_cell_methods_list = []
+            variable_units_list = []
+            for var in ds.data_vars:
+                attrs = ds[var].attrs
+                if "long_name" in attrs:
+                    variable_list.append(var)
+                    variable_long_name_list.append(attrs["long_name"])
+                    if "standard_name" in attrs:
+                        variable_standard_name_list.append(attrs["standard_name"])
+                    else:
+                        variable_standard_name_list.append("")
+                    if "cell_methods" in attrs:
+                        variable_cell_methods_list.append(attrs["cell_methods"])
+                    else:
+                        variable_cell_methods_list.append("")
+                    if "units" in attrs:
+                        variable_units_list.append(attrs["units"])
+                    else:
+                        variable_units_list.append("")
+
+            start_date, end_date, frequency = get_timeinfo(ds, filename_frequency, time_dim)
+
+        if not variable_list:
+            raise EmptyFileError("This file contains no variables")
+
+        outputs = (
+            filename,
+            file_id,
+            filename_timestamp,
+            frequency,
+            start_date,
+            end_date,
+            variable_list,
+            variable_long_name_list,
+            variable_standard_name_list,
+            variable_cell_methods_list,
+            variable_units_list,
+        )
+
+        return outputs
+
 
 class AccessOm2Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM2 COSIMA datasets"""
@@ -218,8 +342,8 @@ class AccessOm2Builder(BaseBuilder):
 
         super().__init__(**kwargs)
 
-    @staticmethod
-    def parser(file):
+    @classmethod
+    def parser(cls, file):
         try:
             match_groups = re.match(r".*/output\d+/([^/]*)/.*\.nc", file).groups()
             realm = match_groups[0]
@@ -239,7 +363,7 @@ class AccessOm2Builder(BaseBuilder):
                 variable_standard_name_list,
                 variable_cell_methods_list,
                 variable_units_list,
-            ) = parse_access_ncfile(file)
+            ) = cls.parse_access_ncfile(file)
 
             info = {
                 "path": str(file),
@@ -302,8 +426,8 @@ class AccessOm3Builder(BaseBuilder):
 
         super().__init__(**kwargs)
 
-    @staticmethod
-    def parser(file):
+    @classmethod
+    def parser(cls, file):
         try:
             (
                 filename,
@@ -317,7 +441,7 @@ class AccessOm3Builder(BaseBuilder):
                 variable_standard_name_list,
                 variable_cell_methods_list,
                 variable_units_list,
-            ) = parse_access_ncfile(file)
+            ) = cls.parse_access_ncfile(file)
 
             if "mom6" in filename:
                 realm = "ocean"
@@ -394,8 +518,8 @@ class AccessEsm15Builder(BaseBuilder):
 
         super().__init__(**kwargs)
 
-    @staticmethod
-    def parser(file):
+    @classmethod
+    def parser(cls, file):
         try:
             match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
             exp_id = match_groups[0]
@@ -416,7 +540,7 @@ class AccessEsm15Builder(BaseBuilder):
                 variable_standard_name_list,
                 variable_cell_methods_list,
                 variable_units_list,
-            ) = parse_access_ncfile(file)
+            ) = cls.parse_access_ncfile(file)
 
             # Remove exp_id from file id so that members can be part of the same dataset
             file_id = re.sub(exp_id, "", file_id).strip("_")
