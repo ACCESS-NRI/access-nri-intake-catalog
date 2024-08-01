@@ -7,14 +7,13 @@ import multiprocessing
 import re
 import traceback
 from pathlib import Path
-import xarray as xr
 
+import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import EmptyFileError, get_timeinfo
-
 
 # Frequency translations
 FREQUENCIES = {
@@ -47,8 +46,7 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries the full set for redundancy - child classes
-    # should refine this
+    # Base class carries an empty set
     PATTERNS = [
         # rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
         # rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
@@ -221,7 +219,7 @@ class BaseBuilder(Builder):
 
     @classmethod
     def parse_access_filename(
-        cls, filename, frequencies=FREQUENCIES, redaction_fill: str = "X"
+        cls, filename, patterns=PATTERNS, frequencies=FREQUENCIES, redaction_fill: str = "X"
     ):
         """
         Parse an ACCESS model filename and return a file id and any time information
@@ -252,7 +250,7 @@ class BaseBuilder(Builder):
         # Parse file id
         file_id = filename
         timestamp = None
-        for pattern in cls.PATTERNS:
+        for pattern in patterns:
             match = re.match(pattern, file_id)
             if match:
                 timestamp = match.group(1)
