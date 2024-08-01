@@ -47,7 +47,7 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries the full set for redundancy - child classes 
+    # Base class carries the full set for redundancy - child classes
     # should refine this
     PATTERNS = [
         # rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
@@ -221,10 +221,7 @@ class BaseBuilder(Builder):
 
     @classmethod
     def parse_access_filename(
-        cls,
-        filename,
-        frequencies=FREQUENCIES, 
-        redaction_fill : str = "X"
+        cls, filename, frequencies=FREQUENCIES, redaction_fill: str = "X"
     ):
         """
         Parse an ACCESS model filename and return a file id and any time information
@@ -260,7 +257,9 @@ class BaseBuilder(Builder):
             if match:
                 timestamp = match.group(1)
                 redaction = re.sub(r"\d", redaction_fill, timestamp)
-                file_id = file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
+                file_id = (
+                    file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
+                )
                 break
 
         # Remove non-python characters from file ids
@@ -288,7 +287,9 @@ class BaseBuilder(Builder):
         file = Path(file)
         filename = file.name
 
-        file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(file.stem)
+        file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
+            file.stem
+        )
 
         with xr.open_dataset(
             file,
@@ -320,7 +321,9 @@ class BaseBuilder(Builder):
                     else:
                         variable_units_list.append("")
 
-            start_date, end_date, frequency = get_timeinfo(ds, filename_frequency, time_dim)
+            start_date, end_date, frequency = get_timeinfo(
+                ds, filename_frequency, time_dim
+            )
 
         if not variable_list:
             raise EmptyFileError("This file contains no variables")
