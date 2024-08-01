@@ -3,13 +3,10 @@
 
 """ Shared utilities for writing Intake-ESM builders and their parsers """
 
-import re
 import warnings
 from datetime import timedelta
-from pathlib import Path
 
 import cftime
-import xarray as xr
 
 
 class EmptyFileError(Exception):

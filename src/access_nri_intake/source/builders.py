@@ -35,16 +35,6 @@ PATTERNS_HELPERS = {
     "ym": "\\d{4}[_,-]\\d{2}",
     "y": "\\d{4}",
 }
-PATTERNS_FULLSET = [
-    rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2 ice
-    rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
-    rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
-    rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
-    r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
-    r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
-    r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
-    rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
-]
 
 
 class ParserError(Exception):
@@ -57,7 +47,18 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    PATTERNS = []
+    # Base class carries the full set for redundancy - child classes 
+    # should refine this
+    PATTERNS = [
+        # rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
+        # rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
+        # rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
+        # rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
+        # r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
+        # r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
+        # r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+        # rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
+    ]
 
     def __init__(
         self,
@@ -218,10 +219,10 @@ class BaseBuilder(Builder):
         # This method should be overwritten
         raise NotImplementedError
 
-    @staticmethod
+    @classmethod
     def parse_access_filename(
-        filename, 
-        patterns=PATTERNS_FULLSET, 
+        cls,
+        filename,
         frequencies=FREQUENCIES, 
         redaction_fill : str = "X"
     ):
@@ -254,7 +255,7 @@ class BaseBuilder(Builder):
         # Parse file id
         file_id = filename
         timestamp = None
-        for pattern in patterns:
+        for pattern in cls.PATTERNS:
             match = re.match(pattern, file_id)
             if match:
                 timestamp = match.group(1)
@@ -344,6 +345,17 @@ class BaseBuilder(Builder):
 class AccessOm2Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM2 COSIMA datasets"""
 
+    PATTERNS = [
+        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
+        # rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
+        rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
+        rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
+        r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
+        # r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
+        # r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+        # rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
+    ]
+
     def __init__(self, path):
         """
         Initialise a AccessOm2Builder
@@ -421,6 +433,17 @@ class AccessOm2Builder(BaseBuilder):
 
 class AccessOm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM3 COSIMA datasets"""
+
+    PATTERNS = [
+        # rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
+        # rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
+        # rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
+        # rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
+        # r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
+        # r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
+        # r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
+    ]
 
     def __init__(self, path):
         """
@@ -508,6 +531,17 @@ class AccessOm3Builder(BaseBuilder):
 
 class AccessEsm15Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
+
+    PATTERNS = [
+        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
+        # rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
+        # rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
+        # rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
+        # r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
+        # r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
+        r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+        # rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
+    ]
 
     def __init__(self, path, ensemble):
         """
@@ -604,4 +638,13 @@ class AccessEsm15Builder(BaseBuilder):
 class AccessCm2Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-CM2 datasets"""
 
-    pass
+    PATTERNS = [
+        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
+        rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
+        # rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
+        # rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
+        # r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
+        r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
+        # r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
+        # rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
+    ]
