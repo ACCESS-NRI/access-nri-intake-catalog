@@ -219,7 +219,7 @@ class BaseBuilder(Builder):
 
     @classmethod
     def parse_access_filename(
-        cls, filename, patterns=PATTERNS, frequencies=FREQUENCIES, redaction_fill: str = "X"
+        cls, filename, patterns=None, frequencies=FREQUENCIES, redaction_fill: str = "X"
     ):
         """
         Parse an ACCESS model filename and return a file id and any time information
@@ -239,6 +239,8 @@ class BaseBuilder(Builder):
         frequency: str
             The frequency of the file if available in the filename
         """
+        if patterns is None:
+            patterns = cls.PATTERNS
 
         # Try to determine frequency
         frequency = None
