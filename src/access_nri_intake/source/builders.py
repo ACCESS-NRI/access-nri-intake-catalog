@@ -47,9 +47,7 @@ class BaseBuilder(Builder):
     """
 
     # Base class carries an empty set
-    PATTERNS = [
-
-    ]
+    PATTERNS = []
 
     def __init__(
         self,
