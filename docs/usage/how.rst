@@ -107,4 +107,4 @@ data it references are available from your session. In particular:
   JupyterLab session using the "Advanced options" to set the "Module directories" to 
   :code:`/g/data/hh5/public/modules` and "Modules" to :code:`conda/analysis3-unstable`. Similarly, to use 
   the :code:`xp65` environment, set "Module directories" to :code:`/g/data/xp65/public/modules` and 
-  "Modules" to :code:`conda/are`.
+  "Modules" to :code:`conda/access-med`.
