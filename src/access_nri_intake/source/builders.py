@@ -538,6 +538,7 @@ class AccessOm4Builder(BaseBuilder):
             exclude_patterns=[
                 "*restart*",
                 "*MOM_IC.nc",
+                "*sea_ice_geometry.nc",
                 "*ocean_geometry.nc",
                 "*ocean.stats.nc",
                 "*Vertical_coordinate.nc",
