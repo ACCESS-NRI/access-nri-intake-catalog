@@ -8,6 +8,8 @@ from datetime import timedelta
 
 import cftime
 
+FREQUENCY_STATIC = "fx"
+
 
 class EmptyFileError(Exception):
     pass
@@ -79,7 +81,7 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
     te = None
-    frequency = "fx"
+    frequency = FREQUENCY_STATIC
     has_time = time_dim in ds
 
     if has_time:
@@ -127,11 +129,11 @@ def get_timeinfo(ds, filename_frequency, time_dim):
                 f"The frequency '{filename_frequency}' determined from filename does not "
                 f"match the frequency '{frequency}' determined from the file contents."
             )
-            if frequency == "fx":
+            if frequency == FREQUENCY_STATIC:
                 frequency = filename_frequency
             warnings.warn(f"{msg} Using '{frequency}'.")
 
-    if has_time & (frequency != "fx"):
+    if has_time & (frequency != FREQUENCY_STATIC):
         if not has_bounds:
             ts, te = _guess_start_end_dates(ts, te, frequency)
 
