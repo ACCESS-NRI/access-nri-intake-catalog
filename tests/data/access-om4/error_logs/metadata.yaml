@@ -1,0 +1,13 @@
+contact: Andy Hogg
+email: Andy.Hogg@anu.edu.au
+created: 2021-11-01
+description: >-
+  0.25 degree OM4 (MOM6+SIS2) global model configuration under 1990-1991
+  repeat year forcing. Aiming for long spinup. Run still ongoing.
+note: >-
+  Compression on files is variable.
+keywords:
+  - quarter
+  - cosima
+  - mom6
+  - ryf

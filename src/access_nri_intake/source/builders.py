@@ -22,6 +22,7 @@ FREQUENCIES = {
     "month": (1, "mon"),
     "_mon$": (1, "mon"),
     "yearly": (1, "yr"),
+    "annual": (1, "yr"),
     "_ann$": (1, "yr"),
 }
 
@@ -29,8 +30,10 @@ FREQUENCIES = {
 PATTERNS_HELPERS = {
     "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
     "om3_components": "(?:cice|mom6|ww3)",
+    "om4_components": "(?:ocean|ice)",
     "ymds": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}",
     "ymd": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}",
+    "ymd-ns": "\\d{4}\\d{2}\\d{2}",
     "ym": "\\d{4}[_,-]\\d{2}",
     "y": "\\d{4}",
 }
@@ -426,6 +429,97 @@ class AccessOm3Builder(BaseBuilder):
 
     PATTERNS = [
         rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
+    ]
+
+    def __init__(self, path):
+        """
+        Initialise a AccessOm3Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=2,
+            exclude_patterns=[
+                "*restart*",
+                "*MOM_IC.nc",
+                "*ocean_geometry.nc",
+                "*ocean.stats.nc",
+                "*Vertical_coordinate.nc",
+            ],
+            include_patterns=["*.nc"],
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file):
+        try:
+            (
+                filename,
+                file_id,
+                _,
+                frequency,
+                start_date,
+                end_date,
+                variable_list,
+                variable_long_name_list,
+                variable_standard_name_list,
+                variable_cell_methods_list,
+                variable_units_list,
+            ) = cls.parse_access_ncfile(file)
+
+            if "mom6" in filename:
+                realm = "ocean"
+            elif "ww3" in filename:
+                realm = "wave"
+            elif "cice" in filename:
+                realm = "seaIce"
+            else:
+                raise ParserError(f"Cannot determine realm for file {file}")
+
+            info = {
+                "path": str(file),
+                "realm": realm,
+                "variable": variable_list,
+                "frequency": frequency,
+                "start_date": start_date,
+                "end_date": end_date,
+                "variable_long_name": variable_long_name_list,
+                "variable_standard_name": variable_standard_name_list,
+                "variable_cell_methods": variable_cell_methods_list,
+                "variable_units": variable_units_list,
+                "filename": filename,
+                "file_id": file_id,
+            }
+
+            return info
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
+class AccessOm4Builder(BaseBuilder):
+    """Intake-ESM datastore builder for ACCESS-OM4 COSIMA datasets"""
+
+    PATTERNS = [
+        rf"[^\.]*\.{PATTERNS_HELPERS['ymd-ns']}\..*({PATTERNS_HELPERS['om4_components']}).*$",  # ACCESS-OM3
     ]
 
     def __init__(self, path):
