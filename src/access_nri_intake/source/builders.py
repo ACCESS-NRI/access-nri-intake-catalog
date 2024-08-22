@@ -162,10 +162,15 @@ class BaseBuilder(Builder):
                 "asset list provided is None. Please run `.get_assets()` first"
             )
 
+        i = 0
+        j = 0
         for asset in self.assets:
+            # import pdb; pdb.set_trace()
             info = self.parser(asset)
+            i += 1
             if INVALID_ASSET not in info:
                 validate_against_schema(info, ESM_JSONSCHEMA)
+                j += 1
                 return self
 
         raise ParserError(
@@ -519,12 +524,12 @@ class AccessOm4Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM4 COSIMA datasets"""
 
     PATTERNS = [
-        rf"[^\.]*\.{PATTERNS_HELPERS['ymd-ns']}\..*({PATTERNS_HELPERS['om4_components']}).*$",  # ACCESS-OM3
+        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['om4_components']}.*$",  # ACCESS-OM4
     ]
 
     def __init__(self, path):
         """
-        Initialise a AccessOm3Builder
+        Initialise a AccessOm4Builder
 
         Parameters
         ----------
@@ -534,7 +539,7 @@ class AccessOm4Builder(BaseBuilder):
 
         kwargs = dict(
             path=path,
-            depth=2,
+            depth=1,
             exclude_patterns=[
                 "*restart*",
                 "*MOM_IC.nc",
@@ -577,11 +582,11 @@ class AccessOm4Builder(BaseBuilder):
                 variable_units_list,
             ) = cls.parse_access_ncfile(file)
 
-            if "mom6" in filename:
+            if "ocean" in filename:
                 realm = "ocean"
-            elif "ww3" in filename:
-                realm = "wave"
-            elif "cice" in filename:
+            # elif "ww3" in filename:
+            #     realm = "wave"
+            elif "ice" in filename:
                 realm = "seaIce"
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
