@@ -254,6 +254,7 @@ class BaseBuilder(Builder):
         for pattern in patterns:
             match = re.match(pattern, file_id)
             if match:
+                # FIXME switch to using named group for timestamp
                 timestamp = match.group(1)
                 redaction = re.sub(r"\d", redaction_fill, timestamp)
                 file_id = (
