@@ -431,6 +431,115 @@ def test_builder_columns_with_iterables(test_data):
                 None,
             ),
         ),
+        # ACCESS-OM4
+        (
+            builders.AccessOm4Builder,
+            "19000101.ice_daily",
+            (
+                "XXXXXXXX_ice_daily",
+                "19000101",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19010101.ice_month",
+            (
+                "XXXXXXXX_ice_month",
+                "19010101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19010101.ocean_annual_rho2",
+            (
+                "XXXXXXXX_ocean_annual_rho2",
+                "19010101",
+                (1, "yr"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19000101.ocean_annual_z",
+            (
+                "XXXXXXXX_ocean_annual_z",
+                "19000101",
+                (1, "yr"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19000101.ocean_annual",
+            (
+                "XXXXXXXX_ocean_annual",
+                "19000101",
+                (1, "yr"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19000101.ocean_daily",
+            (
+                "XXXXXXXX_ocean_daily",
+                "19000101",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19010101.ocean_month_rho2",
+            (
+                "XXXXXXXX_ocean_month_rho2",
+                "19010101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19000101.ocean_month_z",
+            (
+                "XXXXXXXX_ocean_month_z",
+                "19000101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19000101.ocean_month",
+            (
+                "XXXXXXXX_ocean_month",
+                "19000101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19000101.ocean_scalar_annual",
+            (
+                "XXXXXXXX_ocean_scalar_annual",
+                "19000101",
+                (1, "yr"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19010101.ocean_scalar_month",
+            (
+                "XXXXXXXX_ocean_scalar_month",
+                "19010101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "19010101.ocean_static",
+            (
+                "XXXXXXXX_ocean_static",
+                "19010101",
+                None,
+            ),
+        ),
     ],
 )
 def test_parse_access_filename(builder, filename, expected):
