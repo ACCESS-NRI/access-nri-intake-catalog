@@ -31,6 +31,7 @@ PATTERNS_HELPERS = {
     "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
     "om3_components": "(?:cice|mom6|ww3)",
     "om4_components": "(?:ocean|ice)",
+    "om4_added_timestamp": "(\\d{4}_\\d{3})",
     "ymds": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}",
     "ymd": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}",
     "ymd-ns": "\\d{4}\\d{2}\\d{2}",
@@ -255,11 +256,12 @@ class BaseBuilder(Builder):
             match = re.match(pattern, file_id)
             if match:
                 # FIXME switch to using named group for timestamp
+                # Loop over all found groups and redact
                 timestamp = match.group(1)
-                redaction = re.sub(r"\d", redaction_fill, timestamp)
-                file_id = (
-                    file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
-                )
+                for grp in match.groups():
+                    if grp is not None:
+                        redaction = re.sub(r"\d", redaction_fill, grp)
+                        file_id = re.sub(grp, redaction, file_id)
                 break
 
         # Remove non-python characters from file ids
@@ -521,10 +523,15 @@ class AccessOm3Builder(BaseBuilder):
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 
+# FIXME refactor to be called Mom6Builder (TBC)
 class AccessOm4Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM4 COSIMA datasets"""
 
+    # FIXME should be able to make one super-pattern, but couldn't
+    # make it work with the ? selector after om4_added_timestamp
+    # NOTE: Order here is important!
     PATTERNS = [
+        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['om4_components']}.*{PATTERNS_HELPERS['om4_added_timestamp']}.*$",  # Panan naming
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['om4_components']}.*$",  # ACCESS-OM4
     ]
 
