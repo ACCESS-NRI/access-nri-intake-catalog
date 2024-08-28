@@ -549,6 +549,24 @@ def test_builder_columns_with_iterables(test_data):
                 (1, "day"),
             ),
         ),
+        (
+            builders.AccessOm4Builder,
+            "20000201.ocean_daily_rho2_2000_056",
+            (
+                "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
+                "20000201",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.AccessOm4Builder,
+            "20000201.ocean_daily_z_2000_119",
+            (
+                "XXXXXXXX_ocean_daily_z_XXXX_XXX",
+                "20000201",
+                (1, "day"),
+            ),
+        ),
     ],
 )
 def test_parse_access_filename(builder, filename, expected):
