@@ -30,8 +30,8 @@ FREQUENCIES = {
 PATTERNS_HELPERS = {
     "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
     "om3_components": "(?:cice|mom6|ww3)",
-    "om4_components": "(?:ocean|ice)",
-    "om4_added_timestamp": "(\\d{4}_\\d{3})",
+    "mom6_components": "(?:ocean|ice)",
+    "mom6_added_timestamp": "(\\d{4}_\\d{3})",
     "ymds": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}",
     "ymd": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}",
     "ymd-ns": "\\d{4}\\d{2}\\d{2}",
@@ -524,15 +524,15 @@ class AccessOm3Builder(BaseBuilder):
 
 
 # FIXME refactor to be called Mom6Builder (TBC)
-class AccessOm4Builder(BaseBuilder):
-    """Intake-ESM datastore builder for ACCESS-OM4 COSIMA datasets"""
+class Mom6Builder(BaseBuilder):
+    """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
 
     # FIXME should be able to make one super-pattern, but couldn't
-    # make it work with the ? selector after om4_added_timestamp
+    # make it work with the ? selector after mom6_added_timestamp
     # NOTE: Order here is important!
     PATTERNS = [
-        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['om4_components']}.*{PATTERNS_HELPERS['om4_added_timestamp']}.*$",  # Panan naming
-        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['om4_components']}.*$",  # ACCESS-OM4
+        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
+        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
     ]
 
     def __init__(self, path):

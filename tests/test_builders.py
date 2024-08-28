@@ -24,7 +24,7 @@ from access_nri_intake.source import CORE_COLUMNS, builders
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 11),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
-        (["access-om4"], "AccessOm4Builder", {}, 27, 27, 15),
+        (["mom6"], "Mom6Builder", {}, 27, 27, 15),
     ],
 )
 def test_builder_build(
@@ -129,80 +129,80 @@ def test_builder_build(
             None,
             "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
         ),
-        # ACCESS-OM4
+        # MOM6
         (
-            "access-om4/output000/19000101.ice_daily.nc",
-            "AccessOm4Builder",
+            "mom6/output000/19000101.ice_daily.nc",
+            "Mom6Builder",
             "seaIce",
             None,
             "XXXXXXXX_ice_daily",
         ),
         (
-            "access-om4/output001/19010101.ice_month.nc",
-            "AccessOm4Builder",
+            "mom6/output001/19010101.ice_month.nc",
+            "Mom6Builder",
             "seaIce",
             None,
             "XXXXXXXX_ice_month",
         ),
         (
-            "access-om4/output001/19010101.ocean_annual_rho2.nc",
-            "AccessOm4Builder",
+            "mom6/output001/19010101.ocean_annual_rho2.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_annual_rho2",
         ),
         (
-            "access-om4/output000/19000101.ocean_annual_z.nc",
-            "AccessOm4Builder",
+            "mom6/output000/19000101.ocean_annual_z.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_annual_z",
         ),
         (
-            "access-om4/output000/19000101.ocean_daily.nc",
-            "AccessOm4Builder",
+            "mom6/output000/19000101.ocean_daily.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_daily",
         ),
         (
-            "access-om4/output001/19010101.ocean_month_rho2.nc",
-            "AccessOm4Builder",
+            "mom6/output001/19010101.ocean_month_rho2.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_month_rho2",
         ),
         (
-            "access-om4/output000/19000101.ocean_month_z.nc",
-            "AccessOm4Builder",
+            "mom6/output000/19000101.ocean_month_z.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_month_z",
         ),
         (
-            "access-om4/output001/19010101.ocean_month.nc",
-            "AccessOm4Builder",
+            "mom6/output001/19010101.ocean_month.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_month",
         ),
         (
-            "access-om4/output000/19000101.ocean_scalar_annual.nc",
-            "AccessOm4Builder",
+            "mom6/output000/19000101.ocean_scalar_annual.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_scalar_annual",
         ),
         (
-            "access-om4/output001/19010101.ocean_scalar_month.nc",
-            "AccessOm4Builder",
+            "mom6/output001/19010101.ocean_scalar_month.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_scalar_month",
         ),
         (
-            "access-om4/output000/19000101.ocean_static.nc",
-            "AccessOm4Builder",
+            "mom6/output000/19000101.ocean_static.nc",
+            "Mom6Builder",
             "ocean",
             None,
             "XXXXXXXX_ocean_static",
@@ -431,9 +431,9 @@ def test_builder_columns_with_iterables(test_data):
                 None,
             ),
         ),
-        # ACCESS-OM4
+        # MOM6
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19000101.ice_daily",
             (
                 "XXXXXXXX_ice_daily",
@@ -442,7 +442,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19010101.ice_month",
             (
                 "XXXXXXXX_ice_month",
@@ -451,7 +451,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19010101.ocean_annual_rho2",
             (
                 "XXXXXXXX_ocean_annual_rho2",
@@ -460,7 +460,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19000101.ocean_annual_z",
             (
                 "XXXXXXXX_ocean_annual_z",
@@ -469,7 +469,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19000101.ocean_annual",
             (
                 "XXXXXXXX_ocean_annual",
@@ -478,7 +478,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19000101.ocean_daily",
             (
                 "XXXXXXXX_ocean_daily",
@@ -487,7 +487,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19010101.ocean_month_rho2",
             (
                 "XXXXXXXX_ocean_month_rho2",
@@ -496,7 +496,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19000101.ocean_month_z",
             (
                 "XXXXXXXX_ocean_month_z",
@@ -505,7 +505,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19000101.ocean_month",
             (
                 "XXXXXXXX_ocean_month",
@@ -514,7 +514,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19000101.ocean_scalar_annual",
             (
                 "XXXXXXXX_ocean_scalar_annual",
@@ -523,7 +523,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19010101.ocean_scalar_month",
             (
                 "XXXXXXXX_ocean_scalar_month",
@@ -532,7 +532,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "19010101.ocean_static",
             (
                 "XXXXXXXX_ocean_static",
@@ -541,7 +541,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "20000201.ocean_daily_2000_032",
             (
                 "XXXXXXXX_ocean_daily_XXXX_XXX",
@@ -550,7 +550,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "20000201.ocean_daily_rho2_2000_056",
             (
                 "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
@@ -559,7 +559,7 @@ def test_builder_columns_with_iterables(test_data):
             ),
         ),
         (
-            builders.AccessOm4Builder,
+            builders.Mom6Builder,
             "20000201.ocean_daily_z_2000_119",
             (
                 "XXXXXXXX_ocean_daily_z_XXXX_XXX",
@@ -987,8 +987,8 @@ def test_parse_access_filename(builder, filename, expected):
             ),
         ),
         (
-            builders.AccessOm4Builder,
-            "access-om4/output000/19000101.ice_daily.nc",
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ice_daily.nc",
             (
                 "19000101.ice_daily.nc",
                 "XXXXXXXX_ice_daily",
@@ -1025,8 +1025,8 @@ def test_parse_access_filename(builder, filename, expected):
             ),
         ),
         (
-            builders.AccessOm4Builder,
-            "access-om4/output000/19000101.ocean_annual_z.nc",
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ocean_annual_z.nc",
             (
                 "19000101.ocean_annual_z.nc",
                 "XXXXXXXX_ocean_annual_z",
@@ -1147,8 +1147,8 @@ def test_parse_access_filename(builder, filename, expected):
             ),
         ),
         (
-            builders.AccessOm4Builder,
-            "access-om4/output000/19000101.ocean_month_rho2.nc",
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ocean_month_rho2.nc",
             (
                 "19000101.ocean_month_rho2.nc",
                 "XXXXXXXX_ocean_month_rho2",
@@ -1204,8 +1204,8 @@ def test_parse_access_filename(builder, filename, expected):
             ),
         ),
         (
-            builders.AccessOm4Builder,
-            "access-om4/output000/19000101.ocean_scalar_annual.nc",
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ocean_scalar_annual.nc",
             (
                 "19000101.ocean_scalar_annual.nc",
                 "XXXXXXXX_ocean_scalar_annual",
@@ -1271,8 +1271,8 @@ def test_parse_access_filename(builder, filename, expected):
             ),
         ),
         (
-            builders.AccessOm4Builder,
-            "access-om4/output000/19000101.ocean_static.nc",
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ocean_static.nc",
             (
                 "19000101.ocean_static.nc",
                 "XXXXXXXX_ocean_static",
@@ -1423,8 +1423,8 @@ def test_parse_access_filename(builder, filename, expected):
             ),
         ),
         (
-            builders.AccessOm4Builder,
-            "access-om4/output053/20051101.ocean_daily_2005_360.nc",
+            builders.Mom6Builder,
+            "mom6/output053/20051101.ocean_daily_2005_360.nc",
             (
                 "20051101.ocean_daily_2005_360.nc",
                 "XXXXXXXX_ocean_daily_XXXX_XXX",
@@ -1520,8 +1520,8 @@ def test_parse_access_filename(builder, filename, expected):
             ),
         ),
         (
-            builders.AccessOm4Builder,
-            "access-om4/output053/20051101.ocean_daily_rho2_2005_360.nc",
+            builders.Mom6Builder,
+            "mom6/output053/20051101.ocean_daily_rho2_2005_360.nc",
             (
                 "20051101.ocean_daily_rho2_2005_360.nc",
                 "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
@@ -1577,8 +1577,8 @@ def test_parse_access_filename(builder, filename, expected):
             ),
         ),
         (
-            builders.AccessOm4Builder,
-            "access-om4/output053/20051101.ocean_daily_z_2005_360.nc",
+            builders.Mom6Builder,
+            "mom6/output053/20051101.ocean_daily_z_2005_360.nc",
             (
                 "20051101.ocean_daily_z_2005_360.nc",
                 "XXXXXXXX_ocean_daily_z_XXXX_XXX",
