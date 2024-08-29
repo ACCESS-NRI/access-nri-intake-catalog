@@ -4,6 +4,7 @@
 """ Command line interfaces for access-nri-intake """
 
 import argparse
+import importlib
 import logging
 import os
 import re
@@ -214,10 +215,12 @@ def build():
     # Save the catalog
     cm.save()
 
-    _here = os.path.abspath(os.path.dirname(__file__))
     if update:
-        # FIXME use correct package data handling
-        with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
+        with (
+            importlib.resources.files("access_nri_intake")
+            .joinpath("data/catalog.yaml")
+            .open(mode="w") as fobj
+        ):
             yaml.dump(yaml_dict, fobj)
 
 
