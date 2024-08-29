@@ -5,5 +5,6 @@ import os
 
 import intake
 
+## FIXME use correct package data handling
 _here = os.path.abspath(os.path.dirname(__file__))
 data = intake.open_catalog(os.path.join(_here, "catalog.yaml")).access_nri

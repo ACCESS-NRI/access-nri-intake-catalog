@@ -216,6 +216,7 @@ def build():
 
     _here = os.path.abspath(os.path.dirname(__file__))
     if update:
+        # FIXME use correct package data handling
         with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
