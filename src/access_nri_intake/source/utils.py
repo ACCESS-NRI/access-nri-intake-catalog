@@ -29,6 +29,7 @@ def _add_year_start(time, n):
     )
 
 
+# FIXME can't account for snapshot data
 def _guess_start_end_dates(ts, te, frequency):
     """Guess the start and end bounded times for a given frequency"""
     warnings.warn(
@@ -59,6 +60,7 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
+# FIXME can't account for snapshot data
 def get_timeinfo(ds, filename_frequency, time_dim):
     """
     Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
@@ -131,6 +133,8 @@ def get_timeinfo(ds, filename_frequency, time_dim):
                 frequency = filename_frequency
             warnings.warn(f"{msg} Using '{frequency}'.")
 
+    # FIXME this code block could be removed to fix #188, but then won't
+    # work for non-snapshot data that fails to provide time bounds
     if has_time & (frequency != "fx"):
         if not has_bounds:
             ts, te = _guess_start_end_dates(ts, te, frequency)
