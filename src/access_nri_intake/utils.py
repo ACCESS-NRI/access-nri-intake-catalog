@@ -116,3 +116,7 @@ def _can_be_array(field):
         for nfield in field["oneOf"]:
             is_array = is_array or _is_array(nfield)
     return is_array
+
+
+def get_catalog_fp():
+    return rsr.files("access_nri_intake").joinpath("data/catalog.yaml")
