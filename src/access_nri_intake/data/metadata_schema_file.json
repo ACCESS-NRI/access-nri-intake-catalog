@@ -1,5 +1,5 @@
 {
-    "$id": "https://raw.githubusercontent.com/ACCESS-NRI/schema/e9055da95093ec2faa555c090fc5af17923d1566/au.org.access-nri/model/output/file-metadata/1-0-1.json",
+    "$id": "https://raw.githubusercontent.com/ACCESS-NRI/schema/main/au.org.access-nri/model/output/file-metadata/1-0-1.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "File metadata",
     "description": "The metadata associated with a file containing or referencing climate model data",

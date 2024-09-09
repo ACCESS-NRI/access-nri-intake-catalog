@@ -1,5 +1,5 @@
 {
-    "$id": "https://raw.githubusercontent.com/ACCESS-NRI/schema/e9055da95093ec2faa555c090fc5af17923d1566/au.org.access-nri/model/output/experiment-metadata/1-0-2.json",
+    "$id": "https://raw.githubusercontent.com/ACCESS-NRI/schema/main/au.org.access-nri/model/output/experiment-metadata/1-0-2.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Experiment metadata",
     "description": "The metadata associated with a model experiment",
