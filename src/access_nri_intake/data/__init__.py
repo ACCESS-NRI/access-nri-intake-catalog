@@ -1,8 +1,6 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# import importlib
-# import importlib.resources
 import intake
 
 from access_nri_intake.utils import get_catalog_fp
