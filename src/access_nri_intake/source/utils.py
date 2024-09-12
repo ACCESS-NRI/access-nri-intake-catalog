@@ -13,7 +13,7 @@ class EmptyFileError(Exception):
     pass
 
 
-def _add_month_start(time, n):
+def _add_month_start(time, n : int):
     """Add months to cftime datetime and truncate to start"""
     year = time.year + ((time.month + n - 1) // 12)
     month = (time.month + n - 1) % 12 + 1
@@ -22,7 +22,7 @@ def _add_month_start(time, n):
     )
 
 
-def _add_year_start(time, n):
+def _add_year_start(time, n : int):
     """Add years to cftime datetime and truncate to start"""
     return time.replace(
         year=time.year + n, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
@@ -59,7 +59,7 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def get_timeinfo(ds, filename_frequency, time_dim):
+def get_timeinfo(ds, filename_frequency, time_dim : str ) -> tuple[str, str, str]:
     """
     Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
     cosima cookbook, see
@@ -109,17 +109,17 @@ def get_timeinfo(ds, filename_frequency, time_dim):
             # TODO: This is not a very good way to get the frequency
             if dt.days >= 365:
                 years = round(dt.days / 365)
-                frequency = (years, "yr")
+                frequency = (years, "yr")  # type: ignore
             elif dt.days >= 28:
                 months = round(dt.days / 30)
-                frequency = (months, "mon")
+                frequency = (months, "mon") # type: ignore
             elif dt.days >= 1:
-                frequency = (dt.days, "day")
+                frequency = (dt.days, "day") # type: ignore
             elif dt.seconds >= 3600:
                 hours = round(dt.seconds / 3600)
-                frequency = (hours, "hr")
+                frequency = (hours, "hr") # type: ignore
             else:
-                frequency = (None, "subhr")
+                frequency = (None, "subhr") # type: ignore
 
     if filename_frequency:
         if filename_frequency != frequency:

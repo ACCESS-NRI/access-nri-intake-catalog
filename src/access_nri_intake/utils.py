@@ -11,7 +11,7 @@ import pooch
 import yaml
 
 
-def get_jsonschema(url, known_hash, required):
+def get_jsonschema(url : str , known_hash : str , required : list) -> tuple[dict, dict]:
     """
     Download a jsonschema from a url. Returns the unaltered jsonschema and a version with the "required" key
     matching the properties provided.
@@ -46,8 +46,7 @@ def get_jsonschema(url, known_hash, required):
 
     return schema, schema_required
 
-
-def load_metadata_yaml(path, jsonschema):
+def load_metadata_yaml(path : str, jsonschema : dict) -> dict:
     """
     Load a metadata.yaml file, leaving dates as strings, and validate against a jsonschema,
     allowing for tuples as arrays
@@ -84,7 +83,7 @@ def load_metadata_yaml(path, jsonschema):
     return metadata
 
 
-def validate_against_schema(instance, schema):
+def validate_against_schema(instance : dict, schema : dict) -> None:
     """
     Validate a dictionary against a jsonschema, allowing for tuples as arrays
 
@@ -94,6 +93,11 @@ def validate_against_schema(instance, schema):
         The instance to validate
     schema: dict
         The jsonschema
+
+    Raises
+    ------
+    jsonschema.exceptions.ValidationError
+        If the instance does not match the schema
     """
 
     Validator = jsonschema.validators.validator_for(schema)
