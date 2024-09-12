@@ -5,8 +5,4 @@ import intake
 
 from access_nri_intake.utils import get_catalog_fp
 
-data = intake.open_catalog(
-    # importlib.resources.files("access_nri_intake").joinpath("data/catalog.yaml")
-    # os.path.join(_here, "catalog.yaml")
-    get_catalog_fp()
-).access_nri
+data = intake.open_catalog(get_catalog_fp()).access_nri
