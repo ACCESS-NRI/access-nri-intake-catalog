@@ -5,8 +5,12 @@
 
 import warnings
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
 import cftime
+
+if TYPE_CHECKING:
+    import xarray as xr
 
 
 class EmptyFileError(Exception):
@@ -59,7 +63,11 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def get_timeinfo(ds, filename_frequency, time_dim : str ) -> tuple[str, str, str]:
+def get_timeinfo(
+        ds : xr.Dataset,
+        filename_frequency : str | None,
+        time_dim : str, 
+    ) -> tuple[str, str, str]:
     """
     Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
     cosima cookbook, see
@@ -69,8 +77,24 @@ def get_timeinfo(ds, filename_frequency, time_dim : str ) -> tuple[str, str, str
     ----------
     ds: :py:class:`xarray.Dataset`
         The dataset to parse the time info from
+    filename_frequency: str
+        Frequency as determined from the filename
     time_dim: str
         The name of the time dimension
+
+    Returns
+    -------
+    start_date: str
+        The start date of the dataset
+    end_date: str
+        The end date of the dataset
+    frequency: str
+        The frequency of the dataset
+
+    Raises
+    ------
+    EmptyFileError
+        If the dataset has a valid unlimited dimension, but no data
     """
 
     def _todate(t):
