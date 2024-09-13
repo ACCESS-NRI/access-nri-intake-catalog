@@ -1,0 +1,132 @@
+{
+    "$id": "https://raw.githubusercontent.com/ACCESS-NRI/schema/main/au.org.access-nri/model/output/file-metadata/1-0-1.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "File metadata",
+    "description": "The metadata associated with a file containing or referencing climate model data",
+    "type": "object",
+    "properties": {
+        "schema_version": {
+            "const": "1-0-1",
+            "description": "The version of the schema (string)"
+        },
+        "path": {
+            "type": "string",
+            "description": "The path to the file asset"
+        },
+        "realm": {
+            "type": "string",
+            "enum": [
+                "aerosol",
+                "atmos",
+                "atmosChem",
+                "land",
+                "landIce",
+                "none",
+                "ocean",
+                "ocnBgchem",
+                "seaIce",
+                "unknown",
+                "wave"
+            ],
+            "description": "The realm of the data in the file asset"
+        },
+        "variable": {
+            "type": "array",
+            "items": {
+                "type": ["string", "null"]
+            },
+            "description": "The variable(s) in the file asset"
+        },
+        "variable_long_name": {
+            "type": "array",
+            "items": {
+                "type": ["string", "null"]
+            },
+            "description": "The long_name(s) of the variable(s) in the file asset"
+        },
+        "variable_standard_name": {
+            "type": "array",
+            "items": {
+                "type": ["string", "null"]
+            },
+            "description": "The standard_names(s) of the variable(s) in the file asset"
+        },
+        "variable_cell_methods": {
+            "type": "array",
+            "items": {
+                "type": ["string", "null"]
+            },
+            "description": "The cell_methods(s) of the variable(s) in the file asset"
+        },
+        "variable_units": {
+            "type": "array",
+            "items": {
+                "type": ["string", "null"]
+            },
+            "description": "The units of the variable(s) in the file asset"
+        },
+        "frequency": {
+            "type": "string",
+            "oneOf": [
+                {
+                    "pattern": "^fx$"
+                },
+                {
+                    "pattern": "^subhr$"
+                },
+                {
+                    "pattern": "^\\d+hr$"
+                },
+                {
+                    "pattern": "^\\d+day$"
+                },
+                {
+                    "pattern": "^\\d+mon$"
+                },
+                {
+                    "pattern": "^\\d+yr$"
+                },
+                {
+                    "pattern": "^\\d+dec$"
+                }
+            ],
+            "description": "The frequency of the variable(s) in the file asset"
+        },
+        "start_date": {
+            "type": "string",
+             "oneOf": [
+                {
+                    "pattern": "^\\d\\d\\d\\d-\\d\\d-\\d\\d,\\s\\d\\d:\\d\\d:\\d\\d$"
+                },
+                {
+                    "pattern": "none"
+                }
+             ],
+            "description": "The start date of the variable(s) in the file asset"
+        },
+        "end_date": {
+            "type": "string",
+            "oneOf": [
+                {
+                    "pattern": "^\\d\\d\\d\\d-\\d\\d-\\d\\d,\\s\\d\\d:\\d\\d:\\d\\d$"
+                },
+                {
+                    "pattern": "none"
+                }
+             ],
+            "description": "The end date of the variable(s) in the file asset"
+        },
+        "nominal_resolution": {
+            "type": "string",
+            "description": "The nominal resolution of the variable(s) in the file asset"
+        }
+    },
+    "required": [
+        "path",
+        "realm",
+        "variable",
+        "frequency",
+        "start_date",
+        "end_date"
+    ]
+}
