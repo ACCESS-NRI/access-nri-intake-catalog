@@ -8,9 +8,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 import cftime
-
-if TYPE_CHECKING:
-    import xarray as xr
+import xarray as xr
 
 
 class EmptyFileError(Exception):
@@ -103,7 +101,7 @@ def get_timeinfo(
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
     te = None
-    frequency = "fx"
+    frequency : str | tuple[int | None, str] = "fx"
     has_time = time_dim in ds
 
     if has_time:
@@ -133,17 +131,17 @@ def get_timeinfo(
             # TODO: This is not a very good way to get the frequency
             if dt.days >= 365:
                 years = round(dt.days / 365)
-                frequency = (years, "yr")  # type: ignore
+                frequency = (years, "yr")
             elif dt.days >= 28:
                 months = round(dt.days / 30)
-                frequency = (months, "mon") # type: ignore
+                frequency = (months, "mon") 
             elif dt.days >= 1:
-                frequency = (dt.days, "day") # type: ignore
+                frequency = (dt.days, "day")
             elif dt.seconds >= 3600:
                 hours = round(dt.seconds / 3600)
-                frequency = (hours, "hr") # type: ignore
+                frequency = (hours, "hr")
             else:
-                frequency = (None, "subhr") # type: ignore
+                frequency = (None, "subhr")
 
     if filename_frequency:
         if filename_frequency != frequency:
