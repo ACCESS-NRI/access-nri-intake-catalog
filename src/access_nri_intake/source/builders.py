@@ -16,7 +16,7 @@ from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import EmptyFileError, get_timeinfo
 
 # Frequency translations
-FREQUENCIES = {
+FREQUENCIES : dict[str, tuple[int, str]] = {
     "daily": (1, "day"),
     "_dai$": (1, "day"),
     "month": (1, "mon"),
@@ -47,19 +47,19 @@ class BaseBuilder(Builder):
     """
 
     # Base class carries an empty set
-    PATTERNS = []
+    PATTERNS : list = []
 
     def __init__(
         self,
-        path,
-        depth=0,
-        exclude_patterns=None,
-        include_patterns=None,
-        data_format="netcdf",
-        groupby_attrs=None,
-        aggregations=None,
-        storage_options=None,
-        joblib_parallel_kwargs={"n_jobs": multiprocessing.cpu_count()},
+        path : str | list[str],
+        depth : int = 0,
+        exclude_patterns : list[str] | None = None,
+        include_patterns : list[str] | None = None,
+        data_format : str ="netcdf",
+        groupby_attrs : list[str] | None  = None,
+        aggregations : list[dict] | None = None,
+        storage_options : dict | None = None,
+        joblib_parallel_kwargs : dict ={"n_jobs": multiprocessing.cpu_count()},
     ):
         """
         This method should be overwritten. The expection is that some of these arguments
@@ -113,7 +113,7 @@ class BaseBuilder(Builder):
         self._parse()
         return self
 
-    def _save(self, name, description, directory):
+    def _save(self, name : str, description : str, directory : str | None):
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -128,7 +128,7 @@ class BaseBuilder(Builder):
             to_csv_kwargs={"compression": "gzip"},
         )
 
-    def save(self, name, description, directory=None):
+    def save(self, name : str, description : str , directory : str | None = None) -> None:
         """
         Save datastore contents to a file.
 
@@ -210,8 +210,9 @@ class BaseBuilder(Builder):
 
     @classmethod
     def parse_access_filename(
-        cls, filename, patterns=None, frequencies=FREQUENCIES, redaction_fill: str = "X"
-    ):
+        cls, filename : str, patterns : list[str] | None =None,
+        frequencies : dict = FREQUENCIES, redaction_fill: str = "X"
+    ) -> tuple[str, str | None, str | None]:
         """
         Parse an ACCESS model filename and return a file id and any time information
 
@@ -219,16 +220,22 @@ class BaseBuilder(Builder):
         ----------
         filename: str
             The filename to parse with the extension removed
+        patterns: list of str, optional
+            A list of regex patterns to match against the filename. If None, use the class PATTERNS
+        frequencies: dict, optional
+            A dictionary of regex patterns to match against the filename to determine the frequency
+        redaction_fill: str, optional
+            The character to replace time information with. Defaults to "X"
 
         Returns
         -------
         file_id: str
             The file id constructed by redacting time information and replacing non-python characters
             with underscores
-        timestamp: str
-            A string of the redacted time information (e.g. "1990-01")
-        frequency: str
-            The frequency of the file if available in the filename
+        timestamp: str | None
+            A string of the redacted time information (e.g. "1990-01") if available, otherwise None
+        frequency: str | None
+            The frequency of the file if available in the filename, otherwise None
         """
         if patterns is None:
             patterns = cls.PATTERNS
@@ -260,7 +267,7 @@ class BaseBuilder(Builder):
         return file_id, timestamp, frequency
 
     @classmethod
-    def parse_access_ncfile(cls, file, time_dim="time"):
+    def parse_access_ncfile(cls, file : str , time_dim : str = "time") -> tuple:
         """
         Get Intake-ESM datastore entry info from an ACCESS netcdf file
 
@@ -273,13 +280,18 @@ class BaseBuilder(Builder):
 
         Returns
         -------
+        outputs: tuple
+
+        Raises
+        ------
+        EmptyFileError: If the file contains no variables
         """
 
-        file = Path(file)
-        filename = file.name
+        file_path = Path(file) 
+        filename = file_path.name
 
         file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
-            file.stem
+            file_path.stem
         )
 
         with xr.open_dataset(

@@ -6,13 +6,18 @@ Tools for translating metadata in an intake source into a metadata table to use 
 like the ACCESS-NRI catalog
 """
 
+from __future__ import annotations
 from functools import partial
+from typing import Callable, TYPE_CHECKING
+from intake import DataSource
 
 import pandas as pd
 import tlz
 
 from . import COLUMNS_WITH_ITERABLES
 
+if TYPE_CHECKING:
+    from intake import DataSource
 
 class TranslatorError(Exception):
     "Generic Exception for the Translator classes"
@@ -25,7 +30,7 @@ class DefaultTranslator:
     of metadata for use in an intake-dataframe-catalog.
     """
 
-    def __init__(self, source, columns):
+    def __init__(self, source : DataSource, columns : list[str]):
         """
         Initialise a DefaultTranslator. This Translator works as follows:
 
@@ -45,12 +50,12 @@ class DefaultTranslator:
 
         self.source = source
         self.columns = columns
-        self._dispatch = {
+        self._dispatch : dict[str, Callable[[],pd.Series]] = {
             column: partial(self._default_translator, column=column)
             for column in columns
         }
 
-    def _default_translator(self, column):
+    def _default_translator(self, column: str) -> pd.Series:
         """
         Try to translate a column from a source using the default translator. This translator works as follows:
         - If the input source is an intake-esm datastore, the translator will first look for the column in the
@@ -96,7 +101,7 @@ class DefaultTranslator:
 
         return pd.Series([val] * len_df)
 
-    def translate(self, groupby=None):
+    def translate(self, groupby : list[str] | None = None) -> pd.DataFrame:
         """
         Return the translated :py:class:`~pandas.DataFrame` of metadata and merge into set of
         set of rows with unique values of the columns specified.
@@ -149,7 +154,7 @@ class Cmip6Translator(DefaultTranslator):
     CMIP6 Translator for translating metadata from the NCI CMIP6 intake datastores.
     """
 
-    def __init__(self, source, columns):
+    def __init__(self, source : DataSource, columns :list[str]):
         """
         Initialise a Cmip6Translator
 
@@ -197,7 +202,7 @@ class Cmip5Translator(DefaultTranslator):
     CMIP5 Translator for translating metadata from the NCI CMIP5 intake datastores.
     """
 
-    def __init__(self, source, columns):
+    def __init__(self, source : DataSource, columns : list[str]):
         """
         Initialise a Cmip5Translator
 
@@ -245,7 +250,7 @@ class EraiTranslator(DefaultTranslator):
     ERAI Translator for translating metadata from the NCI ERA-Interim intake datastore.
     """
 
-    def __init__(self, source, columns):
+    def __init__(self, source : DataSource, columns : list[str]):
         """
         Initialise a EraiTranslator
 
@@ -267,7 +272,7 @@ class EraiTranslator(DefaultTranslator):
         return _to_tuple(self.source.df["variable"])
 
 
-def _cmip_frequency_translator(series):
+def _cmip_frequency_translator(series : pd.Series) -> pd.Series:
     """
     Return frequency from CMIP frequency metadata
     """
@@ -288,21 +293,19 @@ def _cmip_frequency_translator(series):
             "yrPt": "1yr",
         }
 
-        try:
-            return translations[string]
-        except KeyError:
-            return string
+        return translations.get(string, string)
 
     return series.apply(lambda string: _translate(string))
 
 
-def _cmip_realm_translator(series):
+def _cmip_realm_translator(series) -> pd.Series:
     """
-    Return realm from CMIP realm metadata, fixing some issues. This function returns
-    a tuple as there are sometimes multiple realms per cmip asset
+    Return realm from CMIP realm metadata, fixing some issues. This function takes
+    a series of strings and returns a series of tuples as there are sometimes multiple
+    realms per cmip asset
     """
 
-    def _translate(string):
+    def _translate(string : str) -> tuple[str, ...]:
         translations = {
             "na": "none",
             "landonly": "land",
@@ -313,10 +316,7 @@ def _cmip_realm_translator(series):
         raw_realms = string.split(" ")
         realms = []
         for realm in raw_realms:
-            try:
-                realm = translations[realm]
-            except KeyError:
-                pass
+            realm = translations.get(realm, realm)
             if realm not in realms:
                 realms.append(realm)
         return tuple(realms)
@@ -324,7 +324,7 @@ def _cmip_realm_translator(series):
     return series.apply(lambda string: _translate(string))
 
 
-def _to_tuple(series):
+def _to_tuple(series : pd.Series) -> pd.Series:
     """
     Make each entry in the provided series a tuple
 
