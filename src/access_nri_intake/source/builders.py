@@ -294,7 +294,7 @@ class BaseBuilder(Builder):
             variable_standard_name_list = []
             variable_cell_methods_list = []
             variable_units_list = []
-            for var in ds.data_vars:
+            for var in ds.variables:
                 attrs = ds[var].attrs
                 if "long_name" in attrs:
                     variable_list.append(var)
