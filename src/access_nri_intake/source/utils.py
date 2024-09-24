@@ -4,8 +4,9 @@
 """ Shared utilities for writing Intake-ESM builders and their parsers """
 
 import warnings
+from dataclasses import asdict, dataclass, field
 from datetime import timedelta
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import cftime
 import xarray as xr
@@ -15,7 +16,58 @@ class EmptyFileError(Exception):
     pass
 
 
-def _add_month_start(time, n : int):
+@dataclass
+class AccessNCFileInfo:
+    """
+    Holds information about a NetCDF file that is used to create an intake-esm
+    catalog entry.
+    """
+
+    filename: str | Path
+    file_id: str
+    filename_timestamp: str | None
+    frequency: str
+    start_date: str
+    end_date: str
+    variable: list[str]
+    variable_long_name: list[str]
+    variable_standard_name: list[str]
+    variable_cell_methods: list[str]
+    variable_units: list[str]
+    path: str = field(init=False)
+
+    def __post_init__(self):
+        self.path = str(self.filename)
+
+    def to_dict(self) -> dict[str, str | list[str]]:
+        """
+        Return a dictionary representation of the NcFileInfo object
+        """
+        return asdict(self)
+
+    def to_tuple(
+        self,
+    ) -> tuple[
+        str,
+        str | None,
+        str,
+        str,
+        str,
+        list[str],
+        list[str],
+        list[str],
+        list[str],
+        list[str],
+    ]:
+        """
+        Return a tuple representation of the NcFileInfo object.
+
+        Returns an insanely long tuple: aiming to clean this up.
+        """
+        return tuple(asdict(self).values())
+
+
+def _add_month_start(time, n: int):
     """Add months to cftime datetime and truncate to start"""
     year = time.year + ((time.month + n - 1) // 12)
     month = (time.month + n - 1) % 12 + 1
@@ -24,7 +76,7 @@ def _add_month_start(time, n : int):
     )
 
 
-def _add_year_start(time, n : int):
+def _add_year_start(time, n: int):
     """Add years to cftime datetime and truncate to start"""
     return time.replace(
         year=time.year + n, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
@@ -62,10 +114,10 @@ def _guess_start_end_dates(ts, te, frequency):
 
 
 def get_timeinfo(
-        ds : xr.Dataset,
-        filename_frequency : str | None,
-        time_dim : str, 
-    ) -> tuple[str, str, str]:
+    ds: xr.Dataset,
+    filename_frequency: str | None,
+    time_dim: str,
+) -> tuple[str, str, str]:
     """
     Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
     cosima cookbook, see
@@ -101,7 +153,7 @@ def get_timeinfo(
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
     te = None
-    frequency : str | tuple[int | None, str] = "fx"
+    frequency: str | tuple[int | None, str] = "fx"
     has_time = time_dim in ds
 
     if has_time:
@@ -134,7 +186,7 @@ def get_timeinfo(
                 frequency = (years, "yr")
             elif dt.days >= 28:
                 months = round(dt.days / 30)
-                frequency = (months, "mon") 
+                frequency = (months, "mon")
             elif dt.days >= 1:
                 frequency = (dt.days, "day")
             elif dt.seconds >= 3600:

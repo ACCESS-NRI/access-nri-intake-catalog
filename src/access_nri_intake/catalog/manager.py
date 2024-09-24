@@ -30,7 +30,7 @@ class CatalogManager:
     Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
-    def __init__(self, path : str):
+    def __init__(self, path: str):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog like the ACCESS-NRI catalog
@@ -58,14 +58,14 @@ class CatalogManager:
 
     def build_esm(
         self,
-        name : str,
-        description : str,
+        name: str,
+        description: str,
         builder,
-        path : list[str] | str,
+        path: list[str] | str,
         translator=DefaultTranslator,
-        metadata : dict | None = None,
-        directory : str | None = None,
-        overwrite : bool =False,
+        metadata: dict | None = None,
+        directory: str | None = None,
+        overwrite: bool = False,
         **kwargs,
     ):
         """
@@ -124,12 +124,12 @@ class CatalogManager:
 
     def load(
         self,
-        name : str,
-        description : str,
-        path : str,
-        driver : str ="esm_datastore",
+        name: str,
+        description: str,
+        path: str,
+        driver: str = "esm_datastore",
         translator=DefaultTranslator,
-        metadata : dict | None =None,
+        metadata: dict | None = None,
         **kwargs,
     ):
         """

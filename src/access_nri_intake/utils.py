@@ -11,7 +11,7 @@ import jsonschema
 import yaml
 
 
-def get_jsonschema(url : str , known_hash : str , required : list) -> tuple[dict, dict]:
+def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
     """
     Read in the required JSON schema, and annotate it with "required" fields.
 
@@ -22,7 +22,7 @@ def get_jsonschema(url : str , known_hash : str , required : list) -> tuple[dict
     """
 
     schema_file = rsr.files("access_nri_intake").joinpath(metadata_file)
-    with schema_file.open(mode="r") as fpath:
+    with schema_file.open(mode="r") as fpath: # type: ignore
         schema = json.load(fpath)
 
     schema_required = schema.copy()
@@ -39,7 +39,8 @@ def get_jsonschema(url : str , known_hash : str , required : list) -> tuple[dict
 
     return schema, schema_required
 
-def load_metadata_yaml(path : str, jsonschema : dict) -> dict:
+
+def load_metadata_yaml(path: str, jsonschema: dict) -> dict:
     """
     Load a metadata.yaml file, leaving dates as strings, and validate against a jsonschema,
     allowing for tuples as arrays
@@ -76,7 +77,7 @@ def load_metadata_yaml(path : str, jsonschema : dict) -> dict:
     return metadata
 
 
-def validate_against_schema(instance : dict, schema : dict) -> None:
+def validate_against_schema(instance: dict, schema: dict) -> None:
     """
     Validate a dictionary against a jsonschema, allowing for tuples as arrays
 

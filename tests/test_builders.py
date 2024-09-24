@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from access_nri_intake.source import CORE_COLUMNS, builders
+from access_nri_intake.source.utils import AccessNCFileInfo
 
 
 @pytest.mark.parametrize(
@@ -364,7 +365,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_grid.nc",
-            (
+            AccessNCFileInfo(
                 "ocean_grid.nc",
                 "ocean_grid",
                 None,
@@ -381,7 +382,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean.nc",
-            (
+            AccessNCFileInfo(
                 "ocean.nc",
                 "ocean",
                 None,
@@ -398,7 +399,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_month.nc",
-            (
+            AccessNCFileInfo(
                 "ocean_month.nc",
                 "ocean_month",
                 None,
@@ -418,7 +419,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_month_inst_nobounds.nc",
-            (
+            AccessNCFileInfo(
                 "ocean_month_inst_nobounds.nc",
                 "ocean_month_inst_nobounds",
                 None,
@@ -435,7 +436,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ice/OUTPUT/iceh.1900-01.nc",
-            (
+            AccessNCFileInfo(
                 "iceh.1900-01.nc",
                 "iceh_XXXX_XX",
                 "1900-01",
@@ -464,7 +465,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/atm/netCDF/by578a.pd201501_dai.nc",
-            (
+            AccessNCFileInfo(
                 "by578a.pd201501_dai.nc",
                 "by578a_pdXXXXXX_dai",
                 "201501",
@@ -481,7 +482,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
-            (
+            AccessNCFileInfo(
                 "iceh_d.2015-01.nc",
                 "iceh_d_XXXX_XX",
                 "2015-01",
@@ -510,7 +511,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ocn/ocean_daily.nc-20150630",
-            (
+            AccessNCFileInfo(
                 "ocean_daily.nc-20150630",
                 "ocean_daily",
                 None,
@@ -527,7 +528,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ocn/ocean_scalar.nc-20150630",
-            (
+            AccessNCFileInfo(
                 "ocean_scalar.nc-20150630",
                 "ocean_scalar",
                 None,
@@ -544,7 +545,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/atm/netCDF/HI-C-05-r1.pa-185001_mon.nc",
-            (
+            AccessNCFileInfo(
                 "HI-C-05-r1.pa-185001_mon.nc",
                 "HI_C_05_r1_pa_XXXXXX_mon",
                 "185001",
@@ -561,7 +562,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ice/iceh.1850-01.nc",
-            (
+            AccessNCFileInfo(
                 "iceh.1850-01.nc",
                 "iceh_XXXX_XX",
                 "1850-01",
@@ -590,7 +591,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ocn/ocean_bgc_ann.nc-18501231",
-            (
+            AccessNCFileInfo(
                 "ocean_bgc_ann.nc-18501231",
                 "ocean_bgc_ann",
                 None,
@@ -607,7 +608,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ocn/ocean_bgc.nc-18501231",
-            (
+            AccessNCFileInfo(
                 "ocean_bgc.nc-18501231",
                 "ocean_bgc",
                 None,
@@ -624,7 +625,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.native_1900_01.nc",
-            (
+            AccessNCFileInfo(
                 "GMOM_JRA_WD.mom6.h.native_1900_01.nc",
                 "GMOM_JRA_WD_mom6_h_native_XXXX_XX",
                 "1900_01",
@@ -653,7 +654,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
-            (
+            AccessNCFileInfo(
                 "GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
                 "GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
                 "1900_01_02",
@@ -682,7 +683,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.static.nc",
-            (
+            AccessNCFileInfo(
                 "GMOM_JRA_WD.mom6.h.static.nc",
                 "GMOM_JRA_WD_mom6_h_static",
                 None,
@@ -699,7 +700,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.z_1900_01.nc",
-            (
+            AccessNCFileInfo(
                 "GMOM_JRA_WD.mom6.h.z_1900_01.nc",
                 "GMOM_JRA_WD_mom6_h_z_XXXX_XX",
                 "1900_01",
@@ -728,7 +729,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
-            (
+            AccessNCFileInfo(
                 "GMOM_JRA_WD.cice.h.1900-01-01.nc",
                 "GMOM_JRA_WD_cice_h_XXXX_XX_XX",
                 "1900-01-01",
@@ -757,7 +758,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
-            (
+            AccessNCFileInfo(
                 "GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
                 "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
                 "1900-01-02-00000",
