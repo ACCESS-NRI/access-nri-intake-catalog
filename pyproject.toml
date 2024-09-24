@@ -44,7 +44,11 @@ requires = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-access_nri_intake = ["data/catalog.yaml"]
+access_nri_intake = [
+    "data/catalog.yaml",
+    "data/metadata_schema_experiment.json",
+    "data/metadata_schema_file.json",
+]
 
 [tool.versioneer]
 VCS = "git"
