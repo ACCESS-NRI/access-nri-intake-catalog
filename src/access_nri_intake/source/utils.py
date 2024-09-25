@@ -17,7 +17,7 @@ class EmptyFileError(Exception):
 
 
 @dataclass
-class AccessNCFileInfo:
+class _AccessNCFileInfo:
     """
     Holds information about a NetCDF file that is used to create an intake-esm
     catalog entry.
@@ -34,6 +34,12 @@ class AccessNCFileInfo:
     variable_standard_name: list[str]
     variable_cell_methods: list[str]
     variable_units: list[str]
+    coords: list[str]
+    coord_long_name: list[str]
+    coord_cartesian_axes: list[str]
+    coord_calendar_types: list[str]
+    coord_bounds: list[str]
+    coord_units: list[str]
     path: str = field(init=False)
 
     def __post_init__(self):
@@ -45,26 +51,94 @@ class AccessNCFileInfo:
         """
         return asdict(self)
 
-    def to_tuple(
-        self,
-    ) -> tuple[
-        str,
-        str | None,
-        str,
-        str,
-        str,
-        list[str],
-        list[str],
-        list[str],
-        list[str],
-        list[str],
-    ]:
-        """
-        Return a tuple representation of the NcFileInfo object.
 
-        Returns an insanely long tuple: aiming to clean this up.
+@dataclass
+class _DataVarInfo:
+    """
+    Holds information about the data variables in a NetCDF file that is used to
+    create an intake-esm catalog entry.
+    """
+
+    variable_list: list[str] = field(default_factory=list)
+    long_name_list: list[str] = field(default_factory=list)
+    standard_name_list: list[str] = field(default_factory=list)
+    cell_methods_list: list[str] = field(default_factory=list)
+    units_list: list[str] = field(default_factory=list)
+
+    def append_attrs(self, var: str, attrs: dict) -> None:
         """
-        return tuple(asdict(self).values())
+        Append attributes to the DataVarInfo object, if the attribute has a
+        'long_name' key.
+
+        TODO: Why do we need a long name key? seems important
+        """
+        if "long_name" not in attrs:
+            return None
+
+        self.variable_list.append(var)
+        self.long_name_list.append(attrs["long_name"])
+        self.standard_name_list.append(attrs.get("standard_name", ""))
+        self.cell_methods_list.append(attrs.get("cell_methods", ""))
+        self.units_list.append(attrs.get("units", ""))
+
+    def to_ncinfo_dict(self) -> dict[str, list[str]]:
+        """
+        Return a dictionary representation of the DataVarInfo object. Fields are
+        defined explicitly for use in the _AccessNCFileInfo constructor.
+        """
+        return {
+            "variable": self.variable_list,
+            "variable_long_name": self.long_name_list,
+            "variable_standard_name": self.standard_name_list,
+            "variable_cell_methods": self.cell_methods_list,
+            "variable_units": self.units_list,
+        }
+
+
+@dataclass
+class _CoordVarInfo:
+    """
+    Holds information about the coordinate variables in a NetCDF file that is
+    used to create an intake-esm catalog entry.
+    """
+
+    coord_list: list[str] = field(default_factory=list)
+    long_name_list: list[str] = field(default_factory=list)
+    cartesian_axis_list: list[str] = field(default_factory=list)
+    calendar_type_list: list[str] = field(default_factory=list)
+    bounds_list: list[str] = field(default_factory=list)
+    units_list: list[str] = field(default_factory=list)
+
+    def append_attrs(self, var: str, attrs: dict) -> None:
+        """
+        Append attributes to the CoordVarInfo object, if the attribute has a
+        'long_name' key.
+
+        TODO: Why do we need a long name key? seems important
+        """
+        if "long_name" not in attrs:
+            return None
+
+        self.coord_list.append(var)
+        self.long_name_list.append(attrs["long_name"])
+        self.cartesian_axis_list.append(attrs.get("cartesian_axis", ""))
+        self.calendar_type_list.append(attrs.get("calendar_type", ""))
+        self.bounds_list.append(attrs.get("bounds", ""))
+        self.units_list.append(attrs.get("units", ""))
+
+    def to_ncinfo_dict(self) -> dict[str, list[str]]:
+        """
+        Return a dictionary representation of the CoordVarInfo object. Fields are
+        defined explicitly for use in the _AccessNCFileInfo constructor.
+        """
+        return {
+            "coords": self.coord_list,
+            "coord_long_name": self.long_name_list,
+            "coord_cartesian_axes": self.cartesian_axis_list,
+            "coord_calendar_types": self.calendar_type_list,
+            "coord_bounds": self.bounds_list,
+            "coord_units": self.units_list,
+        }
 
 
 def _add_month_start(time, n: int):

@@ -22,7 +22,7 @@ def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
     """
 
     schema_file = rsr.files("access_nri_intake").joinpath(metadata_file)
-    with schema_file.open(mode="r") as fpath: # type: ignore
+    with schema_file.open(mode="r") as fpath:  # type: ignore
         schema = json.load(fpath)
 
     schema_required = schema.copy()

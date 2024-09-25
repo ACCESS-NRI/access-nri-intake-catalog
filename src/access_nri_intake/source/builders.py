@@ -13,7 +13,13 @@ from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import AccessNCFileInfo, EmptyFileError, get_timeinfo
+from .utils import (
+    EmptyFileError,
+    _AccessNCFileInfo,
+    _CoordVarInfo,
+    _DataVarInfo,
+    get_timeinfo,
+)
 
 # Frequency translations
 FREQUENCIES: dict[str, tuple[int, str]] = {
@@ -270,7 +276,9 @@ class BaseBuilder(Builder):
         return file_id, timestamp, frequency
 
     @classmethod
-    def parse_access_ncfile(cls, file: str, time_dim: str = "time") -> AccessNCFileInfo:
+    def parse_access_ncfile(
+        cls, file: str, time_dim: str = "time"
+    ) -> _AccessNCFileInfo:
         """
         Get Intake-ESM datastore entry info from an ACCESS netcdf file
 
@@ -305,39 +313,33 @@ class BaseBuilder(Builder):
             decode_times=False,
             decode_coords=False,
         ) as ds:
-            variable_list = []
-            variable_long_name_list = []
-            variable_standard_name_list = []
-            variable_cell_methods_list = []
-            variable_units_list = []
+            dvars = _DataVarInfo()
+            cvars = _CoordVarInfo()
+
             for var in ds.data_vars:
                 attrs = ds[var].attrs
-                if "long_name" in attrs:
-                    variable_list.append(var)
-                    variable_long_name_list.append(attrs["long_name"])
-                    variable_standard_name_list.append(attrs.get("standard_name", ""))
-                    variable_cell_methods_list.append(attrs.get("cell_methods", ""))
-                    variable_units_list.append(attrs.get("units", ""))
+                dvars.append_attrs(var, attrs)  # type: ignore
+
+            for var in ds.coords:
+                attrs = ds[var].attrs
+                cvars.append_attrs(var, attrs)  # type: ignore
 
             start_date, end_date, frequency = get_timeinfo(
                 ds, filename_frequency, time_dim
             )
 
-        if not variable_list:
+        if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
 
-        output_ncfile = AccessNCFileInfo(
+        output_ncfile = _AccessNCFileInfo(
             filename=filename,
             file_id=file_id,
             filename_timestamp=filename_timestamp,
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
-            variable=variable_list,  # type: ignore
-            variable_long_name=variable_long_name_list,
-            variable_standard_name=variable_standard_name_list,
-            variable_cell_methods=variable_cell_methods_list,
-            variable_units=variable_units_list,
+            **dvars.to_ncinfo_dict(),
+            **cvars.to_ncinfo_dict(),
         )
 
         return output_ncfile
