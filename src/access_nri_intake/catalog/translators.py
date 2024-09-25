@@ -6,8 +6,6 @@ Tools for translating metadata in an intake source into a metadata table to use 
 like the ACCESS-NRI catalog
 """
 
-from __future__ import annotations
-
 from functools import partial
 from typing import Callable
 

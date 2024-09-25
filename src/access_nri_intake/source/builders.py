@@ -389,9 +389,9 @@ class AccessOm2Builder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
-            # Need to check, but I think that the .groups() method that mypy is
-            # getting upset about is what the try/catch is for here - if the regex
-            # doesn't match, then it will throw an exception.
+            # mypy gets upset as match can return None. I assume this is why we
+            # have try/except block in the first place? If so, we might be able
+            # to make this more explicit?
             match_groups = re.match(r".*/output\d+/([^/]*)/.*\.nc", file).groups()  # type: ignore
             realm = match_groups[0]
 
