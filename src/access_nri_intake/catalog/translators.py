@@ -7,7 +7,7 @@ like the ACCESS-NRI catalog
 """
 
 from functools import partial
-from typing import Callable
+from typing import Callable, Optional
 
 import pandas as pd
 import tlz
@@ -98,7 +98,7 @@ class DefaultTranslator:
 
         return pd.Series([val] * len_df)
 
-    def translate(self, groupby: list[str] | None = None) -> pd.DataFrame:
+    def translate(self, groupby: Optional[list[str]] = None) -> pd.DataFrame:
         """
         Return the translated :py:class:`~pandas.DataFrame` of metadata and merge into set of
         set of rows with unique values of the columns specified.

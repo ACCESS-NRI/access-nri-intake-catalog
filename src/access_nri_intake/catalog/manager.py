@@ -4,6 +4,7 @@
 """ Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog """
 
 import os
+from typing import Optional, Union
 
 import intake
 from intake_dataframe_catalog.core import DfFileCatalog
@@ -61,10 +62,10 @@ class CatalogManager:
         name: str,
         description: str,
         builder,
-        path: list[str] | str,
+        path: Union[str, list[str]],
         translator=DefaultTranslator,
-        metadata: dict | None = None,
-        directory: str | None = None,
+        metadata: Optional[dict] = None,
+        directory: Optional[str] = None,
         overwrite: bool = False,
         **kwargs,
     ):
@@ -129,7 +130,7 @@ class CatalogManager:
         path: str,
         driver: str = "esm_datastore",
         translator=DefaultTranslator,
-        metadata: dict | None = None,
+        metadata: Optional[dict] = None,
         **kwargs,
     ):
         """
