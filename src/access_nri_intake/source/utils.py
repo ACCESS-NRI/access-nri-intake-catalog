@@ -22,6 +22,12 @@ class _AccessNCFileInfo:
     """
     Holds information about a NetCDF file that is used to create an intake-esm
     catalog entry.
+
+    ______
+    Notes:
+    Use of both path and filename seems redundant, but constructing filename from
+    the path using a __post_init__ method makes testing more difficult. On balance,
+    more explicit tests are probably more important than the slight redundancy.
     """
 
     filename: Union[str, Path]
@@ -130,7 +136,7 @@ class _CoordVarInfo:
         defined explicitly for use in the _AccessNCFileInfo constructor.
         """
         return {
-            "coords": self.coord_list,
+            "coord": self.coord_list,
             "coord_long_name": self.long_name_list,
             "coord_cartesian_axes": self.cartesian_axis_list,
             "coord_calendar_types": self.calendar_type_list,
