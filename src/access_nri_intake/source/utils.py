@@ -42,7 +42,7 @@ class _AccessNCFileInfo:
     variable_standard_name: list[str]
     variable_cell_methods: list[str]
     variable_units: list[str]
-    coords: list[str]
+    coord: list[str]
     coord_long_name: list[str]
     coord_cartesian_axes: list[str]
     coord_calendar_types: list[str]
