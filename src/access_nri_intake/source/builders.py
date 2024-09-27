@@ -303,7 +303,6 @@ class BaseBuilder(Builder):
         """
 
         file_path = Path(file)
-        filename = file_path.name
 
         file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
             file_path.stem
@@ -335,7 +334,8 @@ class BaseBuilder(Builder):
             raise EmptyFileError("This file contains no variables")
 
         output_ncfile = _AccessNCFileInfo(
-            filename=filename,
+            filename=file_path.name,
+            path=file,
             file_id=file_id,
             filename_timestamp=filename_timestamp,
             frequency=frequency,

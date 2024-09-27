@@ -26,6 +26,7 @@ class _AccessNCFileInfo:
 
     filename: Union[str, Path]
     file_id: str
+    path: str
     filename_timestamp: Union[str, None]
     frequency: str
     start_date: str
@@ -41,10 +42,6 @@ class _AccessNCFileInfo:
     coord_calendar_types: list[str]
     coord_bounds: list[str]
     coord_units: list[str]
-    path: str = field(init=False)
-
-    def __post_init__(self):
-        self.path = str(self.filename)
 
     def to_dict(self) -> dict[str, Union[str, list[str]]]:
         """

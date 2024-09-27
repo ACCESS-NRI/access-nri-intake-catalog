@@ -366,6 +366,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_grid.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="ocean_grid.nc",
                 file_id="ocean_grid",
                 filename_timestamp=None,
@@ -389,6 +390,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="ocean.nc",
                 file_id="ocean",
                 filename_timestamp=None,
@@ -424,6 +426,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_month.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="ocean_month.nc",
                 file_id="ocean_month",
                 filename_timestamp=None,
@@ -463,6 +466,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_month_inst_nobounds.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="ocean_month_inst_nobounds.nc",
                 file_id="ocean_month_inst_nobounds",
                 filename_timestamp=None,
@@ -492,6 +496,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm2Builder,
             "access-om2/output000/ice/OUTPUT/iceh.1900-01.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="iceh.1900-01.nc",
                 file_id="iceh_XXXX_XX",
                 filename_timestamp="1900-01",
@@ -527,6 +532,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessCm2Builder,
             "access-cm2/by578/history/atm/netCDF/by578a.pd201501_dai.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="by578a.pd201501_dai.nc",
                 file_id="by578a_pdXXXXXX_dai",
                 filename_timestamp="201501",
@@ -550,6 +556,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="iceh_d.2015-01.nc",
                 file_id="iceh_d_XXXX_XX",
                 filename_timestamp="2015-01",
@@ -585,6 +592,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ocn/ocean_daily.nc-20150630",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="ocean_daily.nc-20150630",
                 file_id="ocean_daily",
                 filename_timestamp=None,
@@ -618,6 +626,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ocn/ocean_scalar.nc-20150630",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="ocean_scalar.nc-20150630",
                 file_id="ocean_scalar",
                 filename_timestamp=None,
@@ -644,6 +653,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessEsm15Builder,
             "access-esm1-5/history/atm/netCDF/HI-C-05-r1.pa-185001_mon.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="HI-C-05-r1.pa-185001_mon.nc",
                 file_id="HI_C_05_r1_pa_XXXXXX_mon",
                 filename_timestamp="185001",
@@ -667,6 +677,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ice/iceh.1850-01.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="iceh.1850-01.nc",
                 file_id="iceh_XXXX_XX",
                 filename_timestamp="1850-01",
@@ -702,6 +713,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ocn/ocean_bgc_ann.nc-18501231",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="ocean_bgc_ann.nc-18501231",
                 file_id="ocean_bgc_ann",
                 filename_timestamp=None,
@@ -738,6 +750,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ocn/ocean_bgc.nc-18501231",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="ocean_bgc.nc-18501231",
                 file_id="ocean_bgc",
                 filename_timestamp=None,
@@ -773,6 +786,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.native_1900_01.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.native_1900_01.nc",
                 file_id="GMOM_JRA_WD_mom6_h_native_XXXX_XX",
                 filename_timestamp="1900_01",
@@ -838,6 +852,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
                 file_id="GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
                 filename_timestamp="1900_01_02",
@@ -889,6 +904,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.static.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.static.nc",
                 file_id="GMOM_JRA_WD_mom6_h_static",
                 filename_timestamp=None,
@@ -918,6 +934,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.z_1900_01.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.z_1900_01.nc",
                 file_id="GMOM_JRA_WD_mom6_h_z_XXXX_XX",
                 filename_timestamp="1900_01",
@@ -983,6 +1000,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="GMOM_JRA_WD.cice.h.1900-01-01.nc",
                 file_id="GMOM_JRA_WD_cice_h_XXXX_XX_XX",
                 filename_timestamp="1900-01-01",
@@ -1018,6 +1036,7 @@ def test_parse_access_filename(builder, filename, expected):
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
             _AccessNCFileInfo(
+                path=None,  # type: ignore
                 filename="GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
                 file_id="GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
                 filename_timestamp="1900-01-02-00000",
@@ -1041,5 +1060,8 @@ def test_parse_access_filename(builder, filename, expected):
 )
 def test_parse_access_ncfile(test_data, builder, filename, expected):
     file = str(test_data / Path(filename))
+
+    # Set the path to the test data directory
+    expected.path = file
 
     assert builder.parse_access_ncfile(file) == expected
