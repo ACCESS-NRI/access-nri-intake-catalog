@@ -6,8 +6,8 @@ sources:
 
   - metadata_yaml: /g/data/xp65/admin/intake/metadata/cmip5_al33/metadata.yaml
     path:
-      - /g/data/dk92/catalog/v2/esm/cmip5-al33/catalog.json
+      - /g/data/al33/catalog/v2/esm/catalog.json
     
   - metadata_yaml: /g/data/xp65/admin/intake/metadata/cmip5_rr3/metadata.yaml
     path:
-      - /g/data/dk92/catalog/v2/esm/cmip5-rr3/catalog.json
+      - /g/data/rr3/catalog/v2/esm/catalog.json
