@@ -1,0 +1,26 @@
+name: cmip6_ig45
+experiment_uuid: c7021d1e-7ba2-11ef-beb5-000007d3fe80
+description: 20km regional projections for CORDEX-CMIP6 from the Queensland Future Climate Science Program
+long_description: >-
+  This dataset includes projections at 20km, formatted to meet the CORDEX-CMIP6 data standards. 
+  The 20km projections were derived from the 10km projections.
+model:
+- CMIP6
+frequency:
+- 
+variable:
+- 
+nominal_resolution:
+- 
+version: 
+contact: NCI
+email: help@nci.org.au
+reference:
+license:
+url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f7465_8388_5100_7022
+parent_experiment:
+related_experiments:
+-
+notes: 
+keywords:
+- cmip
