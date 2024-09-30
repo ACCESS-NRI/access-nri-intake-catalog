@@ -1,0 +1,61 @@
+name: cmip6_oi10
+experiment_uuid: b05038ca-8c78-4ca6-a914-ae33dd9abffe
+description: Replicated CMIP6-era datasets catalogued by NCI
+long_description: >-
+  All CMIP6-era replicated data contained under the project oi10.
+  All file versions present are in the listing. 
+  Maintained By: NCI 
+  Contact: help@nci.org.au 
+  References: https://pcmdi.llnl.gov/CMIP6/
+model:
+- CMIP6
+realm:
+- atmos
+- ocean
+- land
+- seaIce
+- aerosol
+- landIce
+- ocnBgchem
+- seaIce ocean
+- atmos land
+- ocnBgChem
+- landIce land
+- seaice
+- ocean seaIce
+- atmos atmosChem
+nominal_resolution:
+- 
+version: 
+contact: NCI
+email: help@nci.org.au
+created: 
+reference:
+license: 
+url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f5194_5909_8003_9216
+parent_experiment:
+related_experiments:
+- 
+notes: 
+keywords:
+- cmip
+
+# Metadata recovered 2024-09-25
+# {'contact': 'NCI',
+#  'created': None,
+#  'description': 'Replicated CMIP6-era datasets catalogued by NCI',
+#  'email': 'help@nci.org.au',
+#  'experiment_uuid': 'b05038ca-8c78-4ca6-a914-ae33dd9abffe',
+#  'keywords': ['cmip'],
+#  'license': None,
+#  'long_description': 'All CMIP6-era replicated data contained under the project oi10.  All file versions present are in the listing. Maintained By: NCI Contact: help@nci.org.au References: https://pcmdi.llnl.gov/CMIP6/',
+#  'model': ['CMIP6'],
+#  'name': 'cmip6_oi10',
+#  'nominal_resolution': [None],
+#  'notes': 'null',
+#  'parent_experiment': None,
+#  'reference': None,
+#  'related_experiments': [None],
+#  'url': 'https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f5194_5909_8003_9216',
+#  'version': None,
+#  'catalog_dir': ''}
