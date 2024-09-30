@@ -4,10 +4,10 @@ translator: Cmip6Translator
 
 sources:
 
-  - metadata_yaml: /g/data/tm70/intake/metadata/cmip6_fs38/metadata.yaml
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/cmip6_fs38/metadata.yaml
     path:
-      - /g/data/dk92/catalog/v2/esm/cmip6-fs38/catalog.json
+      - /g/data/fs38/catalog/v2/esm/catalog.json
     
-  - metadata_yaml: /g/data/tm70/intake/metadata/cmip6_oi10/metadata.yaml
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/cmip6_oi10/metadata.yaml
     path:
-      - /g/data/dk92/catalog/v2/esm/cmip6-oi10/catalog.json
+      - /g/data/oi10/catalog/v2/esm/catalog.json
