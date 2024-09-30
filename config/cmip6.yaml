@@ -11,3 +11,7 @@ sources:
   - metadata_yaml: /g/data/xp65/admin/intake/metadata/cmip6_oi10/metadata.yaml
     path:
       - /g/data/oi10/catalog/v2/esm/catalog.json
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/rcm_ccam_hq89/metadata.yaml
+    path:
+      - /g/data/hq89/catalog/v2/esm/catalog.json
