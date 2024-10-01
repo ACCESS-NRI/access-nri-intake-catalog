@@ -32,8 +32,5 @@ jobs:
             export RELEASE=${{ github.event.inputs.release_version }}
             cd bin
             qsub -v version=${RELEASE} build_all.sh
-            cd ..
-            git add src/access_nri_intake/cat
-            git commit "Update catalog to $RELEASE"
 
             

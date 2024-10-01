@@ -1,8 +1,9 @@
 #!/bin/bash -l
 
-#PBS -P tm70
+#PBS -P iq82
 #PBS -l storage=gdata/tm70+gdata/xp65+gdata/ik11+gdata/cj50+gdata/hh5+gdata/p73+gdata/dk92
 #PBS -q normal
+#PBS -W block=true
 #PBS -l walltime=03:00:00
 #PBS -l mem=192gb
 #PBS -l ncpus=48
@@ -24,10 +25,11 @@ if [ ! $# -eq 0 ]; then
     version=$1
 fi
 
-conda activate access-nri-intake-test
+module use /g/data/xp65/public/modules
+module load conda/access-med-0.6
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog
-CONFIG_DIR=/g/data/tm70/ds0092/projects/access-nri-intake-catalog/config
+CONFIG_DIR=/g/data/xp65/admin/access-nri-intake-catalog/config
 CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # erai.yaml
 
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
