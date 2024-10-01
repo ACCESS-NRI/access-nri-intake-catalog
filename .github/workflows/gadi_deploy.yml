@@ -22,7 +22,7 @@ jobs:
           KEY: ${{secrets.DEPLOY_KEY}}
           USER: ${{secrets.GADI_USER}}
           PRE_SCRIPT: |
-            switchproj xp65_w
+            export PROJECT=xp65_w
       - name: Update catalog
         uses: appleboy/ssh-action@v1.0.0
         with:
