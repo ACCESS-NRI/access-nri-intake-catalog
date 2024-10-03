@@ -12,9 +12,9 @@ from access_nri_intake.catalog.translators import (
     DefaultTranslator,
     EraiTranslator,
     TranslatorError,
-    _cmip_frequency_translator,
     _cmip_realm_translator,
     _to_tuple,
+    frequency_translations,
 )
 
 
@@ -67,7 +67,7 @@ from access_nri_intake.catalog.translators import (
 def test_cmip_frequency_translator(input, expected):
     """Test translation of entries in the CMIP frequency column"""
     series = pd.Series(input)
-    translated = _cmip_frequency_translator(series)
+    translated = series.apply(lambda x: frequency_translations.get(x, x))
     assert list(translated) == expected
 
 
