@@ -28,6 +28,7 @@ frequency_translations = {
     "yrPt": "1yr",
 }
 
+
 class TranslatorError(Exception):
     "Generic Exception for the Translator classes"
     pass
@@ -197,7 +198,11 @@ class Cmip6Translator(DefaultTranslator):
         """
         Return frequency, fixing a few issues
         """
-        return _to_tuple(self.source.df["frequency"].apply(lambda x: frequency_translations.get(x, x)))
+        return _to_tuple(
+            self.source.df["frequency"].apply(
+                lambda x: frequency_translations.get(x, x)
+            )
+        )
 
     def _variable_translator(self):
         """
@@ -245,7 +250,11 @@ class Cmip5Translator(DefaultTranslator):
         """
         Return frequency, fixing a few issues
         """
-        return _to_tuple(self.source.df["frequency"].apply(lambda x: frequency_translations.get(x, x)))
+        return _to_tuple(
+            self.source.df["frequency"].apply(
+                lambda x: frequency_translations.get(x, x)
+            )
+        )
 
     def _variable_translator(self):
         """
@@ -305,13 +314,16 @@ class BarpaTranslator(Cmip6Translator):
         Return realm, fixing a few issues
         """
         return self.source.df.apply(lambda x: ("none",), 1)
-    
+
     def _frequency_translator(self):
         """
         Return frequency, fixing a few issues
         """
-        f = lambda string: frequency_translations.get(string, string)
-        return _to_tuple(self.source.df["frequency"].apply(lambda x: frequency_translations.get(x, x)))
+        return _to_tuple(
+            self.source.df["frequency"].apply(
+                lambda x: frequency_translations.get(x, x)
+            )
+        )
 
 
 def _cmip_realm_translator(series):
