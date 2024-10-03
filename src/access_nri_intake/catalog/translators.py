@@ -13,6 +13,20 @@ import tlz
 
 from . import COLUMNS_WITH_ITERABLES
 
+frequency_translations = {
+    "3hrPt": "3hr",
+    "6hrPt": "6hr",
+    "daily": "1day",
+    "day": "1day",
+    "mon": "1mon",
+    "monC": "1mon",
+    "monClim": "1mon",
+    "monPt": "1mon",
+    "sem": "3mon",
+    "subhrPt": "subhr",
+    "yr": "1yr",
+    "yrPt": "1yr",
+}
 
 class TranslatorError(Exception):
     "Generic Exception for the Translator classes"
@@ -183,7 +197,8 @@ class Cmip6Translator(DefaultTranslator):
         """
         Return frequency, fixing a few issues
         """
-        return _to_tuple(_cmip_frequency_translator(self.source.df["frequency"]))
+        f = lambda string: frequency_translations.get(string, string)
+        return _to_tuple(self.source.df["frequency"].apply(f))
 
     def _variable_translator(self):
         """
@@ -231,7 +246,8 @@ class Cmip5Translator(DefaultTranslator):
         """
         Return frequency, fixing a few issues
         """
-        return _to_tuple(_cmip_frequency_translator(self.source.df["frequency"]))
+        f = lambda string: frequency_translations.get(string, string)
+        return _to_tuple(self.source.df["frequency"].apply(f))
 
     def _variable_translator(self):
         """
@@ -267,33 +283,37 @@ class EraiTranslator(DefaultTranslator):
         return _to_tuple(self.source.df["variable"])
 
 
-def _cmip_frequency_translator(series):
+class BarpaTranslator(Cmip6Translator):
     """
-    Return frequency from CMIP frequency metadata
+    Barpa Translator for translating metadata from the NCI BARPA intake datastores.
     """
 
-    def _translate(string):
-        translations = {
-            "3hrPt": "3hr",
-            "6hrPt": "6hr",
-            "daily": "1day",
-            "day": "1day",
-            "mon": "1mon",
-            "monC": "1mon",
-            "monClim": "1mon",
-            "monPt": "1mon",
-            "sem": "3mon",
-            "subhrPt": "subhr",
-            "yr": "1yr",
-            "yrPt": "1yr",
-        }
+    def __init__(self, source, columns):
+        """
+        Initialise a BarpaTranslator
 
-        try:
-            return translations[string]
-        except KeyError:
-            return string
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI BARPA intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
 
-    return series.apply(lambda string: _translate(string))
+        super().__init__(source, columns)
+
+    def _realm_translator(self):
+        """
+        Return realm, fixing a few issues
+        """
+        return self.source.df.apply(lambda x: ('none',), 1)
+    
+    def _frequency_translator(self):
+        """
+        Return frequency, fixing a few issues
+        """
+        f = lambda string: frequency_translations.get(string, string)
+        return _to_tuple(self.source.df["freq"].apply(f))
 
 
 def _cmip_realm_translator(series):
