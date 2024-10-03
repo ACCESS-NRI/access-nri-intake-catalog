@@ -12,17 +12,19 @@ jobs:
     steps:
       - name: Checkout repository
         ### Latest at time of writing
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.0
       - name: Sync repository to Gadi
         ### Latest at time of writing
-        uses: up9cloud/action-rsync@v1.3
+        uses: up9cloud/action-rsync@v1.4
         env:
           HOST: gadi.nci.org.au
           TARGET: ${{secrets.GADI_REPO_PATH}}
           KEY: ${{secrets.DEPLOY_KEY}}
           USER: ${{secrets.GADI_USER}}
+          PRE_SCRIPT: |
+            export PROJECT=xp65_w
       - name: Update catalog
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: gadi.nci.org.au
           username: ${{secrets.GADI_USER}}
@@ -32,8 +34,5 @@ jobs:
             export RELEASE=${{ github.event.inputs.release_version }}
             cd bin
             qsub -v version=${RELEASE} build_all.sh
-            cd ..
-            git add src/access_nri_intake/cat
-            git commit "Update catalog to $RELEASE"
 
             
