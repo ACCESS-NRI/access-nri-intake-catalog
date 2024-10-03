@@ -17,7 +17,6 @@ from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import (
     EmptyFileError,
     _AccessNCFileInfo,
-    _CoordVarInfo,
     _DataVarInfo,
     get_timeinfo,
 )
@@ -316,15 +315,10 @@ class BaseBuilder(Builder):
             decode_coords=False,
         ) as ds:
             dvars = _DataVarInfo()
-            cvars = _CoordVarInfo()
 
-            for var in ds.data_vars:
+            for var in ds.variables:
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
-
-            for var in ds.coords:
-                attrs = ds[var].attrs
-                cvars.append_attrs(var, attrs)  # type: ignore
 
             start_date, end_date, frequency = get_timeinfo(
                 ds, filename_frequency, time_dim
@@ -342,7 +336,6 @@ class BaseBuilder(Builder):
             start_date=start_date,
             end_date=end_date,
             **dvars.to_ncinfo_dict(),
-            **cvars.to_ncinfo_dict(),
         )
 
         return output_ncfile
