@@ -12,6 +12,6 @@ sources:
     path:
       - /g/data/oi10/catalog/v2/esm/catalog.json
 
-  - metadata_yaml: /g/data/xp65/admin/intake/metadata/rcm_ccam_hq89/metadata.yaml
+  - metadata_yaml: /g/data/xp65/admin/access-nri-intake-catalog/config/metadata_sources/rcm-ccam-hq89/metadata.yaml
     path:
       - /g/data/hq89/catalog/v2/esm/catalog.json

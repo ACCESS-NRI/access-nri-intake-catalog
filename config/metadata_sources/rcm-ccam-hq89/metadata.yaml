@@ -11,8 +11,8 @@ model:
 - CMIP6
 frequency:
 - 1hr
-- day
-- mon
+- 1day
+- 1mon
 - 6hr
 - fx
 variable:
