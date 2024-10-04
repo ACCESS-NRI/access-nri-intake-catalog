@@ -7,6 +7,7 @@ import pytest
 
 from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
+    BarpaTranslator,
     Cmip5Translator,
     Cmip6Translator,
     DefaultTranslator,
@@ -243,4 +244,24 @@ def test_EraiTranslator(test_data, groupby, n_entries):
     esmds.metadata = dict(model=model)
     df = EraiTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert all(df["model"] == model)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (TRANSLATOR_GROUPBY_COLUMNS, 5),
+        (["variable"], 4),
+        (["realm"], 2),
+        (["frequency"], 2),
+        (["description"], 1),
+    ],
+)
+def test_BarpaTranslator(test_data, groupby, n_entries):
+    "Test BARPA datastore translator" ""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/barpa-py18.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = BarpaTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries
