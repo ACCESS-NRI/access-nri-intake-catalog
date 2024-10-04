@@ -35,7 +35,7 @@
         ]
     },
     "esmcat_version": "0.1.0",
-    "catalog_file": "barpa-py18.csv.gz",
+    "catalog_file": "barpa-py18.csv",
     "attributes": [
         {
             "column_name": "file_type"
