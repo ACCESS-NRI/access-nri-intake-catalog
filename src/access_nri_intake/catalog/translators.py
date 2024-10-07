@@ -320,7 +320,7 @@ class BarpaTranslator(Cmip6Translator):
         Return frequency, fixing a few issues
         """
         return _to_tuple(
-            self.source.df["frequency"].apply(
+            self.source.df["freq"].apply(
                 lambda x: frequency_translations.get(x, x)
             )
         )
