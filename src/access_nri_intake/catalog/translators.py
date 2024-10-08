@@ -290,7 +290,7 @@ class EraiTranslator(DefaultTranslator):
         return _to_tuple(self.source.df["variable"])
 
 
-class BarpaTranslator(Cmip6Translator):
+class BarpaTranslator(DefaultTranslator):
     """
     Barpa Translator for translating metadata from the NCI BARPA intake datastores.
     """
@@ -308,6 +308,10 @@ class BarpaTranslator(Cmip6Translator):
         """
 
         super().__init__(source, columns)
+        self._dispatch["model"] = self._model_translator
+        self._dispatch["realm"] = self._realm_translator
+        self._dispatch["frequence"] = self._frequency_translator
+        self._dispatch["variable"] = self._variable_translator
 
     def _realm_translator(self):
         """
