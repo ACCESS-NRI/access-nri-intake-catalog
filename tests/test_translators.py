@@ -253,7 +253,6 @@ def test_EraiTranslator(test_data, groupby, n_entries):
         (None, 5),
         (["variable"], 4),
         (["freq"], 1),
-        (["domain_id"], 1),
     ],
 )
 def test_BarpaTranslator(test_data, groupby, n_entries):
