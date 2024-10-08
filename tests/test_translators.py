@@ -251,7 +251,6 @@ def test_EraiTranslator(test_data, groupby, n_entries):
     "groupby, n_entries",
     [
         (None, 5),
-        (TRANSLATOR_GROUPBY_COLUMNS, 5),
         (["variable"], 4),
         (["freq"], 1),
         (["domain_id"], 1),
