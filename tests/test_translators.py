@@ -196,7 +196,7 @@ def test_DefaultTranslator_error(test_data):
     ],
 )
 def test_Cmip5Translator(test_data, groupby, n_entries):
-    "Test CMIP5 datastore translator" ""
+    """Test CMIP5 datastore translator"""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
     esmds.name = "name"
     esmds.description = "description"
@@ -216,7 +216,7 @@ def test_Cmip5Translator(test_data, groupby, n_entries):
     ],
 )
 def test_Cmip6Translator(test_data, groupby, n_entries):
-    "Test CMIP6 datastore translator" ""
+    """Test CMIP6 datastore translator"""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip6-oi10.json")
     esmds.name = "name"
     esmds.description = "description"
@@ -236,7 +236,7 @@ def test_Cmip6Translator(test_data, groupby, n_entries):
     ],
 )
 def test_EraiTranslator(test_data, groupby, n_entries):
-    "Test ERA-Interim datastore translator" ""
+    """Test ERA-Interim datastore translator"""
     model = ("ERA-Interim",)
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/erai.json")
     esmds.name = "name"
@@ -257,7 +257,7 @@ def test_EraiTranslator(test_data, groupby, n_entries):
     ],
 )
 def test_BarpaTranslator(test_data, groupby, n_entries):
-    "Test BARPA datastore translator" ""
+    """Test BARPA datastore translator"""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/barpa-py18.json")
     esmds.name = "name"
     esmds.description = "description"
