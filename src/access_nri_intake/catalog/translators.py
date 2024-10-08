@@ -203,7 +203,7 @@ class Cmip6Translator(DefaultTranslator):
                 lambda x: frequency_translations.get(x, x)
             )
         )
-
+    
     def _variable_translator(self):
         """
         Return variable as a tuple
@@ -313,6 +313,12 @@ class BarpaTranslator(DefaultTranslator):
         self._dispatch["frequence"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
 
+    def _model_translator(self):
+        """
+        Return model from source_id
+        """
+        return _to_tuple(self.source.df["source_id"])
+
     def _realm_translator(self):
         """
         Return realm, fixing a few issues
@@ -326,6 +332,12 @@ class BarpaTranslator(DefaultTranslator):
         return _to_tuple(
             self.source.df["freq"].apply(lambda x: frequency_translations.get(x, x))
         )
+    
+    def _variable_translator(self):
+        """
+        Return variable as a tuple
+        """
+        return _to_tuple(self.source.df["variable_id"])
 
 
 def _cmip_realm_translator(series):
