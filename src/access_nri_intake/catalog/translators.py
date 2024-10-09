@@ -18,6 +18,7 @@ from . import COLUMNS_WITH_ITERABLES
 
 class TranslatorError(Exception):
     "Generic Exception for the Translator classes"
+
     pass
 
 
@@ -311,11 +312,10 @@ def _cmip_realm_translator(series) -> pd.Series:
         }
 
         raw_realms = string.split(" ")
-        realms = []
+        realms = set()
         for realm in raw_realms:
             realm = translations.get(realm, realm)
-            if realm not in realms:
-                realms.append(realm)
+            realms |= {realm}
         return tuple(realms)
 
     return series.apply(lambda string: _translate(string))

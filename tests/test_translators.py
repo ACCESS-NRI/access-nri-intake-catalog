@@ -120,6 +120,9 @@ def test_cmip_realm_translator(input, expected):
     """Test translation of entries in the CMIP realm column"""
     series = pd.Series(input)
     translated = _cmip_realm_translator(series)
+    # Sort expected & translated to make the test less brittle
+    translated = translated.apply(lambda x: tuple(sorted(x)))
+    expected = [tuple(sorted(x)) for x in expected]
     assert list(translated) == expected
 
 
