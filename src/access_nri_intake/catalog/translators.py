@@ -6,6 +6,7 @@ Tools for translating metadata in an intake source into a metadata table to use 
 like the ACCESS-NRI catalog
 """
 
+from dataclasses import dataclass
 from functools import partial
 from typing import Callable, Optional
 
@@ -67,6 +68,7 @@ class DefaultTranslator:
             column: partial(self._default_translator, column=column)
             for column in columns
         }
+        self._dispatch_keys = _DispatchKeys()
 
     def _default_translator(self, column: str) -> pd.Series:
         """
@@ -185,24 +187,31 @@ class Cmip6Translator(DefaultTranslator):
         self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
 
+        self._dispatch_keys = _DispatchKeys(
+            model="source_id",
+            realm="realm",
+            frequency="frequency",
+            variable="variable_id",
+        )
+
     def _model_translator(self):
         """
         Return model from source_id
         """
-        return _to_tuple(self.source.df["source_id"])
+        return _to_tuple(self.source.df[self._dispatch_keys.model])
 
     def _realm_translator(self):
         """
         Return realm, fixing a few issues
         """
-        return _cmip_realm_translator(self.source.df["realm"])
+        return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
 
     def _frequency_translator(self):
         """
         Return frequency, fixing a few issues
         """
         return _to_tuple(
-            self.source.df["frequency"].apply(
+            self.source.df[self._dispatch_keys.frequency].apply(
                 lambda x: frequency_translations.get(x, x)
             )
         )
@@ -211,7 +220,7 @@ class Cmip6Translator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return _to_tuple(self.source.df["variable_id"])
+        return _to_tuple(self.source.df[self._dispatch_keys.variable])
 
 
 class Cmip5Translator(DefaultTranslator):
@@ -237,24 +246,31 @@ class Cmip5Translator(DefaultTranslator):
         self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
 
+        self._dispatch_keys = _DispatchKeys(
+            model="model",
+            realm="realm",
+            frequency="frequency",
+            variable="variable",
+        )
+
     def _model_translator(self):
         """
         Return variable as a tuple
         """
-        return _to_tuple(self.source.df["model"])
+        return _to_tuple(self.source.df[self._dispatch_keys.model])
 
     def _realm_translator(self):
         """
         Return realm, fixing a few issues
         """
-        return _cmip_realm_translator(self.source.df["realm"])
+        return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
 
     def _frequency_translator(self):
         """
         Return frequency, fixing a few issues
         """
         return _to_tuple(
-            self.source.df["frequency"].apply(
+            self.source.df[self._dispatch_keys.frequency].apply(
                 lambda x: frequency_translations.get(x, x)
             )
         )
@@ -263,7 +279,7 @@ class Cmip5Translator(DefaultTranslator):
         """
         Return variable as a tuple
         """
-        return _to_tuple(self.source.df["variable"])
+        return _to_tuple(self.source.df[self._dispatch_keys.variable])
 
 
 class EraiTranslator(DefaultTranslator):
@@ -285,12 +301,13 @@ class EraiTranslator(DefaultTranslator):
 
         super().__init__(source, columns)
         self._dispatch["variable"] = self._variable_translator
+        self._dispatch_keys = _DispatchKeys(variable="variable")
 
     def _variable_translator(self):
         """
         Return variable as a tuple
         """
-        return _to_tuple(self.source.df["variable"])
+        return _to_tuple(self.source.df[self._dispatch_keys.variable])
 
 
 class BarpaTranslator(DefaultTranslator):
@@ -315,12 +332,18 @@ class BarpaTranslator(DefaultTranslator):
         self._dispatch["realm"] = self._realm_translator
         self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
+        self._dispatch_keys = _DispatchKeys(
+            model="source_id",
+            realm="realm",
+            variable="variable_id",
+            frequency="freq",
+        )
 
     def _model_translator(self):
         """
         Return model from source_id
         """
-        return _to_tuple(self.source.df["source_id"])
+        return _to_tuple(self.source.df[self._dispatch_keys.model])
 
     def _realm_translator(self):
         """
@@ -333,14 +356,24 @@ class BarpaTranslator(DefaultTranslator):
         Return frequency, fixing a few issues
         """
         return _to_tuple(
-            self.source.df["freq"].apply(lambda x: frequency_translations.get(x, x))
+            self.source.df[self._dispatch_keys.frequency].apply(
+                lambda x: frequency_translations.get(x, x)
+            )
         )
 
     def _variable_translator(self):
         """
         Return variable as a tuple
         """
-        return _to_tuple(self.source.df["variable_id"])
+        return _to_tuple(self.source.df[self._dispatch_keys.variable])
+
+
+@dataclass
+class _DispatchKeys:
+    model: Optional[str] = None
+    realm: Optional[str] = None
+    frequency: Optional[str] = None
+    variable: Optional[str] = None
 
 
 def _cmip_realm_translator(series) -> pd.Series:
