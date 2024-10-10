@@ -16,7 +16,7 @@ from intake import DataSource
 
 from . import COLUMNS_WITH_ITERABLES
 
-frequency_translations = {
+FREQUENCY_TRANSLATIONS = {
     "3hrPt": "3hr",
     "6hrPt": "6hr",
     "daily": "1day",
@@ -30,6 +30,36 @@ frequency_translations = {
     "yr": "1yr",
     "yrPt": "1yr",
 }
+
+
+def _to_tuple(series: pd.Series) -> pd.Series:
+    """
+    Make each entry in the provided series a tuple
+
+    Parameters
+    ----------
+    series: :py:class:`~pandas.Series`
+        A pandas Series or another object with an `apply` method
+    """
+    return series.apply(lambda x: (x,))
+
+
+def tuplify_series(func: Callable) -> Callable:
+    """
+    Decorator that wraps a function that returns a pandas Series and converts
+    each entry in the series to a tuple
+    """
+
+    def wrapper(*args, **kwargs):
+        # Check if the first argument is 'self'
+        if len(args) > 0 and hasattr(args[0], "__class__"):
+            self = args[0]
+            series = func(self, *args[1:], **kwargs)
+        else:
+            series = func(*args, **kwargs)
+        return _to_tuple(series)
+
+    return wrapper
 
 
 class TranslatorError(Exception):
@@ -163,6 +193,35 @@ class DefaultTranslator:
 
         return df[self.columns]  # Preserve ordering
 
+    def _realm_translator(self) -> pd.Series:
+        """
+        Return realm, fixing a few issues
+        """
+        return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
+
+    @tuplify_series
+    def _model_translator(self) -> pd.Series:
+        """
+        Return model from dispatch_keys.model
+        """
+        return self.source.df[self._dispatch_keys.model]
+
+    @tuplify_series
+    def _frequency_translator(self) -> pd.Series:
+        """
+        Return frequency, fixing a few issues
+        """
+        return self.source.df[self._dispatch_keys.frequency].apply(
+            lambda x: FREQUENCY_TRANSLATIONS.get(x, x)
+        )
+
+    @tuplify_series
+    def _variable_translator(self) -> pd.Series:
+        """
+        Return variable as a tuple
+        """
+        return self.source.df[self._dispatch_keys.variable]
+
 
 class Cmip6Translator(DefaultTranslator):
     """
@@ -193,34 +252,6 @@ class Cmip6Translator(DefaultTranslator):
             frequency="frequency",
             variable="variable_id",
         )
-
-    def _model_translator(self):
-        """
-        Return model from source_id
-        """
-        return _to_tuple(self.source.df[self._dispatch_keys.model])
-
-    def _realm_translator(self):
-        """
-        Return realm, fixing a few issues
-        """
-        return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
-
-    def _frequency_translator(self):
-        """
-        Return frequency, fixing a few issues
-        """
-        return _to_tuple(
-            self.source.df[self._dispatch_keys.frequency].apply(
-                lambda x: frequency_translations.get(x, x)
-            )
-        )
-
-    def _variable_translator(self):
-        """
-        Return variable as a tuple
-        """
-        return _to_tuple(self.source.df[self._dispatch_keys.variable])
 
 
 class Cmip5Translator(DefaultTranslator):
@@ -253,34 +284,6 @@ class Cmip5Translator(DefaultTranslator):
             variable="variable",
         )
 
-    def _model_translator(self):
-        """
-        Return variable as a tuple
-        """
-        return _to_tuple(self.source.df[self._dispatch_keys.model])
-
-    def _realm_translator(self):
-        """
-        Return realm, fixing a few issues
-        """
-        return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
-
-    def _frequency_translator(self):
-        """
-        Return frequency, fixing a few issues
-        """
-        return _to_tuple(
-            self.source.df[self._dispatch_keys.frequency].apply(
-                lambda x: frequency_translations.get(x, x)
-            )
-        )
-
-    def _variable_translator(self):
-        """
-        Return variable as a tuple
-        """
-        return _to_tuple(self.source.df[self._dispatch_keys.variable])
-
 
 class EraiTranslator(DefaultTranslator):
     """
@@ -303,11 +306,11 @@ class EraiTranslator(DefaultTranslator):
         self._dispatch["variable"] = self._variable_translator
         self._dispatch_keys = _DispatchKeys(variable="variable")
 
-    def _variable_translator(self):
-        """
-        Return variable as a tuple
-        """
-        return _to_tuple(self.source.df[self._dispatch_keys.variable])
+    def _realm_translator(self) -> pd.Series:
+        raise AttributeError("ERAI data does not have a realm column")
+
+    def _frequency_translator(self) -> pd.Series:
+        raise AttributeError("ERAI data does not have a frequency column")
 
 
 class BarpaTranslator(DefaultTranslator):
@@ -339,33 +342,11 @@ class BarpaTranslator(DefaultTranslator):
             frequency="freq",
         )
 
-    def _model_translator(self):
-        """
-        Return model from source_id
-        """
-        return _to_tuple(self.source.df[self._dispatch_keys.model])
-
     def _realm_translator(self):
         """
         Return realm, fixing a few issues
         """
         return self.source.df.apply(lambda x: ("none",), 1)
-
-    def _frequency_translator(self):
-        """
-        Return frequency, fixing a few issues
-        """
-        return _to_tuple(
-            self.source.df[self._dispatch_keys.frequency].apply(
-                lambda x: frequency_translations.get(x, x)
-            )
-        )
-
-    def _variable_translator(self):
-        """
-        Return variable as a tuple
-        """
-        return _to_tuple(self.source.df[self._dispatch_keys.variable])
 
 
 @dataclass
@@ -400,15 +381,3 @@ def _cmip_realm_translator(series) -> pd.Series:
         return tuple(realms)
 
     return series.apply(lambda string: _translate(string))
-
-
-def _to_tuple(series: pd.Series) -> pd.Series:
-    """
-    Make each entry in the provided series a tuple
-
-    Parameters
-    ----------
-    series: :py:class:`~pandas.Series`
-        A pandas Series or another object with an `apply` method
-    """
-    return series.apply(lambda x: (x,))

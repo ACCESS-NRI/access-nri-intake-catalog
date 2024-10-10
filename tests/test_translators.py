@@ -7,6 +7,7 @@ import pytest
 
 from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
+    FREQUENCY_TRANSLATIONS,
     BarpaTranslator,
     Cmip5Translator,
     Cmip6Translator,
@@ -15,7 +16,6 @@ from access_nri_intake.catalog.translators import (
     TranslatorError,
     _cmip_realm_translator,
     _to_tuple,
-    frequency_translations,
 )
 
 
@@ -68,7 +68,7 @@ from access_nri_intake.catalog.translators import (
 def test_cmip_frequency_translator(input, expected):
     """Test translation of entries in the CMIP frequency column"""
     series = pd.Series(input)
-    translated = series.apply(lambda x: frequency_translations.get(x, x))
+    translated = series.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
     assert list(translated) == expected
 
 
