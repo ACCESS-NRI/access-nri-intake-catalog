@@ -1,0 +1,127 @@
+name: cmip6_ig45
+experiment_uuid: c7021d1e-7ba2-11ef-beb5-000007d3fe80
+description: 20km regional projections for CORDEX-CMIP6 from the Queensland Future Climate Science Program
+long_description: >-
+  This dataset includes projections at 20km and 10km, formatted to meet the CORDEX-CMIP6 data standards. 
+  The 20km projections were derived from the 10km projections.
+model:
+- CMIP6
+frequency:
+- day
+- mon
+- 1hr
+- fx
+variable:
+- clt
+- tauv
+- clh
+- clwvi
+- ua850
+- sund
+- ua100m
+- va250
+- uas
+- prc
+- vas
+- mrfso
+- rlds
+- ta200
+- hus1000
+- hus600
+- prw
+- hus850
+- va200
+- tas
+- clivi
+- zg200
+- rsut
+- va600
+- rsdt
+- tasmax
+- sfcWindmax
+- va850
+- mrso
+- ps
+- hus400
+- ta1000
+- ua250
+- tauu
+- pr
+- va925
+- snc
+- hus200
+- clm
+- zg500
+- hurs
+- rlut
+- hus300
+- rsds
+- ua200
+- psl
+- ta850
+- va400
+- zg400
+- snm
+- ta925
+- prsn
+- hus250
+- zg1000
+- ta600
+- zg925
+- huss
+- ta500
+- va1000
+- zg700
+- zmla
+- hfss
+- zg850
+- ua925
+- zg600
+- ua300
+- rsus
+- hus500
+- sfcWind
+- ts
+- va500
+- va100m
+- ua500
+- ua700
+- va700
+- soilt
+- snd
+- ua1000
+- ta700
+- hfls
+- tasmin
+- zg250
+- cll
+- hus700
+- rlus
+- va300
+- ua600
+- hus925
+- ta250
+- ua400
+- prhmax
+- sftlf
+- ta400
+- ta300
+- snw
+- zg300
+- orog
+- sftlaf
+nominal_resolution:
+- 20km
+- 10km
+version: 
+contact: NCI
+email: help@nci.org.au
+reference:
+license:
+url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f7465_8388_5100_7022
+parent_experiment:
+related_experiments:
+-
+notes: 
+keywords:
+- cmip

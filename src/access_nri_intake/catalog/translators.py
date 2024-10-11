@@ -307,10 +307,14 @@ class EraiTranslator(DefaultTranslator):
         self._dispatch_keys = _DispatchKeys(variable="variable")
 
     def _realm_translator(self) -> pd.Series:
-        raise AttributeError("ERAI data does not have a realm column")
+        raise AttributeError(
+            f"{self.__class__.__name__}: data does not have a realm column"
+        )
 
     def _frequency_translator(self) -> pd.Series:
-        raise AttributeError("ERAI data does not have a frequency column")
+        raise AttributeError(
+            f"{self.__class__.__name__}: data does not have a frequency column"
+        )
 
 
 class BarpaTranslator(DefaultTranslator):
@@ -349,8 +353,47 @@ class BarpaTranslator(DefaultTranslator):
         return self.source.df.apply(lambda x: ("none",), 1)
 
 
+class CordexTranslator(DefaultTranslator):
+    """
+    Cordex Translator for translating metadata from the NCI CORDEX intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise a CordexTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI CORDEX intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self._dispatch["model"] = self._model_translator
+        self._dispatch["realm"] = self._realm_translator
+        self._dispatch["frequency"] = self._frequency_translator
+        self._dispatch["variable"] = self._variable_translator
+
+        self._dispatch_keys = _DispatchKeys(
+            model="source_id",
+            frequency="frequency",
+            variable="variable_id",
+        )
+
+    def _realm_translator(self) -> pd.Series:
+        raise AttributeError(
+            f"{self.__class__.__name__}: data does not have a realm column"
+        )
+
+
 @dataclass
 class _DispatchKeys:
+    """
+    Data class to store the keys for the dispatch dictionary in the Translator classes
+    """
+
     model: Optional[str] = None
     realm: Optional[str] = None
     frequency: Optional[str] = None
