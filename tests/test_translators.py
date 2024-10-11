@@ -11,6 +11,7 @@ from access_nri_intake.catalog.translators import (
     BarpaTranslator,
     Cmip5Translator,
     Cmip6Translator,
+    CordexTranslator,
     DefaultTranslator,
     EraiTranslator,
     TranslatorError,
@@ -262,4 +263,21 @@ def test_BarpaTranslator(test_data, groupby, n_entries):
     esmds.name = "name"
     esmds.description = "description"
     df = BarpaTranslator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (["variable"], 4),
+        (["frequency"], 2),
+    ],
+)
+def test_CordexTranslator(test_data, groupby, n_entries):
+    """Test CORDEX datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cordex-ig45.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = CordexTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries

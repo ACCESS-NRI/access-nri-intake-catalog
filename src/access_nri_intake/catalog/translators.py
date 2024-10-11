@@ -308,12 +308,12 @@ class EraiTranslator(DefaultTranslator):
 
     def _realm_translator(self) -> pd.Series:
         raise AttributeError(
-            f"{self.__class__.__name__}: data does not have a realm column"
+            f"{self.__class__.__name__}: 'realm' does not require translation"
         )
 
     def _frequency_translator(self) -> pd.Series:
         raise AttributeError(
-            f"{self.__class__.__name__}: data does not have a frequency column"
+            f"{self.__class__.__name__}: 'data' does not require translation"
         )
 
 
@@ -372,20 +372,22 @@ class CordexTranslator(DefaultTranslator):
 
         super().__init__(source, columns)
         self._dispatch["model"] = self._model_translator
-        self._dispatch["realm"] = self._realm_translator
         self._dispatch["frequency"] = self._frequency_translator
         self._dispatch["variable"] = self._variable_translator
+        self._dispatch["realm"] = self._variable_translator
 
         self._dispatch_keys = _DispatchKeys(
             model="source_id",
             frequency="frequency",
             variable="variable_id",
+            realm="realm",
         )
 
-    def _realm_translator(self) -> pd.Series:
-        raise AttributeError(
-            f"{self.__class__.__name__}: data does not have a realm column"
-        )
+    def _realm_translator(self):
+        """
+        Return realm, fixing a few issues
+        """
+        return self.source.df.apply(lambda x: ("none",), 1)
 
 
 @dataclass
