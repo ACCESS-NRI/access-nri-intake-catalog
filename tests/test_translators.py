@@ -7,14 +7,15 @@ import pytest
 
 from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
+    BarpaTranslator,
     Cmip5Translator,
     Cmip6Translator,
     DefaultTranslator,
     EraiTranslator,
     TranslatorError,
-    _cmip_frequency_translator,
     _cmip_realm_translator,
     _to_tuple,
+    frequency_translations,
 )
 
 
@@ -67,7 +68,7 @@ from access_nri_intake.catalog.translators import (
 def test_cmip_frequency_translator(input, expected):
     """Test translation of entries in the CMIP frequency column"""
     series = pd.Series(input)
-    translated = _cmip_frequency_translator(series)
+    translated = series.apply(lambda x: frequency_translations.get(x, x))
     assert list(translated) == expected
 
 
@@ -195,7 +196,7 @@ def test_DefaultTranslator_error(test_data):
     ],
 )
 def test_Cmip5Translator(test_data, groupby, n_entries):
-    "Test CMIP5 datastore translator" ""
+    """Test CMIP5 datastore translator"""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
     esmds.name = "name"
     esmds.description = "description"
@@ -215,7 +216,7 @@ def test_Cmip5Translator(test_data, groupby, n_entries):
     ],
 )
 def test_Cmip6Translator(test_data, groupby, n_entries):
-    "Test CMIP6 datastore translator" ""
+    """Test CMIP6 datastore translator"""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip6-oi10.json")
     esmds.name = "name"
     esmds.description = "description"
@@ -235,7 +236,7 @@ def test_Cmip6Translator(test_data, groupby, n_entries):
     ],
 )
 def test_EraiTranslator(test_data, groupby, n_entries):
-    "Test ERA-Interim datastore translator" ""
+    """Test ERA-Interim datastore translator"""
     model = ("ERA-Interim",)
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/erai.json")
     esmds.name = "name"
@@ -243,4 +244,22 @@ def test_EraiTranslator(test_data, groupby, n_entries):
     esmds.metadata = dict(model=model)
     df = EraiTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert all(df["model"] == model)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (["realm"], 1),
+        (["variable"], 4),
+        (["frequency"], 1),
+    ],
+)
+def test_BarpaTranslator(test_data, groupby, n_entries):
+    """Test BARPA datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/barpa-py18.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = BarpaTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries

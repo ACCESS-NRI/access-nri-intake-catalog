@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout repository
         ### Latest at time of writing
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.0
       - name: Sync repository to Gadi
         ### Latest at time of writing
         uses: up9cloud/action-rsync@v1.4
@@ -21,8 +21,10 @@ jobs:
           TARGET: ${{secrets.GADI_REPO_PATH}}
           KEY: ${{secrets.DEPLOY_KEY}}
           USER: ${{secrets.GADI_USER}}
+          PRE_SCRIPT: |
+            export PROJECT=xp65_w
       - name: Update catalog
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.1.0
         with:
           host: gadi.nci.org.au
           username: ${{secrets.GADI_USER}}
