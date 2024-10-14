@@ -97,7 +97,15 @@ def validate_against_schema(instance, schema):
         Validator, type_checker=type_checker
     )
 
-    TupleAllowingValidator(schema).validate(instance)
+    issues = TupleAllowingValidator(schema).iter_errors(instance)
+
+    if len(list(issues)) > 0:
+        issue_str = ""
+        for issue in issues:
+            issue_str += f"{ issue.message }\n"
+        raise jsonschema.ValidationError(issue_str)
+
+    return
 
 
 def _can_be_array(field):
