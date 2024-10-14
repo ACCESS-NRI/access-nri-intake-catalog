@@ -11,7 +11,3 @@ sources:
   - metadata_yaml: /g/data/xp65/admin/access-nri-intake-catalog/config/metadata_sources/cmip6-oi10/metadata.yaml
     path:
       - /g/data/oi10/catalog/v2/esm/catalog.json
-
-  - metadata_yaml: /g/data/xp65/admin/intake/metadata/cmip6_ig45/metadata.yaml
-    path:
-    - /g/data/ig45/catalog/v2/esm/catalog.json 

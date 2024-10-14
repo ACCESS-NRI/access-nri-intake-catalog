@@ -192,6 +192,31 @@ class DefaultTranslator:
 
         return df[self.columns]  # Preserve ordering
 
+    def set_dispatch(
+        self, core_colname: str, func: Callable, input_name: Optional[str] = None
+    ):
+        """
+        Set a dispatch function for a column. Typically only required when either:
+            1. `core_colname != input_name`
+            2. A custom translation function (`func`) is required.
+
+        Parameters
+        ----------
+        core_colname: str
+            The core column name to translate to
+        input_name: str, optional
+            The name of the column in the source. If not provided, this defaults
+            to none, and no translation will occur
+        func: callable
+            The function to translate the column
+        """
+        if core_colname not in ["model", "realm", "frequency", "variable"]:
+            raise TranslatorError(
+                f"'core_colname' must be one of 'model', 'realm', 'frequency', 'variable', not {core_colname}"
+            )
+        self._dispatch[core_colname] = func
+        setattr(self._dispatch_keys, core_colname, input_name)
+
     def _realm_translator(self) -> pd.Series:
         """
         Return realm, fixing a few issues
@@ -240,16 +265,21 @@ class Cmip6Translator(DefaultTranslator):
         """
 
         super().__init__(source, columns)
-        self._dispatch["model"] = self._model_translator
-        self._dispatch["realm"] = self._realm_translator
-        self._dispatch["frequency"] = self._frequency_translator
-        self._dispatch["variable"] = self._variable_translator
-
-        self._dispatch_keys = _DispatchKeys(
-            model="source_id",
-            realm="realm",
-            frequency="frequency",
-            variable="variable_id",
+        self.set_dispatch(
+            input_name="source_id", core_colname="model", func=super()._model_translator
+        )
+        self.set_dispatch(
+            input_name="realm", core_colname="realm", func=super()._realm_translator
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
         )
 
 
@@ -271,16 +301,21 @@ class Cmip5Translator(DefaultTranslator):
         """
 
         super().__init__(source, columns)
-        self._dispatch["model"] = self._model_translator
-        self._dispatch["realm"] = self._realm_translator
-        self._dispatch["frequency"] = self._frequency_translator
-        self._dispatch["variable"] = self._variable_translator
-
-        self._dispatch_keys = _DispatchKeys(
-            model="model",
-            realm="realm",
-            frequency="frequency",
-            variable="variable",
+        self.set_dispatch(
+            input_name="model", core_colname="model", func=super()._model_translator
+        )
+        self.set_dispatch(
+            input_name="realm", core_colname="realm", func=super()._realm_translator
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable",
+            core_colname="variable",
+            func=super()._variable_translator,
         )
 
 
@@ -302,17 +337,11 @@ class EraiTranslator(DefaultTranslator):
         """
 
         super().__init__(source, columns)
-        self._dispatch["variable"] = self._variable_translator
-        self._dispatch_keys = _DispatchKeys(variable="variable")
 
-    def _realm_translator(self) -> pd.Series:
-        raise AttributeError(
-            f"{self.__class__.__name__}: 'realm' does not require translation"
-        )
-
-    def _frequency_translator(self) -> pd.Series:
-        raise AttributeError(
-            f"{self.__class__.__name__}: 'data' does not require translation"
+        self.set_dispatch(
+            input_name="variable",
+            core_colname="variable",
+            func=super()._variable_translator,
         )
 
 
@@ -334,15 +363,21 @@ class BarpaTranslator(DefaultTranslator):
         """
 
         super().__init__(source, columns)
-        self._dispatch["model"] = self._model_translator
-        self._dispatch["realm"] = self._realm_translator
-        self._dispatch["frequency"] = self._frequency_translator
-        self._dispatch["variable"] = self._variable_translator
-        self._dispatch_keys = _DispatchKeys(
-            model="source_id",
-            realm="realm",
-            variable="variable_id",
-            frequency="freq",
+        self.set_dispatch(
+            input_name="source_id", core_colname="model", func=super()._model_translator
+        )
+        self.set_dispatch(
+            input_name="realm", core_colname="realm", func=self._realm_translator
+        )
+        self.set_dispatch(
+            input_name="freq",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
         )
 
     def _realm_translator(self):
@@ -370,16 +405,16 @@ class CordexTranslator(DefaultTranslator):
         """
 
         super().__init__(source, columns)
-        self._dispatch["model"] = self._model_translator
-        self._dispatch["frequency"] = self._frequency_translator
-        self._dispatch["variable"] = self._variable_translator
-        self._dispatch["realm"] = self._variable_translator
-
-        self._dispatch_keys = _DispatchKeys(
-            model="source_id",
-            frequency="frequency",
-            variable="variable_id",
-            realm="realm",
+        self.set_dispatch(
+            input_name="source_id", core_colname="model", func=super()._model_translator
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+        self.set_dispatch(
+            input_name="realm", core_colname="realm", func=self._realm_translator
         )
 
     def _realm_translator(self):
