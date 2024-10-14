@@ -4,10 +4,10 @@ translator: Cmip6Translator
 
 sources:
 
-  - metadata_yaml: /g/data/xp65/admin/intake/metadata/cmip6_fs38/metadata.yaml
+  - metadata_yaml: /g/data/xp65/admin/access-nri-intake-catalog/config/metadata_sources/cmip6-fs38/metadata.yaml
     path:
       - /g/data/fs38/catalog/v2/esm/catalog.json
     
-  - metadata_yaml: /g/data/xp65/admin/intake/metadata/cmip6_oi10/metadata.yaml
+  - metadata_yaml: /g/data/xp65/admin/access-nri-intake-catalog/config/metadata_sources/cmip6-oi10/metadata.yaml
     path:
       - /g/data/oi10/catalog/v2/esm/catalog.json
