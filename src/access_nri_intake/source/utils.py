@@ -1,12 +1,10 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Shared utilities for writing Intake-ESM builders and their parsers """
+"""Shared utilities for writing Intake-ESM builders and their parsers"""
 
 import warnings
-from dataclasses import asdict, dataclass, field
 from datetime import timedelta
-from pathlib import Path
 from typing import Union
 
 import cftime
@@ -15,82 +13,6 @@ import xarray as xr
 
 class EmptyFileError(Exception):
     pass
-
-
-@dataclass
-class _AccessNCFileInfo:
-    """
-    Holds information about a NetCDF file that is used to create an intake-esm
-    catalog entry.
-
-    ______
-    Notes:
-    Use of both path and filename seems redundant, but constructing filename from
-    the path using a __post_init__ method makes testing more difficult. On balance,
-    more explicit tests are probably more important than the slight redundancy.
-    """
-
-    filename: Union[str, Path]
-    file_id: str
-    path: str
-    filename_timestamp: Union[str, None]
-    frequency: str
-    start_date: str
-    end_date: str
-    variable: list[str]
-    variable_long_name: list[str]
-    variable_standard_name: list[str]
-    variable_cell_methods: list[str]
-    variable_units: list[str]
-
-    def to_dict(self) -> dict[str, Union[str, list[str]]]:
-        """
-        Return a dictionary representation of the NcFileInfo object
-        """
-        return asdict(self)
-
-
-@dataclass
-class _DataVarInfo:
-    """
-    Holds information about the data variables in a NetCDF file that is used to
-    create an intake-esm catalog entry.
-    """
-
-    variable_list: list[str] = field(default_factory=list)
-    long_name_list: list[str] = field(default_factory=list)
-    standard_name_list: list[str] = field(default_factory=list)
-    cell_methods_list: list[str] = field(default_factory=list)
-    units_list: list[str] = field(default_factory=list)
-
-    def append_attrs(self, var: str, attrs: dict) -> None:
-        """
-        Append attributes to the DataVarInfo object, if the attribute has a
-        'long_name' key.
-
-        TODO: Why do we need a long name key? seems important
-        """
-        if "long_name" not in attrs:
-            return None
-
-        self.variable_list.append(var)
-        self.long_name_list.append(attrs["long_name"])
-        self.standard_name_list.append(attrs.get("standard_name", ""))
-        self.cell_methods_list.append(attrs.get("cell_methods", ""))
-        self.units_list.append(attrs.get("units", ""))
-
-    def to_ncinfo_dict(self) -> dict[str, list[str]]:
-        """
-        Return a dictionary representation of the DataVarInfo object. Fields are
-        defined explicitly for use in the _AccessNCFileInfo constructor.
-        """
-        return {
-            "variable": self.variable_list,
-            "variable_long_name": self.long_name_list,
-            "variable_standard_name": self.standard_name_list,
-            "variable_cell_methods": self.cell_methods_list,
-            "variable_units": self.units_list,
-        }
 
 
 def _add_month_start(time, n: int):
