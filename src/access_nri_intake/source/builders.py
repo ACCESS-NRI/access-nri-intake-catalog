@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Builders for generating Intake-ESM datastores """
+"""Builders for generating Intake-ESM datastores"""
 
 import multiprocessing
 import re
@@ -17,7 +17,7 @@ from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import (
     EmptyFileError,
     _AccessNCFileInfo,
-    _DataVarInfo,
+    _VarInfo,
     get_timeinfo,
 )
 
@@ -119,7 +119,7 @@ class BaseBuilder(Builder):
         self._parse()
         return self
 
-    def _save(self, name: str, description: str, directory: Union[str, None]):
+    def _save(self, name: str, description: str, directory: Optional[str]):
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -223,7 +223,7 @@ class BaseBuilder(Builder):
         patterns: Optional[list[str]] = None,
         frequencies: dict = FREQUENCIES,
         redaction_fill: str = "X",
-    ) -> tuple[str, Union[str, None], Union[str, None]]:
+    ) -> tuple[str, Optional[str], Optional[str]]:
         """
         Parse an ACCESS model filename and return a file id and any time information
 
@@ -314,7 +314,7 @@ class BaseBuilder(Builder):
             decode_times=False,
             decode_coords=False,
         ) as ds:
-            dvars = _DataVarInfo()
+            dvars = _VarInfo()
 
             for var in ds.variables:
                 attrs = ds[var].attrs
@@ -335,7 +335,7 @@ class BaseBuilder(Builder):
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
-            **dvars.to_ncinfo_dict(),
+            **dvars.to_var_info_dict(),
         )
 
         return output_ncfile
@@ -385,11 +385,9 @@ class AccessOm2Builder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
-            # mypy gets upset as match can return None. I assume this is why we
-            # have try/except block in the first place? If so, we might be able
-            # to make this more explicit?
-            match_groups = re.match(r".*/output\d+/([^/]*)/.*\.nc", file).groups()  # type: ignore
-            realm = match_groups[0]
+            matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
+            if matches:
+                realm = matches.groups()[0]
 
             if realm == "ice":
                 realm = "seaIce"

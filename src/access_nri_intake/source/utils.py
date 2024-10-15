@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Shared utilities for writing Intake-ESM builders and their parsers """
+"""Shared utilities for writing Intake-ESM builders and their parsers"""
 
 import warnings
 from dataclasses import asdict, dataclass, field
@@ -51,9 +51,9 @@ class _AccessNCFileInfo:
 
 
 @dataclass
-class _DataVarInfo:
+class _VarInfo:
     """
-    Holds information about the data variables in a NetCDF file that is used to
+    Holds information about the variables in a NetCDF file that is used to
     create an intake-esm catalog entry.
     """
 
@@ -65,10 +65,8 @@ class _DataVarInfo:
 
     def append_attrs(self, var: str, attrs: dict) -> None:
         """
-        Append attributes to the DataVarInfo object, if the attribute has a
+        Append attributes to the _VarInfo object, if the attribute has a
         'long_name' key.
-
-        TODO: Why do we need a long name key? seems important
         """
         if "long_name" not in attrs:
             return None
@@ -79,9 +77,9 @@ class _DataVarInfo:
         self.cell_methods_list.append(attrs.get("cell_methods", ""))
         self.units_list.append(attrs.get("units", ""))
 
-    def to_ncinfo_dict(self) -> dict[str, list[str]]:
+    def to_var_info_dict(self) -> dict[str, list[str]]:
         """
-        Return a dictionary representation of the DataVarInfo object. Fields are
+        Return a dictionary representation of the _VarInfo object. Fields are
         defined explicitly for use in the _AccessNCFileInfo constructor.
         """
         return {
