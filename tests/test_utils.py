@@ -14,26 +14,25 @@ from access_nri_intake.utils import (
 
 
 @pytest.mark.parametrize(
-    "known_hash",
-    ["2a09030653f495939c90a22e95dd1c4587c8695f7f07e17b9129a6491469f9fc", None],
+    "schema_file",
+    ["data/metadata_schema_experiment.json", "data/metadata_schema_file.json"],
 )
-def test_get_jsonschema(known_hash):
+def test_get_jsonschema(schema_file):
     """
-    Test that jsonschema are correctly downloaded and required fields are overwritten
+    Test that  required fields are overwritten
     """
-    url = "https://raw.githubusercontent.com/ACCESS-NRI/schema/4e3d10e563d7c1c9f66e9ab92a2926cdec3d6893/file_asset.json"
     required = [
-        "path",
+        "realm",
     ]
     schema, schema_required = get_jsonschema(
-        url=url, known_hash=known_hash, required=required
+        metadata_file=schema_file, required=required
     )
     assert "$schema" in schema
     assert schema_required["required"] == required
 
     required += ["foo"]
     with pytest.warns(UserWarning):
-        _, _ = get_jsonschema(url=url, known_hash=known_hash, required=required)
+        _, _ = get_jsonschema(metadata_file=schema_file, required=required)
 
 
 def test_load_metadata_yaml(tmp_path):
