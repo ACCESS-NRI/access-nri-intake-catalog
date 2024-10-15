@@ -169,7 +169,6 @@ class BaseBuilder(Builder):
             # import pdb; pdb.set_trace()
             info = self.parser(asset)
             i += 1
-            print(asset)  # TODO remove in production
             if INVALID_ASSET not in info:
                 validate_against_schema(info, ESM_JSONSCHEMA)
                 j += 1
