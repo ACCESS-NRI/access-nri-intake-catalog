@@ -399,11 +399,9 @@ class AccessOm2Builder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
-            # mypy gets upset as match can return None. I assume this is why we
-            # have try/except block in the first place? If so, we might be able
-            # to make this more explicit?
-            match_groups = re.match(r".*/output\d+/([^/]*)/.*\.nc", file).groups()  # type: ignore
-            realm = match_groups[0]
+            matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
+            if matches:
+                realm = matches.groups()[0]
 
             if realm == "ice":
                 realm = "seaIce"
