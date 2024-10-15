@@ -7,6 +7,7 @@ import os
 
 import intake
 from intake_dataframe_catalog.core import DfFileCatalog
+from pandas.errors import EmptyDataError
 
 from ..utils import validate_against_schema
 from . import (
@@ -45,13 +46,16 @@ class CatalogManager:
 
         self.mode = "a" if os.path.exists(path) else "w"
 
-        self.dfcat = DfFileCatalog(
-            path=self.path,
-            yaml_column=YAML_COLUMN,
-            name_column=NAME_COLUMN,
-            mode=self.mode,
-            columns_with_iterables=COLUMNS_WITH_ITERABLES,
-        )
+        try:
+            self.dfcat = DfFileCatalog(
+                path=self.path,
+                yaml_column=YAML_COLUMN,
+                name_column=NAME_COLUMN,
+                mode=self.mode,
+                columns_with_iterables=COLUMNS_WITH_ITERABLES,
+            )
+        except EmptyDataError as e:
+            raise EmptyDataError(str(e) + f": {self.path}")
 
         self.source = None
         self.source_metadata = None
