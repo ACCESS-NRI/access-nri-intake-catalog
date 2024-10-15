@@ -153,8 +153,24 @@ def get_timeinfo(
         The dataset to parse the time info from
     filename_frequency: str
         Frequency as determined from the filename
+    filename_frequency: str
+        Frequency as determined from the filename
     time_dim: str
         The name of the time dimension
+
+    Returns
+    -------
+    start_date: str
+        The start date of the dataset
+    end_date: str
+        The end date of the dataset
+    frequency: str
+        The frequency of the dataset
+
+    Raises
+    ------
+    EmptyFileError
+        If the dataset has a valid unlimited dimension, but no data
 
     Returns
     -------

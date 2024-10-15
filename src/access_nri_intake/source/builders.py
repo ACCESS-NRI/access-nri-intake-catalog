@@ -286,7 +286,7 @@ class BaseBuilder(Builder):
 
         Parameters
         ----------
-        file: str
+        fname: str
             The path to the netcdf file
         time_dim: str
             The name of the time dimension
