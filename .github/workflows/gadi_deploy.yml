@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout repository
         ### Latest at time of writing
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4.2.1
       - name: Sync repository to Gadi
         ### Latest at time of writing
         uses: up9cloud/action-rsync@v1.4
