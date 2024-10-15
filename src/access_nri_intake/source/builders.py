@@ -177,7 +177,7 @@ class BaseBuilder(Builder):
         raise ParserError(
             f"""Parser returns no valid assets. 
             Try parsing a single file with Builder.parser(file)
-            Input assets: {self.assets}"""
+            Last failed asset: {asset}"""
         )
 
     def build(self):
