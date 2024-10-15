@@ -179,7 +179,7 @@ def parse_access_filename(filename):
     # ACCESS output file patterns
     # TODO: these should be defined per driver to prevent new patterns from breaking old drivers
     not_multi_digit = "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))"
-    om3_components = "(?:cice|mom6|ww3)"
+    om3_components = "(?:cice|cicem|mom6|ww3)"
     ymds = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}"
     ymd = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}"
     ym = "\\d{4}[_,-]\\d{2}"

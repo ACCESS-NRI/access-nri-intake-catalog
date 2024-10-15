@@ -138,6 +138,22 @@ from access_nri_intake.source.utils import (
             ),
         ),
         (
+            "access-om3.cice.h.daily.1900-01",
+            (
+                "access_om3_cice_h_daily_XXXX_XX",
+                "1900-01",
+                (1, "day"),
+            ),
+        ),
+        (
+            "access-om3.cice.1900-01.nc",
+            (
+                "access_om3_cice_XXXX_XX",
+                "1900-01",
+                None,
+            ),
+        ),
+        (
             "access-om3.mom6.ocean_sfc_1900_01_01",
             (
                 "access_om3_mom6_ocean_sfc_XXXX_XX_XX",
