@@ -23,8 +23,8 @@ class _AccessNCFileInfo:
     Holds information about a NetCDF file that is used to create an intake-esm
     catalog entry.
 
-    ______
-    Notes:
+    Notes
+    -----
     Use of both path and filename seems redundant, but constructing filename from
     the path using a __post_init__ method makes testing more difficult. On balance,
     more explicit tests are probably more important than the slight redundancy.
