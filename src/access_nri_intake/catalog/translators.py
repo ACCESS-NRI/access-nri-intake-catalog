@@ -12,6 +12,7 @@ from typing import Callable, Optional
 
 import pandas as pd
 import tlz
+from intake import DataSource
 
 from . import COLUMNS_WITH_ITERABLES
 
@@ -73,7 +74,7 @@ class DefaultTranslator:
     of metadata for use in an intake-dataframe-catalog.
     """
 
-    def __init__(self, source, columns):
+    def __init__(self, source: DataSource, columns: list[str]):
         """
         Initialise a DefaultTranslator. This Translator works as follows:
 
@@ -93,13 +94,13 @@ class DefaultTranslator:
 
         self.source = source
         self.columns = columns
-        self._dispatch = {
+        self._dispatch: dict[str, Callable[[], pd.Series]] = {
             column: partial(self._default_translator, column=column)
             for column in columns
         }
         self._dispatch_keys = _DispatchKeys()
 
-    def _default_translator(self, column):
+    def _default_translator(self, column: str) -> pd.Series:
         """
         Try to translate a column from a source using the default translator. This translator works as follows:
         - If the input source is an intake-esm datastore, the translator will first look for the column in the
@@ -145,7 +146,7 @@ class DefaultTranslator:
 
         return pd.Series([val] * len_df)
 
-    def translate(self, groupby=None):
+    def translate(self, groupby: Optional[list[str]] = None) -> pd.DataFrame:
         """
         Return the translated :py:class:`~pandas.DataFrame` of metadata and merge into set of
         set of rows with unique values of the columns specified.
@@ -252,7 +253,7 @@ class Cmip6Translator(DefaultTranslator):
     CMIP6 Translator for translating metadata from the NCI CMIP6 intake datastores.
     """
 
-    def __init__(self, source, columns):
+    def __init__(self, source: DataSource, columns: list[str]):
         """
         Initialise a Cmip6Translator
 
@@ -288,7 +289,7 @@ class Cmip5Translator(DefaultTranslator):
     CMIP5 Translator for translating metadata from the NCI CMIP5 intake datastores.
     """
 
-    def __init__(self, source, columns):
+    def __init__(self, source: DataSource, columns: list[str]):
         """
         Initialise a Cmip5Translator
 
@@ -324,7 +325,7 @@ class EraiTranslator(DefaultTranslator):
     ERAI Translator for translating metadata from the NCI ERA-Interim intake datastore.
     """
 
-    def __init__(self, source, columns):
+    def __init__(self, source: DataSource, columns: list[str]):
         """
         Initialise a EraiTranslator
 
@@ -436,13 +437,14 @@ class _DispatchKeys:
     variable: Optional[str] = None
 
 
-def _cmip_realm_translator(series):
+def _cmip_realm_translator(series) -> pd.Series:
     """
-    Return realm from CMIP realm metadata, fixing some issues. This function returns
-    a tuple as there are sometimes multiple realms per cmip asset
+    Return realm from CMIP realm metadata, fixing some issues. This function takes
+    a series of strings and returns a series of tuples as there are sometimes multiple
+    realms per cmip asset
     """
 
-    def _translate(string):
+    def _translate(string: str) -> tuple[str, ...]:
         translations = {
             "na": "none",
             "landonly": "land",
