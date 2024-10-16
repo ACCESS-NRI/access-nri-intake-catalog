@@ -171,20 +171,6 @@ def get_timeinfo(
     ------
     EmptyFileError
         If the dataset has a valid unlimited dimension, but no data
-
-    Returns
-    -------
-    start_date: str
-        The start date of the dataset
-    end_date: str
-        The end date of the dataset
-    frequency: str
-        The frequency of the dataset
-
-    Raises
-    ------
-    EmptyFileError
-        If the dataset has a valid unlimited dimension, but no data
     """
 
     def _todate(t):
