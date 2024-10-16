@@ -29,9 +29,9 @@ FREQUENCIES = {
 PATTERNS_HELPERS = {
     "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
     "om3_components": "(?:cice|mom6|ww3)",
-    "ymds": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}",
-    "ymd": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}",
-    "ym": "\\d{4}[_,-]\\d{2}",
+    "ymds": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}[_,\\-]\\d{5}",
+    "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
+    "ym": "\\d{4}[_,\\-]\\d{2}",
     "y": "\\d{4}",
 }
 
@@ -425,8 +425,10 @@ class AccessOm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM3 COSIMA datasets"""
 
     PATTERNS = [
-        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|-{PATTERNS_HELPERS['not_multi_digit']}.*)$",  # ACCESS-OM3
-        # rf"[^\.]*\.{om3_components}\..*[\.,_]({ymds}|{ymd}|{ym}|{y})(?:$|-{not_multi_digit}.*)"
+        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})(?:$|{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM3
+        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM3
+        # rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})(?:$|{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM3
+        # rf"[^\.]*\.{om3_components}\..*[\.,_]({ymds}|{ymd}|{ym}|{y})(?:$|-{not_multi_digit}.*)" {PATTERNS_HELPERS['y']}
     ]
 
     def __init__(self, path):
