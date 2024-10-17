@@ -153,8 +153,6 @@ def get_timeinfo(
         The dataset to parse the time info from
     filename_frequency: str
         Frequency as determined from the filename
-    filename_frequency: str
-        Frequency as determined from the filename
     time_dim: str
         The name of the time dimension
 
