@@ -425,6 +425,61 @@ class CordexTranslator(DefaultTranslator):
         return self.source.df.apply(lambda x: ("none",), 1)
 
 
+class Era5Translator(DefaultTranslator):
+    """
+    Era5 Translator for translating metadata from the NCI ERA5 intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise a Era5Translator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI ERA5 intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="variable",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+        self.set_dispatch(
+            input_name="stream", core_colname="realm", func=self._realm_translator
+        )
+        self.set_dispatch(
+            input_name="path", core_colname="frequency", func=self._frequency_translator
+        )
+        self.set_dispatch(
+            input_name="path", core_colname="model", func=self._model_translator
+        )
+
+    def _model_translator(self):
+        """
+        Get the model from the path. This is a slightly hacky approach, using the
+        following logic:
+        - Dir structure follows the form : `'/g/data/rt52/$MODEL/...`
+        where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1', 'era5-derived'.
+        """
+        return self.source.df["path"].str.split("/").str[4]
+
+    def _realm_translator(self):
+        """
+        Get the realm from the stream
+        """
+        raise NotImplementedError("This method needs to be overwritten")
+
+    def _frequency_translator(self):
+        """
+        Get the frequency from the path
+        """
+        raise NotImplementedError("This method needs to be overwritten")
+
+
 @dataclass
 class _DispatchKeys:
     """
