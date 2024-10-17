@@ -316,7 +316,7 @@ class BaseBuilder(Builder):
         ) as ds:
             dvars = _VarInfo()
 
-            for var in ds.data_vars:
+            for var in ds.variables:
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
