@@ -474,9 +474,10 @@ class Era5Translator(DefaultTranslator):
 
     def _realm_translator(self):
         """
-        Get the realm from the stream
+        Return realm. Not clear how we can extract this from the ERA5 data, so
+        we'll just return 'none' for now.
         """
-        raise NotImplementedError("This method needs to be overwritten")
+        return self.source.df.apply(lambda x: ("none",), 1)
 
     @tuplify_series
     def _frequency_translator(self):
