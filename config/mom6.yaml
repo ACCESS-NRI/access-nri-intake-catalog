@@ -1,6 +1,6 @@
 builder: Mom6Builder
 
-translator: DefaultTranslator
+translator: Mom6Translator
 
 sources:
 
