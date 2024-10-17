@@ -1,4 +1,4 @@
-name: <REQUIRED The name of the experiment (string)>
+name: era5_rt52
 experiment_uuid: 081d3a94-057c-4ad6-b651-703b3ecd1a5f
 description: ERA5 fifth generation model reanalysis of global climate from ECMWF
 long_description: >-
@@ -10,11 +10,11 @@ long_description: >-
   data archive (MARS).  Full details of the model and outputs can be found in 
   the ECMWF ERA5 Data Documentation.
 model:
-- <The name(s) of the model(s) used in the experiment (string)>
-realm:
-- <The realm(s) included in the experiment (string)>
+- era5
 frequency:
-- <The frequency(/ies) included in the experiment (string)>
+- 1mon
+- 1day
+- 1hr
 variable:
 - 100u
 - 100v
@@ -277,17 +277,27 @@ variable:
 - z
 - zust
 nominal_resolution:
-- <The nominal resolution(s) of model(s) used in the experiment (string)>
-version: <The version of the experiment (number, string)>
-contact: <Contact name for the experiment (string)>
-email: <Email address of the contact for the experiment (string)>
+- 31km
+- 63km
+- 0.36˚
+- 1˚
+version: 
+contact: NCI
+email: help@nci.org.au
 created: 2020-08-28 
-reference: <Citation or reference information (string)>
+reference: 
+- https://rmets.onlinelibrary.wiley.com/doi/10.1002/qj.3803
+- https://rmets.onlinelibrary.wiley.com/doi/10.1002/qj.4174
+- https://www.ecmwf.int/en/elibrary/81149-global-stratospheric-temperature-bias-and-other-stratospheric-aspects-era5-and
+- https://www.ecmwf.int/en/elibrary/19911-low-frequency-variability-and-trends-surface-air-temperature-and-humidity-era5-and
+- https://www.ecmwf.int/en/publications/search?searc_all_field=era5
 license: https://apps.ecmwf.int/datasets/licences/copernicus/
 url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f2836_1346_3774_9763
-parent_experiment: <experiment_uuid for parent experiment if appropriate (string)>
+parent_experiment: 
 related_experiments:
-- <experiment_uuids for any related experiment(s) (string)>
-notes: <Additional notes (string)>
+notes: >-
+ This dataset contains hourly and monthly averaged data, as well as monthly 
+ data averaged by hour (eg January Mean, 00:00-01:00) and monthly data averaged by day
+ (same format, different name convention, eg. January Mean, 00:00-01:00). era5-derived
+ contains daily data.
 keywords:
-- <Keywords to associated with experiment (string)>

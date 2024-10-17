@@ -18,11 +18,11 @@ from . import COLUMNS_WITH_ITERABLES
 
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
+    "monthly-averaged-by-day": "1hr",
     "3hrPt": "3hr",
     "6hrPt": "6hr",
     "daily": "1day",
     "day": "1day",
-    "monthly-averaged-by-day": "1day",
     "mon": "1mon",
     "monthly-averaged": "1mon",
     "monC": "1mon",
@@ -489,7 +489,7 @@ class Era5Translator(DefaultTranslator):
         ERA5 contains some datasets where the frequency isn't readily identifiable:
         - 'reanalysis' is at 1hour frequency
         - 'v3-1' is at 1day frequency
-        - 'v4' is at 1day frequency
+        - 'v4-0' is at 1day frequency
         - 'v1-1' is at 1hour frequency
 
         These are going to get preprocessed here so that we don't make the
@@ -498,7 +498,7 @@ class Era5Translator(DefaultTranslator):
         ERA5_FREQUENCY_TRANSLATIONS = {
             "reanalysis": "1hr",
             "v3-1": "1day",
-            "v4": "1day",
+            "v4-0": "1day",
             "v1-1": "1hr",
         }
 
