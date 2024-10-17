@@ -1,0 +1,293 @@
+name: <REQUIRED The name of the experiment (string)>
+experiment_uuid: 081d3a94-057c-4ad6-b651-703b3ecd1a5f
+description: ERA5 fifth generation model reanalysis of global climate from ECMWF
+long_description: >-
+  ERA5 is the fifth generation model reanalysis of the global climate from the European 
+  Centre for Medium-range Weather Forecasts (ECMWF). ERA5.1 is a re-run of ERA5, 
+  for the years 2000 to 2006 only, and was produced to improve upon the cold bias
+  in the lower stratosphere seen in ERA5 during this period. This dataset includes 
+  the hourly data on pressure levels and has been replicated through the ECMWF 
+  data archive (MARS).  Full details of the model and outputs can be found in 
+  the ECMWF ERA5 Data Documentation.
+model:
+- <The name(s) of the model(s) used in the experiment (string)>
+realm:
+- <The realm(s) included in the experiment (string)>
+frequency:
+- <The frequency(/ies) included in the experiment (string)>
+variable:
+- 100u
+- 100v
+- 10si
+- 10u
+- 10v
+- 2d
+- 2t
+- alnid
+- alnip
+- aluvd
+- aluvp
+- anor
+- asn
+- bfi
+- bld
+- blh
+- cape
+- cbh
+- cdir
+- cdww
+- chnk
+- ci
+- cin
+- cl
+- cp
+- crr
+- csf
+- csfr
+- cvh
+- cvl
+- dctb
+- deg0l
+- dl
+- dndza
+- dndzn
+- dwi
+- dwps
+- dwww
+- e
+- es
+- ewss
+- fal
+- fdir
+- flsr
+- fsr
+- gwd
+- hcc
+- hmax
+- i10fg
+- ie
+- iews
+- ilspf
+- inss
+- ishf
+- isor
+- istl1
+- istl2
+- istl3
+- istl4
+- kx
+- lai-hv
+- lai-lv
+- lblt
+- lcc
+- lgws
+- licd
+- lict
+- lmld
+- lmlt
+- lsf
+- lshf
+- lsm
+- lsp
+- lspf
+- lsrr
+- lssfr
+- ltlt
+- magss
+- mbld
+- mcc
+- mcpr
+- mcsr
+- mdts
+- mdww
+- megwss
+- mer
+- metss
+- mgwd
+- mgws
+- mlspf
+- mlspr
+- mlssr
+- mmtss
+- mngwss
+- mntss
+- mp1
+- mp2
+- mper
+- mpts
+- mpww
+- mror
+- msdrswrf
+- msdrswrfcs
+- msdwlwrf
+- msdwlwrfcs
+- msdwswrf
+- msdwswrfcs
+- msdwuvrf
+- mser
+- msl
+- mslhf
+- msmr
+- msnlwrf
+- msnlwrfcs
+- msnswrf
+- msnswrfcs
+- msqs
+- msr
+- msror
+- msshf
+- mssror
+- mtdwswrf
+- mtnlwrf
+- mtnlwrfcs
+- mtnswrf
+- mtnswrfcs
+- mtpr
+- mvimd
+- mwd
+- mwd1
+- mwd2
+- mwd3
+- mwp
+- mwp1
+- mwp2
+- mwp3
+- nsss
+- p1ps
+- p1ww
+- p2ps
+- p2ww
+- pev
+- phiaw
+- phioc
+- pp1d
+- ptype
+- rhoao
+- ro
+- rsn
+- sd
+- sdfor
+- sdor
+- sf
+- shts
+- shww
+- skt
+- slhf
+- slor
+- slt
+- smlt
+- sp
+- src
+- sro
+- sshf
+- ssr
+- ssrc
+- ssrd
+- ssrdc
+- ssro
+- sst
+- stl1
+- stl2
+- stl3
+- stl4
+- str
+- strc
+- strd
+- strdc
+- swh
+- swh1
+- swh2
+- swh3
+- swvl1
+- swvl2
+- swvl3
+- swvl4
+- tauoc
+- tcc
+- tciw
+- tclw
+- tco3
+- tcrw
+- tcslw
+- tcsw
+- tcw
+- tcwv
+- tisr
+- tmax
+- totalx
+- tp
+- tplb
+- tplt
+- tsn
+- tsr
+- tsrc
+- ttr
+- ttrc
+- tvh
+- tvl
+- u10n
+- ust
+- uvb
+- v10n
+- viec
+- vigd
+- vige
+- vign
+- viiwd
+- viiwe
+- viiwn
+- vike
+- viked
+- vikee
+- viken
+- vilwd
+- vilwe
+- vilwn
+- vima
+- vimad
+- vimae
+- viman
+- vimat
+- vimd
+- viozd
+- vioze
+- viozn
+- vipie
+- vipile
+- vit
+- vithe
+- vithed
+- vithee
+- vithen
+- vitoe
+- vitoed
+- vitoee
+- vitoen
+- viwvd
+- viwve
+- viwvn
+- vst
+- wdw
+- wind
+- wmb
+- wsk
+- wsp
+- wss
+- wstar
+- z
+- zust
+nominal_resolution:
+- <The nominal resolution(s) of model(s) used in the experiment (string)>
+version: <The version of the experiment (number, string)>
+contact: <Contact name for the experiment (string)>
+email: <Email address of the contact for the experiment (string)>
+created: 2020-08-28 
+reference: <Citation or reference information (string)>
+license: https://apps.ecmwf.int/datasets/licences/copernicus/
+url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f2836_1346_3774_9763
+parent_experiment: <experiment_uuid for parent experiment if appropriate (string)>
+related_experiments:
+- <experiment_uuids for any related experiment(s) (string)>
+notes: <Additional notes (string)>
+keywords:
+- <Keywords to associated with experiment (string)>
