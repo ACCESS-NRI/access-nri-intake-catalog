@@ -17,11 +17,14 @@ from intake import DataSource
 from . import COLUMNS_WITH_ITERABLES
 
 FREQUENCY_TRANSLATIONS = {
+    "monthly-averaged-by-hour": "1hr",
     "3hrPt": "3hr",
     "6hrPt": "6hr",
     "daily": "1day",
     "day": "1day",
+    "monthly-averaged-by-day": "1day",
     "mon": "1mon",
+    "monthly-averaged": "1mon",
     "monC": "1mon",
     "monClim": "1mon",
     "monPt": "1mon",
@@ -463,7 +466,8 @@ class Era5Translator(DefaultTranslator):
         Get the model from the path. This is a slightly hacky approach, using the
         following logic:
         - Dir structure follows the form : `'/g/data/rt52/$MODEL/...`
-        where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1', 'era5-derived'.
+        where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1',
+        'era5-derived'.
         """
         return self.source.df["path"].str.split("/").str[4]
 
@@ -477,6 +481,7 @@ class Era5Translator(DefaultTranslator):
         """
         Get the frequency from the path
         """
+        config_str = self.source.df["path"].str.split("/").str[6]
         raise NotImplementedError("This method needs to be overwritten")
 
 
