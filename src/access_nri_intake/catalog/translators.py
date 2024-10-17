@@ -461,6 +461,7 @@ class Era5Translator(DefaultTranslator):
             input_name="path", core_colname="model", func=self._model_translator
         )
 
+    @tuplify_series
     def _model_translator(self):
         """
         Get the model from the path. This is a slightly hacky approach, using the
@@ -477,12 +478,34 @@ class Era5Translator(DefaultTranslator):
         """
         raise NotImplementedError("This method needs to be overwritten")
 
+    @tuplify_series
     def _frequency_translator(self):
         """
         Get the frequency from the path
         """
-        config_str = self.source.df["path"].str.split("/").str[6]
-        raise NotImplementedError("This method needs to be overwritten")
+        config_str = self.source.df["path"].str.split("/").str[6].copy()
+        """
+        ERA5 contains some datasets where the frequency isn't readily identifiable:
+        - 'reanalysis' is at 1hour frequency
+        - 'v3-1' is at 1day frequency
+        - 'v4' is at 1day frequency
+        - 'v1-1' is at 1hour frequency
+
+        These are going to get preprocessed here so that we don't make the
+        FREQUENCIES dictionary large and confusing.
+        """
+        ERA5_FREQUENCY_TRANSLATIONS = {
+            "reanalysis": "1hr",
+            "v3-1": "1day",
+            "v4": "1day",
+            "v1-1": "1hr",
+        }
+
+        preproc_config_str = config_str.apply(
+            lambda x: ERA5_FREQUENCY_TRANSLATIONS.get(x, x)
+        )
+
+        return preproc_config_str.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
 
 
 @dataclass
