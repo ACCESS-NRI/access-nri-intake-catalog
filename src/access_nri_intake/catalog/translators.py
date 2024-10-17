@@ -340,6 +340,26 @@ class BarpaTranslator(DefaultTranslator):
         return _to_tuple(self.source.df["variable_id"])
 
 
+class Mom6Translator(DefaultTranslator):
+    """
+    MOM6 Translator for translating metadata from the NCI MOM6 intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise a MOM6
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI MOM6 intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+        super().__init__(source, columns)
+        self._dispatch["model"] = ("MOM6",)
+
+
 def _cmip_realm_translator(series):
     """
     Return realm from CMIP realm metadata, fixing some issues. This function returns
