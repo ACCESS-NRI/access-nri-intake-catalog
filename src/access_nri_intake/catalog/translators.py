@@ -363,7 +363,11 @@ class Mom6Translator(DefaultTranslator):
         """
         Return model (hard-coded)
         """
-        return ("MOM6",)
+        return pd.Series(
+            [
+                "MOM6",
+            ]
+        )
 
 
 def _cmip_realm_translator(series):
