@@ -556,8 +556,7 @@ def test_parse_access_filename(builder, filename, expected):
                 variable_cell_methods=["time: mean"],
                 variable_units=["K"],
             ),
-        ),
-        (
+        )(
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
             _AccessNCFileInfo(
@@ -680,8 +679,7 @@ def test_parse_access_filename(builder, filename, expected):
                 variable_cell_methods=["time: mean"],
                 variable_units=["K"],
             ),
-        ),
-        (
+        )(
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ice/iceh.1850-01.nc",
             _AccessNCFileInfo(

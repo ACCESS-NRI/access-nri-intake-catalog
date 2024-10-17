@@ -286,14 +286,14 @@ class BaseBuilder(Builder):
 
         Parameters
         ----------
-        file: str
+        fname: str
             The path to the netcdf file
         time_dim: str
             The name of the time dimension
 
         Returns
         -------
-        output_nc_info: AccessNCFileInfo
+        output_nc_info: _AccessNCFileInfo
             A dataclass containing the information parsed from the file
 
         Raises
@@ -532,9 +532,11 @@ class AccessEsm15Builder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             # Remove exp_id from file id so that members can be part of the same dataset
-            ncinfo_dict["file_id"] = re.sub(exp_id, "", ncinfo_dict["file_id"]).strip(
-                "_"
-            )
+            ncinfo_dict["file_id"] = re.sub(
+                exp_id,
+                "",
+                ncinfo_dict["file_id"],
+            ).strip("_")
             ncinfo_dict["realm"] = realm_mapping[realm]
             ncinfo_dict["member"] = exp_id
 
