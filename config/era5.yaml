@@ -1,0 +1,9 @@
+builder: null
+
+translator: Era5Translator
+
+sources:
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/era5_rt52/metadata.yaml
+    path:
+      - /g/data/rt52/catalog/v2/esm/catalog.json
