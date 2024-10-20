@@ -1,22 +1,28 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Builders for generating Intake-ESM datastores """
+"""Builders for generating Intake-ESM datastores"""
 
 import multiprocessing
 import re
 import traceback
 from pathlib import Path
+from typing import Optional, Union
 
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import EmptyFileError, get_timeinfo
+from .utils import (
+    EmptyFileError,
+    _AccessNCFileInfo,
+    _VarInfo,
+    get_timeinfo,
+)
 
 # Frequency translations
-FREQUENCIES = {
+FREQUENCIES: dict[str, tuple[int, str]] = {
     "daily": (1, "day"),
     "_dai$": (1, "day"),
     "month": (1, "mon"),
@@ -51,19 +57,19 @@ class BaseBuilder(Builder):
     """
 
     # Base class carries an empty set
-    PATTERNS = []
+    PATTERNS: list = []
 
     def __init__(
         self,
-        path,
-        depth=0,
-        exclude_patterns=None,
-        include_patterns=None,
-        data_format="netcdf",
-        groupby_attrs=None,
-        aggregations=None,
-        storage_options=None,
-        joblib_parallel_kwargs={"n_jobs": multiprocessing.cpu_count()},
+        path: Union[str, list[str]],
+        depth: int = 0,
+        exclude_patterns: Optional[list[str]] = None,
+        include_patterns: Optional[list[str]] = None,
+        data_format: str = "netcdf",
+        groupby_attrs: Optional[list[str]] = None,
+        aggregations: Optional[list[dict]] = None,
+        storage_options: Optional[dict] = None,
+        joblib_parallel_kwargs: dict = {"n_jobs": multiprocessing.cpu_count()},
     ):
         """
         This method should be overwritten. The expection is that some of these arguments
@@ -117,7 +123,7 @@ class BaseBuilder(Builder):
         self._parse()
         return self
 
-    def _save(self, name, description, directory):
+    def _save(self, name: str, description: str, directory: Optional[str]):
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -132,7 +138,9 @@ class BaseBuilder(Builder):
             to_csv_kwargs={"compression": "gzip"},
         )
 
-    def save(self, name, description, directory=None):
+    def save(
+        self, name: str, description: str, directory: Optional[str] = None
+    ) -> None:
         """
         Save datastore contents to a file.
 
@@ -222,8 +230,12 @@ class BaseBuilder(Builder):
 
     @classmethod
     def parse_access_filename(
-        cls, filename, patterns=None, frequencies=FREQUENCIES, redaction_fill: str = "X"
-    ):
+        cls,
+        filename: str,
+        patterns: Optional[list[str]] = None,
+        frequencies: dict = FREQUENCIES,
+        redaction_fill: str = "X",
+    ) -> tuple[str, Optional[str], Optional[str]]:
         """
         Parse an ACCESS model filename and return a file id and any time information
 
@@ -231,16 +243,22 @@ class BaseBuilder(Builder):
         ----------
         filename: str
             The filename to parse with the extension removed
+        patterns: list of str, optional
+            A list of regex patterns to match against the filename. If None, use the class PATTERNS
+        frequencies: dict, optional
+            A dictionary of regex patterns to match against the filename to determine the frequency
+        redaction_fill: str, optional
+            The character to replace time information with. Defaults to "X"
 
         Returns
         -------
         file_id: str
             The file id constructed by redacting time information and replacing non-python characters
             with underscores
-        timestamp: str
-            A string of the redacted time information (e.g. "1990-01")
-        frequency: str
-            The frequency of the file if available in the filename
+        timestamp: str | None
+            A string of the redacted time information (e.g. "1990-01") if available, otherwise None
+        frequency: str | None
+            The frequency of the file if available in the filename, otherwise None
         """
         if patterns is None:
             patterns = cls.PATTERNS
@@ -274,26 +292,33 @@ class BaseBuilder(Builder):
         return file_id, timestamp, frequency
 
     @classmethod
-    def parse_access_ncfile(cls, file, time_dim="time"):
+    def parse_access_ncfile(
+        cls, file: str, time_dim: str = "time"
+    ) -> _AccessNCFileInfo:
         """
         Get Intake-ESM datastore entry info from an ACCESS netcdf file
 
         Parameters
         ----------
-        file: str
+        fname: str
             The path to the netcdf file
         time_dim: str
             The name of the time dimension
 
         Returns
         -------
+        output_nc_info: _AccessNCFileInfo
+            A dataclass containing the information parsed from the file
+
+        Raises
+        ------
+        EmptyFileError: If the file contains no variables
         """
 
-        file = Path(file)
-        filename = file.name
+        file_path = Path(file)
 
         file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
-            file.stem
+            file_path.stem
         )
 
         with xr.open_dataset(
@@ -303,51 +328,31 @@ class BaseBuilder(Builder):
             decode_times=False,
             decode_coords=False,
         ) as ds:
-            variable_list = []
-            variable_long_name_list = []
-            variable_standard_name_list = []
-            variable_cell_methods_list = []
-            variable_units_list = []
+            dvars = _VarInfo()
+
             for var in ds.data_vars:
                 attrs = ds[var].attrs
-                if "long_name" in attrs:
-                    variable_list.append(var)
-                    variable_long_name_list.append(attrs["long_name"])
-                    if "standard_name" in attrs:
-                        variable_standard_name_list.append(attrs["standard_name"])
-                    else:
-                        variable_standard_name_list.append("")
-                    if "cell_methods" in attrs:
-                        variable_cell_methods_list.append(attrs["cell_methods"])
-                    else:
-                        variable_cell_methods_list.append("")
-                    if "units" in attrs:
-                        variable_units_list.append(attrs["units"])
-                    else:
-                        variable_units_list.append("")
+                dvars.append_attrs(var, attrs)  # type: ignore
 
             start_date, end_date, frequency = get_timeinfo(
                 ds, filename_frequency, time_dim
             )
 
-        if not variable_list:
+        if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
 
-        outputs = (
-            filename,
-            file_id,
-            filename_timestamp,
-            frequency,
-            start_date,
-            end_date,
-            variable_list,
-            variable_long_name_list,
-            variable_standard_name_list,
-            variable_cell_methods_list,
-            variable_units_list,
+        output_ncfile = _AccessNCFileInfo(
+            filename=file_path.name,
+            path=file,
+            file_id=file_id,
+            filename_timestamp=filename_timestamp,
+            frequency=frequency,
+            start_date=start_date,
+            end_date=end_date,
+            **dvars.to_var_info_dict(),
         )
 
-        return outputs
+        return output_ncfile
 
 
 class AccessOm2Builder(BaseBuilder):
@@ -392,44 +397,21 @@ class AccessOm2Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file):
+    def parser(cls, file) -> dict:
         try:
-            match_groups = re.match(r".*/output\d+/([^/]*)/.*\.nc", file).groups()
-            realm = match_groups[0]
+            matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
+            if matches:
+                realm = matches.groups()[0]
 
             if realm == "ice":
                 realm = "seaIce"
 
-            (
-                filename,
-                file_id,
-                _,
-                frequency,
-                start_date,
-                end_date,
-                variable_list,
-                variable_long_name_list,
-                variable_standard_name_list,
-                variable_cell_methods_list,
-                variable_units_list,
-            ) = cls.parse_access_ncfile(file)
+            nc_info = cls.parse_access_ncfile(file)
+            ncinfo_dict = nc_info.to_dict()
 
-            info = {
-                "path": str(file),
-                "realm": realm,
-                "variable": variable_list,
-                "frequency": frequency,
-                "start_date": start_date,
-                "end_date": end_date,
-                "variable_long_name": variable_long_name_list,
-                "variable_standard_name": variable_standard_name_list,
-                "variable_cell_methods": variable_cell_methods_list,
-                "variable_units": variable_units_list,
-                "filename": filename,
-                "file_id": file_id,
-            }
+            ncinfo_dict["realm"] = realm
 
-            return info
+            return ncinfo_dict
 
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
@@ -480,47 +462,22 @@ class AccessOm3Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file):
+    def parser(cls, file) -> dict:
         try:
-            (
-                filename,
-                file_id,
-                _,
-                frequency,
-                start_date,
-                end_date,
-                variable_list,
-                variable_long_name_list,
-                variable_standard_name_list,
-                variable_cell_methods_list,
-                variable_units_list,
-            ) = cls.parse_access_ncfile(file)
+            output_nc_info = cls.parse_access_ncfile(file)
+            ncinfo_dict = output_nc_info.to_dict()
 
-            if "mom6" in filename:
+            if "mom6" in ncinfo_dict["filename"]:
                 realm = "ocean"
-            elif "ww3" in filename:
+            elif "ww3" in ncinfo_dict["filename"]:
                 realm = "wave"
-            elif "cice" in filename:
+            elif "cice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
+            ncinfo_dict["realm"] = realm
 
-            info = {
-                "path": str(file),
-                "realm": realm,
-                "variable": variable_list,
-                "frequency": frequency,
-                "start_date": start_date,
-                "end_date": end_date,
-                "variable_long_name": variable_long_name_list,
-                "variable_standard_name": variable_standard_name_list,
-                "variable_cell_methods": variable_cell_methods_list,
-                "variable_units": variable_units_list,
-                "filename": filename,
-                "file_id": file_id,
-            }
-
-            return info
+            return ncinfo_dict
 
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
@@ -681,42 +638,20 @@ class AccessEsm15Builder(BaseBuilder):
             realm = match_groups[1]
 
             realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
-            realm = realm_mapping[realm]
 
-            (
-                filename,
-                file_id,
-                _,
-                frequency,
-                start_date,
-                end_date,
-                variable_list,
-                variable_long_name_list,
-                variable_standard_name_list,
-                variable_cell_methods_list,
-                variable_units_list,
-            ) = cls.parse_access_ncfile(file)
+            nc_info = cls.parse_access_ncfile(file)
+            ncinfo_dict = nc_info.to_dict()
 
             # Remove exp_id from file id so that members can be part of the same dataset
-            file_id = re.sub(exp_id, "", file_id).strip("_")
+            ncinfo_dict["file_id"] = re.sub(
+                exp_id,
+                "",
+                ncinfo_dict["file_id"],
+            ).strip("_")
+            ncinfo_dict["realm"] = realm_mapping[realm]
+            ncinfo_dict["member"] = exp_id
 
-            info = {
-                "path": str(file),
-                "realm": realm,
-                "variable": variable_list,
-                "frequency": frequency,
-                "start_date": start_date,
-                "end_date": end_date,
-                "member": exp_id,
-                "variable_long_name": variable_long_name_list,
-                "variable_standard_name": variable_standard_name_list,
-                "variable_cell_methods": variable_cell_methods_list,
-                "variable_units": variable_units_list,
-                "filename": filename,
-                "file_id": file_id,
-            }
-
-            return info
+            return ncinfo_dict
 
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
