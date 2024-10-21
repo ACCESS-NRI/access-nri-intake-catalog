@@ -536,45 +536,20 @@ class Mom6Builder(BaseBuilder):
     @classmethod
     def parser(cls, file):
         try:
-            (
-                filename,
-                file_id,
-                _,
-                frequency,
-                start_date,
-                end_date,
-                variable_list,
-                variable_long_name_list,
-                variable_standard_name_list,
-                variable_cell_methods_list,
-                variable_units_list,
-            ) = cls.parse_access_ncfile(file)
+            output_nc_info = cls.parse_access_ncfile(file)
+            ncinfo_dict = output_nc_info.to_dict()
 
-            if "ocean" in filename:
+            if "ocean" in ncinfo_dict["filename"]:
                 realm = "ocean"
-            # elif "ww3" in filename:
+            # elif "ww3" in ncinfo_dict["filename"]:
             #     realm = "wave"
-            elif "ice" in filename:
+            elif "ice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
+            ncinfo_dict["realm"] = realm
 
-            info = {
-                "path": str(file),
-                "realm": realm,
-                "variable": variable_list,
-                "frequency": frequency,
-                "start_date": start_date,
-                "end_date": end_date,
-                "variable_long_name": variable_long_name_list,
-                "variable_standard_name": variable_standard_name_list,
-                "variable_cell_methods": variable_cell_methods_list,
-                "variable_units": variable_units_list,
-                "filename": filename,
-                "file_id": file_id,
-            }
-
-            return info
+            return ncinfo_dict
 
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
