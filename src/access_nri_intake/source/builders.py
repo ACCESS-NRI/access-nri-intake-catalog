@@ -497,7 +497,7 @@ class Mom6Builder(BaseBuilder):
 
     def __init__(self, path):
         """
-        Initialise a AccessOm4Builder
+        Initialise a Mom6Builder
 
         Parameters
         ----------
