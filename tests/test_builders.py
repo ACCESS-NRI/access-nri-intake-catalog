@@ -1179,14 +1179,15 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ice_daily.nc",
-            (
-                "19000101.ice_daily.nc",
-                "XXXXXXXX_ice_daily",
-                "19000101",
-                "subhr",
-                "1900-01-01, 00:00:00",
-                "1900-01-01, 00:00:00",
-                [
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ice_daily.nc",
+                file_id="XXXXXXXX_ice_daily",
+                filename_timestamp="19000101",
+                frequency="subhr",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-01-01, 00:00:00",
+                variable=[
                     "siconc",
                     "sithick",
                     "average_T1",
@@ -1194,7 +1195,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "average_DT",
                     "time_bnds",
                 ],
-                [
+                variable_long_name=[
                     "ice concentration",
                     "ice thickness",
                     "Start time for average period",
@@ -1202,9 +1203,9 @@ def test_parse_access_filename(builder, filename, expected):
                     "Length of average period",
                     "time axis boundaries",
                 ],
-                ["", "", "", "", "", ""],
-                ["time: mean", "time: mean", "", "", "", ""],
-                [
+                variable_standard_name=["", "", "", "", "", ""],
+                variable_cell_methods=["time: mean", "time: mean", "", "", "", ""],
+                variable_units=[
                     "0-1",
                     "m-ice",
                     "days since 1900-01-01 00:00:00",
@@ -1217,14 +1218,15 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ocean_annual_z.nc",
-            (
-                "19000101.ocean_annual_z.nc",
-                "XXXXXXXX_ocean_annual_z",
-                "19000101",
-                "subhr",
-                "1900-01-01, 00:00:00",
-                "1900-01-01, 00:00:00",
-                [
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ocean_annual_z.nc",
+                file_id="XXXXXXXX_ocean_annual_z",
+                filename_timestamp="19000101",
+                frequency="subhr",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-01-01, 00:00:00",
+                variable=[
                     "volcello",
                     "thetao",
                     "thetao_xyave",
@@ -1246,7 +1248,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "average_DT",
                     "time_bnds",
                 ],
-                [
+                variable_long_name=[
                     "Ocean grid-cell volume",
                     "Sea Water Potential Temperature",
                     "Sea Water Potential Temperature",
@@ -1268,7 +1270,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "Length of average period",
                     "time axis boundaries",
                 ],
-                [
+                variable_standard_name=[
                     "ocean_volume",
                     "sea_water_potential_temperature",
                     "sea_water_potential_temperature",
@@ -1290,7 +1292,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_cell_methods=[
                     "area:sum z_l:sum yh:sum xh:sum time: mean",
                     "area:mean z_l:mean yh:mean xh:mean time: mean",
                     "z_l:mean time: mean",
@@ -1312,7 +1314,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_units=[
                     "m3",
                     "degC",
                     "degC",
@@ -1339,14 +1341,15 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ocean_month_rho2.nc",
-            (
-                "19000101.ocean_month_rho2.nc",
-                "XXXXXXXX_ocean_month_rho2",
-                "19000101",
-                "subhr",
-                "1900-01-01, 00:00:00",
-                "1900-01-01, 00:00:00",
-                [
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ocean_month_rho2.nc",
+                file_id="XXXXXXXX_ocean_month_rho2",
+                filename_timestamp="19000101",
+                frequency="subhr",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-01-01, 00:00:00",
+                variable=[
                     "volcello",
                     "thkcello",
                     "vmo",
@@ -1355,7 +1358,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "average_DT",
                     "time_bnds",
                 ],
-                [
+                variable_long_name=[
                     "Ocean grid-cell volume",
                     "Cell Thickness",
                     "Ocean Mass Y Transport",
@@ -1364,7 +1367,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "Length of average period",
                     "time axis boundaries",
                 ],
-                [
+                variable_standard_name=[
                     "ocean_volume",
                     "cell_thickness",
                     "ocean_mass_y_transport",
@@ -1373,7 +1376,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_cell_methods=[
                     "area:sum rho2_l:sum yh:sum xh:sum time: mean",
                     "area:mean rho2_l:sum yh:mean xh:mean time: mean",
                     "rho2_l:sum yq:point xh:sum time: mean",
@@ -1382,7 +1385,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_units=[
                     "m3",
                     "m",
                     "kg s-1",
@@ -1396,14 +1399,15 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ocean_scalar_annual.nc",
-            (
-                "19000101.ocean_scalar_annual.nc",
-                "XXXXXXXX_ocean_scalar_annual",
-                "19000101",
-                "subhr",
-                "1900-01-01, 00:00:00",
-                "1900-01-01, 00:00:00",
-                [
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ocean_scalar_annual.nc",
+                file_id="XXXXXXXX_ocean_scalar_annual",
+                filename_timestamp="19000101",
+                frequency="subhr",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-01-01, 00:00:00",
+                variable=[
                     "masso",
                     "volo",
                     "thetaoga",
@@ -1414,7 +1418,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "average_DT",
                     "time_bnds",
                 ],
-                [
+                variable_long_name=[
                     "Mass of liquid ocean",
                     "Total volume of liquid ocean",
                     "Global Mean Ocean Potential Temperature",
@@ -1425,7 +1429,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "Length of average period",
                     "time axis boundaries",
                 ],
-                [
+                variable_standard_name=[
                     "sea_water_mass",
                     "sea_water_volume",
                     "sea_water_potential_temperature",
@@ -1436,7 +1440,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_cell_methods=[
                     "time: mean",
                     "time: mean",
                     "time: mean",
@@ -1447,7 +1451,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_units=[
                     "kg",
                     "m3",
                     "degC",
@@ -1463,14 +1467,15 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ocean_static.nc",
-            (
-                "19000101.ocean_static.nc",
-                "XXXXXXXX_ocean_static",
-                "19000101",
-                "fx",
-                "1900-01-01, 00:00:00",
-                "1900-01-01, 00:00:00",
-                [
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ocean_static.nc",
+                file_id="XXXXXXXX_ocean_static",
+                filename_timestamp="19000101",
+                frequency="fx",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-01-01, 00:00:00",
+                variable=[
                     "areacello",
                     "deptho",
                     "hfgeou",
@@ -1498,7 +1503,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "areacello_cv",
                     "areacello_bu",
                 ],
-                [
+                variable_long_name=[
                     "Ocean Grid-Cell Area",
                     "Sea Floor Depth",
                     "Upward geothermal heat flux at sea floor",
@@ -1526,7 +1531,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "Ocean Grid-Cell Area",
                     "Ocean Grid-Cell Area",
                 ],
-                [
+                variable_standard_name=[
                     "cell_area",
                     "sea_floor_depth_below_geoid",
                     "upward_geothermal_heat_flux_at_sea_floor",
@@ -1554,7 +1559,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "cell_area",
                     "cell_area",
                 ],
-                [
+                variable_cell_methods=[
                     "area:sum yh:sum xh:sum time: point",
                     "area:mean yh:mean xh:mean time: point",
                     "area:mean yh:mean xh:mean time: point",
@@ -1582,7 +1587,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "area:sum yq:sum xh:sum time: point",
                     "area:sum yq:sum xq:sum time: point",
                 ],
-                [
+                variable_units=[
                     "m2",
                     "m",
                     "W m-2",
@@ -1615,14 +1620,15 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output053/20051101.ocean_daily_2005_360.nc",
-            (
-                "20051101.ocean_daily_2005_360.nc",
-                "XXXXXXXX_ocean_daily_XXXX_XXX",
-                "20051101",
-                "subhr",
-                "1991-01-01, 00:00:00",
-                "1991-01-01, 00:00:00",
-                [
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="20051101.ocean_daily_2005_360.nc",
+                file_id="XXXXXXXX_ocean_daily_XXXX_XXX",
+                filename_timestamp="20051101",
+                frequency="subhr",
+                start_date="1991-01-01, 00:00:00",
+                end_date="1991-01-01, 00:00:00",
+                variable=[
                     "volcello",
                     "zos",
                     "mlotst",
@@ -1639,7 +1645,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "average_DT",
                     "time_bnds",
                 ],
-                [
+                variable_long_name=[
                     "Ocean grid-cell volume",
                     "Sea surface height above geoid",
                     "Ocean Mixed Layer Thickness Defined by Sigma T",
@@ -1656,7 +1662,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "Length of average period",
                     "time axis boundaries",
                 ],
-                [
+                variable_standard_name=[
                     "ocean_volume",
                     "sea_surface_height_above_geoid",
                     "ocean_mixed_layer_thickness_defined_by_sigma_t",
@@ -1673,7 +1679,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_cell_methods=[
                     "area:sum zl:sum yh:sum xh:sum time: mean",
                     "area:mean yh:mean xh:mean time: mean",
                     "area:mean yh:mean xh:mean time: mean",
@@ -1690,7 +1696,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_units=[
                     "m3",
                     "m",
                     "m",
@@ -1712,14 +1718,15 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output053/20051101.ocean_daily_rho2_2005_360.nc",
-            (
-                "20051101.ocean_daily_rho2_2005_360.nc",
-                "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
-                "20051101",
-                "subhr",
-                "1991-01-01, 00:00:00",
-                "1991-01-01, 00:00:00",
-                [
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="20051101.ocean_daily_rho2_2005_360.nc",
+                file_id="XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
+                filename_timestamp="20051101",
+                frequency="subhr",
+                start_date="1991-01-01, 00:00:00",
+                end_date="1991-01-01, 00:00:00",
+                variable=[
                     "volcello",
                     "umo",
                     "vmo",
@@ -1728,7 +1735,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "average_DT",
                     "time_bnds",
                 ],
-                [
+                variable_long_name=[
                     "Ocean grid-cell volume",
                     "Ocean Mass X Transport",
                     "Ocean Mass Y Transport",
@@ -1737,7 +1744,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "Length of average period",
                     "time axis boundaries",
                 ],
-                [
+                variable_standard_name=[
                     "ocean_volume",
                     "ocean_mass_x_transport",
                     "ocean_mass_y_transport",
@@ -1746,7 +1753,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_cell_methods=[
                     "area:sum rho2_l:sum yh:sum xh:sum time: mean",
                     "rho2_l:sum yh:sum xq:point time: mean",
                     "rho2_l:sum yq:point xh:sum time: mean",
@@ -1755,7 +1762,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_units=[
                     "m3",
                     "kg s-1",
                     "kg s-1",
@@ -1769,14 +1776,15 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output053/20051101.ocean_daily_z_2005_360.nc",
-            (
-                "20051101.ocean_daily_z_2005_360.nc",
-                "XXXXXXXX_ocean_daily_z_XXXX_XXX",
-                "20051101",
-                "subhr",
-                "1991-01-01, 00:00:00",
-                "1991-01-01, 00:00:00",
-                [
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="20051101.ocean_daily_z_2005_360.nc",
+                file_id="XXXXXXXX_ocean_daily_z_XXXX_XXX",
+                filename_timestamp="20051101",
+                frequency="subhr",
+                start_date="1991-01-01, 00:00:00",
+                end_date="1991-01-01, 00:00:00",
+                variable=[
                     "volcello",
                     "uo",
                     "vo",
@@ -1787,7 +1795,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "average_DT",
                     "time_bnds",
                 ],
-                [
+                variable_long_name=[
                     "Ocean grid-cell volume",
                     "Sea Water X Velocity",
                     "Sea Water Y Velocity",
@@ -1798,7 +1806,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "Length of average period",
                     "time axis boundaries",
                 ],
-                [
+                variable_standard_name=[
                     "ocean_volume",
                     "sea_water_x_velocity",
                     "sea_water_y_velocity",
@@ -1809,7 +1817,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_cell_methods=[
                     "area:sum z_l:sum yh:sum xh:sum time: mean",
                     "z_l:mean yh:mean xq:point time: mean",
                     "z_l:mean yq:point xh:mean time: mean",
@@ -1820,7 +1828,7 @@ def test_parse_access_filename(builder, filename, expected):
                     "",
                     "",
                 ],
-                [
+                variable_units=[
                     "m3",
                     "m s-1",
                     "m s-1",
