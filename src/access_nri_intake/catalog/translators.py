@@ -455,17 +455,17 @@ class Mom6Translator(DefaultTranslator):
         """
         super().__init__(source, columns)
 
-    #     self._dispatch["model"] = self._model_translator
+        self._dispatch["model"] = self._model_translator
 
-    # def _model_translator(self):
-    #     """
-    #     Return model (hard-coded)
-    #     """
-    #     return pd.Series(
-    #         [
-    #             "MOM6",
-    #         ]
-    #     )
+    def _model_translator(self):
+        """
+        Return model (hard-coded)
+        """
+        return pd.Series(
+            [
+                "MOM6",
+            ]
+        )
 
 
 def _cmip_realm_translator(series) -> pd.Series:
