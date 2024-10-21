@@ -6,6 +6,9 @@ from pathlib import Path
 import intake
 import pandas as pd
 import pytest
+import xarray as xr
+from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
+from intake_esm.utils import OPTIONS
 
 from access_nri_intake.source import CORE_COLUMNS, builders
 from access_nri_intake.source.utils import _AccessNCFileInfo
@@ -1095,3 +1098,778 @@ def test_parse_access_ncfile(test_data, builder, filename, expected):
     expected.path = file
 
     assert builder.parse_access_ncfile(file) == expected
+
+
+@pytest.mark.parametrize(
+    "builder, filename, expected",
+    [
+        (
+            builders.AccessOm2Builder,
+            "access-om2/output000/ocean/ocean_grid.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="ocean_grid.nc",
+                file_id="ocean_grid",
+                filename_timestamp=None,
+                frequency="fx",
+                start_date="none",
+                end_date="none",
+                variable=["geolat_t", "geolon_t", "xt_ocean", "yt_ocean"],
+                variable_long_name=[
+                    "tracer latitude",
+                    "tracer longitude",
+                    "tcell longitude",
+                    "tcell latitude",
+                ],
+                variable_standard_name=["", "", "", ""],
+                variable_cell_methods=["time: point", "time: point", "", ""],
+                variable_units=["degrees_N", "degrees_E", "degrees_E", "degrees_N"],
+            ),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "access-om2/output000/ocean/ocean.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="ocean.nc",
+                file_id="ocean",
+                filename_timestamp=None,
+                frequency="1yr",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1910-01-01, 00:00:00",
+                variable=[
+                    "nv",
+                    "st_ocean",
+                    "temp",
+                    "time",
+                    "time_bounds",
+                    "xt_ocean",
+                    "yt_ocean",
+                ],
+                variable_long_name=[
+                    "vertex number",
+                    "tcell zstar depth",
+                    "Conservative temperature",
+                    "time",
+                    "time axis boundaries",
+                    "tcell longitude",
+                    "tcell latitude",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "sea_water_conservative_temperature",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=["", "", "time: mean", "", "", "", ""],
+                variable_units=[
+                    "none",
+                    "meters",
+                    "K",
+                    "days since 1900-01-01 00:00:00",
+                    "days",
+                    "degrees_E",
+                    "degrees_N",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "access-om2/output000/ocean/ocean_month.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="ocean_month.nc",
+                file_id="ocean_month",
+                filename_timestamp=None,
+                frequency="1mon",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1910-01-01, 00:00:00",
+                variable=["mld", "nv", "time", "time_bounds", "xt_ocean", "yt_ocean"],
+                variable_long_name=[
+                    "mixed layer depth determined by density criteria",
+                    "vertex number",
+                    "time",
+                    "time axis boundaries",
+                    "tcell longitude",
+                    "tcell latitude",
+                ],
+                variable_standard_name=[
+                    "ocean_mixed_layer_thickness_defined_by_sigma_t",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=["time: mean", "", "", "", "", ""],
+                variable_units=[
+                    "m",
+                    "none",
+                    "days since 1900-01-01 00:00:00",
+                    "days",
+                    "degrees_E",
+                    "degrees_N",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "access-om2/output000/ocean/ocean_month_inst_nobounds.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="ocean_month_inst_nobounds.nc",
+                file_id="ocean_month_inst_nobounds",
+                filename_timestamp=None,
+                frequency="1mon",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-02-01, 00:00:00",
+                variable=["mld", "time", "xt_ocean", "yt_ocean"],
+                variable_long_name=[
+                    "mixed layer depth determined by density criteria",
+                    "time",
+                    "tcell longitude",
+                    "tcell latitude",
+                ],
+                variable_standard_name=[
+                    "ocean_mixed_layer_thickness_defined_by_sigma_t",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=["time: mean", "", "", ""],
+                variable_units=[
+                    "m",
+                    "days since 1900-01-01 00:00:00",
+                    "degrees_E",
+                    "degrees_N",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "access-om2/output000/ice/OUTPUT/iceh.1900-01.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="iceh.1900-01.nc",
+                file_id="iceh_XXXX_XX",
+                filename_timestamp="1900-01",
+                frequency="1mon",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-02-01, 00:00:00",
+                variable=["TLAT", "TLON", "aice_m", "tarea", "time", "time_bounds"],
+                variable_long_name=[
+                    "T grid center latitude",
+                    "T grid center longitude",
+                    "ice area  (aggregate)",
+                    "area of T grid cells",
+                    "model time",
+                    "boundaries for time-averaging interval",
+                ],
+                variable_standard_name=["", "", "", "", "", ""],
+                variable_cell_methods=["", "", "time: mean", "", "", ""],
+                variable_units=[
+                    "degrees_north",
+                    "degrees_east",
+                    "1",
+                    "m^2",
+                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01 00:00:00",
+                ],
+            ),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "access-cm2/by578/history/atm/netCDF/by578a.pd201501_dai.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="by578a.pd201501_dai.nc",
+                file_id="by578a_pdXXXXXX_dai",
+                filename_timestamp="201501",
+                frequency="1day",
+                start_date="2015-01-01, 00:00:00",
+                end_date="2015-02-01, 00:00:00",
+                variable=["fld_s03i236"],
+                variable_long_name=["TEMPERATURE AT 1.5M"],
+                variable_standard_name=["air_temperature"],
+                variable_cell_methods=["time: mean"],
+                variable_units=["K"],
+            ),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="iceh_d.2015-01.nc",
+                file_id="iceh_d_XXXX_XX",
+                filename_timestamp="2015-01",
+                frequency="1day",
+                start_date="2015-01-01, 00:00:00",
+                end_date="2015-02-01, 00:00:00",
+                variable=["TLAT", "TLON", "aice", "tarea", "time", "time_bounds"],
+                variable_long_name=[
+                    "T grid center latitude",
+                    "T grid center longitude",
+                    "ice area  (aggregate)",
+                    "area of T grid cells",
+                    "model time",
+                    "boundaries for time-averaging interval",
+                ],
+                variable_standard_name=["", "", "", "", "", ""],
+                variable_cell_methods=["", "", "time: mean", "", "", ""],
+                variable_units=[
+                    "degrees_north",
+                    "degrees_east",
+                    "1",
+                    "m^2",
+                    "days since 1850-01-01 00:00:00",
+                    "days since 1850-01-01 00:00:00",
+                ],
+            ),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "access-cm2/by578/history/ocn/ocean_daily.nc-20150630",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="ocean_daily.nc-20150630",
+                file_id="ocean_daily",
+                filename_timestamp=None,
+                frequency="1day",
+                start_date="2015-01-01, 00:00:00",
+                end_date="2015-07-01, 00:00:00",
+                variable=["nv", "sst", "time", "time_bounds", "xt_ocean", "yt_ocean"],
+                variable_long_name=[
+                    "vertex number",
+                    "Potential temperature",
+                    "time",
+                    "time axis boundaries",
+                    "tcell longitude",
+                    "tcell latitude",
+                ],
+                variable_standard_name=["", "sea_surface_temperature", "", "", "", ""],
+                variable_cell_methods=["", "time: mean", "", "", "", ""],
+                variable_units=[
+                    "none",
+                    "K",
+                    "days since 1850-01-01 00:00:00",
+                    "days",
+                    "degrees_E",
+                    "degrees_N",
+                ],
+            ),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "access-cm2/by578/history/ocn/ocean_scalar.nc-20150630",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="ocean_scalar.nc-20150630",
+                file_id="ocean_scalar",
+                filename_timestamp=None,
+                frequency="1mon",
+                start_date="2015-01-01, 00:00:00",
+                end_date="2015-07-01, 00:00:00",
+                variable=[
+                    "nv",
+                    "scalar_axis",
+                    "temp_global_ave",
+                    "time",
+                    "time_bounds",
+                ],
+                variable_long_name=[
+                    "vertex number",
+                    "none",
+                    "Global mean temp in liquid seawater",
+                    "time",
+                    "time axis boundaries",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "sea_water_potential_temperature",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=["", "", "time: mean", "", ""],
+                variable_units=[
+                    "none",
+                    "none",
+                    "deg_C",
+                    "days since 1850-01-01 00:00:00",
+                    "days",
+                ],
+            ),
+        ),
+        (
+            builders.AccessEsm15Builder,
+            "access-esm1-5/history/atm/netCDF/HI-C-05-r1.pa-185001_mon.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="HI-C-05-r1.pa-185001_mon.nc",
+                file_id="HI_C_05_r1_pa_XXXXXX_mon",
+                filename_timestamp="185001",
+                frequency="1mon",
+                start_date="1850-01-01, 00:00:00",
+                end_date="1850-02-01, 00:00:00",
+                variable=["fld_s03i236"],
+                variable_long_name=["TEMPERATURE AT 1.5M"],
+                variable_standard_name=["air_temperature"],
+                variable_cell_methods=["time: mean"],
+                variable_units=["K"],
+            ),
+        ),
+        (
+            builders.AccessEsm15Builder,
+            "access-esm1-5/history/ice/iceh.1850-01.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="iceh.1850-01.nc",
+                file_id="iceh_XXXX_XX",
+                filename_timestamp="1850-01",
+                frequency="1mon",
+                start_date="1850-01-01, 00:00:00",
+                end_date="1850-02-01, 00:00:00",
+                variable=["TLAT", "TLON", "aice", "tarea", "time", "time_bounds"],
+                variable_long_name=[
+                    "T grid center latitude",
+                    "T grid center longitude",
+                    "ice area  (aggregate)",
+                    "area of T grid cells",
+                    "model time",
+                    "boundaries for time-averaging interval",
+                ],
+                variable_standard_name=["", "", "", "", "", ""],
+                variable_cell_methods=["", "", "time: mean", "", "", ""],
+                variable_units=[
+                    "degrees_north",
+                    "degrees_east",
+                    "1",
+                    "m^2",
+                    "days since 0001-01-01 00:00:00",
+                    "days since 0001-01-01 00:00:00",
+                ],
+            ),
+        ),
+        (
+            builders.AccessEsm15Builder,
+            "access-esm1-5/history/ocn/ocean_bgc_ann.nc-18501231",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="ocean_bgc_ann.nc-18501231",
+                file_id="ocean_bgc_ann",
+                filename_timestamp=None,
+                frequency="1yr",
+                start_date="1849-12-30, 00:00:00",
+                end_date="1850-12-30, 00:00:00",
+                variable=[
+                    "fgco2_raw",
+                    "nv",
+                    "time",
+                    "time_bounds",
+                    "xt_ocean",
+                    "yt_ocean",
+                ],
+                variable_long_name=[
+                    "Flux into ocean - DIC, inc. anth.",
+                    "vertex number",
+                    "time",
+                    "time axis boundaries",
+                    "tcell longitude",
+                    "tcell latitude",
+                ],
+                variable_standard_name=["", "", "", "", "", ""],
+                variable_cell_methods=["time: mean", "", "", "", "", ""],
+                variable_units=[
+                    "mmol/m^2/s",
+                    "none",
+                    "days since 0001-01-01 00:00:00",
+                    "days",
+                    "degrees_E",
+                    "degrees_N",
+                ],
+            ),
+        ),
+        (
+            builders.AccessEsm15Builder,
+            "access-esm1-5/history/ocn/ocean_bgc.nc-18501231",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="ocean_bgc.nc-18501231",
+                file_id="ocean_bgc",
+                filename_timestamp=None,
+                frequency="1mon",
+                start_date="1849-12-30, 00:00:00",
+                end_date="1850-12-30, 00:00:00",
+                variable=[
+                    "nv",
+                    "o2",
+                    "st_ocean",
+                    "time",
+                    "time_bounds",
+                    "xt_ocean",
+                    "yt_ocean",
+                ],
+                variable_long_name=[
+                    "vertex number",
+                    "o2",
+                    "tcell zstar depth",
+                    "time",
+                    "time axis boundaries",
+                    "tcell longitude",
+                    "tcell latitude",
+                ],
+                variable_standard_name=["", "", "", "", "", "", ""],
+                variable_cell_methods=["", "time: mean", "", "", "", "", ""],
+                variable_units=[
+                    "none",
+                    "mmol/m^3",
+                    "meters",
+                    "days since 0001-01-01 00:00:00",
+                    "days",
+                    "degrees_E",
+                    "degrees_N",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3/output000/GMOM_JRA_WD.mom6.h.native_1900_01.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="GMOM_JRA_WD.mom6.h.native_1900_01.nc",
+                file_id="GMOM_JRA_WD_mom6_h_native_XXXX_XX",
+                filename_timestamp="1900_01",
+                frequency="1mon",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-02-01, 00:00:00",
+                variable=[
+                    "average_DT",
+                    "average_T1",
+                    "average_T2",
+                    "nv",
+                    "thetao",
+                    "time",
+                    "time_bnds",
+                    "xh",
+                    "yh",
+                    "zl",
+                ],
+                variable_long_name=[
+                    "Length of average period",
+                    "Start time for average period",
+                    "End time for average period",
+                    "vertex number",
+                    "Sea Water Potential Temperature",
+                    "time",
+                    "time axis boundaries",
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                    "Layer pseudo-depth, -z*",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "sea_water_potential_temperature",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:mean zl:mean yh:mean xh:mean time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "days",
+                    "days since 0001-01-01 00:00:00",
+                    "days since 0001-01-01 00:00:00",
+                    "",
+                    "degC",
+                    "days since 0001-01-01 00:00:00",
+                    "days since 0001-01-01 00:00:00",
+                    "degrees_east",
+                    "degrees_north",
+                    "meter",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3/output000/GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
+                file_id="GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
+                filename_timestamp="1900_01_02",
+                frequency="1day",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-01-02, 00:00:00",
+                variable=[
+                    "average_DT",
+                    "average_T1",
+                    "average_T2",
+                    "nv",
+                    "time",
+                    "time_bnds",
+                    "tos",
+                    "xh",
+                    "yh",
+                ],
+                variable_long_name=[
+                    "Length of average period",
+                    "Start time for average period",
+                    "End time for average period",
+                    "vertex number",
+                    "time",
+                    "time axis boundaries",
+                    "Sea Surface Temperature",
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "sea_surface_temperature",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:mean yh:mean xh:mean time: mean",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "days",
+                    "days since 0001-01-01 00:00:00",
+                    "days since 0001-01-01 00:00:00",
+                    "",
+                    "days since 0001-01-01 00:00:00",
+                    "days since 0001-01-01 00:00:00",
+                    "degC",
+                    "degrees_east",
+                    "degrees_north",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3/output000/GMOM_JRA_WD.mom6.h.static.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="GMOM_JRA_WD.mom6.h.static.nc",
+                file_id="GMOM_JRA_WD_mom6_h_static",
+                filename_timestamp=None,
+                frequency="fx",
+                start_date="none",
+                end_date="none",
+                variable=["geolat", "geolon", "xh", "yh"],
+                variable_long_name=[
+                    "Latitude of tracer (T) points",
+                    "Longitude of tracer (T) points",
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                ],
+                variable_standard_name=["", "", "", ""],
+                variable_cell_methods=["time: point", "time: point", "", ""],
+                variable_units=[
+                    "degrees_north",
+                    "degrees_east",
+                    "degrees_east",
+                    "degrees_north",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3/output000/GMOM_JRA_WD.mom6.h.z_1900_01.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="GMOM_JRA_WD.mom6.h.z_1900_01.nc",
+                file_id="GMOM_JRA_WD_mom6_h_z_XXXX_XX",
+                filename_timestamp="1900_01",
+                frequency="1mon",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-02-01, 00:00:00",
+                variable=[
+                    "average_DT",
+                    "average_T1",
+                    "average_T2",
+                    "nv",
+                    "thetao",
+                    "time",
+                    "time_bnds",
+                    "xh",
+                    "yh",
+                    "z_l",
+                ],
+                variable_long_name=[
+                    "Length of average period",
+                    "Start time for average period",
+                    "End time for average period",
+                    "vertex number",
+                    "Sea Water Potential Temperature",
+                    "time",
+                    "time axis boundaries",
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                    "Depth at cell center",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "sea_water_potential_temperature",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:mean z_l:mean yh:mean xh:mean time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "days",
+                    "days since 0001-01-01 00:00:00",
+                    "days since 0001-01-01 00:00:00",
+                    "",
+                    "degC",
+                    "days since 0001-01-01 00:00:00",
+                    "days since 0001-01-01 00:00:00",
+                    "degrees_east",
+                    "degrees_north",
+                    "meters",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="GMOM_JRA_WD.cice.h.1900-01-01.nc",
+                file_id="GMOM_JRA_WD_cice_h_XXXX_XX_XX",
+                filename_timestamp="1900-01-01",
+                frequency="1day",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-01-02, 00:00:00",
+                variable=["TLAT", "TLON", "aice", "tarea", "time", "time_bounds"],
+                variable_long_name=[
+                    "T grid center latitude",
+                    "T grid center longitude",
+                    "ice area  (aggregate)",
+                    "area of T grid cells",
+                    "time",
+                    "time interval endpoints",
+                ],
+                variable_standard_name=["", "", "", "", "", ""],
+                variable_cell_methods=["", "", "time: mean", "", "", ""],
+                variable_units=[
+                    "degrees_north",
+                    "degrees_east",
+                    "1",
+                    "m^2",
+                    "days since 0000-01-01 00:00:00",
+                    "days since 0000-01-01 00:00:00",
+                ],
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3/output000/GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
+            _AccessNCFileInfo(
+                path=None,  # type: ignore
+                filename="GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
+                file_id="GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                filename_timestamp="1900-01-02-00000",
+                frequency="fx",  # WW3 provides no time bounds
+                start_date="1900-01-02, 00:00:00",
+                end_date="1900-01-02, 00:00:00",
+                variable=["EF", "mapsta"],
+                variable_long_name=["1D spectral density", "map status"],
+                variable_standard_name=["", ""],
+                variable_cell_methods=["", ""],
+                variable_units=["m2 s", "unitless"],
+            ),
+        ),
+    ],
+)
+def test_parsed_ncfile_values(test_data, builder, filename, expected):
+    # In this test, we will refer to the intake-esm dataset as ie_ds and the
+    # dataset loaded directly with xarray as xr_ds.
+    file = str(test_data / Path(filename))
+
+    # Set the path to the test data directory
+    expected.path = file
+
+    # First we need to ensure that our builer is grabbing the right info - this
+    # is just a reproduction of `test_parse_access_ncfile`, but if we aren't
+    # parsing that correctly, then we can't really compare the datasets
+    assert builder.parse_access_ncfile(file) == expected
+    xarray_open_kwargs = _get_xarray_open_kwargs("netcdf")
+
+    ie_ds = _open_dataset(
+        urlpath=expected.path,
+        varname=expected.variable,
+        xarray_open_kwargs=xarray_open_kwargs,
+        requested_variables=expected.variable,
+    ).compute()
+    ie_ds.set_coords(set(ie_ds.variables) - set(ie_ds.attrs[OPTIONS["vars_key"]]))
+
+    """
+    We need to perform some additional logic that intake-esm does or we are
+    going to get all sorts of random errors
+    """
+    breakpoint()
+    xr_ds = xr.open_dataset(file, **xarray_open_kwargs)
+
+    scalar_variables = [v for v in xr_ds.data_vars if len(xr_ds[v].dims) == 0]
+    xr_ds = xr_ds.set_coords(scalar_variables)
+
+    xr_ds = xr_ds[expected.variable]
+
+    xr.testing.assert_equal(ie_ds, xr_ds)
+    """
+    ^ We expect this to fail in test case 0, but only if we aren't searching for
+    coordinate variables. This is going to be difficult to detect & test.
+
+    Note: case zero is a grid file $PROJ_ROOT/tests/data/access-om2/output000/ocean/ocean_grid.nc,
+    which is why it fails if we don't turn on coordinate/static variable search. 
+    All of the other files aer fine, as far as I can tell.
+
+    """

@@ -25,6 +25,14 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-watcher",
+    "pytest-cov",
+    "pytest-sugar",
+] 
+
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"
 metadata-validate = "access_nri_intake.cli:metadata_validate"
