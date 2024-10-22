@@ -1,0 +1,9 @@
+builder: null
+
+translator: CordexTranslator
+
+sources:
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/cordex_ig45/metadata.yaml
+    path:
+      - /g/data/ig45/catalog/v2/esm/catalog.json
