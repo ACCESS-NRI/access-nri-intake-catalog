@@ -1104,10 +1104,8 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
     # Set the path to the test data directory
     expected.path = file
 
-    # First we need to ensure that our builer is grabbing the right info - this
-    # is just a reproduction of `test_parse_access_ncfile`, but if we aren't
-    # parsing that correctly, then we can't really compare the datasets
     assert builder.parse_access_ncfile(file) == expected
+
     if not compare_files:
         return None
 

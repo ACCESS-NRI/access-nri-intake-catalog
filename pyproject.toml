@@ -31,6 +31,7 @@ test = [
     "pytest-watcher",
     "pytest-cov",
     "pytest-sugar",
+    "tox",
 ] 
 
 [project.scripts]
@@ -66,13 +67,10 @@ versionfile_build = "access_nri_intake/_version.py"
 tag_prefix = "v"
 parentdir_prefix = "access-nri-intake-"
 
-[tool.pytest.ini_options]
-addopts = "--cov=./src --cov-report=xml"
-
 [tool.coverage.run]
 omit = [
-    "src/access_nri_intake/_version.py",
-    "src/access_nri_intake/data/__init__.py",
+    "*/_version.py",
+    "*/data/__init__.py",
 ]
 
 [tool.ruff]
