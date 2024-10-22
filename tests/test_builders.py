@@ -1855,7 +1855,6 @@ def test_parsed_ncfile_values(test_data, builder, filename, expected):
     We need to perform some additional logic that intake-esm does or we are
     going to get all sorts of random errors
     """
-    breakpoint()
     xr_ds = xr.open_dataset(file, **xarray_open_kwargs)
 
     scalar_variables = [v for v in xr_ds.data_vars if len(xr_ds[v].dims) == 0]
