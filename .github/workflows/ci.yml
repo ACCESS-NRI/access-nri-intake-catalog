@@ -40,7 +40,11 @@ jobs:
 
       - name: Run tests
         shell: bash -l {0}
-        run: python -m pytest -s .
+        run: coverage run -m --source=access_nri_intake pytest
+      
+      - name: Generate coverage report
+        shell: bash -l {0}
+        run: coverage xml
 
       - name: Upload code coverage
         uses: codecov/codecov-action@v4
