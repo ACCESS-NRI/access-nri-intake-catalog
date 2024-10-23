@@ -14,6 +14,7 @@ from access_nri_intake.cli import (
     MetadataCheckError,
     _check_build_args,
     build,
+    metadata_template,
     metadata_validate,
 )
 
@@ -163,3 +164,7 @@ def test_metadata_validate_no_file(mockargs):
     with pytest.raises(FileNotFoundError) as excinfo:
         metadata_validate()
     assert "No such file(s)" in str(excinfo.value)
+
+
+def test_metadata_template():
+    metadata_template()
