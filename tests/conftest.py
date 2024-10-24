@@ -8,7 +8,7 @@ from pytest import fixture
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-_add_xfail = int(os.environ.get("XFAILS", ""))
+_add_xfail = int(os.environ.get("XFAILS", 0))
 
 
 @fixture(scope="session")
