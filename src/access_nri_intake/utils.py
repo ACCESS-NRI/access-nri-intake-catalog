@@ -102,12 +102,18 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
         Validator, type_checker=type_checker
     )
 
-    issues = TupleAllowingValidator(schema).iter_errors(instance)
+    issues = list(TupleAllowingValidator(schema).iter_errors(instance))
 
-    if len(list(issues)) > 0:
+    if len(issues) > 0:
         issue_str = ""
-        for issue in issues:
-            issue_str += f"{ issue.message }\n"
+        for i, issue in enumerate(issues):
+            try:
+                issue_str += (
+                    f"\n{i+1:02d} | {issue.absolute_path[0]} : { issue.message };"
+                )
+            except IndexError:  # Must be a missing keyword, not a bad type/value
+                issue_str += f"\n{i+1:02d} | missing : { issue.message };"
+        # raise jsonschema.ValidationError(textwrap.fill(textwrap.dedent(issue_str)))
         raise jsonschema.ValidationError(issue_str)
 
     return

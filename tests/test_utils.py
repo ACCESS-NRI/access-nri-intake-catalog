@@ -2,10 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import datetime
+from pathlib import Path
 
+import jsonschema
 import pytest
 import yaml
 
+from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.utils import (
     get_jsonschema,
     load_metadata_yaml,
@@ -68,3 +71,21 @@ def test_validate_against_schema(instance):
         },
     }
     validate_against_schema(instance, schema)
+
+
+@pytest.mark.parametrize(
+    "instance,no_errs",
+    [
+        ("bad_metadata/metadata-missing-name.yaml", 1),
+        ("bad_metadata/metadata-missing-name-missing-uuid.yaml", 2),
+    ],
+)
+def test_bad_metadata_validation_raises(test_data, instance, no_errs):
+    fpath = str(test_data / Path(instance))
+
+    try:
+        _ = load_metadata_yaml(fpath, EXP_JSONSCHEMA)
+    except jsonschema.ValidationError as e:
+        assert f"{no_errs:02d}" in e.message, "Can't see the right number of errors!"
+    except Exception:
+        assert False, "load_metadata_yaml didn't raise jsonschema.ValidationError"
