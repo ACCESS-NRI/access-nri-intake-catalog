@@ -102,7 +102,18 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
         Validator, type_checker=type_checker
     )
 
-    TupleAllowingValidator(schema).validate(instance)
+    issues = list(TupleAllowingValidator(schema).iter_errors(instance))
+
+    if len(issues) > 0:
+        issue_str = ""
+        for i, issue in enumerate(issues, start=1):
+            try:
+                issue_str += f"\n{i:02d} | {issue.absolute_path[0]} : { issue.message }"
+            except IndexError:  # Must be a missing keyword, not a bad type/value
+                issue_str += f"\n{i:02d} | (missing) : { issue.message }"
+        raise jsonschema.ValidationError(issue_str)
+
+    return
 
 
 def _can_be_array(field):
