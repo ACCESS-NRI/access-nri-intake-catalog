@@ -111,7 +111,6 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
                 issue_str += f"\n{i:02d} | {issue.absolute_path[0]} : { issue.message }"
             except IndexError:  # Must be a missing keyword, not a bad type/value
                 issue_str += f"\n{i:02d} | (missing) : { issue.message }"
-        # raise jsonschema.ValidationError(textwrap.fill(textwrap.dedent(issue_str)))
         raise jsonschema.ValidationError(issue_str)
 
     return
