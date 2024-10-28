@@ -239,7 +239,7 @@ def metadata_validate():
             print(f"Validating {f}... ")
             try:
                 load_metadata_yaml(f, EXP_JSONSCHEMA)
-                print("Success!")
+                print("\nSuccess!")
             except jsonschema.ValidationError as e:  # Don't print the stacktrace
                 print("\nVALIDATION FAILED:")
                 print(e.message)
