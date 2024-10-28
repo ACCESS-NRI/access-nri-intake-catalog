@@ -247,7 +247,7 @@ def metadata_validate():
                 print(
                     "The script has failed, but it doesn't appear to be a validation error. See the stack trace below."
                 )
-                raise (e)
+                raise e
         else:
             raise FileNotFoundError(f"No such file(s): {f}")
 
