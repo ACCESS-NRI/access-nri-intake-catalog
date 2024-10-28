@@ -1,0 +1,13 @@
+created: '2024-02-27'
+model: ACCESS-OM3
+description: An early ACCESS-OM3 test run
+long_description: An early ACCESS-OM3 test run
+url: git@github.com:COSIMA/MOM6-CICE6-WW3.git
+contact: dougiesquire
+email: dougiesquire@gmail.com
+name:
+- "cant"
+- "be"
+- "a"
+- "list"
+experiment_uuid: 4cf0c4ee-09c9-4675-ae1f-ce46f0d848ed

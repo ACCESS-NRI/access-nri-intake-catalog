@@ -74,18 +74,52 @@ def test_validate_against_schema(instance):
 
 
 @pytest.mark.parametrize(
-    "instance,no_errs",
+    "instance,no_errs,bad_kw",
     [
-        ("bad_metadata/metadata-missing-name.yaml", 1),
-        ("bad_metadata/metadata-missing-name-missing-uuid.yaml", 2),
+        ("bad_metadata/metadata-missing-name.yaml", 1, []),
+        ("bad_metadata/metadata-missing-name-missing-uuid.yaml", 2, []),
+        (
+            "bad_metadata/metadata-bad-name-missing-uuid.yaml",
+            2,
+            [
+                "name",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-name.yaml",
+            1,
+            [
+                "name",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-name2.yaml",
+            1,
+            [
+                "name",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-name2-missing-uuid.yaml",
+            2,
+            [
+                "name",
+            ],
+        ),
     ],
 )
-def test_bad_metadata_validation_raises(test_data, instance, no_errs):
+def test_bad_metadata_validation_raises(test_data, instance, no_errs, bad_kw):
     fpath = str(test_data / Path(instance))
 
     try:
         _ = load_metadata_yaml(fpath, EXP_JSONSCHEMA)
     except jsonschema.ValidationError as e:
-        assert f"{no_errs:02d}" in e.message, "Can't see the right number of errors!"
-    except Exception:
-        assert False, "load_metadata_yaml didn't raise jsonschema.ValidationError"
+        assert (
+            f"{no_errs:02d}" in e.message and f"{no_errs+1:02d}" not in e.message
+        ), "Can't see the right number of errors!"
+        for kw in bad_kw:
+            assert f"| {kw}" in e.message, f"Can't see expected specific error for {kw}"
+    except Exception as e:
+        assert (
+            False
+        ), f"load_metadata_yaml didn't raise jsonschema.ValidationError: {str(e)}"
