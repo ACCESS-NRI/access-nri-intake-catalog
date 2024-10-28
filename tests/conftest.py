@@ -12,7 +12,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 def _get_xfail():
     """
-    Get the XFAILS environment variable. We're going to to use a default of 1
+    Get the XFAILS environment variable. We use a default of 1, indicating we expect
+    to add xfail marker to `test_parse_access_ncfile[AccessOm2Builder-access-om2/output000/ocean/ocean_grid.nc-expected0-True]`
+    unless specified.
     """
     xfails_default = 1
 
