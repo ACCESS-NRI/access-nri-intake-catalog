@@ -236,9 +236,18 @@ def metadata_validate():
 
     for f in files:
         if os.path.isfile(f):
-            print(f"Validating {f}... ", end="")
-            load_metadata_yaml(f, EXP_JSONSCHEMA)
-            print("success")
+            print(f"Validating {f}... ")
+            try:
+                load_metadata_yaml(f, EXP_JSONSCHEMA)
+                print("Success!")
+            except jsonschema.ValidationError as e:  # Don't print the stacktrace
+                print("\nVALIDATION FAILED:")
+                print(e.message)
+            except Exception as e:  # Not validation related, show stacktrace
+                print(
+                    "The script has failed, but it doesn't appear to be a validation error. See the stack trace below."
+                )
+                raise (e)
         else:
             raise FileNotFoundError(f"No such file(s): {f}")
 
