@@ -2,13 +2,32 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import warnings
 from pathlib import Path
 
 from pytest import fixture
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-_add_xfail = int(os.environ.get("XFAILS", 0))
+
+def _get_xfail():
+    """
+    Get the XFAILS environment variable. We're going to to use a default of 1
+    """
+    xfails_default = 1
+
+    try:
+        return int(os.environ["XFAILS"])
+    except KeyError:
+        warnings.warn(
+            "XFAILS enabled by default as coordinate discovery disabled by default. ",
+            "This will be deprecated when coordinate discovery is enabled by default",
+            PendingDeprecationWarning,
+        )
+        return xfails_default
+
+
+_add_xfail = _get_xfail()
 
 
 @fixture(scope="session")
