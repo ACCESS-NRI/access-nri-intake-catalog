@@ -168,6 +168,34 @@ def test_validate_against_schema(instance):
                 "experiment_uuid",
             ],
         ),
+        (
+            "bad_metadata/metadata-bad-created.yaml",
+            1,
+            [
+                "created",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-url.yaml",
+            1,
+            [
+                "url",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-contact.yaml",
+            1,
+            [
+                "contact",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-email.yaml",
+            1,
+            [
+                "email",
+            ],
+        ),
     ],
 )
 def test_bad_metadata_validation_raises(test_data, instance, no_errs, bad_kw):
