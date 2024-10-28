@@ -201,15 +201,13 @@ def test_validate_against_schema(instance):
 def test_bad_metadata_validation_raises(test_data, instance, no_errs, bad_kw):
     fpath = str(test_data / Path(instance))
 
-    try:
+    with pytest.raises(jsonschema.ValidationError) as excinfo:
         _ = load_metadata_yaml(fpath, EXP_JSONSCHEMA)
-    except jsonschema.ValidationError as e:
-        assert (
-            f"{no_errs:02d}" in e.message and f"{no_errs+1:02d}" not in e.message
-        ), "Can't see the right number of errors!"
-        for kw in bad_kw:
-            assert f"| {kw}" in e.message, f"Can't see expected specific error for {kw}"
-    except Exception as e:
-        assert (
-            False
-        ), f"load_metadata_yaml didn't raise jsonschema.ValidationError: {str(e)}"
+
+    err_msg = excinfo.value.message
+
+    assert (
+        f"{no_errs:02d}" in err_msg and f"{no_errs+1:02d}" not in err_msg
+    ), "Can't see the right number of errors!"
+    for kw in bad_kw:
+        assert f"| {kw}" in err_msg, f"Can't see expected specific error for {kw}"
