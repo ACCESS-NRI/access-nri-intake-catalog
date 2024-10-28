@@ -1109,8 +1109,13 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
     if not compare_files:
         return None
 
-    # In the rest of this test, we will refer to the intake-esm dataset as ie_ds
-    # and the dataset loaded directly with xarray as xr_ds.
+    """
+    In the rest of this test, we refer to the dataset loaded using intake-esm
+    as ie_ds and the dataset loaded directly with xarray as xr_ds.
+
+    We also need to perform some additional logic that intake-esm does to avoid
+    xr.testing.assert_equal from failing due to preprocessing differences.
+    """
     xarray_open_kwargs = _get_xarray_open_kwargs("netcdf")
 
     ie_ds = _open_dataset(
@@ -1121,10 +1126,6 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
     ).compute()
     ie_ds.set_coords(set(ie_ds.variables) - set(ie_ds.attrs[OPTIONS["vars_key"]]))
 
-    """
-    We need to perform some additional logic that intake-esm does or we are
-    going to get all sorts of random errors
-    """
     xr_ds = xr.open_dataset(file, **xarray_open_kwargs)
 
     scalar_variables = [v for v in xr_ds.data_vars if len(xr_ds[v].dims) == 0]
@@ -1133,11 +1134,3 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
     xr_ds = xr_ds[expected.variable]
 
     xr.testing.assert_equal(ie_ds, xr_ds)
-    """
-    ^ We expect this to fail in test case 0, but only if we aren't searching for
-    coordinate variables. This is going to be difficult to detect & test.
-
-    Note: case zero is a grid file $PROJ_ROOT/tests/data/access-om2/output000/ocean/ocean_grid.nc,
-    which is why it fails if we don't turn on coordinate/static variable search. 
-    All of the other files aer fine, as far as I can tell.
-    """

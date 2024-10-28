@@ -20,9 +20,11 @@ def _get_xfail():
         return int(os.environ["XFAILS"])
     except KeyError:
         warnings.warn(
-            "XFAILS enabled by default as coordinate discovery disabled by default. ",
-            "This will be deprecated when coordinate discovery is enabled by default",
-            PendingDeprecationWarning,
+            message=(
+                "XFAILS enabled by default as coordinate discovery disabled by default. "
+                "This will be deprecated when coordinate discovery is enabled by default"
+            ),
+            category=PendingDeprecationWarning,
         )
         return xfails_default
 
@@ -38,8 +40,10 @@ def test_data():
 def pytest_collection_modifyitems(config, items):
     """
     This function is called by pytest to modify the items collected during test
-    collection. I'm going to use it here to mark the xfail tests in
-    test_builders::test_parse_access_ncfile when we check the file contents &
+    collection. We use it here to mark the xfail tests in
+    test_builders::test_parse_access_ncfile when we check the file contents & to
+    ensure we correctly get xfails if we don't have cordinate discovery enabled
+    in intake-esm.
     """
     for item in items:
         if (

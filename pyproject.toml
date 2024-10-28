@@ -28,9 +28,6 @@ dynamic = ["version"]
 [project.optional-dependencies]
 test = [
     "pytest",
-    "pytest-watcher",
-    "pytest-cov",
-    "pytest-sugar",
     "tox",
 ] 
 
