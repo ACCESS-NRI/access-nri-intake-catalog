@@ -134,6 +134,40 @@ def test_validate_against_schema(instance):
                 "long_description",
             ],
         ),
+        (
+            "bad_metadata/metadata-bad-descript-bad-name.yaml",
+            2,
+            [
+                "description",
+                "name",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-descript-bad-name2.yaml",
+            2,
+            [
+                "description",
+                "name",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-descript2-bad-name2.yaml",
+            2,
+            [
+                "description",
+                "name",
+            ],
+        ),
+        (
+            "bad_metadata/metadata-bad-all-bad.yaml",
+            4,
+            [
+                "description",
+                "name",
+                "long_description",
+                "experiment_uuid",
+            ],
+        ),
     ],
 )
 def test_bad_metadata_validation_raises(test_data, instance, no_errs, bad_kw):
