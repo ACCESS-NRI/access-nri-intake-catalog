@@ -17,11 +17,14 @@ from intake import DataSource
 from . import COLUMNS_WITH_ITERABLES
 
 FREQUENCY_TRANSLATIONS = {
+    "monthly-averaged-by-hour": "1hr",
+    "monthly-averaged-by-day": "1hr",
     "3hrPt": "3hr",
     "6hrPt": "6hr",
     "daily": "1day",
     "day": "1day",
     "mon": "1mon",
+    "monthly-averaged": "1mon",
     "monC": "1mon",
     "monClim": "1mon",
     "monPt": "1mon",
@@ -423,6 +426,87 @@ class CordexTranslator(DefaultTranslator):
         Return realm, fixing a few issues
         """
         return self.source.df.apply(lambda x: ("none",), 1)
+
+
+class Era5Translator(DefaultTranslator):
+    """
+    Era5 Translator for translating metadata from the NCI ERA5 intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise a Era5Translator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI ERA5 intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="variable",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+        self.set_dispatch(
+            input_name="stream", core_colname="realm", func=self._realm_translator
+        )
+        self.set_dispatch(
+            input_name="path", core_colname="frequency", func=self._frequency_translator
+        )
+        self.set_dispatch(
+            input_name="path", core_colname="model", func=self._model_translator
+        )
+
+    @tuplify_series
+    def _model_translator(self):
+        """
+        Get the model from the path. This is a slightly hacky approach, using the
+        following logic:
+        - Dir structure follows the form : `'/g/data/rt52/$MODEL/...`
+        where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1',
+        'era5-derived'.
+        """
+        return self.source.df["path"].str.split("/").str[4]
+
+    def _realm_translator(self):
+        """
+        Return realm. Not clear how we can extract this from the ERA5 data, so
+        we'll just return 'none' for now.
+        """
+        return self.source.df.apply(lambda x: ("none",), 1)
+
+    @tuplify_series
+    def _frequency_translator(self):
+        """
+        Get the frequency from the path
+        """
+        config_str = self.source.df["path"].str.split("/").str[6].copy()
+        """
+        ERA5 contains some datasets where the frequency isn't readily identifiable:
+        - 'reanalysis' is at 1hour frequency
+        - 'v3-1' is at 1day frequency
+        - 'v4-0' is at 1day frequency
+        - 'v1-1' is at 1hour frequency
+
+        These are going to get preprocessed here so that we don't make the
+        FREQUENCIES dictionary large and confusing.
+        """
+        ERA5_FREQUENCY_TRANSLATIONS = {
+            "reanalysis": "1hr",
+            "v3-1": "1day",
+            "v4-0": "1day",
+            "v1-1": "1hr",
+        }
+
+        preproc_config_str = config_str.apply(
+            lambda x: ERA5_FREQUENCY_TRANSLATIONS.get(x, x)
+        )
+
+        return preproc_config_str.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
 
 
 @dataclass
