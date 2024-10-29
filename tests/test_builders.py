@@ -6,6 +6,9 @@ from pathlib import Path
 import intake
 import pandas as pd
 import pytest
+import xarray as xr
+from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
+from intake_esm.utils import OPTIONS
 
 from access_nri_intake.source import CORE_COLUMNS, builders
 from access_nri_intake.source.utils import _AccessNCFileInfo
@@ -359,6 +362,13 @@ def test_parse_access_filename(builder, filename, expected):
     assert builder.parse_access_filename(filename) == expected
 
 
+@pytest.mark.parametrize(
+    "compare_files",
+    [
+        (True),
+        (False),
+    ],
+)
 @pytest.mark.parametrize(
     "builder, filename, expected",
     [
@@ -1088,10 +1098,39 @@ def test_parse_access_filename(builder, filename, expected):
         ),
     ],
 )
-def test_parse_access_ncfile(test_data, builder, filename, expected):
+def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
     file = str(test_data / Path(filename))
 
     # Set the path to the test data directory
     expected.path = file
 
     assert builder.parse_access_ncfile(file) == expected
+
+    if not compare_files:
+        return None
+
+    """
+    In the rest of this test, we refer to the dataset loaded using intake-esm
+    as ie_ds and the dataset loaded directly with xarray as xr_ds.
+
+    We also need to perform some additional logic that intake-esm does to avoid
+    xr.testing.assert_equal from failing due to preprocessing differences.
+    """
+    xarray_open_kwargs = _get_xarray_open_kwargs("netcdf")
+
+    ie_ds = _open_dataset(
+        urlpath=expected.path,
+        varname=expected.variable,
+        xarray_open_kwargs=xarray_open_kwargs,
+        requested_variables=expected.variable,
+    ).compute()
+    ie_ds.set_coords(set(ie_ds.variables) - set(ie_ds.attrs[OPTIONS["vars_key"]]))
+
+    xr_ds = xr.open_dataset(file, **xarray_open_kwargs)
+
+    scalar_variables = [v for v in xr_ds.data_vars if len(xr_ds[v].dims) == 0]
+    xr_ds = xr_ds.set_coords(scalar_variables)
+
+    xr_ds = xr_ds[expected.variable]
+
+    xr.testing.assert_equal(ie_ds, xr_ds)
