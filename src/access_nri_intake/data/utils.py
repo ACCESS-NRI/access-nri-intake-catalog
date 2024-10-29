@@ -1,11 +1,13 @@
 # Copyright 2024 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+import os
 import re
 
 import yaml
 
 from ..utils import get_catalog_fp
+from . import CATALOG_NAME_FORMAT
 
 CATALOG_PATH_REGEX = r"^(?P<rootpath>.*?)\{\{version\}\}.*?$"
 
@@ -43,4 +45,16 @@ def available_versions(pretty: bool = True):
         Defines whether to return a pretty print-out of the available versions
         (True, default), or to provide a list of version numbers only (False).
     """
-    pass
+    # Work out where the catalogs are stored
+    base_path = _get_catalog_rp()
+
+    # Grab all the catalog names
+    cats = [d for d in os.listdir(base_path) if re.search(CATALOG_NAME_FORMAT, d)]
+    cats.sort()
+
+    if pretty:
+        for c in cats:
+            print(c)
+        return
+
+    return cats

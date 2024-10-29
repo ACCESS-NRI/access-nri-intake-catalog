@@ -8,7 +8,7 @@ from unittest import mock
 import pytest
 
 import access_nri_intake
-from access_nri_intake.data.utils import _get_catalog_rp
+from access_nri_intake.data.utils import _get_catalog_rp, available_versions
 from access_nri_intake.utils import get_catalog_fp
 
 
@@ -57,3 +57,14 @@ def test__get_catalog_rp_runtime_errors(mock_get_catalog_fp, test_data, cat):
 
     with pytest.raises(RuntimeError):
         _get_catalog_rp()
+
+
+@mock.patch("access_nri_intake.data.utils._get_catalog_rp")
+def test_available_versions(mock__get_catalog_rp, test_data):
+    mock__get_catalog_rp.return_value = test_data / "catalog/catalog-dirs"
+    cats = available_versions(pretty=False)
+    assert cats == [
+        "v2024-01-01",
+        "v2024-06-19",
+        "v2025-02-28",
+    ], "Did not get expected catalog list"
