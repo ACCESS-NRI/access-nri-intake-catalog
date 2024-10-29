@@ -7,7 +7,7 @@ import re
 import yaml
 
 from ..utils import get_catalog_fp
-from . import CATALOG_NAME_FORMAT
+from . import CATALOG_LATEST_FORMAT, CATALOG_NAME_FORMAT
 
 CATALOG_PATH_REGEX = r"^(?P<rootpath>.*?)\{\{version\}\}.*?$"
 
@@ -50,7 +50,27 @@ def available_versions(pretty: bool = True):
 
     # Grab all the catalog names
     cats = [d for d in os.listdir(base_path) if re.search(CATALOG_NAME_FORMAT, d)]
-    cats.sort()
+    cats.sort(reverse=True)
+
+    # Find all the symlinked versions
+    latests = [
+        s
+        for s in os.listdir(base_path)
+        if re.search(CATALOG_LATEST_FORMAT, s)
+        and os.path.islink(os.path.join(base_path, s))
+    ]
+
+    latest_targets = {
+        s: os.path.basename(os.readlink(os.path.join(base_path, s)))
+        for s in latests
+        if os.path.basename(os.readlink(os.path.join(base_path, s))) in cats
+    }
+
+    for i, c in enumerate(cats):
+        if c in latest_targets.values():
+            cats[i] += (
+                "(" + ", ".join([k for k, v in latest_targets.items() if v == c]) + ")"
+            )
 
     if pretty:
         for c in cats:

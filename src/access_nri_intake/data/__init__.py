@@ -9,6 +9,7 @@ import intake.catalog
 from access_nri_intake.utils import get_catalog_fp
 
 CATALOG_NAME_FORMAT = r"^v(?P<yr>[0-9]{4})\-(?P<mon>[0-9]{2})\-(?P<day>[0-9]{2})$"
+CATALOG_LATEST_FORMAT = r"^latest-(?P<major_vers>[0-9]*)$"
 
 try:
     data = intake.open_catalog(get_catalog_fp()).access_nri

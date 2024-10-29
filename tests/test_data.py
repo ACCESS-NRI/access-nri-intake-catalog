@@ -64,7 +64,17 @@ def test_available_versions(mock__get_catalog_rp, test_data):
     mock__get_catalog_rp.return_value = test_data / "catalog/catalog-dirs"
     cats = available_versions(pretty=False)
     assert cats == [
-        "v2024-01-01",
+        "v2025-02-28(latest-0)",
         "v2024-06-19",
-        "v2025-02-28",
+        "v2024-01-01",
     ], "Did not get expected catalog list"
+
+
+@mock.patch("access_nri_intake.data.utils._get_catalog_rp")
+def test_available_versions_pretty(mock__get_catalog_rp, test_data, capfd):
+    mock__get_catalog_rp.return_value = test_data / "catalog/catalog-dirs"
+    available_versions(pretty=True)
+    captured, _ = capfd.readouterr()
+    assert (
+        captured == "v2025-02-28(latest-0)\nv2024-06-19\nv2024-01-01\n"
+    ), "Did not get expected catalog printout"
