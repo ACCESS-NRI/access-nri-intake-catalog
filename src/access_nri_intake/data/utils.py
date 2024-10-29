@@ -68,9 +68,10 @@ def available_versions(pretty: bool = True):
 
     for i, c in enumerate(cats):
         if c in latest_targets.values():
-            cats[i] += (
-                "(" + ", ".join([k for k, v in latest_targets.items() if v == c]) + ")"
+            this_latest = sorted(
+                [k for k, v in latest_targets.items() if v == c], reverse=True
             )
+            cats[i] += "(" + ",".join(this_latest) + ")"
 
     if pretty:
         for c in cats:
