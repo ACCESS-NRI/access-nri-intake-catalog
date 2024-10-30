@@ -1,12 +1,15 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Command line interfaces for access-nri-intake """
+"""Command line interfaces for access-nri-intake"""
 
 import argparse
 import logging
 import os
 import re
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Optional
 
 import jsonschema
 import yaml
@@ -273,3 +276,74 @@ def metadata_template():
 
     with open("./metadata.yaml", "w") as outfile:
         yaml.dump(template, outfile, default_flow_style=False, sort_keys=False)
+
+
+def configure(argv: Optional[Sequence[str]] = None) -> int:
+    """
+    Copy the default configuration file to the user's home directory
+    """
+    parser = argparse.ArgumentParser(
+        description="Copy the default configuration file to $HOME/.catalog/config.yaml"
+    )
+
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="Overwrite existing config file",
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        type=str,
+        help="Catalog version to specify in the config file",
+    )
+    parser.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="Interactively edit the config file",
+    )
+
+    args = parser.parse_args(argv)
+
+    return _copy_update_config(
+        args.force,
+        args.interactive,
+        args.version,
+    )
+
+
+def _copy_update_config(
+    force: bool,
+    interactive: bool,
+    version: Optional[str] = None,
+) -> int:
+    """
+    Copy the default configuration file to the user's home directory
+    """
+    if interactive:
+        raise SystemExit("Interactive mode not yet implemented, aborting")
+
+    config_template_file = Path(__file__).parent / "data/config.yaml"
+    config_file = Path.home() / ".catalog" / "config.yaml"
+
+    if os.path.exists(config_file) and not force:
+        print(f"Config file already exists at {config_file}. Use --force to overwrite.")
+        return 1
+
+    config_file.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(config_template_file) as f:
+        config = yaml.safe_load(f)
+
+    if version:
+        # Todo: validate version
+        config["version"] = version
+
+    with open(config_file, "w") as f:
+        yaml.dump(config, f)
+
+    print(f"Config file written to {config_file}")
+
+    return 0

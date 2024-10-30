@@ -33,6 +33,7 @@ test = [
 
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"
+catalog-configure = "access_nri_intake.cli:configure"
 metadata-validate = "access_nri_intake.cli:metadata_validate"
 metadata-template = "access_nri_intake.cli:metadata_template"
 
@@ -52,6 +53,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 access_nri_intake = [
     "data/catalog.yaml",
+    "data/config.yaml",
     "data/metadata_schema_experiment.json",
     "data/metadata_schema_file.json",
 ]

@@ -9,14 +9,23 @@ from unittest import mock
 
 import intake
 import pytest
+import yaml
 
 from access_nri_intake.cli import (
     MetadataCheckError,
     _check_build_args,
     build,
+    configure,
     metadata_template,
     metadata_validate,
 )
+
+
+@pytest.fixture
+def temp_home():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with mock.patch("pathlib.Path.home", return_value=Path(temp_dir)):
+            yield temp_dir
 
 
 def test_entrypoint():
@@ -30,6 +39,9 @@ def test_entrypoint():
     assert exit_status == 0
 
     exit_status = os.system("metadata-template --help")
+    assert exit_status == 0
+
+    exit_status = os.system("catalog-configure --help")
     assert exit_status == 0
 
 
@@ -168,3 +180,60 @@ def test_metadata_validate_no_file(mockargs):
 
 def test_metadata_template():
     metadata_template()
+
+
+@pytest.mark.parametrize(
+    "call_args, expected_exits",
+    (
+        ([[], []], [0, 1]),
+        ([[], ["-f"]], [0, 0]),
+        ([[], ["--force"]], [0, 0]),
+        ([["-f"], []], [0, 1]),
+    ),
+)
+def test_configure_force(temp_home, call_args, expected_exits):
+    """
+    Test that the configure command creates a config file if none found, fails
+    if one is found, unless --force/-f is used.
+    """
+    call_args_1, call_args_2 = call_args
+    expected_exit_1, expected_exit_2 = expected_exits
+    assert not Path(temp_home, ".catalog/config.yaml").exists()
+    assert configure(call_args_1) == expected_exit_1
+    assert Path(temp_home, ".catalog/config.yaml").exists()
+    assert configure(call_args_2) == expected_exit_2
+
+
+@pytest.mark.parametrize(
+    "call_args, expected",
+    ((["--version", "0.0.0"], "0.0.0"), (["-v", "0.0.0"], "0.0.0"), ([], "1.0.0")),
+)
+def test_configure_version(temp_home, call_args, expected):
+    """
+    Call configure with the specified version flags & check the version is set
+    correctly in the config file.
+    """
+    configure(call_args)
+
+    with open(Path(temp_home, ".catalog/config.yaml")) as f:
+        config = yaml.safe_load(f)
+
+    assert config["version"] == expected
+
+
+@pytest.mark.parametrize(
+    "call_args",
+    (
+        ["--interactive", "--version", "0.0.0"],
+        ["-i", "--version", "0.0.0"],
+        ["-i", "-f"],
+        ["-i", "--force"],
+    ),
+)
+def test_configure_interactive(temp_home, call_args):
+    """
+    Make sure that specifying interative mode raises an error no matter what
+    other flags are passed.
+    """
+    with pytest.raises(SystemExit):
+        configure(call_args)

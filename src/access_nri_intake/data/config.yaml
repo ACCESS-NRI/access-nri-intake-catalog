@@ -1,0 +1,4 @@
+# This file contains the configuration for the access_nri_intake module.
+# Set ignore = false to ignore configuration and use defaults
+ignore: false
+version: 1.0.0
