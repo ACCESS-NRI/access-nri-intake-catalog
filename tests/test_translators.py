@@ -14,7 +14,6 @@ from access_nri_intake.catalog.translators import (
     CordexTranslator,
     DefaultTranslator,
     Era5Translator,
-    EraiTranslator,
     TranslatorError,
     _cmip_realm_translator,
     _to_tuple,
@@ -272,29 +271,6 @@ def test_Cmip6Translator(test_data, groupby, n_entries):
     esmds.name = "name"
     esmds.description = "description"
     df = Cmip6Translator(esmds, CORE_COLUMNS).translate(groupby)
-    assert len(df) == n_entries
-
-
-@pytest.mark.parametrize(
-    "groupby, n_entries",
-    [
-        (None, 5),
-        (TRANSLATOR_GROUPBY_COLUMNS, 4),
-        (["variable"], 5),
-        (["realm"], 2),
-        (["frequency"], 3),
-        (["description"], 1),
-    ],
-)
-def test_EraiTranslator(test_data, groupby, n_entries):
-    """Test ERA-Interim datastore translator"""
-    model = ("ERA-Interim",)
-    esmds = intake.open_esm_datastore(test_data / "esm_datastore/erai.json")
-    esmds.name = "name"
-    esmds.description = "description"
-    esmds.metadata = dict(model=model)
-    df = EraiTranslator(esmds, CORE_COLUMNS).translate(groupby)
-    assert all(df["model"] == model)
     assert len(df) == n_entries
 
 
