@@ -13,6 +13,7 @@ from access_nri_intake.catalog.translators import (
     Cmip6Translator,
     CordexTranslator,
     DefaultTranslator,
+    Era5Translator,
     TranslatorError,
     _cmip_realm_translator,
     _to_tuple,
@@ -139,6 +140,28 @@ def test_to_tuple(input):
     """Test the _to_tuple function"""
     series = pd.Series(input)
     assert all(_to_tuple(series).map(type) == tuple)
+
+
+@pytest.mark.parametrize(
+    "input_series, expected_output",
+    [
+        (pd.Series([1, 2, 3]), pd.Series([(1,), (2,), (3,)])),
+    ],
+)
+def test_tuplify_series(input_series, expected_output):
+    """Test the _tuplify_series function"""
+
+    @tuplify_series
+    def tuplify_func(series):
+        return series
+
+    class TestSeries:
+        @tuplify_series
+        def method(self, series):
+            return series
+
+    assert all(tuplify_func(input_series) == expected_output)
+    assert all(TestSeries().method(input_series) == expected_output)
 
 
 @pytest.mark.parametrize("name", ["name", None])
@@ -283,22 +306,18 @@ def test_CordexTranslator(test_data, groupby, n_entries):
 
 
 @pytest.mark.parametrize(
-    "input_series, expected_output",
+    "groupby, n_entries",
     [
-        (pd.Series([1, 2, 3]), pd.Series([(1,), (2,), (3,)])),
+        (None, 5),
+        (["variable"], 4),
+        (["frequency"], 3),
+        (["realm"], 1),
     ],
 )
-def test_tuplify_series(input_series, expected_output):
-    """Test the _tuplify_series function"""
-
-    @tuplify_series
-    def tuplify_func(series):
-        return series
-
-    class TestSeries:
-        @tuplify_series
-        def method(self, series):
-            return series
-
-    assert all(tuplify_func(input_series) == expected_output)
-    assert all(TestSeries().method(input_series) == expected_output)
+def test_Era5Translator(test_data, groupby, n_entries):
+    """Test ERA5 datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/era5-rt52.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = Era5Translator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
