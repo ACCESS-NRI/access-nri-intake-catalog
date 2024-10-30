@@ -320,32 +320,6 @@ class Cmip5Translator(DefaultTranslator):
         )
 
 
-class EraiTranslator(DefaultTranslator):
-    """
-    ERAI Translator for translating metadata from the NCI ERA-Interim intake datastore.
-    """
-
-    def __init__(self, source: DataSource, columns: list[str]):
-        """
-        Initialise a EraiTranslator
-
-        Parameters
-        ----------
-        source: :py:class:`~intake.DataSource`
-            The NCI ERA-Interim intake-esm datastore
-        columns: list of str
-            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
-        """
-
-        super().__init__(source, columns)
-
-        self.set_dispatch(
-            input_name="variable",
-            core_colname="variable",
-            func=super()._variable_translator,
-        )
-
-
 class BarpaTranslator(DefaultTranslator):
     """
     Barpa Translator for translating metadata from the NCI BARPA intake datastores.
