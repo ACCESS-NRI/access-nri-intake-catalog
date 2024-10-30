@@ -4,6 +4,7 @@
 """ Command line interfaces for access-nri-intake """
 
 import argparse
+import datetime
 import logging
 import os
 import re
@@ -12,7 +13,6 @@ import jsonschema
 import yaml
 from intake import open_esm_datastore
 
-from . import __version__
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .source import builders
@@ -136,7 +136,7 @@ def build():
     parser.add_argument(
         "--version",
         type=str,
-        default=__version__,
+        default=datetime.datetime.now().strftime("v%Y-%m-%d"),
         help=(
             "The version of the catalog to build/add to. Defaults to the current version of access-nri-intake."
         ),
