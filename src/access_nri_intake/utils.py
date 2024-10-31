@@ -11,7 +11,7 @@ from warnings import warn
 import jsonschema
 import yaml
 
-from .data import CATALOG_LOCATION, USER_CATALOG_LOCATION
+from . import CATALOG_LOCATION, USER_CATALOG_LOCATION
 
 
 def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:

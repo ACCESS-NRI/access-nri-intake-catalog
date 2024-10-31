@@ -110,7 +110,7 @@ def test_check_build_args(args, raises):
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
         catalog_file="cat.csv",
-        version="v0.0.0",
+        version="v2024-01-01",
         no_update=True,
     ),
 )
