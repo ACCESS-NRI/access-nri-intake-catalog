@@ -4,11 +4,14 @@
 """ General utility functions  for access-rni-intake """
 
 import json
+import os
 from importlib import resources as rsr
 from warnings import warn
 
 import jsonschema
 import yaml
+
+from .data import CATALOG_LOCATION, USER_CATALOG_LOCATION
 
 
 def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
@@ -135,4 +138,6 @@ def _can_be_array(field):
 
 
 def get_catalog_fp():
-    return rsr.files("access_nri_intake").joinpath("data/catalog.yaml")
+    if os.path.isfile(USER_CATALOG_LOCATION):
+        return USER_CATALOG_LOCATION
+    return CATALOG_LOCATION
