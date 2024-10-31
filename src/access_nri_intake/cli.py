@@ -15,6 +15,7 @@ from intake import open_esm_datastore
 
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
+from .data import CATALOG_NAME_FORMAT
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
@@ -160,6 +161,10 @@ def build():
 
     if not version.startswith("v"):
         version = f"v{version}"
+    if not re.match(CATALOG_NAME_FORMAT, version):
+        raise ValueError(
+            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD."
+        )
 
     # Create the build directories
     build_base_path = os.path.abspath(build_base_path)
