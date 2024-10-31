@@ -1,19 +1,97 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Shared utilities for writing Intake-ESM builders and their parsers """
+"""Shared utilities for writing Intake-ESM builders and their parsers"""
 
 import warnings
+from dataclasses import asdict, dataclass, field
 from datetime import timedelta
+from pathlib import Path
+from typing import Optional, Union
 
 import cftime
+import xarray as xr
 
 
 class EmptyFileError(Exception):
     pass
 
 
-def _add_month_start(time, n):
+@dataclass
+class _AccessNCFileInfo:
+    """
+    Holds information about a NetCDF file that is used to create an intake-esm
+    catalog entry.
+
+    Notes
+    -----
+    Use of both path and filename seems redundant, but constructing filename from
+    the path using a __post_init__ method makes testing more difficult. On balance,
+    more explicit tests are probably more important than the slight redundancy.
+    """
+
+    filename: Union[str, Path]
+    file_id: str
+    path: str
+    filename_timestamp: Optional[str]
+    frequency: str
+    start_date: str
+    end_date: str
+    variable: list[str]
+    variable_long_name: list[str]
+    variable_standard_name: list[str]
+    variable_cell_methods: list[str]
+    variable_units: list[str]
+
+    def to_dict(self) -> dict[str, Union[str, list[str]]]:
+        """
+        Return a dictionary representation of the NcFileInfo object
+        """
+        return asdict(self)
+
+
+@dataclass
+class _VarInfo:
+    """
+    Holds information about the variables in a NetCDF file that is used to
+    create an intake-esm catalog entry.
+    """
+
+    variable_list: list[str] = field(default_factory=list)
+    long_name_list: list[str] = field(default_factory=list)
+    standard_name_list: list[str] = field(default_factory=list)
+    cell_methods_list: list[str] = field(default_factory=list)
+    units_list: list[str] = field(default_factory=list)
+
+    def append_attrs(self, var: str, attrs: dict) -> None:
+        """
+        Append attributes to the _VarInfo object, if the attribute has a
+        'long_name' key.
+        """
+        if "long_name" not in attrs:
+            return None
+
+        self.variable_list.append(var)
+        self.long_name_list.append(attrs["long_name"])
+        self.standard_name_list.append(attrs.get("standard_name", ""))
+        self.cell_methods_list.append(attrs.get("cell_methods", ""))
+        self.units_list.append(attrs.get("units", ""))
+
+    def to_var_info_dict(self) -> dict[str, list[str]]:
+        """
+        Return a dictionary representation of the _VarInfo object. Fields are
+        defined explicitly for use in the _AccessNCFileInfo constructor.
+        """
+        return {
+            "variable": self.variable_list,
+            "variable_long_name": self.long_name_list,
+            "variable_standard_name": self.standard_name_list,
+            "variable_cell_methods": self.cell_methods_list,
+            "variable_units": self.units_list,
+        }
+
+
+def _add_month_start(time, n: int):
     """Add months to cftime datetime and truncate to start"""
     year = time.year + ((time.month + n - 1) // 12)
     month = (time.month + n - 1) % 12 + 1
@@ -22,7 +100,7 @@ def _add_month_start(time, n):
     )
 
 
-def _add_year_start(time, n):
+def _add_year_start(time, n: int):
     """Add years to cftime datetime and truncate to start"""
     return time.replace(
         year=time.year + n, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
@@ -59,7 +137,11 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def get_timeinfo(ds, filename_frequency, time_dim):
+def get_timeinfo(
+    ds: xr.Dataset,
+    filename_frequency: Optional[str],
+    time_dim: str,
+) -> tuple[str, str, str]:
     """
     Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
     cosima cookbook, see
@@ -69,8 +151,24 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     ----------
     ds: :py:class:`xarray.Dataset`
         The dataset to parse the time info from
+    filename_frequency: str
+        Frequency as determined from the filename
     time_dim: str
         The name of the time dimension
+
+    Returns
+    -------
+    start_date: str
+        The start date of the dataset
+    end_date: str
+        The end date of the dataset
+    frequency: str
+        The frequency of the dataset
+
+    Raises
+    ------
+    EmptyFileError
+        If the dataset has a valid unlimited dimension, but no data
     """
 
     def _todate(t):
@@ -79,7 +177,7 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
     te = None
-    frequency = "fx"
+    frequency: Union[str, tuple[Optional[int], str]] = "fx"
     has_time = time_dim in ds
 
     if has_time:

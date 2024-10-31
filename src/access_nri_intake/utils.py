@@ -11,7 +11,7 @@ import jsonschema
 import yaml
 
 
-def get_jsonschema(metadata_file, required):
+def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
     """
     Read in the required JSON schema, and annotate it with "required" fields.
 
@@ -22,7 +22,7 @@ def get_jsonschema(metadata_file, required):
     """
 
     schema_file = rsr.files("access_nri_intake").joinpath(metadata_file)
-    with schema_file.open(mode="r") as fpath:
+    with schema_file.open(mode="r") as fpath:  # type: ignore
         schema = json.load(fpath)
 
     schema_required = schema.copy()
@@ -40,7 +40,7 @@ def get_jsonschema(metadata_file, required):
     return schema, schema_required
 
 
-def load_metadata_yaml(path, jsonschema):
+def load_metadata_yaml(path: str, jsonschema: dict) -> dict:
     """
     Load a metadata.yaml file, leaving dates as strings, and validate against a jsonschema,
     allowing for tuples as arrays
@@ -77,7 +77,7 @@ def load_metadata_yaml(path, jsonschema):
     return metadata
 
 
-def validate_against_schema(instance, schema):
+def validate_against_schema(instance: dict, schema: dict) -> None:
     """
     Validate a dictionary against a jsonschema, allowing for tuples as arrays
 
@@ -87,6 +87,11 @@ def validate_against_schema(instance, schema):
         The instance to validate
     schema: dict
         The jsonschema
+
+    Raises
+    ------
+    jsonschema.exceptions.ValidationError
+        If the instance does not match the schema
     """
 
     Validator = jsonschema.validators.validator_for(schema)
@@ -97,7 +102,18 @@ def validate_against_schema(instance, schema):
         Validator, type_checker=type_checker
     )
 
-    TupleAllowingValidator(schema).validate(instance)
+    issues = list(TupleAllowingValidator(schema).iter_errors(instance))
+
+    if len(issues) > 0:
+        issue_str = ""
+        for i, issue in enumerate(issues, start=1):
+            try:
+                issue_str += f"\n{i:02d} | {issue.absolute_path[0]} : { issue.message }"
+            except IndexError:  # Must be a missing keyword, not a bad type/value
+                issue_str += f"\n{i:02d} | (missing) : { issue.message }"
+        raise jsonschema.ValidationError(issue_str)
+
+    return
 
 
 def _can_be_array(field):

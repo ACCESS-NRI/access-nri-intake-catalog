@@ -6,7 +6,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.2.0
+      - uses: actions/checkout@v4.2.2
       - uses: actions/setup-python@v5
       - uses: pre-commit/action@v3.0.1
 
@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4.2.2
 
       - name: Setup conda environment
         uses: conda-incubator/setup-miniconda@v3
@@ -32,7 +32,7 @@ jobs:
 
       - name: Install source
         shell: bash -l {0}
-        run: python -m pip install -e .
+        run: python -m pip install .
 
       - name: List installed packages
         shell: bash -l {0}
@@ -40,7 +40,11 @@ jobs:
 
       - name: Run tests
         shell: bash -l {0}
-        run: python -m pytest -s .
+        run: coverage run -m --source=access_nri_intake pytest
+      
+      - name: Generate coverage report
+        shell: bash -l {0}
+        run: coverage xml
 
       - name: Upload code coverage
         uses: codecov/codecov-action@v4

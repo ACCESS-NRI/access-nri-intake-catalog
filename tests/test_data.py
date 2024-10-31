@@ -2,14 +2,20 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+from pathlib import Path
 
+import access_nri_intake
 from access_nri_intake.utils import get_catalog_fp
 
 
 def test_get_catalog_fp():
-    _oneup = os.path.abspath(os.path.dirname("../"))
-    assert str(get_catalog_fp()) == str(
-        os.path.join(
-            _oneup, "access-nri-intake-catalog/src/access_nri_intake/data/catalog.yaml"
-        )
-    )
+    """
+    Check that we're getting the correct path to the catalog.yaml file. We need
+    to ensure that this works both in editable & non-editable installs.
+    """
+    INSTALL_DIR = Path(access_nri_intake.__file__).parent
+    expected_path = os.path.join(INSTALL_DIR, "data/catalog.yaml")
+
+    catalog_fullpath = get_catalog_fp()
+
+    assert str(catalog_fullpath) == expected_path
