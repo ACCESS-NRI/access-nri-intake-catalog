@@ -48,9 +48,10 @@ def test_available_versions(mock__get_catalog_rp, test_data):
     mock__get_catalog_rp.return_value = test_data / "catalog/catalog-dirs"
     cats = available_versions(pretty=False)
     assert cats == [
-        "v2025-02-28(latest-2,latest-1)",
-        "v2024-06-19(latest-0)",
+        "v2025-02-28",
+        "v2024-06-19",
         "v2024-01-01",
+        "v2019-02-02",
     ], "Did not get expected catalog list"
 
 
@@ -60,6 +61,5 @@ def test_available_versions_pretty(mock__get_catalog_rp, test_data, capfd):
     available_versions(pretty=True)
     captured, _ = capfd.readouterr()
     assert (
-        captured
-        == "v2025-02-28(latest-2,latest-1)\nv2024-06-19(latest-0)\nv2024-01-01\n"
+        captured == "v2025-02-28\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n"
     ), "Did not get expected catalog printout"
