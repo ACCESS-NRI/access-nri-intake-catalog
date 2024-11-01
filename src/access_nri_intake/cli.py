@@ -14,7 +14,6 @@ import jsonschema
 import yaml
 from intake import open_esm_datastore
 
-from . import CATALOG_LOCATION, USER_CATALOG_LOCATION
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
@@ -156,22 +155,12 @@ def build():
         ),
     )
 
-    parser.add_argument(
-        "--local_catalog",
-        default=False,
-        action="store_true",
-        help=(
-            "Should the catalog file that is created be written to the live deploment location (False), or to the user's home directory (True)."
-        ),
-    )
-
     args = parser.parse_args()
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
     catalog_file = args.catalog_file
     version = args.version
     update = not args.no_update
-    local_cat = args.local_catalog
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -234,10 +223,7 @@ def build():
     cm.save()
 
     if update:
-        if local_cat:
-            cat_loc = USER_CATALOG_LOCATION
-        else:
-            cat_loc = CATALOG_LOCATION
+        cat_loc = get_catalog_fp()
 
         # See if there's an existing catalog
         if os.path.exists(cat_loc):
@@ -275,7 +261,7 @@ def build():
                 _set_catalog_yaml_version_bounds(yaml_dict, version, version)
             elif (
                 yaml_dict["sources"]["access_nri"]["metadata"]["storage"]
-                != yaml_old["sources"]["access_nri"]["args"]["metadata"]["storage"]
+                != yaml_old["sources"]["access_nri"]["metadata"]["storage"]
             ):
                 yaml_dict["sources"]["access_nri"]["metadata"][
                     "storage"
@@ -309,7 +295,7 @@ def build():
         else:  # No existing catalog, so set min = max = current version
             _set_catalog_yaml_version_bounds(yaml_dict, version, version)
 
-        with get_catalog_fp().open(mode="w") as fobj:
+        with Path(get_catalog_fp()).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
 
