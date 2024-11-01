@@ -483,6 +483,53 @@ class Era5Translator(DefaultTranslator):
         return preproc_config_str.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
 
 
+class CcamTranslator(DefaultTranslator):
+    """
+    Ccam Translator for translating metadata from the NCI CCAM intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise a CcamTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI CCAM intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="project_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+        self.set_dispatch(
+            input_name="realm",
+            core_colname="realm",
+            func=self._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+
+    def _realm_translator(self):
+        """
+        Realm is not available in the CCAM metadata, so we'll just return
+        ('none',) for now.
+        """
+        return self.source.df.apply(lambda x: ("none",), 1)
+
+
 class NarclimTranslator(DefaultTranslator):
     def __init__(self, source, columns):
         """
