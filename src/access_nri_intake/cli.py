@@ -8,16 +8,20 @@ import datetime
 import logging
 import os
 import re
+from pathlib import Path
 
 import jsonschema
 import yaml
 from intake import open_esm_datastore
 
+from . import CATALOG_LOCATION, USER_CATALOG_LOCATION
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
+
+STORAGE_FLAG_PATTERN = "gdata/[a-z]{1,2}[0-9]{1,2}"
 
 
 class MetadataCheckError(Exception):
@@ -139,7 +143,7 @@ def build():
         type=str,
         default=datetime.datetime.now().strftime("v%Y-%m-%d"),
         help=(
-            "The version of the catalog to build/add to. Defaults to the current version of access-nri-intake."
+            "The version of the catalog to build/add to. Defaults to the current date."
         ),
     )
 
@@ -152,12 +156,22 @@ def build():
         ),
     )
 
+    parser.add_argument(
+        "--local_catalog",
+        default=False,
+        action="store_true",
+        help=(
+            "Should the catalog file that is created be written to the live deploment location (False), or to the user's home directory (True)."
+        ),
+    )
+
     args = parser.parse_args()
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
     catalog_file = args.catalog_file
     version = args.version
     update = not args.no_update
+    local_cat = args.local_catalog
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -220,8 +234,100 @@ def build():
     cm.save()
 
     if update:
+        if local_cat:
+            cat_loc = USER_CATALOG_LOCATION
+        else:
+            cat_loc = CATALOG_LOCATION
+
+        # See if there's an existing catalog
+        if os.path.exists(cat_loc):
+            with Path(cat_loc).open(mode="r") as fobj:
+                yaml_old = yaml.safe_load(fobj)
+
+            # Check to see what has changed. We care if the following keys
+            # have changed (ignoring the sources.access_nri at the head
+            # of each dict path):
+            # - args (all parts - mode should never change)
+            # - driver
+            # If these have changed, we need to move the old catalog aside,
+            # labelled with its min and max version numbers
+            if (
+                yaml_dict["sources"]["access_nri"]["args"]
+                != yaml_old["sources"]["access_nri"]["args"]
+                or yaml_dict["sources"]["access_nri"]["driver"]
+                != yaml_old["sources"]["access_nri"]["driver"]
+            ):
+                # Move the old catalog out of the way
+                # New catalog.yaml will have restricted version bounds
+                if (
+                    yaml_old["sources"]["access_nri"]["parameters"]["version"]["min"]
+                    == yaml_old["sources"]["access_nri"]["parameters"]["version"]["max"]
+                ):
+                    vers_str = yaml_old["sources"]["access_nri"]["parameters"][
+                        "version"
+                    ]["min"]
+                else:
+                    vers_str = f'{yaml_old["sources"]["access_nri"]["parameters"]["version"]["min"]}-{yaml_old["sources"]["access_nri"]["parameters"]["version"]["max"]}'
+                os.rename(
+                    cat_loc,
+                    os.path.join(os.path.dirname(cat_loc), f"catalog-{vers_str}.yaml"),
+                )
+                _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+            elif (
+                yaml_dict["sources"]["access_nri"]["metadata"]["storage"]
+                != yaml_old["sources"]["access_nri"]["args"]["metadata"]["storage"]
+            ):
+                yaml_dict["sources"]["access_nri"]["metadata"][
+                    "storage"
+                ] = _combine_storage_flags(
+                    yaml_dict["sources"]["access_nri"]["metadata"]["storage"],
+                    yaml_old["sources"]["access_nri"]["metadata"]["storage"],
+                )
+
+            # Set the minimum and maximum catalog versions, if they're not set already
+            # in the 'new catalog' if statement above
+            if (
+                yaml_dict["sources"]["access_nri"]["parameters"]["version"].get("min")
+                is None
+            ):
+                _set_catalog_yaml_version_bounds(
+                    yaml_dict,
+                    min(
+                        version,
+                        yaml_old["sources"]["access_nri"]["parameters"]["version"][
+                            "min"
+                        ],
+                    ),
+                    max(
+                        version,
+                        yaml_old["sources"]["access_nri"]["parameters"]["version"][
+                            "max"
+                        ],
+                    ),
+                )
+
+        else:  # No existing catalog, so set min = max = current version
+            _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+
         with get_catalog_fp().open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
+
+
+def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str):
+    """
+    Set the version boundaries for the access_nri_intake_catalog.
+    """
+    d["sources"]["access_nri"]["parameters"]["version"]["min"] = bl
+    d["sources"]["access_nri"]["parameters"]["version"]["max"] = bu
+
+
+def _combine_storage_flags(a: str, b: str) -> str:
+    """
+    Return a combined storage flag string from two incoming strings.
+    """
+    aflags = re.findall(STORAGE_FLAG_PATTERN, a)
+    bflags = re.findall(STORAGE_FLAG_PATTERN, b)
+    return "+".join(set(aflags + bflags))
 
 
 def metadata_validate():

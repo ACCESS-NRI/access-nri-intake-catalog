@@ -112,6 +112,7 @@ def test_check_build_args(args, raises):
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=True,
+        local_catalog=False,
     ),
 )
 def test_build(mockargs):
