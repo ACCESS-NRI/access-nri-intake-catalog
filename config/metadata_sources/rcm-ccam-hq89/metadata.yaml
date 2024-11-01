@@ -1,0 +1,170 @@
+name: rcm_ccam_hq89
+experiment_uuid: 27bed326-7b9a-11ef-b228-000007d3fe80
+description: CMIP6 Regional Climate Model Data from CCAM for Australian Climate Service
+long_description: >-
+  Australasian climate change projections based on the Conformal Cubic Atmospheric Model (CCAM) 
+  at 12.5km resolution following the experiment design and domain of CORDEX-CMIP6 
+  for the Australian Climate Service.
+  All CORE and Tier1 CORDEX variables are available with some limited Tier2 output.
+  Simulations run from 1950-2099 for SSP126 and SSP370 for seven downscaled CMIP6 GCMs and ERA5 (1979-2021).
+model:
+- CMIP6
+frequency:
+- 1hr
+- 1day
+- 1mon
+- 6hr
+- fx
+variable:
+- ua100m
+- ua250m
+- zmla
+- cll
+- ua1000
+- zg1000
+- ta850
+- va600
+- hus700
+- tasmin
+- evspsbl
+- rsdsdir
+- va700
+- vas
+- ua300m
+- ua850
+- hus850
+- va200m
+- prc
+- tauv
+- ta400
+- wa850
+- ua300
+- tasmax
+- ta1000
+- ua150m
+- mrsos
+- zg400
+- hus300
+- ta500
+- rlds
+- tsl
+- zg850
+- va100m
+- ts
+- CIN
+- prsn
+- wsgsmax
+- mrso
+- clivi
+- wa500
+- mrfsos
+- snc
+- ua50m
+- ps
+- siconca
+- ta925
+- hus250
+- ua500
+- sund
+- ta600
+- ua925
+- hurs
+- rlus
+- clt
+- ta300
+- tauu
+- snm
+- tas
+- zg925
+- evspsblpot
+- prhmax
+- zg300
+- mrfsol
+- va300m
+- mrros
+- mrro
+- zg250
+- mrsol
+- ua200
+- va1000
+- hus925
+- hus200
+- zg500
+- uas
+- va500
+- wa300
+- va150m
+- psl
+- rlut
+- zg200
+- ua200m
+- pr
+- CAPE
+- clm
+- snw
+- zg600
+- wa400
+- va250
+- wa1000
+- zg700
+- wa600
+- hus400
+- ua700
+- va850
+- va400
+- ta250
+- clwvi
+- rsut
+- va250m
+- hfls
+- huss
+- clh
+- wa700
+- mrfso
+- snd
+- ua400
+- sfcWindmax
+- va300
+- va925
+- rsdt
+- prw
+- wa200
+- ua250
+- wa250
+- ta200
+- hus500
+- va50m
+- hus1000
+- rsus
+- va200
+- wa925
+- rsds
+- hus600
+- ua600
+- hfss
+- sfcWind
+- ta700
+- z0
+- orog
+- sftlaf
+- sftlf
+- sfturf
+nominal_resolution:
+- 12.5km
+version:
+contact: NCI
+email: help@nci.org.au
+reference:
+license:
+url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f2764_6935_0449_3524
+parent_experiment:
+related_experiments:
+-
+notes: 
+keywords:
+- cmip
+- regional climate model
+- rcm
+- ccam
+- australian climate service
+- cordex
