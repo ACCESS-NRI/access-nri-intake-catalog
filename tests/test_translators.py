@@ -9,6 +9,7 @@ from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
     FREQUENCY_TRANSLATIONS,
     BarpaTranslator,
+    CcamTranslator,
     Cmip5Translator,
     Cmip6Translator,
     CordexTranslator,
@@ -320,4 +321,23 @@ def test_Era5Translator(test_data, groupby, n_entries):
     esmds.name = "name"
     esmds.description = "description"
     df = Era5Translator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (["variable"], 4),
+        (["frequency"], 3),
+        (["model"], 2),
+        (["realm"], 1),
+    ],
+)
+def test_CcamTranslator(test_data, groupby, n_entries):
+    """Test ERA5 datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/ccam-hq89.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = CcamTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries
