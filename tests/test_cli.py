@@ -106,6 +106,7 @@ def test_check_build_args(args, raises):
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
         config_yaml=[
+            # FIXME these data locations are sensitive to PWD
             "./tests/data/config/access-om2.yaml",
             "./tests/data/config/cmip5.yaml",
         ],
@@ -134,6 +135,7 @@ def test_build(mockargs):
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
         config_yaml=[
+            # FIXME these data locations are sensitive to PWD
             "./tests/data/config/access-om2.yaml",
             "./tests/data/config/cmip5.yaml",
         ],
@@ -192,6 +194,7 @@ def test_metadata_validate(mockargs):
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
         file=[
+            # FIXME these data locations are sensitive to PWD
             "./tests/data/access-om2/metadata.yaml",
             "./tests/data/access-om3/metadata.yaml",
         ],
