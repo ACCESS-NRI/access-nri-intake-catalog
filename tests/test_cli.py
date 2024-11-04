@@ -148,7 +148,8 @@ def test_build(mockargs, test_data):
 )
 def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
     """
-    Test if the intelligent versioning works correctly
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
     """
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
@@ -182,6 +183,60 @@ def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-02"
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
+
+
+@mock.patch("access_nri_intake.cli.get_catalog_fp")
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        config_yaml=[
+            "config/access-om2.yaml",
+            # "config/cmip5.yaml",  # Save this for addition
+        ],
+        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        catalog_file="cat.csv",
+        version="v2024-01-01",
+        no_update=False,
+    ),
+)
+def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data):
+    # Update the config_yaml paths
+    for i, p in enumerate(mockargs.return_value.config_yaml):
+        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+
+    # Write the catalog.yamls to where the catalogs go
+    get_catalog_fp.return_value = os.path.join(
+        mockargs.return_value.build_base_path, "catalog.yaml"
+    )
+
+    # Build the first catalog
+    build()
+
+    # Now, add the second data source & rebuild
+    mockargs.return_value.config_yaml.append(
+        os.path.join(test_data, "config/cmip5.yaml")
+    )
+    mockargs.return_value.version = "v2024-01-02"
+    build()
+
+    # There is no change between catalogs, so we should be able to
+    # see just a version number change in the yaml
+    with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
+        cat_yaml = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2024-01-02"
+    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-02'
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2024-01-02"
+    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
+    assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
 
 
 @mock.patch(
