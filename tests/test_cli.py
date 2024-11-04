@@ -106,9 +106,8 @@ def test_check_build_args(args, raises):
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
         config_yaml=[
-            # FIXME these data locations are sensitive to PWD
-            "./tests/data/config/access-om2.yaml",
-            "./tests/data/config/cmip5.yaml",
+            "config/access-om2.yaml",
+            "config/cmip5.yaml",
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
         catalog_file="cat.csv",
@@ -116,8 +115,11 @@ def test_check_build_args(args, raises):
         no_update=True,
     ),
 )
-def test_build(mockargs):
+def test_build(mockargs, test_data):
     """Test full catalog build process from config files"""
+    # Update the config_yaml paths
+    for i, p in enumerate(mockargs.return_value.config_yaml):
+        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     build()
 
     # Try to open the catalog
@@ -135,9 +137,8 @@ def test_build(mockargs):
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
         config_yaml=[
-            # FIXME these data locations are sensitive to PWD
-            "./tests/data/config/access-om2.yaml",
-            "./tests/data/config/cmip5.yaml",
+            "config/access-om2.yaml",
+            "config/cmip5.yaml",
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
         catalog_file="cat.csv",
@@ -145,10 +146,14 @@ def test_build(mockargs):
         no_update=False,
     ),
 )
-def test_build_repeat_nochange(mockargs, get_catalog_fp):
+def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
     """
     Test if the intelligent versioning works correctly
     """
+    # Update the config_yaml paths
+    for i, p in enumerate(mockargs.return_value.config_yaml):
+        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
         mockargs.return_value.build_base_path, "catalog.yaml"
@@ -194,14 +199,16 @@ def test_metadata_validate(mockargs):
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
         file=[
-            # FIXME these data locations are sensitive to PWD
-            "./tests/data/access-om2/metadata.yaml",
-            "./tests/data/access-om3/metadata.yaml",
+            "access-om2/metadata.yaml",
+            "access-om3/metadata.yaml",
         ],
     ),
 )
-def test_metadata_validate_multi(mockargs):
+def test_metadata_validate_multi(mockargs, test_data):
     """Test metadata_validate"""
+    # Update the config_yaml paths
+    for i, p in enumerate(mockargs.return_value.file):
+        mockargs.return_value.file[i] = os.path.join(test_data, p)
     metadata_validate()
 
 
