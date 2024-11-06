@@ -631,12 +631,39 @@ def test_build_repeat_altercatalogstruct_multivers(
 @mock.patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        file=["./tests/data/access-om2/metadata.yaml"],
+        file=["access-om2/metadata.yaml"],
     ),
 )
-def test_metadata_validate(mockargs):
+def test_metadata_validate(mockargs, test_data):
     """Test metadata_validate"""
+    for i, p in enumerate(mockargs.return_value.file):
+        mockargs.return_value.file[i] = os.path.join(test_data, p)
     metadata_validate()
+
+
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        file=None,
+    ),
+)
+@pytest.mark.parametrize(
+    "bad_yaml,e",
+    [
+        ("bad_metadata/metadata-bad-all-bad.yaml", None),
+        ("bad_metadata/doesntexist.yaml", FileNotFoundError),
+    ],
+)
+def test_metadata_validate_bad(mockargs, test_data, bad_yaml, e):
+    bad_yaml = os.path.join(test_data, bad_yaml)
+    mockargs.return_value.file = [bad_yaml]
+    if (
+        e is None
+    ):  # These are situations where an exception is raised, caught, and printed
+        metadata_validate()
+    else:
+        with pytest.raises(e):
+            metadata_validate()
 
 
 @mock.patch(
