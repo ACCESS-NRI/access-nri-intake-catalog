@@ -292,8 +292,22 @@ def build():
                     ),
                 )
 
-        else:  # No existing catalog, so set min = max = current version
-            _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+        else:
+            # No existing catalog, so set min = max = current version,
+            # unless there are folders with the right names in the write
+            # directory
+            existing_vers = os.listdir(os.path.dirname(get_catalog_fp()))
+            existing_vers = [
+                v for v in existing_vers if re.match(CATALOG_NAME_FORMAT, v)
+            ]
+            if len(existing_vers) > 0:
+                _set_catalog_yaml_version_bounds(
+                    yaml_dict,
+                    min(min(existing_vers), version),
+                    max(max(existing_vers), version),
+                )
+            else:
+                _set_catalog_yaml_version_bounds(yaml_dict, version, version)
 
         with Path(get_catalog_fp()).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
