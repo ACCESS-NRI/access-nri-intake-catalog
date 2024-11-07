@@ -109,18 +109,32 @@ def test_check_build_args(args, raises):
             "config/access-om2.yaml",
             "config/cmip5.yaml",
         ],
-        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        build_base_path=None,  # Use pytest fixture here?
         catalog_file="cat.csv",
-        version="v2024-01-01",
+        version=None,
         no_update=True,
     ),
 )
-def test_build(mockargs, test_data):
+@pytest.mark.parametrize(
+    "version",
+    [
+        "v2024-01-01",
+        "2024-01-01",
+    ],
+)
+def test_build(mockargs, version, test_data):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
+    mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.version = version
+
     build()
+
+    # Manually fix the version so we can correctly build the test path
+    if not mockargs.return_value.version.startswith("v"):
+        mockargs.return_value.version = f"v{mockargs.return_value.version}"
 
     # Try to open the catalog
     build_path = (
@@ -130,6 +144,78 @@ def test_build(mockargs, test_data):
     )
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
+
+
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        config_yaml=[
+            "config/access-om2.yaml",
+            "config/cmip5.yaml",
+        ],
+        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        catalog_file="cat.csv",
+        version="v2024-01-01",
+        no_update=True,
+    ),
+)
+@pytest.mark.parametrize(
+    "bad_vers",
+    [
+        # "2024-01-01",  # Forgot the leading v - BUT the build process will fix it
+        "v2024_01_01",  # Underscores instead of spaces
+        "v1999-02-01",  # Regex only accepts dates > 2000-01-01
+        "v2024-01-32",  # Out of bounds day (not month-sensitive)
+        "v2024-01-00",  # Out of bounds day
+        "v2024-13-02",  # Out of bounds month
+        "v2024-00-02",  # Out of bounds month
+        "v2024-01-01-243",  # Trailing gumph
+        "v2024-01-02-v2",  # Trailing gumph
+        "v0.1.2",  # Old-style version numbers
+    ],
+)
+def test_build_bad_version(mockargs, bad_vers, test_data):
+    """Test full catalog build process from config files"""
+    # Update the config_yaml paths
+    for i, p in enumerate(mockargs.return_value.config_yaml):
+        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+
+    mockargs.return_value.version = bad_vers
+
+    with pytest.raises(ValueError):
+        build()
+
+
+@mock.patch("access_nri_intake.cli.get_catalog_fp")
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        config_yaml=[
+            "config/access-om2-bad.yaml",
+            "config/cmip5.yaml",
+        ],
+        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        catalog_file="cat.csv",
+        version="v2024-01-01",
+        no_update=False,
+    ),
+)
+def test_build_bad_metadata(mockargs, get_catalog_fp, test_data):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    # Update the config_yaml paths
+    for i, p in enumerate(mockargs.return_value.config_yaml):
+        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+
+    # Write the catalog.yamls to where the catalogs go
+    get_catalog_fp.return_value = os.path.join(
+        mockargs.return_value.build_base_path, "catalog.yaml"
+    )
+
+    with pytest.raises(MetadataCheckError):
+        build()
 
 
 @mock.patch("access_nri_intake.cli.get_catalog_fp")

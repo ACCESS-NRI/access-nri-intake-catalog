@@ -60,7 +60,7 @@ def _parse_build_inputs(config_yamls, build_path):
                 metadata = load_metadata_yaml(metadata_yaml, EXP_JSONSCHEMA)
             except jsonschema.exceptions.ValidationError:
                 raise MetadataCheckError(
-                    f"Failed to validate metadata.yaml for {args['name']}. See traceback for details."
+                    f"Failed to validate metadata.yaml @ {os.path.dirname(metadata_yaml)}. See traceback for details."
                 )
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
