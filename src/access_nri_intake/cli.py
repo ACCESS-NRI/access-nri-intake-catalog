@@ -271,7 +271,9 @@ def build():
                     cat_loc,
                     os.path.join(os.path.dirname(cat_loc), f"catalog-{vers_str}.yaml"),
                 )
-                _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+                yaml_dict = _set_catalog_yaml_version_bounds(
+                    yaml_dict, version, version
+                )
             elif (
                 yaml_dict["sources"]["access_nri"]["metadata"]["storage"]
                 != yaml_old["sources"]["access_nri"]["metadata"]["storage"]
@@ -289,7 +291,7 @@ def build():
                 yaml_dict["sources"]["access_nri"]["parameters"]["version"].get("min")
                 is None
             ):
-                _set_catalog_yaml_version_bounds(
+                yaml_dict = _set_catalog_yaml_version_bounds(
                     yaml_dict,
                     min(
                         version,
@@ -314,24 +316,28 @@ def build():
                 v for v in existing_vers if re.match(CATALOG_NAME_FORMAT, v)
             ]
             if len(existing_vers) > 0:
-                _set_catalog_yaml_version_bounds(
+                yaml_dict = _set_catalog_yaml_version_bounds(
                     yaml_dict,
                     min(min(existing_vers), version),
                     max(max(existing_vers), version),
                 )
             else:
-                _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+                yaml_dict = _set_catalog_yaml_version_bounds(
+                    yaml_dict, version, version
+                )
 
         with Path(get_catalog_fp(basepath=catalog_base_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
 
-def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str):
+def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:
     """
     Set the version boundaries for the access_nri_intake_catalog.
     """
     d["sources"]["access_nri"]["parameters"]["version"]["min"] = bl
     d["sources"]["access_nri"]["parameters"]["version"]["max"] = bu
+
+    return d
 
 
 def _combine_storage_flags(a: str, b: str) -> str:
