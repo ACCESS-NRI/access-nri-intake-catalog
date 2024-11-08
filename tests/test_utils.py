@@ -216,6 +216,20 @@ def test_bad_metadata_validation_raises(test_data, instance, no_errs, bad_kw):
         assert f"| {kw}" in err_msg, f"Can't see expected specific error for {kw}"
 
 
+@mock.patch("os.path.isfile")
+@pytest.mark.parametrize("isfile_return", [True, False])
+@pytest.mark.parametrize(
+    "basepath",
+    [
+        "/path/like/string",
+        Path("/path/like/string"),
+    ],
+)
+def test_get_catalog_fp_basepath(mock_isfile, isfile_return, basepath):
+    mock_isfile.return_value = isfile_return
+    assert str(get_catalog_fp(basepath=basepath)) == "/path/like/string/catalog.yaml"
+
+
 @mock.patch("os.path.isfile", return_value=True)
 def test_get_catalog_fp_local(mock_isfile):
     """

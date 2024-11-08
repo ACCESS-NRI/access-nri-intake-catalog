@@ -110,6 +110,7 @@ def test_check_build_args(args, raises):
             "config/cmip5.yaml",
         ],
         build_base_path=None,  # Use pytest fixture here?
+        catalog_base_path=None,
         catalog_file="cat.csv",
         version=None,
         no_update=True,
@@ -126,6 +127,7 @@ def test_build(mockargs, version, test_data):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
+    mockargs.return_value.catalog_base_path = mockargs.return_value.build_base_path
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.version = version
@@ -154,6 +156,7 @@ def test_build(mockargs, version, test_data):
             "config/cmip5.yaml",
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        catalog_base_path=tempfile.TemporaryDirectory().name,
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=True,
@@ -195,6 +198,7 @@ def test_build_bad_version(mockargs, bad_vers, test_data):
             "config/cmip5.yaml",
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -227,6 +231,7 @@ def test_build_bad_metadata(mockargs, get_catalog_fp, test_data):
             "config/cmip5.yaml",
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -280,6 +285,7 @@ def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
             # "config/cmip5.yaml",  # Save this for addition
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -335,6 +341,7 @@ def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data):
             "config/cmip5.yaml",
         ],
         build_base_path=None,
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -405,6 +412,7 @@ def test_build_existing_data(mockargs, get_catalog_fp, test_data, min_vers, max_
             # "config/cmip5.yaml",  # Save this for addition
         ],
         build_base_path=None,  # Use pytest fixture here?
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -511,6 +519,7 @@ def test_build_repeat_renamecatalogyaml(
             # "config/cmip5.yaml",  # Save this for addition
         ],
         build_base_path=None,  # Use pytest fixture here?
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -614,6 +623,7 @@ def test_build_repeat_altercatalogstruct(
             # "config/cmip5.yaml",  # Save this for addition
         ],
         build_base_path=None,  # Use pytest fixture here?
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         catalog_file=None,
         version="v2024-01-01",
         no_update=False,

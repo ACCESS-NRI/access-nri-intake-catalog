@@ -14,6 +14,7 @@ import jsonschema
 import yaml
 from intake import open_esm_datastore
 
+from . import CATALOG_LOCATION
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
@@ -131,6 +132,17 @@ def build():
     )
 
     parser.add_argument(
+        "--catalog_base_path",
+        type=str,
+        default=os.path.dirname(CATALOG_LOCATION),
+        help=(
+            "Directory in which to place the catalog.yaml file. This file is the descriptor of the catalog, "
+            "and provides references to the data locations where the catalog data itself is stored (build_base_path). "
+            "Defaults to the package default catalog location, i.e., access_nri_intake.CATALOG_LOCATION."
+        ),
+    )
+
+    parser.add_argument(
         "--catalog_file",
         type=str,
         default="metacatalog.csv",
@@ -158,6 +170,7 @@ def build():
     args = parser.parse_args()
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
+    catalog_base_path = args.catalog_base_path
     catalog_file = args.catalog_file
     version = args.version
     update = not args.no_update
@@ -223,7 +236,7 @@ def build():
     cm.save()
 
     if update:
-        cat_loc = get_catalog_fp()
+        cat_loc = get_catalog_fp(basepath=catalog_base_path)
 
         # See if there's an existing catalog
         if os.path.exists(cat_loc):
@@ -309,7 +322,7 @@ def build():
             else:
                 _set_catalog_yaml_version_bounds(yaml_dict, version, version)
 
-        with Path(get_catalog_fp()).open(mode="w") as fobj:
+        with Path(get_catalog_fp(basepath=catalog_base_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
 

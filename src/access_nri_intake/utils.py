@@ -6,6 +6,7 @@
 import json
 import os
 from importlib import resources as rsr
+from pathlib import Path
 from warnings import warn
 
 import jsonschema
@@ -137,7 +138,11 @@ def _can_be_array(field):
     return is_array
 
 
-def get_catalog_fp():
+def get_catalog_fp(basepath=None):
+    if basepath is not None:
+        if basepath is not Path:
+            basepath = Path(basepath)
+        return basepath / "catalog.yaml"
     if os.path.isfile(USER_CATALOG_LOCATION):
         return USER_CATALOG_LOCATION
     return CATALOG_LOCATION
