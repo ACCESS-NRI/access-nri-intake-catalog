@@ -140,7 +140,7 @@ def _can_be_array(field):
 
 def get_catalog_fp(basepath=None):
     if basepath is not None:
-        if basepath is not Path:
+        if not isinstance(basepath, Path):
             basepath = Path(basepath)
         return basepath / "catalog.yaml"
     if os.path.isfile(USER_CATALOG_LOCATION):
