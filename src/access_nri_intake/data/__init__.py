@@ -16,7 +16,8 @@ try:
     data = intake.open_catalog(get_catalog_fp()).access_nri
 except FileNotFoundError:
     warnings.warn(
-        "Unable to access catalog location. Calling intake.cat.access_nri will not work.",
+        "Unable to access a default catalog location. Calling intake.cat.access_nri will not work.",
         RuntimeWarning,
+        stacklevel=2,
     )
     data = intake.catalog.Catalog()
