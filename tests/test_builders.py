@@ -370,6 +370,60 @@ def test_builder_columns_with_iterables(test_data):
                 None,
             ),
         ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
+                "1900",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
+                "1900-01-01-00000",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
+                "1900-01",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "1900-01-03-00000",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX",
+                "1900",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
+                "1900-01",
+                None,
+            ),
+        ),
     ],
 )
 def test_parse_access_filename(builder, filename, expected):
