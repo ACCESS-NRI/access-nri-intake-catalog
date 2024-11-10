@@ -21,6 +21,7 @@ FREQUENCIES = {
     "_dai$": (1, "day"),
     "month": (1, "mon"),
     "_mon$": (1, "mon"),
+    "1mon": (1, "mon"),
     "yearly": (1, "yr"),
     "_ann$": (1, "yr"),
 }
