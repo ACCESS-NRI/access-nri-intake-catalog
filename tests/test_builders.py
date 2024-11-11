@@ -304,55 +304,127 @@ def test_builder_columns_with_iterables(test_data):
         # Example ACCESS-OM3 filenames
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA_WD.ww3.hi.1958-01-02-00000",
+            "access-om3.ww3.hi.1958-01-02-00000",
             (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "access_om3_ww3_hi_XXXX_XX_XX_XXXXX",
                 "1958-01-02-00000",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.cice.h.1900-01-01",
+            "access-om3.cice.h.1900-01-01",
             (
-                "GMOM_JRA_cice_h_XXXX_XX_XX",
+                "access_om3_cice_h_XXXX_XX_XX",
                 "1900-01-01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.ocean_sfc_1900_01_01",
+            "access-om3.cice.h.1900-01",
             (
-                "GMOM_JRA_mom6_ocean_sfc_XXXX_XX_XX",
+                "access_om3_cice_h_XXXX_XX",
+                "1900-01",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.cice.h.1900-01-daily",
+            (
+                "access_om3_cice_h_XXXX_XX_daily",
+                "1900-01",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.ocean_sfc_1900_01_01",
+            (
+                "access_om3_mom6_ocean_sfc_XXXX_XX_XX",
                 "1900_01_01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.sfc_1900_01_01",
+            "access-om3.mom6.sfc_1900_01",
             (
-                "GMOM_JRA_mom6_sfc_XXXX_XX_XX",
-                "1900_01_01",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.sfc_1900_01",
-            (
-                "GMOM_JRA_mom6_sfc_XXXX_XX",
+                "access_om3_mom6_sfc_XXXX_XX",
                 "1900_01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.static",
+            "access-om3.mom6.sfc_1900",
             (
-                "GMOM_JRA_mom6_static",
+                "access_om3_mom6_sfc_XXXX",
+                "1900",
                 None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.static",
+            (
+                "access_om3_mom6_static",
+                None,
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
+                "1900",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
+                "1900-01-01-00000",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
+                "1900-01",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "1900-01-03-00000",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX",
+                "1900",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
+                "1900-01",
                 None,
             ),
         ),
