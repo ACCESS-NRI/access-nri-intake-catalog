@@ -14,7 +14,6 @@ import jsonschema
 import yaml
 from intake import open_esm_datastore
 
-from . import CATALOG_LOCATION
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
@@ -134,11 +133,11 @@ def build():
     parser.add_argument(
         "--catalog_base_path",
         type=str,
-        default=os.path.dirname(CATALOG_LOCATION),
+        default="./",
         help=(
             "Directory in which to place the catalog.yaml file. This file is the descriptor of the catalog, "
             "and provides references to the data locations where the catalog data itself is stored (build_base_path). "
-            "Defaults to the package default catalog location, i.e., access_nri_intake.CATALOG_LOCATION."
+            "Defaults to the current work directory."
         ),
     )
 
