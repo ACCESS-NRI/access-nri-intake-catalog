@@ -115,7 +115,7 @@ Catalog versioning
 
 .. note:: 
    
-   New in version 0.14.
+   New in version 0.1.4.
 
 Catalog versions (as distinct from the package version of :code:`access_nri_intake_catalog`) are a date-formatted string, 
 e.g., :code:`v2024-11-29`.
@@ -148,4 +148,4 @@ the catalog reference YAML (:code:`catalog.yaml`) as follows:
 
 :code:`access_nri_intake_catalog` only links a singular :code:`catalog.yaml` to the entry point :code:`intake.cat.access_nri`; either the 
 user's local version, or if that does not exist, the live version on Gadi (see :ref:`faq`). To load outdated catalogs from Gadi, we recommend 
-copying the :code:`catalog-<old min version>-<old max version>.yaml` to :code:`~/access_nri_intake_catalog/catalog.yaml`.
+copying the :code:`catalog-<old min version>-<old max version>.yaml` to :code:`~/.access_nri_intake_catalog/catalog.yaml`.
