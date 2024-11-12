@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Command line interfaces for access-nri-intake """
+"""Command line interfaces for access-nri-intake"""
 
 import argparse
 import datetime
@@ -249,23 +249,31 @@ def build():
             # - driver
             # If these have changed, we need to move the old catalog aside,
             # labelled with its min and max version numbers
-            if (
-                yaml_dict["sources"]["access_nri"]["args"]
-                != yaml_old["sources"]["access_nri"]["args"]
-                or yaml_dict["sources"]["access_nri"]["driver"]
-                != yaml_old["sources"]["access_nri"]["driver"]
-            ):
+
+            args_new, args_old = (
+                yaml_dict["sources"]["access_nri"]["args"],
+                yaml_old["sources"]["access_nri"]["args"],
+            )
+            driver_new, driver_old = (
+                yaml_dict["sources"]["access_nri"]["driver"],
+                yaml_old["sources"]["access_nri"]["driver"],
+            )
+            vmin_old, vmax_old = (
+                yaml_old["sources"]["access_nri"]["parameters"]["version"]["min"],
+                yaml_old["sources"]["access_nri"]["parameters"]["version"]["max"],
+            )
+            storage_new, storage_old = (
+                yaml_dict["sources"]["access_nri"]["metadata"]["storage"],
+                yaml_old["sources"]["access_nri"]["metadata"]["storage"],
+            )
+
+            if args_new != args_old or driver_new != driver_old:
                 # Move the old catalog out of the way
                 # New catalog.yaml will have restricted version bounds
-                if (
-                    yaml_old["sources"]["access_nri"]["parameters"]["version"]["min"]
-                    == yaml_old["sources"]["access_nri"]["parameters"]["version"]["max"]
-                ):
-                    vers_str = yaml_old["sources"]["access_nri"]["parameters"][
-                        "version"
-                    ]["min"]
+                if vmin_old == vmax_old:
+                    vers_str = vmin_old
                 else:
-                    vers_str = f'{yaml_old["sources"]["access_nri"]["parameters"]["version"]["min"]}-{yaml_old["sources"]["access_nri"]["parameters"]["version"]["max"]}'
+                    vers_str = f"{vmin_old}-{vmax_old}"
                 os.rename(
                     cat_loc,
                     os.path.join(os.path.dirname(cat_loc), f"catalog-{vers_str}.yaml"),
@@ -273,15 +281,9 @@ def build():
                 yaml_dict = _set_catalog_yaml_version_bounds(
                     yaml_dict, version, version
                 )
-            elif (
-                yaml_dict["sources"]["access_nri"]["metadata"]["storage"]
-                != yaml_old["sources"]["access_nri"]["metadata"]["storage"]
-            ):
-                yaml_dict["sources"]["access_nri"]["metadata"][
-                    "storage"
-                ] = _combine_storage_flags(
-                    yaml_dict["sources"]["access_nri"]["metadata"]["storage"],
-                    yaml_old["sources"]["access_nri"]["metadata"]["storage"],
+            elif storage_new != storage_old:
+                yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
+                    _combine_storage_flags(storage_new, storage_old)
                 )
 
             # Set the minimum and maximum catalog versions, if they're not set already
@@ -292,18 +294,8 @@ def build():
             ):
                 yaml_dict = _set_catalog_yaml_version_bounds(
                     yaml_dict,
-                    min(
-                        version,
-                        yaml_old["sources"]["access_nri"]["parameters"]["version"][
-                            "min"
-                        ],
-                    ),
-                    max(
-                        version,
-                        yaml_old["sources"]["access_nri"]["parameters"]["version"][
-                            "max"
-                        ],
-                    ),
+                    min(version, vmin_old),
+                    max(version, vmax_old),
                 )
 
         else:
