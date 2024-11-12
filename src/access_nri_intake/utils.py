@@ -1,14 +1,18 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" General utility functions  for access-rni-intake """
+"""General utility functions for access-rni-intake"""
 
 import json
+import os
 from importlib import resources as rsr
+from pathlib import Path
 from warnings import warn
 
 import jsonschema
 import yaml
+
+from . import CATALOG_LOCATION, USER_CATALOG_LOCATION
 
 
 def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
@@ -134,5 +138,19 @@ def _can_be_array(field):
     return is_array
 
 
-def get_catalog_fp():
-    return rsr.files("access_nri_intake").joinpath("data/catalog.yaml")
+def get_catalog_fp(basepath=None):
+    if basepath is not None:
+        if not isinstance(basepath, Path):
+            basepath = Path(basepath)
+        return basepath / "catalog.yaml"
+    if os.path.isfile(USER_CATALOG_LOCATION):
+        warn(
+            (
+                "User defined catalog found in `$HOME/.access_nri_intake_catalog`. "
+                "Remove this file to use default catalog."
+            ),
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return USER_CATALOG_LOCATION
+    return CATALOG_LOCATION

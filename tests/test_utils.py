@@ -3,13 +3,16 @@
 
 import datetime
 from pathlib import Path
+from unittest import mock
 
 import jsonschema
 import pytest
 import yaml
 
+from access_nri_intake import CATALOG_LOCATION, USER_CATALOG_LOCATION
 from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.utils import (
+    get_catalog_fp,
     get_jsonschema,
     load_metadata_yaml,
     validate_against_schema,
@@ -211,3 +214,33 @@ def test_bad_metadata_validation_raises(test_data, instance, no_errs, bad_kw):
     ), "Can't see the right number of errors!"
     for kw in bad_kw:
         assert f"| {kw}" in err_msg, f"Can't see expected specific error for {kw}"
+
+
+@mock.patch("os.path.isfile")
+@pytest.mark.parametrize("isfile_return", [True, False])
+@pytest.mark.parametrize(
+    "basepath",
+    [
+        "/path/like/string",
+        Path("/path/like/string"),
+    ],
+)
+def test_get_catalog_fp_basepath(mock_isfile, isfile_return, basepath):
+    mock_isfile.return_value = isfile_return
+    assert str(get_catalog_fp(basepath=basepath)) == "/path/like/string/catalog.yaml"
+
+
+@mock.patch("os.path.isfile", return_value=True)
+def test_get_catalog_fp_local(mock_isfile):
+    """
+    Check that we get pointed back to the user catalog
+    """
+    assert get_catalog_fp() == USER_CATALOG_LOCATION
+
+
+@mock.patch("os.path.isfile", return_value=False)
+def test_get_catalog_fp_xp65(mock_isfile):
+    """
+    Check that we get pointed back to the user catalog
+    """
+    assert get_catalog_fp() == CATALOG_LOCATION

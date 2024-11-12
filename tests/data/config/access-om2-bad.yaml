@@ -1,0 +1,9 @@
+builder: AccessOm2Builder
+
+translator: DefaultTranslator
+
+sources:
+
+  - path:
+      - tests/data/access-om2
+    metadata_yaml: tests/data/access-om2/metadata-bad.yaml
