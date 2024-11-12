@@ -38,6 +38,7 @@ metadata-template = "access_nri_intake.cli:metadata_template"
 
 [project.entry-points."intake.catalogs"]
 access_nri = "access_nri_intake.data:data"
+user_def = "access_nri_intake.data:user_data"
 
 [build-system]
 build-backend = "setuptools.build_meta"

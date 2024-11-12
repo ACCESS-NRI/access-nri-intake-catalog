@@ -14,6 +14,7 @@ CATALOG_NAME_FORMAT = (
 
 try:
     data = intake.open_catalog(get_catalog_fp()).access_nri
+    user_data = intake.open_catalog(get_catalog_fp()).user_def
 except FileNotFoundError:
     warnings.warn(
         "Unable to access catalog location. Calling intake.cat.access_nri will not work.",
