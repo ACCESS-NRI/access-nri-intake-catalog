@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import glob
 import os
 import shutil
 import tempfile
@@ -482,8 +483,10 @@ def test_build_existing_data_existing_old_cat(
         cat_yaml["sources"]["access_nri"]["metadata"]["storage"]
         == "gdata/al33+gdata/dc19+gdata/fs38+gdata/oi10+gdata/tm70"
     )
-
-    # import pdb; pdb.set_trace()
+    # Make sure the old catalog vanished (i.e. there's only one)
+    assert (
+        len(glob.glob(mockargs.return_value.build_base_path + "/*.yaml")) == 1
+    ), "Found more than one catalog remains!"
 
 
 @mock.patch("access_nri_intake.cli.get_catalog_fp")
