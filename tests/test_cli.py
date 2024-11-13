@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import shutil
 import tempfile
 from pathlib import Path
 from unittest import mock
@@ -331,7 +332,6 @@ def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data):
     assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
 
 
-# @pytest.mark.skip()
 @mock.patch("access_nri_intake.cli.get_catalog_fp")
 @mock.patch(
     "argparse.ArgumentParser.parse_args",
@@ -401,6 +401,89 @@ def test_build_existing_data(mockargs, get_catalog_fp, test_data, min_vers, max_
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == mockargs.return_value.version
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {mockargs.return_value.version}'
+
+
+@mock.patch("access_nri_intake.cli.get_catalog_fp")
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        config_yaml=[
+            "config/access-om2.yaml",
+            "config/cmip5.yaml",
+        ],
+        build_base_path=None,
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        catalog_file="cat.csv",
+        version="v2024-01-01",
+        no_update=False,
+    ),
+)
+@pytest.mark.parametrize(
+    "min_vers,max_vers",
+    [
+        ("v2001-01-01", "v2099-01-01"),
+        (None, "v2099-01-01"),
+        ("v2001-01-01", None),
+    ],
+)
+def test_build_existing_data_existing_old_cat(
+    mockargs, get_catalog_fp, test_data, min_vers, max_vers
+):
+    """
+    Test if the build process can handle min and max catalog
+    versions when a old-style catalog.yaml exists
+    """
+    # New temp directory for each test
+    mockargs.return_value.build_base_path = (
+        tempfile.TemporaryDirectory().name
+    )  # Use pytest fixture here?
+    # Update the config_yaml paths
+    for i, p in enumerate(mockargs.return_value.config_yaml):
+        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+
+    # Write the catalog.yamls to where the catalogs go
+    get_catalog_fp.return_value = os.path.join(
+        mockargs.return_value.build_base_path, "catalog.yaml"
+    )
+
+    # Put dummy version folders into the tempdir
+    if min_vers is not None:
+        os.makedirs(
+            os.path.join(mockargs.return_value.build_base_path, min_vers),
+            exist_ok=False,
+        )
+    if max_vers is not None:
+        os.makedirs(
+            os.path.join(mockargs.return_value.build_base_path, max_vers),
+            exist_ok=False,
+        )
+
+    # Copy the test data old-style catalog yaml to this location
+    shutil.copy(test_data / "catalog/catalog-orig.yaml", get_catalog_fp.return_value)
+
+    build()
+
+    with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
+        cat_yaml = yaml.safe_load(fobj)
+
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
+        min_vers if min_vers is not None else mockargs.return_value.version
+    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else mockargs.return_value.version}'
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
+        max_vers if max_vers is not None else mockargs.return_value.version
+    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else mockargs.return_value.version}'
+    # Default should always be the newly-built version
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == mockargs.return_value.version
+    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {mockargs.return_value.version}'
+    # Make sure the catalog storage flags were correctly merged
+    assert (
+        cat_yaml["sources"]["access_nri"]["metadata"]["storage"]
+        == "gdata/al33+gdata/dc19+gdata/fs38+gdata/oi10+gdata/tm70"
+    )
+
+    # import pdb; pdb.set_trace()
 
 
 @mock.patch("access_nri_intake.cli.get_catalog_fp")

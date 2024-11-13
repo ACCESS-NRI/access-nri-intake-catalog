@@ -347,7 +347,9 @@ def _combine_storage_flags(a: str, b: str) -> str:
     """
     aflags = re.findall(STORAGE_FLAG_PATTERN, a)
     bflags = re.findall(STORAGE_FLAG_PATTERN, b)
-    return "+".join(set(aflags + bflags))
+    # Sorting the return aids in testing & comparison,
+    # plus makes it more human-readable/human-searchable
+    return "+".join(sorted(list(set(aflags + bflags))))
 
 
 def metadata_validate():
