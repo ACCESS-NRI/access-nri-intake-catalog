@@ -8,7 +8,6 @@ from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerErro
 from access_nri_intake.catalog.translators import (
     Cmip5Translator,
     Cmip6Translator,
-    EraiTranslator,
 )
 from access_nri_intake.source.builders import (
     AccessCm2Builder,
@@ -78,7 +77,6 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
     [
         (Cmip5Translator, "cmip5-al33.json", {}),
         (Cmip6Translator, "cmip6-oi10.json", {}),
-        (EraiTranslator, "erai.json", {"model": ["ERA-Interim"]}),
     ],
 )
 def test_CatalogManager_load(tmp_path, test_data, translator, datastore, metadata):
