@@ -1,9 +1,0 @@
-builder: null
-
-translator: EraiTranslator
-
-sources:
-
-  - metadata_yaml: /g/data/tm70/intake/metadata/erai/metadata.yaml
-    path:
-      - /g/data/hh5/public/apps/nci-intake-catalogue/erai/catalogue.json

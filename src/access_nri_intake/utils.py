@@ -1,14 +1,18 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" General utility functions  for access-rni-intake """
+"""General utility functions for access-rni-intake"""
 
 import json
+import os
 from importlib import resources as rsr
+from pathlib import Path
 from warnings import warn
 
 import jsonschema
 import yaml
+
+from . import CATALOG_LOCATION, USER_CATALOG_LOCATION
 
 
 def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
@@ -102,7 +106,18 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
         Validator, type_checker=type_checker
     )
 
-    TupleAllowingValidator(schema).validate(instance)
+    issues = list(TupleAllowingValidator(schema).iter_errors(instance))
+
+    if len(issues) > 0:
+        issue_str = ""
+        for i, issue in enumerate(issues, start=1):
+            try:
+                issue_str += f"\n{i:02d} | {issue.absolute_path[0]} : { issue.message }"
+            except IndexError:  # Must be a missing keyword, not a bad type/value
+                issue_str += f"\n{i:02d} | (missing) : { issue.message }"
+        raise jsonschema.ValidationError(issue_str)
+
+    return
 
 
 def _can_be_array(field):
@@ -123,5 +138,19 @@ def _can_be_array(field):
     return is_array
 
 
-def get_catalog_fp():
-    return rsr.files("access_nri_intake").joinpath("data/catalog.yaml")
+def get_catalog_fp(basepath=None):
+    if basepath is not None:
+        if not isinstance(basepath, Path):
+            basepath = Path(basepath)
+        return basepath / "catalog.yaml"
+    if os.path.isfile(USER_CATALOG_LOCATION):
+        warn(
+            (
+                "User defined catalog found in `$HOME/.access_nri_intake_catalog`. "
+                "Remove this file to use default catalog."
+            ),
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return USER_CATALOG_LOCATION
+    return CATALOG_LOCATION

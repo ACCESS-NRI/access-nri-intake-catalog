@@ -1,0 +1,5 @@
+sources:
+  access_nri:
+    args:
+      path: /this/is/root/path/{{version}}/this/is/after/path
+

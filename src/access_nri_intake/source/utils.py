@@ -7,7 +7,7 @@ import warnings
 from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 import cftime
 import xarray as xr
@@ -35,7 +35,7 @@ class _AccessNCFileInfo:
     filename: Union[str, Path]
     file_id: str
     path: str
-    filename_timestamp: Union[str, None]
+    filename_timestamp: Optional[str]
     frequency: str
     start_date: str
     end_date: str
@@ -141,7 +141,7 @@ def _guess_start_end_dates(ts, te, frequency):
 
 def get_timeinfo(
     ds: xr.Dataset,
-    filename_frequency: Union[str, None],
+    filename_frequency: Optional[str],
     time_dim: str,
 ) -> tuple[str, str, str]:
     """
@@ -179,7 +179,7 @@ def get_timeinfo(
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
     te = None
-    frequency: Union[str, tuple[Union[int, None], str]] = FREQUENCY_STATIC
+    frequency: Union[str, tuple[Optional[int], str]] = FREQUENCY_STATIC
     has_time = time_dim in ds
 
     if has_time:

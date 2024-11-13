@@ -27,6 +27,7 @@ FREQUENCIES: dict[str, tuple[int, str]] = {
     "_dai$": (1, "day"),
     "month": (1, "mon"),
     "_mon$": (1, "mon"),
+    "1mon": (1, "mon"),
     "yearly": (1, "yr"),
     "annual": (1, "yr"),
     "_ann$": (1, "yr"),
@@ -38,10 +39,10 @@ PATTERNS_HELPERS = {
     "om3_components": "(?:cice|mom6|ww3)",
     "mom6_components": "(?:ocean|ice)",
     "mom6_added_timestamp": "(\\d{4}_\\d{3})",
-    "ymds": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}",
-    "ymd": "\\d{4}[_,-]\\d{2}[_,-]\\d{2}",
+    "ymds": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}[_,\\-]\\d{5}",
+    "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
     "ymd-ns": "\\d{4}\\d{2}\\d{2}",
-    "ym": "\\d{4}[_,-]\\d{2}",
+    "ym": "\\d{4}[_,\\-]\\d{2}",
     "y": "\\d{4}",
 }
 
@@ -330,7 +331,7 @@ class BaseBuilder(Builder):
         ) as ds:
             dvars = _VarInfo()
 
-            for var in ds.data_vars:
+            for var in ds.variables:
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
@@ -421,7 +422,7 @@ class AccessOm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM3 COSIMA datasets"""
 
     PATTERNS = [
-        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-OM3
+        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
     ]
 
     def __init__(self, path):
