@@ -1,4 +1,4 @@
-name: access-nri
+name: access-nri-intake-test
 channels:
   - conda-forge
   - accessnri
