@@ -16,7 +16,7 @@ classifiers = [
 dependencies = [
     "cftime",
     "ecgtools>=2023.7.13",
-    "intake==0.7.0",
+    "intake>=0.7.0",
     "intake-dataframe-catalog>=0.2.4",
     "intake-esm>=2023.11.10",
     "jsonschema",
@@ -24,6 +24,12 @@ dependencies = [
     "xarray",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "tox",
+] 
 
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"
@@ -58,13 +64,10 @@ versionfile_build = "access_nri_intake/_version.py"
 tag_prefix = "v"
 parentdir_prefix = "access-nri-intake-"
 
-[tool.pytest.ini_options]
-addopts = "--cov=./src --cov-report=xml"
-
 [tool.coverage.run]
 omit = [
-    "src/access_nri_intake/_version.py",
-    "src/access_nri_intake/data/__init__.py",
+    "*/_version.py",
+    "*/data/__init__.py",
 ]
 
 [tool.ruff]

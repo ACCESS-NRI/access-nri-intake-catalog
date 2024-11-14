@@ -8,15 +8,15 @@ sources:
       - variable
       mode: r
       name_column: name
-      path: /g/data/ua8/Working/packages/access-nri-intake-catalog/{{version}}/metacatalog.csv
+      path: /g/data/xp65/public/apps/access-nri-intake-catalog/{{version}}/metacatalog.csv
       yaml_column: yaml
     description: ACCESS-NRI intake catalog
     driver: intake_dataframe_catalog.core.DfFileCatalog
     metadata:
-      storage: gdata/ua8
+      storage: gdata/al33+gdata/cj50+gdata/dk92+gdata/fs38+gdata/ik11+gdata/oi10+gdata/p73+gdata/rr3+gdata/xp65
       version: '{{version}}'
     parameters:
       version:
-        default: v0+untagged.399.g7b2d5aa.dirty
+        default: latest0
         description: Catalog version
         type: str

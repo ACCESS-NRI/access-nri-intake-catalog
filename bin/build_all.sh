@@ -30,12 +30,12 @@ module load conda/access-med-0.6
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog
 CONFIG_DIR=/g/data/xp65/admin/access-nri-intake-catalog/config
-CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ) # erai.yaml
+CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml )
 
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
 
 if [ -z "$version" ]; then
-    catalog-build --build_base_path=${OUTPUT_BASE_PATH} ${config_paths[@]}
+    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} ${config_paths[@]}
 else
-    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --version=${version} ${config_paths[@]}
+    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} --version=${version} ${config_paths[@]}
 fi

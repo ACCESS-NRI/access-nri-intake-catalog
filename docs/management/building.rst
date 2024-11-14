@@ -8,28 +8,33 @@ catalogs using the tools described in the previous sections from :ref:`config_fi
 paths to sources and which Builders and Translators to use. It can be used as follows::
 
    $ catalog-build --help
-   usage: catalog-build [-h] [--build_base_path BUILD_BASE_PATH] [--catalog_file CATALOG_FILE]
-                        [--version VERSION]
-                        config_yaml [config_yaml ...]
+   usage: catalog-build [-h] [--build_base_path BUILD_BASE_PATH] [--catalog_base_path CATALOG_BASE_PATH] 
+      [--catalog_file CATALOG_FILE] [--version VERSION] [--no_update] config_yaml [config_yaml ...]
 
    Build an intake-dataframe-catalog from YAML configuration file(s).
-   
+
    positional arguments:
-     config_yaml           Configuration YAML file(s) specifying the Intake source(s) to add.
+   config_yaml           Configuration YAML file(s) specifying the Intake source(s) to add.
 
    options:
-     -h, --help            show this help message and exit
-     --build_base_path BUILD_BASE_PATH
-                           Directory in which to build the catalog and source(s). A directory with name
-                           equal to the version (see the `--version` argument) of the catalog being built
-                           will be created here. The catalog file (see the `--catalog_file` argument) will
-                           be written into this version directory, and any new intake source(s) will be
-                           written into a 'source' directory within the version directory. Defaults to the
-                           current work directory.
-     --catalog_file CATALOG_FILE
-                           The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'
-     --version VERSION     The version of the catalog to build/add to. Defaults to the current version of
-                           access-nri-intake.
+      -h, --help            show this help message and exit
+      --build_base_path BUILD_BASE_PATH
+                              Directory in which to build the catalog and source(s). A directory 
+                              with name equal to the version (see the `--version` argument) of 
+                              the catalog being built will be created here. The catalog file 
+                              (see the `--catalog_file` argument) will be written into this version 
+                              directory, and any new intake source(s) will be written into a 
+                              'source' directory within the version directory. 
+                              Defaults to the current work directory.
+      --catalog_base_path CATALOG_BASE_PATH
+                              Directory in which to place the catalog.yaml file. This file is the 
+                              descriptor of the catalog, and provides references to the data locations 
+                              where the catalog data itself is stored (build_base_path). 
+                              Defaults to the current work directory.
+      --catalog_file CATALOG_FILE
+                              The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'
+      --version VERSION     The version of the catalog to build/add to. Defaults to the current date.
+      --no_update           Set this if you don't want to update the access_nri_intake.data (e.g. if running a test)
 
 The ACCESS-NRI catalog is built using this script by submitting the :code:`build_all.sh` shell script 
 in the :code:`bin/` directory of https://github.com/ACCESS-NRI/access-nri-intake-catalog. See the section 
@@ -102,3 +107,45 @@ find, even if they aren't using the catalog (but it doesn't have to).
    * To validate a :code:`metadata.yaml` file (i.e. to check that required fields are present with required types)::
 
       $ metadata-validate <path/to/metadata.yaml>
+
+.. _versioning:
+
+Catalog versioning
+^^^^^^^^^^^^^^^^^^
+
+.. note:: 
+   
+   New in version 0.1.4.
+
+Catalog versions (as distinct from the package version of :code:`access_nri_intake_catalog`) are a date-formatted string, 
+e.g., :code:`v2024-11-29`.
+
+When a new catalog version is built (see :ref:`release`), the build script will analyze both the catalog storage directory
+defined by :code:`--build_base_path`, and the catalog YAML location defined by :code:`--catalog_base_path`, and then create or update 
+the catalog reference YAML (:code:`catalog.yaml`) as follows:
+
+1. If no :code:`catalog.yaml` exists in :code:`--catalog_base_path`, then a new one will be created, with the default catalog version
+   set to the new catalog version. The minimum and maximum supported catalog versions will be calculated as follows:
+
+   a. If there are no directories or symlinks in :code:`--build_base_path` that match the version naming schema, it is assumed that 
+      no other catalog versions exists, and the minimum/maximum catalog version will be set to the new version;
+   b. If there are existing catalog directories in :code:`--build_base_path`, the build system will assume that those catalogs
+      are compatible with the new catalog, and will compute a minimum and maximum catalog version to encompass those 
+      existing directories (i.e., the minimum and maximum catalog version in :code:`catalog.yaml` will be the minimum and maximum 
+      catalog versions currently in :code:`--build_base_path`, modulo the new version number).
+
+2. If a :code:`catalog.yaml` exists in :code:`--catalog_base_path`, and the newly-built catalog appears to have a consistent structure 
+   and schema to that defined in the existing :code:`catalog.yaml`, then the existing :code:`catalog.yaml` will be updated to have new default
+   and maximum versions equal to the new catalog version; the previous minimum version will not be altered. The presence/absence of 
+   catalog directories in :code:`--build-base-path` will not be considered.
+
+3. If a :code:`catalog.yaml` exists in :code:`--catalog_base_path`, but the newly-built catalog has a different structure/schema to 
+   what's defined in the existing catalog, then a brand-new :code:`catalog.yaml` will be created, describing the new catalog structure,
+   and setting all versions (minimum, maximum, default) to the new catalog version. The existing :code:`catalog.yaml` will be renamed to
+   :code:`catalog-<old min version>-<old max version>.yaml`, or :code:`catalog-<version>.yaml` if it only supported a single 
+   catalog version. The presence/absence of catalog directories in :code:`--build-base-path` 
+   will not be considered.
+
+:code:`access_nri_intake_catalog` only links a singular :code:`catalog.yaml` to the entry point :code:`intake.cat.access_nri`; either the 
+user's local version, or if that does not exist, the live version on Gadi (see :ref:`faq`). To load outdated catalogs from Gadi, we recommend 
+copying the :code:`catalog-<old min version>-<old max version>.yaml` to :code:`~/.access_nri_intake_catalog/catalog.yaml`.

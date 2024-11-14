@@ -6,6 +6,9 @@ from pathlib import Path
 import intake
 import pandas as pd
 import pytest
+import xarray as xr
+from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
+from intake_esm.utils import OPTIONS
 
 from access_nri_intake.source import CORE_COLUMNS, builders
 from access_nri_intake.source.utils import _AccessNCFileInfo
@@ -302,55 +305,127 @@ def test_builder_columns_with_iterables(test_data):
         # Example ACCESS-OM3 filenames
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA_WD.ww3.hi.1958-01-02-00000",
+            "access-om3.ww3.hi.1958-01-02-00000",
             (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "access_om3_ww3_hi_XXXX_XX_XX_XXXXX",
                 "1958-01-02-00000",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.cice.h.1900-01-01",
+            "access-om3.cice.h.1900-01-01",
             (
-                "GMOM_JRA_cice_h_XXXX_XX_XX",
+                "access_om3_cice_h_XXXX_XX_XX",
                 "1900-01-01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.ocean_sfc_1900_01_01",
+            "access-om3.cice.h.1900-01",
             (
-                "GMOM_JRA_mom6_ocean_sfc_XXXX_XX_XX",
+                "access_om3_cice_h_XXXX_XX",
+                "1900-01",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.cice.h.1900-01-daily",
+            (
+                "access_om3_cice_h_XXXX_XX_daily",
+                "1900-01",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.ocean_sfc_1900_01_01",
+            (
+                "access_om3_mom6_ocean_sfc_XXXX_XX_XX",
                 "1900_01_01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.sfc_1900_01_01",
+            "access-om3.mom6.sfc_1900_01",
             (
-                "GMOM_JRA_mom6_sfc_XXXX_XX_XX",
-                "1900_01_01",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.sfc_1900_01",
-            (
-                "GMOM_JRA_mom6_sfc_XXXX_XX",
+                "access_om3_mom6_sfc_XXXX_XX",
                 "1900_01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.static",
+            "access-om3.mom6.sfc_1900",
             (
-                "GMOM_JRA_mom6_static",
+                "access_om3_mom6_sfc_XXXX",
+                "1900",
                 None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.static",
+            (
+                "access_om3_mom6_static",
+                None,
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
+                "1900",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
+                "1900-01-01-00000",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
+                "1900-01",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "1900-01-03-00000",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX",
+                "1900",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
+                "1900-01",
                 None,
             ),
         ),
@@ -360,6 +435,13 @@ def test_parse_access_filename(builder, filename, expected):
     assert builder.parse_access_filename(filename) == expected
 
 
+@pytest.mark.parametrize(
+    "compare_files",
+    [
+        (True),
+        (False),
+    ],
+)
 @pytest.mark.parametrize(
     "builder, filename, expected",
     [
@@ -1089,10 +1171,39 @@ def test_parse_access_filename(builder, filename, expected):
         ),
     ],
 )
-def test_parse_access_ncfile(test_data, builder, filename, expected):
+def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
     file = str(test_data / Path(filename))
 
     # Set the path to the test data directory
     expected.path = file
 
     assert builder.parse_access_ncfile(file) == expected
+
+    if not compare_files:
+        return None
+
+    """
+    In the rest of this test, we refer to the dataset loaded using intake-esm
+    as ie_ds and the dataset loaded directly with xarray as xr_ds.
+
+    We also need to perform some additional logic that intake-esm does to avoid
+    xr.testing.assert_equal from failing due to preprocessing differences.
+    """
+    xarray_open_kwargs = _get_xarray_open_kwargs("netcdf")
+
+    ie_ds = _open_dataset(
+        urlpath=expected.path,
+        varname=expected.variable,
+        xarray_open_kwargs=xarray_open_kwargs,
+        requested_variables=expected.variable,
+    ).compute()
+    ie_ds.set_coords(set(ie_ds.variables) - set(ie_ds.attrs[OPTIONS["vars_key"]]))
+
+    xr_ds = xr.open_dataset(file, **xarray_open_kwargs)
+
+    scalar_variables = [v for v in xr_ds.data_vars if len(xr_ds[v].dims) == 0]
+    xr_ds = xr_ds.set_coords(scalar_variables)
+
+    xr_ds = xr_ds[expected.variable]
+
+    xr.testing.assert_equal(ie_ds, xr_ds)
