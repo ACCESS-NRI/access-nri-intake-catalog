@@ -236,9 +236,10 @@ def build():
 
     if update:
         cat_loc = get_catalog_fp(basepath=catalog_base_path)
+        existing_cat = os.path.exists(cat_loc)
 
         # See if there's an existing catalog
-        if os.path.exists(cat_loc):
+        if existing_cat:
             with Path(cat_loc).open(mode="r") as fobj:
                 yaml_old = yaml.safe_load(fobj)
 
@@ -249,6 +250,11 @@ def build():
             # - driver
             # If these have changed, we need to move the old catalog aside,
             # labelled with its min and max version numbers
+            # The exception to this rule is if the old catalog doesn't have
+            # a min or max version - this makes it likely to be an old-style
+            # catalog, so we'll need to grab its storage flags, but we don't
+            # want to save it (we assume all existing catalog versions are
+            # compatible with the new one).
 
             args_new, args_old = (
                 yaml_dict["sources"]["access_nri"]["args"],
@@ -259,15 +265,19 @@ def build():
                 yaml_old["sources"]["access_nri"]["driver"],
             )
             vmin_old, vmax_old = (
-                yaml_old["sources"]["access_nri"]["parameters"]["version"]["min"],
-                yaml_old["sources"]["access_nri"]["parameters"]["version"]["max"],
+                yaml_old["sources"]["access_nri"]["parameters"]["version"].get("min"),
+                yaml_old["sources"]["access_nri"]["parameters"]["version"].get("max"),
             )
             storage_new, storage_old = (
                 yaml_dict["sources"]["access_nri"]["metadata"]["storage"],
                 yaml_old["sources"]["access_nri"]["metadata"]["storage"],
             )
 
-            if args_new != args_old or driver_new != driver_old:
+            if (
+                (args_new != args_old or driver_new != driver_old)
+                and vmin_old is not None
+                and vmax_old is not None
+            ):
                 # Move the old catalog out of the way
                 # New catalog.yaml will have restricted version bounds
                 if vmin_old == vmax_old:
@@ -294,11 +304,11 @@ def build():
             ):
                 yaml_dict = _set_catalog_yaml_version_bounds(
                     yaml_dict,
-                    min(version, vmin_old),
-                    max(version, vmax_old),
+                    min(version, vmin_old if vmin_old is not None else version),
+                    max(version, vmax_old if vmax_old is not None else version),
                 )
 
-        else:
+        if (not existing_cat) or (vmin_old is None and vmax_old is None):
             # No existing catalog, so set min = max = current version,
             # unless there are folders with the right names in the write
             # directory
@@ -337,7 +347,9 @@ def _combine_storage_flags(a: str, b: str) -> str:
     """
     aflags = re.findall(STORAGE_FLAG_PATTERN, a)
     bflags = re.findall(STORAGE_FLAG_PATTERN, b)
-    return "+".join(set(aflags + bflags))
+    # Sorting the return aids in testing & comparison,
+    # plus makes it more human-readable/human-searchable
+    return "+".join(sorted(list(set(aflags + bflags))))
 
 
 def metadata_validate():
