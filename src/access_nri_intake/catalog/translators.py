@@ -203,12 +203,7 @@ class DefaultTranslator:
         """
         Return model from dispatch_keys.model
         """
-        try:
-            return self.source.df[self._dispatch_keys.model]
-        except KeyError as exc:
-            raise TranslatorError(
-                f"Could not translate 'model' from {self.source.esmcat.catalog_file} using {self.__class__.__name__}"
-            ) from exc
+        return self.source.df[self._dispatch_keys.model]
 
     @tuplify_series
     def _frequency_translator(self) -> pd.Series:
