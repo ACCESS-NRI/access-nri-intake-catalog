@@ -1,12 +1,13 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Shared utilities for writing Intake-ESM builders and their parsers """
+"""Shared utilities for writing Intake-ESM builders and their parsers"""
 
-import re
 import warnings
-from datetime import timedelta, datetime
+from dataclasses import asdict, dataclass, field
+from datetime import timedelta
 from pathlib import Path
+from typing import Optional, Union
 
 import cftime
 import xarray as xr
@@ -16,7 +17,81 @@ class EmptyFileError(Exception):
     pass
 
 
-def _add_month_start(time, n):
+@dataclass
+class _AccessNCFileInfo:
+    """
+    Holds information about a NetCDF file that is used to create an intake-esm
+    catalog entry.
+
+    Notes
+    -----
+    Use of both path and filename seems redundant, but constructing filename from
+    the path using a __post_init__ method makes testing more difficult. On balance,
+    more explicit tests are probably more important than the slight redundancy.
+    """
+
+    filename: Union[str, Path]
+    file_id: str
+    path: str
+    filename_timestamp: Optional[str]
+    frequency: str
+    start_date: str
+    end_date: str
+    variable: list[str]
+    variable_long_name: list[str]
+    variable_standard_name: list[str]
+    variable_cell_methods: list[str]
+    variable_units: list[str]
+
+    def to_dict(self) -> dict[str, Union[str, list[str]]]:
+        """
+        Return a dictionary representation of the NcFileInfo object
+        """
+        return asdict(self)
+
+
+@dataclass
+class _VarInfo:
+    """
+    Holds information about the variables in a NetCDF file that is used to
+    create an intake-esm catalog entry.
+    """
+
+    variable_list: list[str] = field(default_factory=list)
+    long_name_list: list[str] = field(default_factory=list)
+    standard_name_list: list[str] = field(default_factory=list)
+    cell_methods_list: list[str] = field(default_factory=list)
+    units_list: list[str] = field(default_factory=list)
+
+    def append_attrs(self, var: str, attrs: dict) -> None:
+        """
+        Append attributes to the _VarInfo object, if the attribute has a
+        'long_name' key.
+        """
+        if "long_name" not in attrs:
+            return None
+
+        self.variable_list.append(var)
+        self.long_name_list.append(attrs["long_name"])
+        self.standard_name_list.append(attrs.get("standard_name", ""))
+        self.cell_methods_list.append(attrs.get("cell_methods", ""))
+        self.units_list.append(attrs.get("units", ""))
+
+    def to_var_info_dict(self) -> dict[str, list[str]]:
+        """
+        Return a dictionary representation of the _VarInfo object. Fields are
+        defined explicitly for use in the _AccessNCFileInfo constructor.
+        """
+        return {
+            "variable": self.variable_list,
+            "variable_long_name": self.long_name_list,
+            "variable_standard_name": self.standard_name_list,
+            "variable_cell_methods": self.cell_methods_list,
+            "variable_units": self.units_list,
+        }
+
+
+def _add_month_start(time, n: int):
     """Add months to cftime datetime and truncate to start"""
     year = time.year + ((time.month + n - 1) // 12)
     month = (time.month + n - 1) % 12 + 1
@@ -25,7 +100,7 @@ def _add_month_start(time, n):
     )
 
 
-def _add_year_start(time, n):
+def _add_year_start(time, n: int):
     """Add years to cftime datetime and truncate to start"""
     return time.replace(
         year=time.year + n, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
@@ -62,7 +137,11 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def get_timeinfo(ds, filename_frequency, time_dim):
+def get_timeinfo(
+    ds: xr.Dataset,
+    filename_frequency: Optional[str],
+    time_dim: str,
+) -> tuple[str, str, str]:
     """
     Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
     cosima cookbook, see
@@ -72,8 +151,24 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     ----------
     ds: :py:class:`xarray.Dataset`
         The dataset to parse the time info from
+    filename_frequency: str
+        Frequency as determined from the filename
     time_dim: str
         The name of the time dimension
+
+    Returns
+    -------
+    start_date: str
+        The start date of the dataset
+    end_date: str
+        The end date of the dataset
+    frequency: str
+        The frequency of the dataset
+
+    Raises
+    ------
+    EmptyFileError
+        If the dataset has a valid unlimited dimension, but no data
     """
 
     def _todate(t):
@@ -82,7 +177,7 @@ def get_timeinfo(ds, filename_frequency, time_dim):
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
     te = None
-    frequency = "fx"
+    frequency: Union[str, tuple[Optional[int], str]] = "fx"
     has_time = time_dim in ds
 
     if has_time:
@@ -154,206 +249,3 @@ def get_timeinfo(ds, filename_frequency, time_dim):
         frequency = frequency[1]
 
     return start_date, end_date, frequency
-
-
-def parse_access_filename(filename):
-    """
-    Parse an ACCESS model filename and return a file id and any time information
-
-    Parameters
-    ----------
-    filename: str
-        The filename to parse with the extension removed
-
-    Returns
-    -------
-    file_id: str
-        The file id constructed by redacting time information and replacing non-python characters
-        with underscores
-    timestamp: str
-        A string of the redacted time information (e.g. "1990-01")
-    frequency: str
-        The frequency of the file if available in the filename
-    """
-
-    # ACCESS output file patterns
-    # TODO: these should be defined per driver to prevent new patterns from breaking old drivers
-    not_multi_digit = "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))"
-    om3_components = "(?:cice|mom6|ww3)"
-    ymds = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}[_,-]\\d{5}"
-    ymd = "\\d{4}[_,-]\\d{2}[_,-]\\d{2}"
-    ym = "\\d{4}[_,-]\\d{2}"
-    y = "\\d{4}"
-    patterns = [
-        rf"^iceh.*\.({ymd}|{ym})$",  # ACCESS-ESM1.5/OM2 ice
-        rf"^iceh.*\.({ym})-{not_multi_digit}.*",  # ACCESS-CM2 ice
-        rf"^iceh.*\.(\d{{3}})-{not_multi_digit}.*",  # ACCESS-OM2 ice
-        rf"^ocean.*[_,-](?:ymd|ym|y)_({ymd}|{ym}|{y})(?:$|[_,-]{not_multi_digit}.*)",  # ACCESS-OM2 ocean
-        r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
-        r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
-        r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
-        rf"[^\.]*\.{om3_components}\..*({ymds}|{ymd}|{ym})$",  # ACCESS-OM3
-    ]
-    # Frequency translations
-    frequencies = {
-        "daily": (1, "day"),
-        "_dai$": (1, "day"),
-        "month": (1, "mon"),
-        "_mon$": (1, "mon"),
-        "yearly": (1, "yr"),
-        "_ann$": (1, "yr"),
-    }
-    redaction_fill = "X"
-
-    # Try to determine frequency
-    frequency = None
-    for pattern, freq in frequencies.items():
-        if re.search(pattern, filename):
-            frequency = freq
-            break
-
-    # Parse file id
-    file_id = filename
-    timestamp = None
-    for pattern in patterns:
-        match = re.match(pattern, file_id)
-        if match:
-            timestamp = match.group(1)
-            redaction = re.sub(r"\d", redaction_fill, timestamp)
-            file_id = file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
-            break
-
-    # Remove non-python characters from file ids
-    file_id = re.sub(r"[-.]", "_", file_id)
-    file_id = re.sub(r"_+", "_", file_id).strip("_")
-
-    return file_id, timestamp, frequency
-
-
-def parse_access_ncfile(file, time_dim="time"):
-    """
-    Get Intake-ESM datastore entry info from an ACCESS netcdf file
-
-    Parameters
-    ----------
-    file: str
-        The path to the netcdf file
-    time_dim: str
-        The name of the time dimension
-
-    Returns
-    -------
-    """
-
-    file = Path(file)
-    filename = file.name
-
-    file_id, filename_timestamp, filename_frequency = parse_access_filename(file.stem)
-
-    with xr.open_dataset(
-        file,
-        chunks={},
-        decode_cf=False,
-        decode_times=False,
-        decode_coords=False,
-    ) as ds:
-        variable_list = []
-        variable_long_name_list = []
-        variable_standard_name_list = []
-        variable_cell_methods_list = []
-        variable_units_list = []
-        for var in ds.data_vars:
-            attrs = ds[var].attrs
-            if "long_name" in attrs:
-                variable_list.append(var)
-                variable_long_name_list.append(attrs["long_name"])
-                if "standard_name" in attrs:
-                    variable_standard_name_list.append(attrs["standard_name"])
-                else:
-                    variable_standard_name_list.append("")
-                if "cell_methods" in attrs:
-                    variable_cell_methods_list.append(attrs["cell_methods"])
-                else:
-                    variable_cell_methods_list.append("")
-                if "units" in attrs:
-                    variable_units_list.append(attrs["units"])
-                else:
-                    variable_units_list.append("")
-
-        start_date, end_date, frequency = get_timeinfo(ds, filename_frequency, time_dim)
-
-    if not variable_list:
-        raise EmptyFileError("This file contains no variables")
-
-    outputs = (
-        filename,
-        file_id,
-        filename_timestamp,
-        frequency,
-        start_date,
-        end_date,
-        variable_list,
-        variable_long_name_list,
-        variable_standard_name_list,
-        variable_cell_methods_list,
-        variable_units_list,
-    )
-
-    return outputs
-
-def parse_mopper_ncfile(fpath, variable, date_range):
-    """
-    Get Intake-ESM datastore entry info from an ACCESS netcdf file
-
-    Parameters
-    ----------
-    fpath: str
-        The path to the netcdf file
-    date_range: str
-        Date_range str in cmor style from filename
-
-    Returns
-    -------
-    """
-
-    time_format = "%Y-%m-%d, %H:%M:%S"
-    # get format for dates based on dates lenght
-    # dformat is the longest possible datetime format for cmor
-    dformat = '%Y%m%d%H%M%S'
-    if date_range == '':
-        start_date = 'none'
-        end_date = 'none'
-    else:
-        ts, te = date_range.split("-")
-        cmor_format = dformat[:(len(ts)-2)]
-        ts = datetime.strptime(ts, cmor_format)
-        start_date = ts.strftime(time_format)
-        te = datetime.strptime(te, cmor_format)
-        end_date = te.strftime(time_format)
-
-    with xr.open_dataset(
-        fpath,
-        chunks={},
-        decode_cf=False,
-        decode_times=False,
-        decode_coords=False,
-    ) as ds:
-        attrs = ds[variable].attrs
-        variable_long_name = attrs.get('long_name', 'unknown')
-        variable_standard_name = attrs.get('standard_name', 'unknown')
-        variable_cell_methods = attrs.get('cell_methods', 'unknown')
-        variable_units = attrs.get('units', 'unknown')
-        tracking_id = ds.attrs.get('tracking_id', 'unknown')
-
-    outputs = ( 
-        start_date,
-        end_date,
-        tracking_id,
-        variable_long_name,
-        variable_standard_name,
-        variable_cell_methods,
-        variable_units,
-    )
-
-    return outputs
-

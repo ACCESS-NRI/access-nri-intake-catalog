@@ -9,7 +9,7 @@ or they can be built using the :code:`access_nri_intake.source` sub-package. Cur
 :code:`access_nri_intake.source` only supports building Intake-ESM datastore sources.
 
 When :code:`access_nri_intake.source` is first imported, it downloads and parses a specific commit of the 
-schema at https://github.com/ACCESS-NRI/schema/blob/main/file_asset.json and stores it in the variable
+schema at https://github.com/ACCESS-NRI/schema/tree/main/au.org.access-nri/model/output/file-metadata and stores it in the variable
 :code:`access_nri_intake.source.ESM_JSONSCHEMA`. This schema defines what metadata must be included in an 
 Intake-ESM catalog, and what types and fields are allowed. Subsequent imports read the downloaded schema, 
 unless the schema is changed (see :ref:`schema`), in which case the new schema is downloaded.

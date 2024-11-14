@@ -7,14 +7,17 @@ import pytest
 
 from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
+    FREQUENCY_TRANSLATIONS,
+    BarpaTranslator,
     Cmip5Translator,
     Cmip6Translator,
+    CordexTranslator,
     DefaultTranslator,
     EraiTranslator,
     TranslatorError,
-    _cmip_frequency_translator,
     _cmip_realm_translator,
     _to_tuple,
+    tuplify_series,
 )
 
 
@@ -67,7 +70,7 @@ from access_nri_intake.catalog.translators import (
 def test_cmip_frequency_translator(input, expected):
     """Test translation of entries in the CMIP frequency column"""
     series = pd.Series(input)
-    translated = _cmip_frequency_translator(series)
+    translated = series.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
     assert list(translated) == expected
 
 
@@ -120,6 +123,9 @@ def test_cmip_realm_translator(input, expected):
     """Test translation of entries in the CMIP realm column"""
     series = pd.Series(input)
     translated = _cmip_realm_translator(series)
+    # Sort expected & translated to make the test less brittle
+    translated = translated.apply(lambda x: tuple(sorted(x)))
+    expected = [tuple(sorted(x)) for x in expected]
     assert list(translated) == expected
 
 
@@ -185,6 +191,29 @@ def test_DefaultTranslator_error(test_data):
 
 
 @pytest.mark.parametrize(
+    "colname, should_raise",
+    [
+        ("model", False),
+        ("realm", False),
+        ("frequency", False),
+        ("variable", False),
+        ("random_string", True),
+    ],
+)
+def test_DefaultTranslator_set_dispatch(test_data, colname, should_raise):
+    """Test that only valid translation setups are allowed"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
+    dtrans = DefaultTranslator(esmds, CORE_COLUMNS)
+    if should_raise:
+        with pytest.raises(TranslatorError) as excinfo:
+            dtrans.set_dispatch(colname, dtrans._model_translator, "model")
+            assert "'core_colname' must be one of" in str(excinfo.value)
+    else:
+        dtrans.set_dispatch(colname, dtrans._model_translator, colname)
+        assert dtrans._dispatch[colname] == dtrans._model_translator
+
+
+@pytest.mark.parametrize(
     "groupby, n_entries",
     [
         (None, 5),
@@ -195,7 +224,7 @@ def test_DefaultTranslator_error(test_data):
     ],
 )
 def test_Cmip5Translator(test_data, groupby, n_entries):
-    "Test CMIP5 datastore translator" ""
+    """Test CMIP5 datastore translator"""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip5-al33.json")
     esmds.name = "name"
     esmds.description = "description"
@@ -215,7 +244,7 @@ def test_Cmip5Translator(test_data, groupby, n_entries):
     ],
 )
 def test_Cmip6Translator(test_data, groupby, n_entries):
-    "Test CMIP6 datastore translator" ""
+    """Test CMIP6 datastore translator"""
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/cmip6-oi10.json")
     esmds.name = "name"
     esmds.description = "description"
@@ -235,7 +264,7 @@ def test_Cmip6Translator(test_data, groupby, n_entries):
     ],
 )
 def test_EraiTranslator(test_data, groupby, n_entries):
-    "Test ERA-Interim datastore translator" ""
+    """Test ERA-Interim datastore translator"""
     model = ("ERA-Interim",)
     esmds = intake.open_esm_datastore(test_data / "esm_datastore/erai.json")
     esmds.name = "name"
@@ -244,3 +273,56 @@ def test_EraiTranslator(test_data, groupby, n_entries):
     df = EraiTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert all(df["model"] == model)
     assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (["realm"], 1),
+        (["variable"], 4),
+        (["frequency"], 1),
+    ],
+)
+def test_BarpaTranslator(test_data, groupby, n_entries):
+    """Test BARPA datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/barpa-py18.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = BarpaTranslator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [(None, 5), (["variable"], 4), (["frequency"], 2), (["realm"], 1)],
+)
+def test_CordexTranslator(test_data, groupby, n_entries):
+    """Test CORDEX datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cordex-ig45.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = CordexTranslator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "input_series, expected_output",
+    [
+        (pd.Series([1, 2, 3]), pd.Series([(1,), (2,), (3,)])),
+    ],
+)
+def test_tuplify_series(input_series, expected_output):
+    """Test the _tuplify_series function"""
+
+    @tuplify_series
+    def tuplify_func(series):
+        return series
+
+    class TestSeries:
+        @tuplify_series
+        def method(self, series):
+            return series
+
+    assert all(tuplify_func(input_series) == expected_output)
+    assert all(TestSeries().method(input_series) == expected_output)

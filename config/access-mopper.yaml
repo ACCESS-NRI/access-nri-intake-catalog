@@ -9,10 +9,10 @@ sources:
     metadata_yaml: /g/data/ua8/Working/packages/access-nri-intake-catalog/config/metadata.yaml
     ensemble: true
 # These are added attributes
-    fpattern: "{version}/{frequency}/{variable}/{variable}_{model}_{exp_id}_{frequency}"
+    fpattern: "{version}/{frequency}/{variable}/{variable}_{model}_{member}_{frequency}"
     toselect: 
       - variable
       - frequency
       - version
-      - exp_id
+      - member
     
