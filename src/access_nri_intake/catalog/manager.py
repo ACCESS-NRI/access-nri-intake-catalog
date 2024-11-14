@@ -107,7 +107,6 @@ class CatalogManager:
                     f"An Intake-ESM datastore already exists for {name}. To overwrite, "
                     "pass `overwrite=True` to CatalogBuilder.build_esm"
                 )
-
         builder = builder(path, **kwargs).build()
         builder.save(name=name, description=description, directory=directory)
 

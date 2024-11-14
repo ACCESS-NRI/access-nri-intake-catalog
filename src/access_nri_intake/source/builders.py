@@ -11,9 +11,13 @@ from typing import Optional, Union
 
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
+from pathlib import Path
+from textwrap import wrap
+from datetime import datetime
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
+#PP check if I still need this?
 from .utils import (
     EmptyFileError,
     _AccessNCFileInfo,
@@ -167,7 +171,7 @@ class BaseBuilder(Builder):
             raise ValueError(
                 "asset list provided is None. Please run `.get_assets()` first"
             )
-
+     
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
@@ -556,3 +560,170 @@ class AccessCm2Builder(AccessEsm15Builder):
         rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
     ]
+
+class MopperBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for ACCESS-MOPPeR processed data"""
+
+    def __init__(self, path, ensemble, fpattern, toselect): #, extra):
+        """
+        Initialise a MopperBuilder
+
+        Parameters
+        ----------
+        path: str or list of str
+            Path or list of paths to crawl for assets/files.
+        ensemble: boolean
+            Whether to treat each path as a separate member of an ensemble to join
+            along a new member dimension
+        fpattern: str
+            The pattern used by mopper to encode info in the filename and path
+        toselect: list
+            List of attributes to add pattern used by mopper to encode info in the filename and path
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=5,
+            exclude_patterns=[],
+            include_patterns=["*.nc*"],
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        if ensemble:
+            kwargs["aggregations"] += [
+                {
+                    "type": "join_new",
+                    "attribute_name": "member",
+                },
+            ]
+
+        super().__init__(**kwargs)
+        self.fpattern = fpattern
+        self.toselect = toselect
+
+    #@classmethod
+    def parser(self, fpath): 
+        if True:
+            basedir = self.paths[0]
+            fpattern = self.fpattern
+            toselect = self.toselect
+            filepat = fpattern.split("/")[-1]
+            dirpat = "/".join(fpattern.split("/")[:-1])
+            dirpat = dirpat.replace("{","(?P<").replace("}",">[^/]+)")
+            filepat = filepat.replace("{","(?P<").replace("}",">[^_]+)")
+            tocompiledir = "^/" + dirpat + "/"
+            tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\.nc"
+
+            dir_re = re.compile(tocompiledir, re.VERBOSE)
+            file_re = re.compile(tocompilefile, re.VERBOSE)
+
+            fname = str(Path(fpath).name)
+            fbase = str(Path(fpath).parent)
+            fbase = fbase.replace(basedir, "") + "/"
+            dir_match = dir_re.match(fbase).groupdict()
+            file_match = file_re.match(fname).groupdict()
+          
+            exargs = {}
+            exargs['date_range'] = file_match.get('date_range', '')
+            for x in toselect: 
+                exargs[x] = file_match.get(x, 'unknown')
+                if exargs[x] == 'unknown':
+                    exargs[x] = dir_match.get(x, 'unknown')
+            if 'frequency' in exargs.keys():
+                exargs['frequency'] = exargs['frequency'].replace("Pt","")
+            if 'realm' not in exargs.keys():
+                exargs['realm'] = 'unknown'
+
+        # NB all files coming out of mopper have a single variable
+        # however catalogue seems to expect a multivariable file
+        # in my opinion this is limiting usefulness of catalogues for
+        # the many collection that have 1 variable per file!
+        # Also file_id is required however we're not using it as this aren't multivariable 
+        # files, so we can/should aggregate on variable not file_id
+        # so I'm using variable as file_id instead.
+            nc_info, exargs = self.parse_ncfile(fpath, exargs)
+            ncinfo_dict = nc_info.to_dict()
+            for k,v in exargs.items():
+                ncinfo_dict[k] = v
+            return ncinfo_dict
+
+    @classmethod
+    def parse_ncfile(self, fpath, exargs):
+        """
+        Get Intake-ESM datastore entry info from an ACCESS netcdf file
+        CMOR has its own base date format, length depends on frequency
+
+        Parameters
+        ----------
+        fpath: str
+            The path to the netcdf file
+        exargs: dict
+            Stores extra arguments as frequency, date_range, variable etc, derived from fpattern
+
+        Returns
+        -------
+        output_nc_info: _AccessNCFileInfo
+            A dataclass containing the information parsed from the file
+        exargs: dict
+            Stores extra arguments as frequency, date_range, variable etc, derived from fpattern
+            
+        """
+        time_format = "%Y-%m-%d, %H:%M:%S"
+        # get format for dates based on dates lenght
+        # dformat is the longest possible datetime format for cmor
+        dformat = '%Y%m%d%H%M%S'
+        date_range = exargs.pop('date_range')
+        if date_range == '':
+            start_date = 'none'
+            end_date = 'none'
+        else:
+            ts, te = date_range.split("-")
+            cmor_format = dformat[:(len(ts)-2)]
+            ts = datetime.strptime(ts, cmor_format)
+            start_date = ts.strftime(time_format)
+            te = datetime.strptime(te, cmor_format)
+            end_date = te.strftime(time_format)
+
+        variable = exargs.pop('variable')
+        with xr.open_dataset(
+            fpath,
+            chunks={},
+            decode_cf=False,
+            decode_times=False,
+            decode_coords=False,
+        ) as ds:
+            attrs = ds[variable].attrs
+            variable_long_name = attrs.get('long_name', 'unknown')
+            variable_standard_name = attrs.get('standard_name', 'unknown')
+            variable_cell_methods = attrs.get('cell_methods', 'unknown')
+            variable_units = attrs.get('units', 'unknown')
+            tracking_id = ds.attrs.get('tracking_id', 'unknown')
+
+        output_nc_info = _AccessNCFileInfo(
+            filename=Path(fpath).name,
+            path=fpath,
+            file_id=tracking_id,
+            filename_timestamp=date_range,
+            frequency=exargs.pop('frequency'),
+            start_date=start_date,
+            end_date=end_date,
+            variable=[variable],
+            variable_long_name=[variable_long_name],
+            variable_standard_name=[variable_standard_name],
+            variable_units=[variable_units],
+            variable_cell_methods=[variable_cell_methods],
+        )
+
+        return output_nc_info, exargs
+

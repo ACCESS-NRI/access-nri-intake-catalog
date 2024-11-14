@@ -1,0 +1,29 @@
+name: AUS2200
+experiment_uuid: thisdoesntexistsIdoIknowwhattoputifIdontknowhowtogenerateonewhichisdifferentfromwhateverisalreadyhere
+description: |
+   AUS2200 simulations collections. Each simulation is a limited area model study of the entire Australian continent at 2.2 km resolution, using the UM atmospheric model. 
+            This dataset is part of the AUS2200 simulations collection at NCI.
+long_description: |
+   "There's a total of 9 simulations:
+    ashwed80 - ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions. The study covers the time period of 1980-02-18 to 1980-02-21, including the 1980 Ash Wednesday bushfires.
+    ashwed83 - ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions. The study covers the time period of 1983-02-15 to 1983-02-17, including the 1983 Ash Wednesday bushfires."
+model: "AUS2200 (UM v12.2)"
+frequency:
+  - subhr
+  - 1hr
+nominal_resolution:
+  - atmos = 2.2 km
+version: 1
+contact: Dale Roberts
+email:  cws_help@nci.org.au
+created: null
+reference: null
+license:  https://creativecommons.org/licenses/by/4.0/ 
+url: null
+parent_experiment: null
+related_experiments:
+  - null
+notes: | 
+  null
+keywords:
+  - null

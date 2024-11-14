@@ -1,0 +1,18 @@
+builder: MopperBuilder
+
+translator: DefaultTranslator
+
+sources:
+
+  - path:
+      - /g/data/ua8/AUS2200/mjo-elnino
+    metadata_yaml: /g/data/ua8/Working/packages/access-nri-intake-catalog/config/metadata.yaml
+    ensemble: true
+# These are added attributes
+    fpattern: "{version}/{frequency}/{variable}/{variable}_{model}_{member}_{frequency}"
+    toselect: 
+      - variable
+      - frequency
+      - version
+      - member
+    

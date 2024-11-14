@@ -68,7 +68,7 @@ def _parse_build_inputs(config_yamls, build_path):
 
             if translator:
                 source_args["translator"] = getattr(translators, translator)
-
+           
             args.append((method, source_args | kwargs))
 
     return args
@@ -208,6 +208,7 @@ def build():
     storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project]))
 
     # Build the catalog
+    #cm = CatalogManager(path=metacatalog_path, extra=args['extra'])
     cm = CatalogManager(path=metacatalog_path)
     for method, args in parsed_sources:
         logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_path}'")
