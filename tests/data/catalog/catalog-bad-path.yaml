@@ -1,0 +1,5 @@
+sources:
+  access_nri:
+    args:
+      path: /there/is/no/expected/version/in/curly/braces
+
