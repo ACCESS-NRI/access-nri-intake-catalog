@@ -1,6 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+
 import pytest
 
 from access_nri_intake.catalog import EXP_JSONSCHEMA
@@ -8,6 +9,7 @@ from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerErro
 from access_nri_intake.catalog.translators import (
     Cmip5Translator,
     Cmip6Translator,
+    TranslatorError,
 )
 from access_nri_intake.source.builders import (
     AccessCm2Builder,
@@ -162,3 +164,48 @@ def test_CatalogManager_all(tmp_path, test_data):
     assert len(cat.dfcat) == len(models) + 1
     cat.save()
     assert len(CatalogManager(path).dfcat) == len(models) + 1
+
+
+def test_CatalogManager_load_invalid_model(tmp_path, test_data):
+    """Test loading and adding an Intake-ESM datastore"""
+    path = str(tmp_path / "cat.csv")
+    cat = CatalogManager(path)
+
+    # Test can load when path is len 1 list
+    path = test_data / "esm_datastore/cmip5-no-model.json"
+
+    args = dict(
+        name="test",
+        description="test",
+        translator=Cmip5Translator,
+    )
+    with pytest.raises(TranslatorError):
+        cat.load(**args, path=[path])
+
+
+def test_CatalogManager_build_esm_nomodel(
+    tmp_path,
+    test_data,
+):
+    """Test building and adding an Intake-ESM datastore. We then remove the model
+    from the written out data to check that we get an error"""
+    path = str(tmp_path / "cat.csv")
+    cat = CatalogManager(path)
+
+    metadata = load_metadata_yaml(
+        str(test_data / "access-om2" / "metadata.yaml"), EXP_JSONSCHEMA
+    )
+
+    # Either of these perhaps?
+    # metadata.pop("model")
+    metadata["model"] = None
+
+    args = dict(
+        name="test",
+        description="test",
+        builder=AccessOm2Builder,
+        path=str(test_data / "access-om2"),
+        metadata=metadata,
+        directory=str(tmp_path),
+    )
+    cat.build_esm(**args)
