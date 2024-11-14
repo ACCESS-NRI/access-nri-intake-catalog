@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from unittest import mock
+
 import pytest
+from intake_dataframe_catalog.core import DfFileCatalogError
 
 from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerError
 from access_nri_intake.catalog.translators import (
     Cmip5Translator,
     Cmip6Translator,
-    TranslatorError,
 )
 from access_nri_intake.source.builders import (
     AccessCm2Builder,
@@ -172,40 +174,28 @@ def test_CatalogManager_load_invalid_model(tmp_path, test_data):
     cat = CatalogManager(path)
 
     # Test can load when path is len 1 list
-    path = test_data / "esm_datastore/cmip5-no-model.json"
-
-    args = dict(
-        name="test",
-        description="test",
+    path = test_data / "esm_datastore/cmip5-al33.json"
+    # Load source
+    load_args = dict(
+        name="cmip5-al33",
+        description="cmip5-al33",
+        path=str(test_data / "esm_datastore/cmip5-al33.json"),
         translator=Cmip5Translator,
     )
-    with pytest.raises(TranslatorError):
-        cat.load(**args, path=[path])
 
+    with mock.patch.object(
+        cat.dfcat,
+        "add",
+        side_effect=DfFileCatalogError(
+            "Expected iterable metadata columns: ['model']. "
+            "Unable to add entry with iterable metadata columns '[]' to dataframe "
+            "catalog: columns ['model'] must be iterable to ensure metadata entries are consistent."
+        ),
+    ):
+        with pytest.raises(CatalogManagerError) as excinfo:
+            cat.load(**load_args)
 
-def test_CatalogManager_build_esm_nomodel(
-    tmp_path,
-    test_data,
-):
-    """Test building and adding an Intake-ESM datastore. We then remove the model
-    from the written out data to check that we get an error"""
-    path = str(tmp_path / "cat.csv")
-    cat = CatalogManager(path)
-
-    metadata = load_metadata_yaml(
-        str(test_data / "access-om2" / "metadata.yaml"), EXP_JSONSCHEMA
+    assert "Error adding source 'cmip5-al33' to the catalog" in str(excinfo.value)
+    assert "Expected iterable metadata columns: ['model']" in str(
+        excinfo.value.__cause__
     )
-
-    # Either of these perhaps?
-    # metadata.pop("model")
-    metadata["model"] = None
-
-    args = dict(
-        name="test",
-        description="test",
-        builder=AccessOm2Builder,
-        path=str(test_data / "access-om2"),
-        metadata=metadata,
-        directory=str(tmp_path),
-    )
-    cat.build_esm(**args)
