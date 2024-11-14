@@ -1,0 +1,34 @@
+name: cmip6_fs38
+experiment_uuid: dfdeb421-5c56-4d58-a0b2-04b717e5cff7
+description: Australian CMIP6-era datasets catalogued by NCI
+long_description: >-
+  All CMIP6-era Australian published data contained under the project fs38.
+  All file versions present are in the listing.
+  Maintained By: NCI
+  Contact: help@nci.org.au
+  References: https://pcmdi.llnl.gov/CMIP6/
+model:
+- CMIP6
+realm:
+- ocnBgchem
+- land
+- ocean
+- atmos
+- landIce
+- seaIce
+- aerosol
+nominal_resolution:
+- 
+version: 
+contact: NCI
+email: help@nci.org.au
+created: 
+reference: 
+license:
+url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f3154_9976_7262_7595
+parent_experiment: 
+related_experiments:
+- 
+notes: 
+keywords:
+- cmip

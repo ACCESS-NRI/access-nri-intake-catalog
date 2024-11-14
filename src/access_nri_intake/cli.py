@@ -16,7 +16,7 @@ from . import __version__
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .source import builders
-from .utils import _can_be_array, load_metadata_yaml
+from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
 
 class MetadataCheckError(Exception):
@@ -215,9 +215,8 @@ def build():
     # Save the catalog
     cm.save()
 
-    _here = os.path.abspath(os.path.dirname(__file__))
     if update:
-        with open(os.path.join(_here, "data", "catalog.yaml"), "w") as fobj:
+        with get_catalog_fp().open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
 

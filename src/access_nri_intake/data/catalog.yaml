@@ -17,6 +17,6 @@ sources:
       version: '{{version}}'
     parameters:
       version:
-        default: v0+untagged.397.gfb5c654.dirty
+        default: v0+untagged.399.g7b2d5aa.dirty
         description: Catalog version
         type: str
