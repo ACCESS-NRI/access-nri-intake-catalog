@@ -202,10 +202,10 @@ class CatalogManager:
             try:
                 self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
             except DfFileCatalogError as exc:
-                # If we have 'model' in the error message, it likely relates to
+                # If we have 'iterable metadata' in the error message, it likely relates to
                 # issues discussed at https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/223,
-                # so if the error message contains 'model', we wrap the error with some
-                # additional information about model catalog issues and then raise
+                # so if the error message contains 'iterable metadata', we wrap the error with some
+                # additional information about catalog issues and then raise
                 if "iterable metadata" in str(exc):
                     raise CatalogManagerError(
                         f"Error adding source '{name}' to the catalog due to iterable metadata issues. "
