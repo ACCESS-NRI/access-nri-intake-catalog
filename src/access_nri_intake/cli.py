@@ -182,6 +182,10 @@ def build(argv: Optional[Sequence[str]] = None):
     version = args.version
     update = not args.no_update
 
+    print("\n", "*" * 80)
+    print(f"{args=}")
+    return None
+
     if not version.startswith("v"):
         version = f"v{version}"
     if not re.match(CATALOG_NAME_FORMAT, version):
