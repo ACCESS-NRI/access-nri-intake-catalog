@@ -2393,6 +2393,13 @@ def test_parse_access_filename(builder, filename, expected):
     ],
 )
 def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
+    """
+    Tests for correctness of parser. Note that if we are using intake-esm without
+    coordinate discovery enabled, the `conftest.py` fixture will dynamically set
+    the `xfails=True` on parametrisations of these tests where we compare files.
+    This is currently default behaviour as the latest release of intake-esm does
+    not support coordinate discovery. However, it is on main.
+    """
     file = str(test_data / Path(filename))
 
     # Set the path to the test data directory
