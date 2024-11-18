@@ -15,6 +15,7 @@ import tlz
 from intake import DataSource
 
 from . import COLUMNS_WITH_ITERABLES
+from .utils import _to_tuple, tuplify_series
 
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
@@ -33,36 +34,6 @@ FREQUENCY_TRANSLATIONS = {
     "yr": "1yr",
     "yrPt": "1yr",
 }
-
-
-def _to_tuple(series: pd.Series) -> pd.Series:
-    """
-    Make each entry in the provided series a tuple
-
-    Parameters
-    ----------
-    series: :py:class:`~pandas.Series`
-        A pandas Series or another object with an `apply` method
-    """
-    return series.apply(lambda x: (x,))
-
-
-def tuplify_series(func: Callable) -> Callable:
-    """
-    Decorator that wraps a function that returns a pandas Series and converts
-    each entry in the series to a tuple
-    """
-
-    def wrapper(*args, **kwargs):
-        # Check if the first argument is 'self'
-        if len(args) > 0 and hasattr(args[0], "__class__"):
-            self = args[0]
-            series = func(self, *args[1:], **kwargs)
-        else:
-            series = func(*args, **kwargs)
-        return _to_tuple(series)
-
-    return wrapper
 
 
 class TranslatorError(Exception):

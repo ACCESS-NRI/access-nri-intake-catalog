@@ -1,7 +1,11 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+
+from unittest import mock
+
 import pytest
+from intake_dataframe_catalog.core import DfFileCatalogError
 
 from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerError
@@ -162,3 +166,47 @@ def test_CatalogManager_all(tmp_path, test_data):
     assert len(cat.dfcat) == len(models) + 1
     cat.save()
     assert len(CatalogManager(path).dfcat) == len(models) + 1
+
+
+@pytest.mark.parametrize(
+    "intake_dataframe_err_str, access_nri_err_str, cause_str",
+    [
+        (
+            "Expected iterable metadata columns: ['model']. Unable to add entry with iterable metadata columns '[]' to dataframe catalog: columns ['model'] must be iterable to ensure metadata entries are consistent.",
+            "Error adding source 'cmip5-al33' to the catalog",
+            "Expected iterable metadata columns: ['model']",
+        ),
+        (
+            "Generic Exception for the CatalogManager class",
+            "Generic Exception for the CatalogManager class",
+            "None",
+        ),
+    ],
+)
+def test_CatalogManager_load_invalid_model(
+    tmp_path, test_data, intake_dataframe_err_str, access_nri_err_str, cause_str
+):
+    """Test loading and adding an Intake-ESM datastore"""
+    path = str(tmp_path / "cat.csv")
+    cat = CatalogManager(path)
+
+    # Test can load when path is len 1 list
+    path = test_data / "esm_datastore/cmip5-al33.json"
+    # Load source
+    load_args = dict(
+        name="cmip5-al33",
+        description="cmip5-al33",
+        path=str(test_data / "esm_datastore/cmip5-al33.json"),
+        translator=Cmip5Translator,
+    )
+
+    with mock.patch.object(
+        cat.dfcat,
+        "add",
+        side_effect=DfFileCatalogError(intake_dataframe_err_str),
+    ):
+        with pytest.raises(CatalogManagerError) as excinfo:
+            cat.load(**load_args)
+
+    assert access_nri_err_str in str(excinfo.value)
+    assert cause_str in str(excinfo.value.__cause__)
