@@ -168,7 +168,24 @@ def test_CatalogManager_all(tmp_path, test_data):
     assert len(CatalogManager(path).dfcat) == len(models) + 1
 
 
-def test_CatalogManager_load_invalid_model(tmp_path, test_data):
+@pytest.mark.parametrize(
+    "intake_dataframe_err_str, access_nri_err_str, cause_str",
+    [
+        (
+            "Expected iterable metadata columns: ['model']. Unable to add entry with iterable metadata columns '[]' to dataframe catalog: columns ['model'] must be iterable to ensure metadata entries are consistent.",
+            "Error adding source 'cmip5-al33' to the catalog",
+            "Expected iterable metadata columns: ['model']",
+        ),
+        (
+            "Generic Exception for the CatalogManager class",
+            "Generic Exception for the CatalogManager class",
+            "None",
+        ),
+    ],
+)
+def test_CatalogManager_load_invalid_model(
+    tmp_path, test_data, intake_dataframe_err_str, access_nri_err_str, cause_str
+):
     """Test loading and adding an Intake-ESM datastore"""
     path = str(tmp_path / "cat.csv")
     cat = CatalogManager(path)
@@ -186,16 +203,10 @@ def test_CatalogManager_load_invalid_model(tmp_path, test_data):
     with mock.patch.object(
         cat.dfcat,
         "add",
-        side_effect=DfFileCatalogError(
-            "Expected iterable metadata columns: ['model']. "
-            "Unable to add entry with iterable metadata columns '[]' to dataframe "
-            "catalog: columns ['model'] must be iterable to ensure metadata entries are consistent."
-        ),
+        side_effect=DfFileCatalogError(intake_dataframe_err_str),
     ):
         with pytest.raises(CatalogManagerError) as excinfo:
             cat.load(**load_args)
 
-    assert "Error adding source 'cmip5-al33' to the catalog" in str(excinfo.value)
-    assert "Expected iterable metadata columns: ['model']" in str(
-        excinfo.value.__cause__
-    )
+    assert access_nri_err_str in str(excinfo.value)
+    assert cause_str in str(excinfo.value.__cause__)
