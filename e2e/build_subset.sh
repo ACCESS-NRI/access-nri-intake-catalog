@@ -27,6 +27,7 @@ fi
 
 module use /g/data/xp65/public/modules
 module load conda/access-med-0.6
+source /home/189/ct1163/end2end/venv/bin/activate
 
 OUTPUT_BASE_PATH=/scratch/tm70/ct1163/test_cat/
 CONFIG_DIR=/g/data/xp65/admin/access-nri-intake-catalog/config
