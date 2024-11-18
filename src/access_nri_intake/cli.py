@@ -182,10 +182,6 @@ def build(argv: Optional[Sequence[str]] = None):
     version = args.version
     update = not args.no_update
 
-    print("\n", "*" * 80)
-    print(f"{args=}")
-    return None
-
     if not version.startswith("v"):
         version = f"v{version}"
     if not re.match(CATALOG_NAME_FORMAT, version):
@@ -223,7 +219,7 @@ def build(argv: Optional[Sequence[str]] = None):
     cm = CatalogManager(path=metacatalog_path)
     for method, src_args in parsed_sources:
         logger.info(f"Adding '{src_args['name']}' to metacatalog '{metacatalog_path}'")
-        getattr(cm, method)(**args)
+        getattr(cm, method)(**src_args)
 
     # Write catalog yaml file
     cat = cm.dfcat
