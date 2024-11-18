@@ -1,13 +1,13 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog """
+"""Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
 import os
 from typing import Optional, Union
 
 import intake
-from intake_dataframe_catalog.core import DfFileCatalog
+from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
 
 from ..utils import validate_against_schema
 from . import (
@@ -23,6 +23,7 @@ from .translators import DefaultTranslator
 
 class CatalogManagerError(Exception):
     "Generic Exception for the CatalogManager class"
+
     pass
 
 
@@ -197,7 +198,20 @@ class CatalogManager:
 
         overwrite = True
         for _, row in self.source_metadata.iterrows():
-            self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
+            try:
+                self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
+            except DfFileCatalogError as exc:
+                # If we have 'iterable metadata' in the error message, it likely relates to
+                # issues discussed at https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/223,
+                # so if the error message contains 'iterable metadata', we wrap the error with some
+                # additional information about catalog issues and then raise
+                if "iterable metadata" in str(exc):
+                    raise CatalogManagerError(
+                        f"Error adding source '{name}' to the catalog due to iterable metadata issues. "
+                        " See https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/223: likely"
+                        " due to issues with 'model' column in the catalog"
+                    ) from exc
+                raise CatalogManagerError(exc)
             overwrite = False
 
     def save(self, **kwargs):
