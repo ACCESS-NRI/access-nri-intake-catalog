@@ -28,7 +28,14 @@ from access_nri_intake.source.utils import _AccessNCFileInfo
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 11),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
-        (["access-mopper"], "MopperBuilder", {"ensemble": True}, 2, 2, 1),
+        (
+            ["access-mopper"],
+            "MopperBuilder",
+            {"ensemble": True, "fpattern": None, "toselect": []},
+            2,
+            2,
+            1,
+        ),
     ],
 )
 def test_builder_build(
