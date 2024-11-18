@@ -1,6 +1,8 @@
-from access_nri_intake.cli import build
 import os
 from datetime import datetime
+
+from access_nri_intake.cli import build
+
 from .conftest import here
 
 """
@@ -31,7 +33,7 @@ def print_directory_tree(root, indent=""):
 
 
 def test_build_esm_datastore(BASE_DIR):
-    # Build our subset of the catalog. This should take ~2 minutes with the PBS 
+    # Build our subset of the catalog. This should take ~2 minutes with the PBS
     # flags in build_subset.sh
     print(f"Building the catalog subset & writing to {BASE_DIR}")
     v_num = datetime.now().strftime("v%Y-%m-%d")
@@ -57,8 +59,6 @@ def test_build_esm_datastore(BASE_DIR):
     assert True
 
     print("Catalog built successfully. Finish test tomorrow.")
-
-
 
 
 def test_translate_esm_datastore():
