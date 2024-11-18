@@ -40,7 +40,7 @@ jobs:
 
       - name: Run tests
         shell: bash -l {0}
-        run: coverage run -m --source=access_nri_intake pytest
+        run: coverage run -m --source=access_nri_intake pytest tests
       
       - name: Generate coverage report
         shell: bash -l {0}
