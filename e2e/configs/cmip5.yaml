@@ -1,0 +1,9 @@
+builder: null
+
+translator: Cmip5Translator
+
+sources:
+
+  - metadata_yaml: /g/data/xp65/admin/access-nri-intake-catalog/config/metadata_sources/cmip5-al33/metadata.yaml
+    path:
+      - /g/data/al33/catalog/v2/esm/catalog.json
