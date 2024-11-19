@@ -555,37 +555,6 @@ class _DispatchKeys:
     variable: Optional[str] = None
 
 
-class Mom6Translator(DefaultTranslator):
-    """
-    MOM6 Translator for translating metadata from the NCI MOM6 intake datastores.
-    """
-
-    def __init__(self, source, columns):
-        """
-        Initialise a MOM6
-
-        Parameters
-        ----------
-        source: :py:class:`~intake.DataSource`
-            The NCI MOM6 intake-esm datastore
-        columns: list of str
-            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
-        """
-        super().__init__(source, columns)
-
-        self._dispatch["model"] = self._model_translator
-
-    def _model_translator(self):
-        """
-        Return model (hard-coded)
-        """
-        return pd.Series(
-            [
-                "MOM6",
-            ]
-        )
-
-
 def _cmip_realm_translator(series) -> pd.Series:
     """
     Return realm from CMIP realm metadata, fixing some issues. This function takes
