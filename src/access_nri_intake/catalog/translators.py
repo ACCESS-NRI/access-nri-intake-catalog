@@ -8,7 +8,7 @@ like the ACCESS-NRI catalog
 
 from dataclasses import dataclass
 from functools import partial
-from typing import Callable, Optional
+from typing import Callable
 
 import pandas as pd
 import tlz
@@ -120,7 +120,7 @@ class DefaultTranslator:
 
         return pd.Series([val] * len_df)
 
-    def translate(self, groupby: Optional[list[str]] = None) -> pd.DataFrame:
+    def translate(self, groupby: list[str] | None = None) -> pd.DataFrame:
         """
         Return the translated :py:class:`~pandas.DataFrame` of metadata and merge into set of
         set of rows with unique values of the columns specified.
@@ -168,7 +168,7 @@ class DefaultTranslator:
         return df[self.columns]  # Preserve ordering
 
     def set_dispatch(
-        self, core_colname: str, func: Callable, input_name: Optional[str] = None
+        self, core_colname: str, func: Callable, input_name: str | None = None
     ):
         """
         Set a dispatch function for a column. Typically only required when either:
@@ -549,10 +549,10 @@ class _DispatchKeys:
     Data class to store the keys for the dispatch dictionary in the Translator classes
     """
 
-    model: Optional[str] = None
-    realm: Optional[str] = None
-    frequency: Optional[str] = None
-    variable: Optional[str] = None
+    model: str | None = None
+    realm: str | None = None
+    frequency: str | None = None
+    variable: str | None = None
 
 
 def _cmip_realm_translator(series) -> pd.Series:
