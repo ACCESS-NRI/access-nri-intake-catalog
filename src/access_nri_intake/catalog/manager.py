@@ -56,8 +56,8 @@ class CatalogManager:
                 mode=self.mode,
                 columns_with_iterables=COLUMNS_WITH_ITERABLES,
             )
-        except EmptyDataError as e:
-            raise EmptyDataError(str(e) + f": {self.path}")
+        except (EmptyDataError, DfFileCatalogError) as e:
+            raise Exception(str(e) + f": {self.path}") from e
 
         self.source = None
         self.source_metadata = None
