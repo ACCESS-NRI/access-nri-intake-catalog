@@ -172,15 +172,10 @@ class BaseBuilder(Builder):
                 "asset list provided is None. Please run `.get_assets()` first"
             )
 
-        i = 0
-        j = 0
         for asset in self.assets:
-            # import pdb; pdb.set_trace()
             info = self.parser(asset)
-            i += 1
             if INVALID_ASSET not in info:
                 validate_against_schema(info, ESM_JSONSCHEMA)
-                j += 1
                 return self
 
         raise ParserError(
@@ -542,8 +537,6 @@ class Mom6Builder(BaseBuilder):
 
             if "ocean" in ncinfo_dict["filename"]:
                 realm = "ocean"
-            # elif "ww3" in ncinfo_dict["filename"]:
-            #     realm = "wave"
             elif "ice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
