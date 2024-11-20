@@ -2429,11 +2429,89 @@ def test_cmip5_values_correct(metacat, current_catalog, path, varname, first_ten
 
     assert vals_equal
 
-    # Check that the data is the same in the current catalog
-    cmip5_cat = current_catalog["cmip5_al33"]
-    ...  # Repeat above
 
+@pytest.mark.parametrize(
+    "path, varname, first_ten_mean",
+    [
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output000/ice/OUTPUT/iceh.1900-01.nc",
+            "aice_m",
+            np.nan,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output007/ice/OUTPUT/iceh.1972-09.nc",
+            "tarea",
+            730422336.0,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output014/ice/OUTPUT/iceh.2045-05.nc",
+            "fsurfn_ai_m",
+            np.nan,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output021/ice/OUTPUT/iceh.2118-01.nc",
+            "vicen_m",
+            np.nan,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output029/ice/OUTPUT/iceh.2190-05.nc",
+            "sst_m",
+            np.nan,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output036/ice/OUTPUT/iceh.2262-11.nc",
+            "ANGLE",
+            0.0,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output043/ice/OUTPUT/iceh.2335-07.nc",
+            "meltt_m",
+            np.nan,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output050/ice/OUTPUT/iceh.2408-03.nc",
+            "divu_m",
+            np.nan,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output058/ice/OUTPUT/iceh.2480-04.nc",
+            "blkmask",
+            0.01,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output065/ice/OUTPUT/iceh.2552-12.nc",
+            "mlt_onset_m",
+            np.nan,
+        ),
+        (
+            "/g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/output072/ice/OUTPUT/iceh.2625-08.nc",
+            "alvdf_ai_m",
+            np.nan,
+        ),
+    ],
+)
+def test_om2_values_correct(metacat, path, varname, first_ten_mean):
+    """
+    All these values are taken from the first 10 values of the first dimension
+    to minimize the amount of data we need to load. They have been verified against
+    the production catalog (as of 2024-11-20).
+    """
+    om2_cat = metacat["1deg_jra55_ryf9091_gadi"]
+    esm_ds = om2_cat.search(path=path).to_dask()
+    assert esm_ds
+    # Subset to the first 10 values in the 0th dimension, first in all others
+    da = esm_ds[varname]
+    da = da.isel(
+        **{
+            da.dims[0]: slice(10),
+        }
+    )
+    da = da.isel(**{dim: 0 for dim in da.dims[1:]})
+    da_val = da.mean(dim=da.dims[0], skipna=True).values
 
-@pytest.mark.order(after="test_catalog_subset_exists")
-def test_built_esm_datastore():
-    pass
+    if np.isnan(da_val).all():
+        vals_equal = np.isnan(first_ten_mean)
+    else:
+        vals_equal = da_val == pytest.approx(first_ten_mean, abs=1e-6)
+
+    assert vals_equal
