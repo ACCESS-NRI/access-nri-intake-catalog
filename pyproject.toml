@@ -30,6 +30,10 @@ test = [
     "pytest",
     "tox",
 ] 
+e2e = [
+    "pytest",
+    "pytest-ordering",
+]
 
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"

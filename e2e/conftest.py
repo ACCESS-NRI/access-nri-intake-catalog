@@ -3,6 +3,7 @@
 
 import os
 import warnings
+from datetime import datetime
 from pathlib import Path
 
 from pytest import fixture
@@ -42,6 +43,11 @@ def test_data():
 @fixture(scope="session")
 def BASE_DIR(tmp_path_factory):
     yield tmp_path_factory.mktemp("catalog-dir")
+
+
+@fixture(scope="session")
+def v_num():
+    return datetime.now().strftime("v%Y-%m-%d")
 
 
 def pytest_collection_modifyitems(config, items):
