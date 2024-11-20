@@ -620,12 +620,16 @@ class MopperBuilder(BaseBuilder):
 
     # @classmethod
     def parser(self, fpath):
-        if True:
-            basedir = self.paths[0]
-            fpattern = self.fpattern
-            toselect = self.toselect
+        if True:  # FIXME Remove, redundant
+            basedir = self.paths[0]  # FIXME - may be a list of paths to go through
+            fpattern = self.fpattern  # FIXME UNNECESSARY
+            toselect = self.toselect  # FIXME UNNECESSARY
+
+            # FIXME change to os-type path manipulation
             filepat = fpattern.split("/")[-1]
             dirpat = "/".join(fpattern.split("/")[:-1])
+
+            # This block converts to regex strings
             dirpat = dirpat.replace("{", "(?P<").replace("}", ">[^/]+)")
             filepat = filepat.replace("{", "(?P<").replace("}", ">[^_]+)")
             tocompiledir = "^/" + dirpat + "/"
@@ -636,10 +640,13 @@ class MopperBuilder(BaseBuilder):
 
             fname = str(Path(fpath).name)
             fbase = str(Path(fpath).parent)
+            # FIXME switch to os logic
             fbase = fbase.replace(basedir, "") + "/"
+
             dir_match = dir_re.match(fbase).groupdict()
             file_match = file_re.match(fname).groupdict()
 
+            # Build the kwargs dict to the custom parse_ncfile (analog of parse_access_ncfile)
             exargs = {}
             exargs["date_range"] = file_match.get("date_range", "")
 
@@ -660,12 +667,15 @@ class MopperBuilder(BaseBuilder):
             # Also file_id is required however we're not using it as this aren't multivariable
             # files, so we can/should aggregate on variable not file_id
             # so I'm using variable as file_id instead.
+            # TODO see if groupby attributes above need changing
             nc_info, exargs = self.parse_ncfile(fpath, exargs)
             ncinfo_dict = nc_info.to_dict()
             for k, v in exargs.items():
                 ncinfo_dict[k] = v
             return ncinfo_dict
 
+    # TODO work out if more appropriate to override parse_access_ncfile
+    # FIXME self --> cls
     @classmethod
     def parse_ncfile(self, fpath, exargs):
         """
@@ -691,7 +701,7 @@ class MopperBuilder(BaseBuilder):
         # get format for dates based on dates lenght
         # dformat is the longest possible datetime format for cmor
         dformat = "%Y%m%d%H%M%S"
-        date_range = exargs.pop("date_range")
+        date_range = exargs.pop("date_range")  # FIXME proof against no value, use get
         if date_range == "":
             start_date = "none"
             end_date = "none"
@@ -703,7 +713,7 @@ class MopperBuilder(BaseBuilder):
             te = datetime.strptime(te, cmor_format)
             end_date = te.strftime(time_format)
 
-        variable = exargs.pop("variable")
+        variable = exargs.pop("variable")  # FIXME proof against no value, use get
         with xr.open_dataset(
             fpath,
             chunks={},
@@ -723,7 +733,7 @@ class MopperBuilder(BaseBuilder):
             path=fpath,
             file_id=tracking_id,
             filename_timestamp=date_range,
-            frequency=exargs.pop("frequency"),
+            frequency=exargs.pop("frequency"),  # FIXME proof against no value, use get
             start_date=start_date,
             end_date=end_date,
             variable=[variable],
