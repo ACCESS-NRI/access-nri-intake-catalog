@@ -6,18 +6,17 @@
 import multiprocessing
 import re
 import traceback
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
 
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
-from pathlib import Path
-from textwrap import wrap
-from datetime import datetime
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-#PP check if I still need this?
+
+# PP check if I still need this?
 from .utils import (
     EmptyFileError,
     _AccessNCFileInfo,
@@ -171,7 +170,7 @@ class BaseBuilder(Builder):
             raise ValueError(
                 "asset list provided is None. Please run `.get_assets()` first"
             )
-     
+
         for asset in self.assets:
             info = self.parser(asset)
             if INVALID_ASSET not in info:
@@ -561,10 +560,11 @@ class AccessCm2Builder(AccessEsm15Builder):
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
     ]
 
+
 class MopperBuilder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-MOPPeR processed data"""
 
-    def __init__(self, path, ensemble, fpattern, toselect): #, extra):
+    def __init__(self, path, ensemble, fpattern, toselect):  # , extra):
         """
         Initialise a MopperBuilder
 
@@ -609,21 +609,27 @@ class MopperBuilder(BaseBuilder):
             ]
 
         super().__init__(**kwargs)
-        self.fpattern = fpattern
-        self.toselect = toselect
+        if fpattern is not None:
+            self.fpattern = fpattern
+        else:
+            self.fpattern = "{version}/{frequency}/{variable}/{variable}_{model}_{member}_{frequency}"
+        if toselect is not None:
+            self.toselect = toselect
+        else:
+            self.toselect = ["variable", "frequency", "version", "member"]
 
-    #@classmethod
-    def parser(self, fpath): 
+    # @classmethod
+    def parser(self, fpath):
         if True:
             basedir = self.paths[0]
             fpattern = self.fpattern
             toselect = self.toselect
             filepat = fpattern.split("/")[-1]
             dirpat = "/".join(fpattern.split("/")[:-1])
-            dirpat = dirpat.replace("{","(?P<").replace("}",">[^/]+)")
-            filepat = filepat.replace("{","(?P<").replace("}",">[^_]+)")
+            dirpat = dirpat.replace("{", "(?P<").replace("}", ">[^/]+)")
+            filepat = filepat.replace("{", "(?P<").replace("}", ">[^_]+)")
             tocompiledir = "^/" + dirpat + "/"
-            tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\.nc"
+            tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\\.nc"
 
             dir_re = re.compile(tocompiledir, re.VERBOSE)
             file_re = re.compile(tocompilefile, re.VERBOSE)
@@ -633,28 +639,30 @@ class MopperBuilder(BaseBuilder):
             fbase = fbase.replace(basedir, "") + "/"
             dir_match = dir_re.match(fbase).groupdict()
             file_match = file_re.match(fname).groupdict()
-          
-            exargs = {}
-            exargs['date_range'] = file_match.get('date_range', '')
-            for x in toselect: 
-                exargs[x] = file_match.get(x, 'unknown')
-                if exargs[x] == 'unknown':
-                    exargs[x] = dir_match.get(x, 'unknown')
-            if 'frequency' in exargs.keys():
-                exargs['frequency'] = exargs['frequency'].replace("Pt","")
-            if 'realm' not in exargs.keys():
-                exargs['realm'] = 'unknown'
 
-        # NB all files coming out of mopper have a single variable
-        # however catalogue seems to expect a multivariable file
-        # in my opinion this is limiting usefulness of catalogues for
-        # the many collection that have 1 variable per file!
-        # Also file_id is required however we're not using it as this aren't multivariable 
-        # files, so we can/should aggregate on variable not file_id
-        # so I'm using variable as file_id instead.
+            exargs = {}
+            exargs["date_range"] = file_match.get("date_range", "")
+
+            for x in toselect:
+                exargs[x] = file_match.get(x, "unknown")
+                if exargs[x] == "unknown":
+                    exargs[x] = dir_match.get(x, "unknown")
+
+            if "frequency" in exargs.keys():
+                exargs["frequency"] = exargs["frequency"].replace("Pt", "")
+            if "realm" not in exargs.keys():
+                exargs["realm"] = "unknown"
+
+            # NB all files coming out of mopper have a single variable
+            # however catalogue seems to expect a multivariable file
+            # in my opinion this is limiting usefulness of catalogues for
+            # the many collection that have 1 variable per file!
+            # Also file_id is required however we're not using it as this aren't multivariable
+            # files, so we can/should aggregate on variable not file_id
+            # so I'm using variable as file_id instead.
             nc_info, exargs = self.parse_ncfile(fpath, exargs)
             ncinfo_dict = nc_info.to_dict()
-            for k,v in exargs.items():
+            for k, v in exargs.items():
                 ncinfo_dict[k] = v
             return ncinfo_dict
 
@@ -677,25 +685,25 @@ class MopperBuilder(BaseBuilder):
             A dataclass containing the information parsed from the file
         exargs: dict
             Stores extra arguments as frequency, date_range, variable etc, derived from fpattern
-            
+
         """
         time_format = "%Y-%m-%d, %H:%M:%S"
         # get format for dates based on dates lenght
         # dformat is the longest possible datetime format for cmor
-        dformat = '%Y%m%d%H%M%S'
-        date_range = exargs.pop('date_range')
-        if date_range == '':
-            start_date = 'none'
-            end_date = 'none'
+        dformat = "%Y%m%d%H%M%S"
+        date_range = exargs.pop("date_range")
+        if date_range == "":
+            start_date = "none"
+            end_date = "none"
         else:
             ts, te = date_range.split("-")
-            cmor_format = dformat[:(len(ts)-2)]
+            cmor_format = dformat[: (len(ts) - 2)]
             ts = datetime.strptime(ts, cmor_format)
             start_date = ts.strftime(time_format)
             te = datetime.strptime(te, cmor_format)
             end_date = te.strftime(time_format)
 
-        variable = exargs.pop('variable')
+        variable = exargs.pop("variable")
         with xr.open_dataset(
             fpath,
             chunks={},
@@ -704,18 +712,18 @@ class MopperBuilder(BaseBuilder):
             decode_coords=False,
         ) as ds:
             attrs = ds[variable].attrs
-            variable_long_name = attrs.get('long_name', 'unknown')
-            variable_standard_name = attrs.get('standard_name', 'unknown')
-            variable_cell_methods = attrs.get('cell_methods', 'unknown')
-            variable_units = attrs.get('units', 'unknown')
-            tracking_id = ds.attrs.get('tracking_id', 'unknown')
+            variable_long_name = attrs.get("long_name", "unknown")
+            variable_standard_name = attrs.get("standard_name", "unknown")
+            variable_cell_methods = attrs.get("cell_methods", "unknown")
+            variable_units = attrs.get("units", "unknown")
+            tracking_id = ds.attrs.get("tracking_id", "unknown")
 
         output_nc_info = _AccessNCFileInfo(
             filename=Path(fpath).name,
             path=fpath,
             file_id=tracking_id,
             filename_timestamp=date_range,
-            frequency=exargs.pop('frequency'),
+            frequency=exargs.pop("frequency"),
             start_date=start_date,
             end_date=end_date,
             variable=[variable],
@@ -726,4 +734,3 @@ class MopperBuilder(BaseBuilder):
         )
 
         return output_nc_info, exargs
-

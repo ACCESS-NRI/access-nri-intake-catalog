@@ -31,10 +31,10 @@ from access_nri_intake.source.utils import _AccessNCFileInfo
         (
             ["access-mopper"],
             "MopperBuilder",
-            {"ensemble": True, "fpattern": None, "toselect": []},
-            2,
-            2,
-            1,
+            {"ensemble": True, "fpattern": None, "toselect": None},
+            3,
+            3,
+            3,
         ),
     ],
 )
