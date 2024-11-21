@@ -24,7 +24,7 @@ jobs:
           PRE_SCRIPT: |
             export PROJECT=xp65_w
       - name: Update catalog
-        uses: appleboy/ssh-action@v1.1.0
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: gadi.nci.org.au
           username: ${{secrets.GADI_USER}}
