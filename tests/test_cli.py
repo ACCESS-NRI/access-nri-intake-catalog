@@ -495,6 +495,85 @@ def test_build_existing_data_existing_old_cat(
     return_value=argparse.Namespace(
         config_yaml=[
             "config/access-om2.yaml",
+            "config/cmip5.yaml",
+        ],
+        build_base_path=None,  # Use pytest fixture here?
+        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        catalog_file="cat.csv",
+        version="v2024-01-01",
+        no_update=False,
+    ),
+)
+@pytest.mark.parametrize(
+    "min_vers,max_vers",
+    [
+        ("v2001-01-01", "v2099-01-01"),
+        (None, "v2099-01-01"),
+        ("v2001-01-01", None),
+    ],
+)
+def test_build_separation_between_catalog_and_buildbase(
+    mockargs, get_catalog_fp, test_data, min_vers, max_vers
+):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    mockargs.return_value.build_base_path = (
+        tempfile.TemporaryDirectory().name
+    )  # Use pytest fixture here?
+    # Update the config_yaml paths
+    for i, p in enumerate(mockargs.return_value.config_yaml):
+        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+
+    # Write the catalog.yamls to its own directory
+    catalog_dir = tempfile.TemporaryDirectory().name
+    mockargs.return_value.catalog_base_path = catalog_dir
+    get_catalog_fp.return_value = os.path.join(catalog_dir, "catalog.yaml")
+
+    # Create dummy version folders in the *catalog* directory
+    # (They would normally be in the build directory)
+    if min_vers is not None:
+        os.makedirs(
+            os.path.join(mockargs.return_value.catalog_base_path, min_vers),
+            exist_ok=False,
+        )
+    if max_vers is not None:
+        os.makedirs(
+            os.path.join(mockargs.return_value.catalog_base_path, max_vers),
+            exist_ok=False,
+        )
+
+    # import pdb; pdb.set_trace()
+
+    build()
+
+    # The version folders exist in the catalog directory, not the build
+    # directory, hence they shouldn't have been found - therefore,
+    # all the version numbers should align with the newly-built catalog
+    with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
+        cat_yaml = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2024-01-01"
+    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-01'
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2024-01-01"
+    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+
+
+@mock.patch("access_nri_intake.cli.get_catalog_fp")
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        config_yaml=[
+            "config/access-om2.yaml",
             # "config/cmip5.yaml",  # Save this for addition
         ],
         build_base_path=None,  # Use pytest fixture here?
