@@ -647,10 +647,6 @@ class MopperBuilder(BaseBuilder):
             tocompiledir = "^/" + dirpat + "/"
             tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\\.nc"
 
-            import pdb
-
-            pdb.set_trace()
-
             dir_re = re.compile(tocompiledir, re.VERBOSE)
             file_re = re.compile(tocompilefile, re.VERBOSE)
 
