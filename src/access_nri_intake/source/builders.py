@@ -564,7 +564,7 @@ class AccessCm2Builder(AccessEsm15Builder):
 class MopperBuilder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-MOPPeR processed data"""
 
-    def __init__(self, path, ensemble, fpattern, toselect):  # , extra):
+    def __init__(self, path, ensemble, fpattern=None, toselect=None):  # , extra):
         """
         Initialise a MopperBuilder
 
@@ -576,9 +576,21 @@ class MopperBuilder(BaseBuilder):
             Whether to treat each path as a separate member of an ensemble to join
             along a new member dimension
         fpattern: str
-            The pattern used by mopper to encode info in the filename and path
-        toselect: list
-            List of attributes to add pattern used by mopper to encode info in the filename and path
+            The pattern used by mopper to encode info in the filename and path.
+
+            `fpattern` is a human-readable representation of the path/filename which
+            describes the path/filename-to-attribute mapping. Defaults to:
+            `"{version}/{frequency}/{variable}/{variable}_{model}_{member}_{frequency}"`
+
+            Internally, `MopperBuilder` will convert this string into a regex pattern,
+            where the names encased in `{}` are converted in regex group names.
+        toselect: list of str
+            List of attributes to add pattern used by mopper to encode info in the
+            filename and path.
+
+            `toselect` is a list of attributes to select out of the `fpattern` to add
+            to the resulting catalog. Defaults to:
+            `["variable", "frequency", "version", "member"]`
         """
 
         kwargs = dict(
@@ -634,6 +646,10 @@ class MopperBuilder(BaseBuilder):
             filepat = filepat.replace("{", "(?P<").replace("}", ">[^_]+)")
             tocompiledir = "^/" + dirpat + "/"
             tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\\.nc"
+
+            import pdb
+
+            pdb.set_trace()
 
             dir_re = re.compile(tocompiledir, re.VERBOSE)
             file_re = re.compile(tocompilefile, re.VERBOSE)
