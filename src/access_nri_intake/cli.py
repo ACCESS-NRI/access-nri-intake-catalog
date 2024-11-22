@@ -313,7 +313,7 @@ def build():
             # No existing catalog, so set min = max = current version,
             # unless there are folders with the right names in the write
             # directory
-            existing_vers = os.listdir(os.path.dirname(get_catalog_fp()))
+            existing_vers = os.listdir(build_base_path)
             existing_vers = [
                 v for v in existing_vers if re.match(CATALOG_NAME_FORMAT, v)
             ]

@@ -9,7 +9,6 @@ import re
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Union
 
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
@@ -65,14 +64,14 @@ class BaseBuilder(Builder):
 
     def __init__(
         self,
-        path: Union[str, list[str]],
+        path: str | list[str],
         depth: int = 0,
-        exclude_patterns: Optional[list[str]] = None,
-        include_patterns: Optional[list[str]] = None,
+        exclude_patterns: list[str] | None = None,
+        include_patterns: list[str] | None = None,
         data_format: str = "netcdf",
-        groupby_attrs: Optional[list[str]] = None,
-        aggregations: Optional[list[dict]] = None,
-        storage_options: Optional[dict] = None,
+        groupby_attrs: list[str] | None = None,
+        aggregations: list[dict] | None = None,
+        storage_options: dict | None = None,
         joblib_parallel_kwargs: dict = {"n_jobs": multiprocessing.cpu_count()},
     ):
         """
@@ -127,7 +126,7 @@ class BaseBuilder(Builder):
         self._parse()
         return self
 
-    def _save(self, name: str, description: str, directory: Optional[str]):
+    def _save(self, name: str, description: str, directory: str | None):
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -142,9 +141,7 @@ class BaseBuilder(Builder):
             to_csv_kwargs={"compression": "gzip"},
         )
 
-    def save(
-        self, name: str, description: str, directory: Optional[str] = None
-    ) -> None:
+    def save(self, name: str, description: str, directory: str | None = None) -> None:
         """
         Save datastore contents to a file.
 
@@ -232,10 +229,10 @@ class BaseBuilder(Builder):
     def parse_access_filename(
         cls,
         filename: str,
-        patterns: Optional[list[str]] = None,
+        patterns: list[str] | None = None,
         frequencies: dict = FREQUENCIES,
         redaction_fill: str = "X",
-    ) -> tuple[str, Optional[str], Optional[str]]:
+    ) -> tuple[str, str | None, str | None]:
         """
         Parse an ACCESS model filename and return a file id and any time information
 

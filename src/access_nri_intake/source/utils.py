@@ -7,7 +7,6 @@ import warnings
 from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 from pathlib import Path
-from typing import Optional, Union
 
 import cftime
 import xarray as xr
@@ -30,10 +29,10 @@ class _AccessNCFileInfo:
     more explicit tests are probably more important than the slight redundancy.
     """
 
-    filename: Union[str, Path]
+    filename: str | Path
     file_id: str
     path: str
-    filename_timestamp: Optional[str]
+    filename_timestamp: str | None
     frequency: str
     start_date: str
     end_date: str
@@ -43,7 +42,7 @@ class _AccessNCFileInfo:
     variable_cell_methods: list[str]
     variable_units: list[str]
 
-    def to_dict(self) -> dict[str, Union[str, list[str]]]:
+    def to_dict(self) -> dict[str, str | list[str]]:
         """
         Return a dictionary representation of the NcFileInfo object
         """
@@ -139,7 +138,7 @@ def _guess_start_end_dates(ts, te, frequency):
 
 def get_timeinfo(
     ds: xr.Dataset,
-    filename_frequency: Optional[str],
+    filename_frequency: str | None,
     time_dim: str,
 ) -> tuple[str, str, str]:
     """
@@ -177,7 +176,7 @@ def get_timeinfo(
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
     te = None
-    frequency: Union[str, tuple[Optional[int], str]] = "fx"
+    frequency: str | tuple[int | None, str] = "fx"
     has_time = time_dim in ds
 
     if has_time:
