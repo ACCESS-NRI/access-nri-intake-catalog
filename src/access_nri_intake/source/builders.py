@@ -636,18 +636,21 @@ class MopperBuilder(BaseBuilder):
         super().__init__(**kwargs)
 
     @staticmethod
-    def _get_relevant_filepath(self, path):
+    def _get_relevant_filepath(path):
         # import pdb; pdb.set_trace()
         return os.path.splitext(os.path.join(*str(path).split(os.path.sep)[-4:]))[0]
 
     @classmethod
     def parser(cls, fpath, to_select=None):
 
-        cls.parse_access_ncfile(fpath)
+        ncinfo = cls.parse_access_ncfile(fpath)
+        ncinfo_dict = ncinfo.to_dict()
+
         import pdb
 
         pdb.set_trace()
-        return
+
+        return ncinfo_dict
 
     # TODO work out if more appropriate to override parse_access_ncfile
     # FIXME self --> cls
