@@ -187,6 +187,7 @@ class BaseBuilder(Builder):
         Builds a datastore from a list of netCDF files or zarr stores.
         """
 
+        # TODO add kwarg pass throughs to input instance-specific data
         self.get_assets().validate_parser().parse().clean_dataframe()
 
         return self
@@ -290,7 +291,9 @@ class BaseBuilder(Builder):
 
     @classmethod
     def parse_access_ncfile(
-        cls, file: str, time_dim: str = "time"
+        cls,
+        file: str,
+        time_dim: str = "time",
     ) -> _AccessNCFileInfo:
         """
         Get Intake-ESM datastore entry info from an ACCESS netcdf file
@@ -640,12 +643,25 @@ class MopperBuilder(BaseBuilder):
     @classmethod
     def parser(cls, fpath, to_select=None):
 
+        if to_select is None:
+            to_select = []
+
         ncinfo = cls.parse_access_ncfile(fpath)
         ncinfo_dict = ncinfo.to_dict()
 
-        import pdb
+        # Look for the additional to_selects we wish to explicitly extract
+        for patt in cls.PATTERNS:
+            match = re.match(patt, ncinfo_dict["file_id"])
+            if match:
+                break
 
-        pdb.set_trace()
+        if match:
+            for k in to_select:
+                if k not in ncinfo_dict.keys():
+                    ncinfo_dict[k] = match.get(k, "unknown")
+
+        if "realm" not in ncinfo_dict:
+            ncinfo_dict["realm"] = "unknown"
 
         return ncinfo_dict
 
