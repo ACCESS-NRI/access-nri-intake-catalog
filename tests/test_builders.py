@@ -31,7 +31,7 @@ from access_nri_intake.source.utils import _AccessNCFileInfo
         (
             ["access-mopper"],
             "MopperBuilder",
-            {"ensemble": True, "fpattern": None, "toselect": None},
+            {"ensemble": True},
             3,
             3,
             3,
@@ -139,6 +139,13 @@ def test_builder_build(
             "wave",
             None,
             "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+        ),
+        (
+            "access-mopper/ashwed83/v1-0/1hr/huss/huss_AUS2200_ashwed1983_1hr_198302150030-198302172330.nc",
+            "MopperBuilder",
+            None,
+            None,
+            "huss_AUS2200_ashwed1983_1hr_XXXXXXXXXXXX-XXXXXXXXXXXX",
         ),
     ],
 )

@@ -4,6 +4,7 @@
 """Builders for generating Intake-ESM datastores"""
 
 import multiprocessing
+import os
 import re
 import traceback
 from datetime import datetime
@@ -39,11 +40,14 @@ FREQUENCIES: dict[str, tuple[int, str]] = {
 PATTERNS_HELPERS = {
     "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
     "om3_components": "(?:cice|mom6|ww3)",
+    "ymd00hm-2": "\\d{4}\\d{2}\\d{2}00\\d{4}[_,\\-]\\d{4}\\d{2}\\d{2}00\\d{4}",
     "ymds": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}[_,\\-]\\d{5}",
     "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
     "ym": "\\d{4}[_,\\-]\\d{2}",
     "y": "\\d{4}",
 }
+
+TIMESTAMP_GROUP = "ts"
 
 
 class ParserError(Exception):
@@ -208,6 +212,10 @@ class BaseBuilder(Builder):
         return {column for column, check in has_iterables.items() if check}
 
     @staticmethod
+    def _get_relevant_filepath(path):
+        return path.stem
+
+    @staticmethod
     def parser(file):
         """
         Parse info from a file asset
@@ -268,10 +276,12 @@ class BaseBuilder(Builder):
         for pattern in patterns:
             match = re.match(pattern, file_id)
             if match:
-                timestamp = match.group(1)
+                timestamp = match.group(TIMESTAMP_GROUP)
                 redaction = re.sub(r"\d", redaction_fill, timestamp)
                 file_id = (
-                    file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
+                    file_id[: match.start(TIMESTAMP_GROUP)]
+                    + redaction
+                    + file_id[match.end(TIMESTAMP_GROUP) :]
                 )
                 break
 
@@ -308,7 +318,7 @@ class BaseBuilder(Builder):
         file_path = Path(file)
 
         file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
-            file_path.stem
+            cls._get_relevant_filepath(file_path)
         )
 
         with xr.open_dataset(
@@ -564,7 +574,26 @@ class AccessCm2Builder(AccessEsm15Builder):
 class MopperBuilder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-MOPPeR processed data"""
 
-    def __init__(self, path, ensemble, fpattern=None, toselect=None):  # , extra):
+    # Using os.path.join and .replace makes the pattern more human-readable,
+    # and avoids any cross-OS problems
+    PATTERNS = [
+        (
+            (
+                "^.*"
+                + os.path.join(
+                    "{version}",
+                    "{frequency_dir}",
+                    "{variable_dir}",  # variable captured from name - re does not allow repeat groups
+                    "{variable}_{model}_{member}_{frequency}",
+                )
+            )
+            .replace("{", "(?P<")
+            .replace("}", f">[^{os.sep}]+)")
+        )
+        + f"_(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd00hm-2']}).*$",
+    ]
+
+    def __init__(self, path, ensemble):  # , extra):
         """
         Initialise a MopperBuilder
 
@@ -575,22 +604,6 @@ class MopperBuilder(BaseBuilder):
         ensemble: boolean
             Whether to treat each path as a separate member of an ensemble to join
             along a new member dimension
-        fpattern: str
-            The pattern used by mopper to encode info in the filename and path.
-
-            `fpattern` is a human-readable representation of the path/filename which
-            describes the path/filename-to-attribute mapping. Defaults to:
-            `"{version}/{frequency}/{variable}/{variable}_{model}_{member}_{frequency}"`
-
-            Internally, `MopperBuilder` will convert this string into a regex pattern,
-            where the names encased in `{}` are converted in regex group names.
-        toselect: list of str
-            List of attributes to add pattern used by mopper to encode info in the
-            filename and path.
-
-            `toselect` is a list of attributes to select out of the `fpattern` to add
-            to the resulting catalog. Defaults to:
-            `["variable", "frequency", "version", "member"]`
         """
 
         kwargs = dict(
@@ -621,70 +634,20 @@ class MopperBuilder(BaseBuilder):
             ]
 
         super().__init__(**kwargs)
-        if fpattern is not None:
-            self.fpattern = fpattern
-        else:
-            self.fpattern = "{version}/{frequency}/{variable}/{variable}_{model}_{member}_{frequency}"
-        if toselect is not None:
-            self.toselect = toselect
-        else:
-            self.toselect = ["variable", "frequency", "version", "member"]
 
-    # @classmethod
-    def parser(self, fpath):
-        if True:  # FIXME Remove, redundant
-            basedir = self.paths[0]  # FIXME - may be a list of paths to go through
-            fpattern = self.fpattern  # FIXME UNNECESSARY
-            toselect = self.toselect  # FIXME UNNECESSARY
+    @staticmethod
+    def _get_relevant_filepath(self, path):
+        # import pdb; pdb.set_trace()
+        return os.path.splitext(os.path.join(*str(path).split(os.path.sep)[-4:]))[0]
 
-            # FIXME change to os-type path manipulation
-            filepat = fpattern.split("/")[-1]
-            dirpat = "/".join(fpattern.split("/")[:-1])
+    @classmethod
+    def parser(cls, fpath, to_select=None):
 
-            # This block converts to regex strings
-            dirpat = dirpat.replace("{", "(?P<").replace("}", ">[^/]+)")
-            filepat = filepat.replace("{", "(?P<").replace("}", ">[^_]+)")
-            tocompiledir = "^/" + dirpat + "/"
-            tocompilefile = "^" + filepat + "_?(?P<date_range>.*)?\\.nc"
+        cls.parse_access_ncfile(fpath)
+        import pdb
 
-            dir_re = re.compile(tocompiledir, re.VERBOSE)
-            file_re = re.compile(tocompilefile, re.VERBOSE)
-
-            fname = str(Path(fpath).name)
-            fbase = str(Path(fpath).parent)
-            # FIXME switch to os logic
-            fbase = fbase.replace(basedir, "") + "/"
-
-            dir_match = dir_re.match(fbase).groupdict()
-            file_match = file_re.match(fname).groupdict()
-
-            # Build the kwargs dict to the custom parse_ncfile (analog of parse_access_ncfile)
-            exargs = {}
-            exargs["date_range"] = file_match.get("date_range", "")
-
-            for x in toselect:
-                exargs[x] = file_match.get(x, "unknown")
-                if exargs[x] == "unknown":
-                    exargs[x] = dir_match.get(x, "unknown")
-
-            if "frequency" in exargs.keys():
-                exargs["frequency"] = exargs["frequency"].replace("Pt", "")
-            if "realm" not in exargs.keys():
-                exargs["realm"] = "unknown"
-
-            # NB all files coming out of mopper have a single variable
-            # however catalogue seems to expect a multivariable file
-            # in my opinion this is limiting usefulness of catalogues for
-            # the many collection that have 1 variable per file!
-            # Also file_id is required however we're not using it as this aren't multivariable
-            # files, so we can/should aggregate on variable not file_id
-            # so I'm using variable as file_id instead.
-            # TODO see if groupby attributes above need changing
-            nc_info, exargs = self.parse_ncfile(fpath, exargs)
-            ncinfo_dict = nc_info.to_dict()
-            for k, v in exargs.items():
-                ncinfo_dict[k] = v
-            return ncinfo_dict
+        pdb.set_trace()
+        return
 
     # TODO work out if more appropriate to override parse_access_ncfile
     # FIXME self --> cls
