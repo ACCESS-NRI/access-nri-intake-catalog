@@ -143,9 +143,9 @@ def test_builder_build(
         (
             "access-mopper/ashwed83/v1-0/1hr/huss/huss_AUS2200_ashwed1983_1hr_198302150030-198302172330.nc",
             "MopperBuilder",
+            "unknown",
             None,
-            None,
-            "huss_AUS2200_ashwed1983_1hr_XXXXXXXXXXXX-XXXXXXXXXXXX",
+            "v1_0/10min/cllow/cllow_AUS2200_ashwed1983_subhrPt_XXXXXXXXXXXXXX_XXXXXXXXXXXXXX",
         ),
     ],
 )
