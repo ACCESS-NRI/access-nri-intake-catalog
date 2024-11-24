@@ -8,6 +8,9 @@ from access_nri_intake.cli import build
 
 from .conftest import here
 
+e2e = pytest.mark.skipif(
+    "not config.getoption('--e2e')",
+)
 """
 args=Namespace(
     config_yaml=[
@@ -22,19 +25,7 @@ args=Namespace(
 """
 
 
-def print_directory_tree(root, indent=""):
-    """
-    Pretty print a directory tree - code from chatgpt.
-    """
-    for item in os.listdir(root):
-        path = os.path.join(root, item)
-        if os.path.isdir(path):
-            print(f"{indent}├── {item}/")
-            print_directory_tree(path, indent + "│   ")
-        else:
-            print(f"{indent}├── {item}")
-
-
+@e2e
 @pytest.fixture(scope="session")
 def current_catalog():
     """
@@ -44,6 +35,7 @@ def current_catalog():
     yield metacat
 
 
+@e2e
 @pytest.fixture(scope="session")
 def metacat(BASE_DIR, v_num):
     # Build our subset of the catalog. This should take ~2 minutes with the PBS
@@ -70,15 +62,18 @@ def metacat(BASE_DIR, v_num):
     yield metacat
 
 
+@e2e
 def test_catalog_subset_exists(BASE_DIR, v_num, metacat):
     assert os.path.exists(os.path.join(BASE_DIR, v_num, "metacatalog.csv"))
 
 
+@e2e
 def test_open_dataframe_catalog(metacat):
     assert metacat
     print("Catalog opened successfully.")
 
 
+@e2e
 @pytest.mark.parametrize(
     "name",
     [
@@ -90,6 +85,7 @@ def test_datastore_found(metacat, name):
     assert metacat[name] == metacat.search(name=name).to_source()
 
 
+@e2e
 @pytest.mark.parametrize(
     "colname, expected",
     [
@@ -119,6 +115,7 @@ def test_cmip5_datastore_nunique(metacat, colname, expected):
             assert len(cat.df[colname].unique()) == expected
 
 
+@e2e
 @pytest.mark.parametrize(
     "colname, expected",
     [
@@ -157,6 +154,7 @@ def test_om2_datastore_nunique(metacat, colname, expected):
         assert len(tuplified) == expected
 
 
+@e2e
 @pytest.mark.parametrize(
     "colname, expected",
     [
@@ -301,6 +299,7 @@ def test_cmip5_metacat_vals_found(metacat, colname, expected):
     assert found == expected
 
 
+@e2e
 @pytest.mark.parametrize(
     "colname, expected",
     [
@@ -2200,7 +2199,6 @@ def test_om2_metacat_vals_found(metacat, colname, expected):
     # Test that the unique values in the column are as expected. I've truncated
     # the unique values to the first 10 for brevity because I'm not typing out
     # 3700255 unique values.
-    breakpoint()
     cat = metacat["1deg_jra55_ryf9091_gadi"]
     if colname not in [
         "variable",
@@ -2220,6 +2218,7 @@ def test_om2_metacat_vals_found(metacat, colname, expected):
         assert found == expected
 
 
+@e2e
 @pytest.mark.parametrize(
     "path, varname, first_ten_mean",
     [
@@ -2427,6 +2426,7 @@ def test_cmip5_values_correct(metacat, current_catalog, path, varname, first_ten
     assert vals_equal
 
 
+@e2e
 @pytest.mark.parametrize(
     "path, varname, first_ten_mean",
     [

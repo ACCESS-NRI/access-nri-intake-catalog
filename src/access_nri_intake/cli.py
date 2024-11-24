@@ -95,7 +95,6 @@ def _check_build_args(args_list: list[dict]) -> None:
     if len(names) != len(set(names)):
         seen = set()
         dupes = [name for name in names if name in seen or seen.add(name)]  # type: ignore
-        # TODO: We get N-1 errors here - can we get this down to 1? Do we want to?
         raise MetadataCheckError(f"There are experiments with the same name: {dupes}")
     if len(uuids) != len(set(uuids)):
         seen = set()
@@ -300,9 +299,9 @@ def build(argv: Optional[Sequence[str]] = None):
                     yaml_dict, version, version
                 )
             elif storage_new != storage_old:
-                yaml_dict["sources"]["access_nri"]["metadata"][
-                    "storage"
-                ] = _combine_storage_flags(storage_new, storage_old)
+                yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
+                    _combine_storage_flags(storage_new, storage_old)
+                )
 
             # Set the minimum and maximum catalog versions, if they're not set already
             # in the 'new catalog' if statement above

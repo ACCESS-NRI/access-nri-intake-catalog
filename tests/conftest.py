@@ -3,11 +3,37 @@
 
 import os
 import warnings
+from datetime import datetime
 from pathlib import Path
 
 from pytest import fixture
 
-here = os.path.abspath(os.path.dirname(__file__))
+here = Path(__file__).parent
+
+
+@fixture(scope="session")
+def test_data():
+    return Path(here / "data")
+
+
+@fixture(scope="session")
+def BASE_DIR(tmp_path_factory):
+    yield tmp_path_factory.mktemp("catalog-dir")
+
+
+@fixture(scope="session")
+def v_num():
+    return datetime.now().strftime("v%Y-%m-%d")
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--e2e",
+        action="store_true",
+        default=False,
+        help="Run end-to-end tests",
+        dest="e2e",
+    )
 
 
 def _get_xfail():
@@ -32,11 +58,6 @@ def _get_xfail():
 
 
 _add_xfail = _get_xfail()
-
-
-@fixture(scope="session")
-def test_data():
-    return Path(os.path.join(here, "data"))
 
 
 def pytest_collection_modifyitems(config, items):
