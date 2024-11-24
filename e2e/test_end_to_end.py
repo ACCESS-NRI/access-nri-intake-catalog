@@ -87,7 +87,6 @@ def test_open_dataframe_catalog(metacat):
     ],
 )
 def test_datastore_found(metacat, name):
-    breakpoint()
     assert metacat[name] == metacat.search(name=name).to_source()
 
 
@@ -111,7 +110,6 @@ def test_datastore_found(metacat, name):
     ],
 )
 def test_cmip5_datastore_nunique(metacat, colname, expected):
-
     cat = metacat["cmip5_al33"]
 
     if colname != "derived_variable":
@@ -140,7 +138,6 @@ def test_cmip5_datastore_nunique(metacat, colname, expected):
     ],
 )
 def test_om2_datastore_nunique(metacat, colname, expected):
-
     cat = metacat["1deg_jra55_ryf9091_gadi"]
 
     if colname not in [

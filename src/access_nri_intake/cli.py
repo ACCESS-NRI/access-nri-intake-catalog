@@ -95,7 +95,7 @@ def _check_build_args(args_list: list[dict]) -> None:
     if len(names) != len(set(names)):
         seen = set()
         dupes = [name for name in names if name in seen or seen.add(name)]  # type: ignore
-        # seen.add(name) returns None & so is always Falsey - so what is it doing?
+        # TODO: We get N-1 errors here - can we get this down to 1? Do we want to?
         raise MetadataCheckError(f"There are experiments with the same name: {dupes}")
     if len(uuids) != len(set(uuids)):
         seen = set()
