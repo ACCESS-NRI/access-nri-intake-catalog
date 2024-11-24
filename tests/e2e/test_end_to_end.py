@@ -11,22 +11,10 @@ from .conftest import here
 e2e = pytest.mark.skipif(
     "not config.getoption('--e2e')",
 )
-"""
-args=Namespace(
-    config_yaml=[
-        '/scratch/tm70/ct1163/configs/cmip5.yaml', 
-        '/scratch/tm70/ct1163/configs/access-om2.yaml'],
-    build_base_path='/scratch/tm70/ct1163/test_cat/',
-    catalog_base_path='./',
-    catalog_file='metacatalog.csv',
-    version='v2024-11-18',
-    no_update=False
-    )
-"""
 
 
 @e2e
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def current_catalog():
     """
     Return the current catalog as an intake catalog.
@@ -36,7 +24,7 @@ def current_catalog():
 
 
 @e2e
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def metacat(BASE_DIR, v_num):
     # Build our subset of the catalog. This should take ~2 minutes with the PBS
     # flags in build_subset.sh
@@ -2212,7 +2200,7 @@ def test_om2_metacat_vals_found(metacat, colname, expected):
     else:
         # These should fail because they contains lists (unhashable)
         with pytest.raises(TypeError):
-            _found = set(cat.df[colname].unique()[:10])
+            _ = set(cat.df[colname].unique()[:10])
         # cast to tuple to make them hashable, then check the length
         found = set(cat.df[colname].apply(lambda x: tuple(x)).unique()[:10])
         assert found == expected
