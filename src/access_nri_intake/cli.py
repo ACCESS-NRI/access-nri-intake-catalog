@@ -35,7 +35,7 @@ def _parse_build_inputs(config_yamls, build_path, data_path):
 
     args = []
     for config_yaml in config_yamls:
-        with open(os.path.join(data_path, config_yaml)) as f:
+        with open(config_yaml) as f:
             config = yaml.safe_load(f)
 
         builder = config.get("builder")
@@ -54,10 +54,14 @@ def _parse_build_inputs(config_yamls, build_path, data_path):
         for kwargs in sources:
             source_args = config_args
 
-            source_args["path"] = kwargs.pop("path")
+            source_args["path"] = [
+                os.path.join(data_path, _) for _ in kwargs.pop("path")
+            ]
             metadata_yaml = kwargs.pop("metadata_yaml")
             try:
-                metadata = load_metadata_yaml(metadata_yaml, EXP_JSONSCHEMA)
+                metadata = load_metadata_yaml(
+                    os.path.join(data_path, metadata_yaml), EXP_JSONSCHEMA
+                )
             except jsonschema.exceptions.ValidationError:
                 raise MetadataCheckError(
                     f"Failed to validate metadata.yaml @ {os.path.dirname(metadata_yaml)}. See traceback for details."

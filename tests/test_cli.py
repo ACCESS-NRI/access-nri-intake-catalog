@@ -134,6 +134,7 @@ def test_build(mockargs, version, test_data):
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.version = version
+    mockargs.return_value.data_base_path = test_data
 
     build()
 
@@ -211,12 +212,12 @@ def test_build_bad_version(mockargs, bad_vers, test_data):
 )
 def test_build_bad_metadata(mockargs, get_catalog_fp, test_data):
     """
-    Test if the intelligent versioning works correctly when there is
-    no significant change to the underlying catalogue
+    Test if bad metadata is detected
     """
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
@@ -251,6 +252,7 @@ def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
@@ -302,6 +304,7 @@ def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data):
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
@@ -374,6 +377,7 @@ def test_build_existing_data(mockargs, get_catalog_fp, test_data, min_vers, max_
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
@@ -448,6 +452,7 @@ def test_build_existing_data_existing_old_cat(
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
@@ -533,6 +538,7 @@ def test_build_separation_between_catalog_and_buildbase(
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     # Write the catalog.yamls to its own directory
     catalog_dir = tempfile.TemporaryDirectory().name
@@ -606,6 +612,7 @@ def test_build_repeat_renamecatalogyaml(
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
     mockargs.return_value.version = (
@@ -714,6 +721,7 @@ def test_build_repeat_altercatalogstruct(
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
     mockargs.return_value.version = (
@@ -819,6 +827,7 @@ def test_build_repeat_altercatalogstruct_multivers(
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    mockargs.return_value.data_base_path = test_data
 
     mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
     mockargs.return_value.version = (
