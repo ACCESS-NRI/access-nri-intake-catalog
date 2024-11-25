@@ -27,7 +27,7 @@ class MetadataCheckError(Exception):
     pass
 
 
-def _parse_build_inputs(config_yamls, build_path):
+def _parse_build_inputs(config_yamls, build_path, data_path):
     """
     Parse build inputs into a list of tuples of CatalogManager methods and args to
     pass to the methods
@@ -35,7 +35,7 @@ def _parse_build_inputs(config_yamls, build_path):
 
     args = []
     for config_yaml in config_yamls:
-        with open(config_yaml) as f:
+        with open(os.path.join(data_path, config_yaml)) as f:
             config = yaml.safe_load(f)
 
         builder = config.get("builder")
@@ -142,6 +142,16 @@ def build():
     )
 
     parser.add_argument(
+        "--data_base_path",
+        type=str,
+        default="",
+        help=(
+            "Home directory that contains the data referenced by the input experiment YAML"
+            "files. Typically only required for testing. Defaults to None."
+        ),
+    )
+
+    parser.add_argument(
         "--catalog_file",
         type=str,
         default="metacatalog.csv",
@@ -170,6 +180,7 @@ def build():
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
     catalog_base_path = args.catalog_base_path
+    data_base_path = args.data_base_path
     catalog_file = args.catalog_file
     version = args.version
     update = not args.no_update
@@ -188,7 +199,7 @@ def build():
     os.makedirs(build_path, exist_ok=True)
 
     # Parse inputs to pass to CatalogManager
-    parsed_sources = _parse_build_inputs(config_yamls, build_path)
+    parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
     _check_build_args([parsed_source[1] for parsed_source in parsed_sources])
 
     # Get the project storage flags

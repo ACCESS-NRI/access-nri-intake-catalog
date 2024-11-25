@@ -113,6 +113,7 @@ def test_check_build_args(args, raises):
         ],
         build_base_path=None,  # Use pytest fixture here?
         catalog_base_path=None,
+        data_base_path="",
         catalog_file="cat.csv",
         version=None,
         no_update=True,
@@ -159,6 +160,7 @@ def test_build(mockargs, version, test_data):
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
         catalog_base_path=tempfile.TemporaryDirectory().name,
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=True,
@@ -201,6 +203,7 @@ def test_build_bad_version(mockargs, bad_vers, test_data):
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -234,6 +237,7 @@ def test_build_bad_metadata(mockargs, get_catalog_fp, test_data):
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -288,6 +292,7 @@ def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
         ],
         build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -343,6 +348,7 @@ def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data):
         ],
         build_base_path=None,
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -414,6 +420,7 @@ def test_build_existing_data(mockargs, get_catalog_fp, test_data, min_vers, max_
         ],
         build_base_path=None,
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -499,6 +506,7 @@ def test_build_existing_data_existing_old_cat(
         ],
         build_base_path=None,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -578,6 +586,7 @@ def test_build_separation_between_catalog_and_buildbase(
         ],
         build_base_path=None,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -685,6 +694,7 @@ def test_build_repeat_renamecatalogyaml(
         ],
         build_base_path=None,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file="cat.csv",
         version="v2024-01-01",
         no_update=False,
@@ -789,6 +799,7 @@ def test_build_repeat_altercatalogstruct(
         ],
         build_base_path=None,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
+        data_base_path="",
         catalog_file=None,
         version="v2024-01-01",
         no_update=False,
