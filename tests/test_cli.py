@@ -389,13 +389,11 @@ def test_build_existing_data(mockargs, get_catalog_fp, test_data, min_vers, max_
     with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
-        == (min_vers if min_vers is not None else mockargs.return_value.version)
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
+        min_vers if min_vers is not None else mockargs.return_value.version
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else mockargs.return_value.version}'
-    assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
-        == (max_vers if max_vers is not None else mockargs.return_value.version)
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
+        max_vers if max_vers is not None else mockargs.return_value.version
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else mockargs.return_value.version}'
     # Default should always be the newly-built version
     assert (
@@ -467,13 +465,11 @@ def test_build_existing_data_existing_old_cat(
     with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
-        == (min_vers if min_vers is not None else mockargs.return_value.version)
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
+        min_vers if min_vers is not None else mockargs.return_value.version
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else mockargs.return_value.version}'
-    assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
-        == (max_vers if max_vers is not None else mockargs.return_value.version)
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
+        max_vers if max_vers is not None else mockargs.return_value.version
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else mockargs.return_value.version}'
     # Default should always be the newly-built version
     assert (
