@@ -18,7 +18,7 @@ def test_data():
 
 @fixture(scope="session")
 def config_dir():
-    return Path(here / "configs")
+    return Path(here / "e2e/configs")
 
 
 @fixture(scope="session")
