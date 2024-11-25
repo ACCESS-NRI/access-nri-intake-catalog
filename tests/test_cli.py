@@ -978,4 +978,7 @@ def test_metadata_validate_no_file(mockargs):
 
 
 def test_metadata_template():
-    metadata_template()
+    loc = tempfile.TemporaryDirectory()
+    metadata_template(loc=loc.name)
+    with open(os.path.join(loc.name, "metadata.yaml")):
+        pass

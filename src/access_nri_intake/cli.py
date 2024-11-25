@@ -400,10 +400,13 @@ def metadata_validate():
             raise FileNotFoundError(f"No such file(s): {f}")
 
 
-def metadata_template():
+def metadata_template(loc=None):
     """
     Create an empty template for a metadata.yaml file using the experiment schema
     """
+
+    if loc is None:
+        loc = os.getcwd()
 
     argparse.ArgumentParser(description="Generate a template for metadata.yaml")
 
@@ -419,5 +422,5 @@ def metadata_template():
 
         template[name] = description
 
-    with open("./metadata.yaml", "w") as outfile:
+    with open(os.path.join(loc, "metadata.yaml"), "w") as outfile:
         yaml.dump(template, outfile, default_flow_style=False, sort_keys=False)
