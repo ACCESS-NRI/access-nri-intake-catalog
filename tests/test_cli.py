@@ -980,5 +980,13 @@ def test_metadata_validate_no_file(mockargs):
 def test_metadata_template():
     loc = tempfile.TemporaryDirectory()
     metadata_template(loc=loc.name)
-    with open(os.path.join(loc.name, "metadata.yaml")):
-        pass
+    if not os.path.isfile(os.path.join(loc.name, "metadata.yaml")):
+        raise RuntimeError("Didn't write template into temp dir")
+
+
+def test_metadata_template_default_loc():
+    metadata_template()
+    if os.path.isfile(os.path.join(os.getcwd(), "metadata.yaml")):
+        os.remove(os.path.join(os.getcwd(), "metadata.yaml"))
+    else:
+        raise RuntimeError("Didn't write template into PWD")
