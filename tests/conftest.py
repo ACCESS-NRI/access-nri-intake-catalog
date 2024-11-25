@@ -17,6 +17,11 @@ def test_data():
 
 
 @fixture(scope="session")
+def config_dir():
+    return Path(here / "configs")
+
+
+@fixture(scope="session")
 def BASE_DIR(tmp_path_factory):
     yield tmp_path_factory.mktemp("catalog-dir")
 

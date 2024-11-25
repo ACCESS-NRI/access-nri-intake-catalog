@@ -6,8 +6,6 @@ import pytest
 
 from access_nri_intake.cli import build
 
-from .conftest import here
-
 e2e = pytest.mark.skipif(
     "not config.getoption('--e2e')",
 )
@@ -25,15 +23,15 @@ def current_catalog():
 
 @e2e
 @pytest.fixture(scope="module")
-def metacat(BASE_DIR, v_num):
+def metacat(BASE_DIR, config_dir, v_num):
     # Build our subset of the catalog. This should take ~2 minutes with the PBS
     # flags in build_subset.sh
     print(f"Building the catalog subset & writing to {BASE_DIR}")
     print(f"Version number: {v_num}")
     build(
         [
-            f"{here}/configs/cmip5.yaml",
-            f"{here}/configs/access-om2.yaml",
+            str(config_dir / "cmip5.yaml"),
+            str(config_dir / "access-om2.yaml"),
             "--build_base_path",
             str(BASE_DIR),
             "--catalog_base_path",

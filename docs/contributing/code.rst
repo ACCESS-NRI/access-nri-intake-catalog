@@ -60,5 +60,10 @@ contributions and submitting a pull request.
 
       pytest .
 
+   This project has both unit tests and integration tests. Integration tests are disabled by default due to computational
+   expense, and can only be run on Gadi. To run the full test suite, including integration tests, run::
+
+      pytest --e2e .
+
 #. Once you are happy with your contribution, go `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/pulls>`_ 
    and open a new pull request to merge your branch of your fork with the main branch of the base.
