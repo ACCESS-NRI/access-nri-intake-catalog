@@ -10,7 +10,6 @@ import os
 import re
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional
 
 import jsonschema
 import yaml
@@ -105,7 +104,7 @@ def _check_build_args(args_list: list[dict]) -> None:
         )
 
 
-def build(argv: Optional[Sequence[str]] = None):
+def build(argv: Sequence[str] | None = None):
     """
     Build an intake-dataframe-catalog from YAML configuration file(s).
     """
@@ -299,9 +298,9 @@ def build(argv: Optional[Sequence[str]] = None):
                     yaml_dict, version, version
                 )
             elif storage_new != storage_old:
-                yaml_dict["sources"]["access_nri"]["metadata"][
-                    "storage"
-                ] = _combine_storage_flags(storage_new, storage_old)
+                yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
+                    _combine_storage_flags(storage_new, storage_old)
+                )
 
             # Set the minimum and maximum catalog versions, if they're not set already
             # in the 'new catalog' if statement above
@@ -359,7 +358,7 @@ def _combine_storage_flags(a: str, b: str) -> str:
     return "+".join(sorted(list(set(aflags + bflags))))
 
 
-def metadata_validate(argv: Optional[Sequence[str]] = None):
+def metadata_validate(argv: Sequence[str] | None = None):
     """
     Check provided metadata.yaml file(s) against the experiment schema
     """
@@ -371,7 +370,7 @@ def metadata_validate(argv: Optional[Sequence[str]] = None):
         help="The path to the metadata.yaml file. Multiple file paths can be passed.",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     files = args.file
 
     for f in files:
