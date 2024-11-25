@@ -26,6 +26,7 @@ from .utils import (
 
 # Frequency translations
 FREQUENCIES: dict[str, tuple[int, str]] = {
+    # "1hr" : (1, "hr"),
     "daily": (1, "day"),
     "_dai$": (1, "day"),
     "month": (1, "mon"),
@@ -39,7 +40,7 @@ FREQUENCIES: dict[str, tuple[int, str]] = {
 PATTERNS_HELPERS = {
     "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
     "om3_components": "(?:cice|mom6|ww3)",
-    "ymd00hm-2": "\\d{4}\\d{2}\\d{2}00\\d{4}[_,\\-]\\d{4}\\d{2}\\d{2}00\\d{4}",
+    "ymd00hm-2": "\\d{4}\\d{2}\\d{2}[0]{0,2}\\d{4}[_,\\-]\\d{4}\\d{2}\\d{2}[0]{0,2}\\d{4}",
     "ymds": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}[_,\\-]\\d{5}",
     "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
     "ym": "\\d{4}[_,\\-]\\d{2}",
@@ -646,6 +647,8 @@ class MopperBuilder(BaseBuilder):
         if to_select is None:
             to_select = []
 
+        # import pdb; pdb.set_trace()
+
         ncinfo = cls.parse_access_ncfile(fpath)
         ncinfo_dict = ncinfo.to_dict()
 
@@ -662,8 +665,6 @@ class MopperBuilder(BaseBuilder):
 
         if "realm" not in ncinfo_dict:
             ncinfo_dict["realm"] = "unknown"
-
-        # import pdb; pdb.set_trace()
 
         return ncinfo_dict
 
