@@ -104,21 +104,6 @@ def test_check_build_args(args, raises):
         _check_build_args(args)
 
 
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            "config/cmip5.yaml",
-        ],
-        build_base_path=None,  # Use pytest fixture here?
-        catalog_base_path=None,
-        data_base_path="",
-        catalog_file="cat.csv",
-        version=None,
-        no_update=True,
-    ),
-)
 @pytest.mark.parametrize(
     "version",
     [
@@ -126,47 +111,44 @@ def test_check_build_args(args, raises):
         "2024-01-01",
     ],
 )
-def test_build(mockargs, version, test_data):
+def test_build(version, test_data):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
-    mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
-    mockargs.return_value.catalog_base_path = mockargs.return_value.build_base_path
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.version = version
-    mockargs.return_value.data_base_path = test_data
+    build_base_path = tempfile.TemporaryDirectory().name
 
-    build()
+    configs = [
+        str(test_data / fname)
+        for fname in ["config/access-om2.yaml", "config/cmip5.yaml"]
+    ]
 
-    # Manually fix the version so we can correctly build the test path
-    if not mockargs.return_value.version.startswith("v"):
-        mockargs.return_value.version = f"v{mockargs.return_value.version}"
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--no_update",
+            "--version",
+            version,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--data_base_path",
+            str(test_data),
+        ]
+    )
+
+    # manually fix the version so we can correctly build the test path: build
+    # will do this for us so we need to replicate it here
+    if not version.startswith("v"):
+        version = f"v{version}"
 
     # Try to open the catalog
-    build_path = (
-        Path(mockargs.return_value.build_base_path)
-        / mockargs.return_value.version
-        / mockargs.return_value.catalog_file
-    )
+    build_path = Path(build_base_path) / version / "cat.csv"
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
 
 
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            "config/cmip5.yaml",
-        ],
-        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
-        catalog_base_path=tempfile.TemporaryDirectory().name,
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=True,
-    ),
-)
 @pytest.mark.parametrize(
     "bad_vers",
     [
@@ -182,16 +164,33 @@ def test_build(mockargs, version, test_data):
         "v0.1.2",  # Old-style version numbers
     ],
 )
-def test_build_bad_version(mockargs, bad_vers, test_data):
+def test_build_bad_version(bad_vers, test_data):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
+    build_base_path = tempfile.TemporaryDirectory().name
 
-    mockargs.return_value.version = bad_vers
+    configs = [
+        str(test_data / fname)
+        for fname in ["config/access-om2.yaml", "config/cmip5.yaml"]
+    ]
 
     with pytest.raises(ValueError):
-        build()
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--no_update",
+                "--version",
+                bad_vers,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--data_base_path",
+                "",
+            ]
+        )
 
 
 @mock.patch("access_nri_intake.cli.get_catalog_fp")
@@ -558,8 +557,6 @@ def test_build_separation_between_catalog_and_buildbase(
             exist_ok=False,
         )
 
-    # import pdb; pdb.set_trace()
-
     build()
 
     # The version folders exist in the catalog directory, not the build
@@ -909,25 +906,13 @@ def test_build_repeat_altercatalogstruct_multivers(
     ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
 
 
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        file=["access-om2/metadata.yaml"],
-    ),
-)
-def test_metadata_validate(mockargs, test_data):
+def test_metadata_validate(test_data):
     """Test metadata_validate"""
-    for i, p in enumerate(mockargs.return_value.file):
-        mockargs.return_value.file[i] = os.path.join(test_data, p)
-    metadata_validate()
+
+    file = str(test_data / "access-om2/metadata.yaml")
+    metadata_validate([file])
 
 
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        file=None,
-    ),
-)
 @pytest.mark.parametrize(
     "bad_yaml,e",
     [
@@ -935,45 +920,28 @@ def test_metadata_validate(mockargs, test_data):
         ("bad_metadata/doesntexist.yaml", FileNotFoundError),
     ],
 )
-def test_metadata_validate_bad(mockargs, test_data, bad_yaml, e):
-    bad_yaml = os.path.join(test_data, bad_yaml)
-    mockargs.return_value.file = [bad_yaml]
+def test_metadata_validate_bad(test_data, bad_yaml, e):
+    bad_yaml = str(test_data / bad_yaml)
     if (
         e is None
     ):  # These are situations where an exception is raised, caught, and printed
-        metadata_validate()
+        metadata_validate([bad_yaml])
     else:
         with pytest.raises(e):
-            metadata_validate()
+            metadata_validate([bad_yaml])
 
 
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        file=[
-            "access-om2/metadata.yaml",
-            "access-om3/metadata.yaml",
-        ],
-    ),
-)
-def test_metadata_validate_multi(mockargs, test_data):
+def test_metadata_validate_multi(test_data):
     """Test metadata_validate"""
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.file):
-        mockargs.return_value.file[i] = os.path.join(test_data, p)
-    metadata_validate()
+    files = ["access-om2/metadata.yaml", "access-om3/metadata.yaml"]
+    files = [str(test_data / f) for f in files]
+    metadata_validate(files)
 
 
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        file="./does/not/exist.yaml",
-    ),
-)
-def test_metadata_validate_no_file(mockargs):
+def test_metadata_validate_no_file():
     """Test metadata_validate"""
     with pytest.raises(FileNotFoundError) as excinfo:
-        metadata_validate()
+        metadata_validate(["./does/not/exist.yaml"])
     assert "No such file(s)" in str(excinfo.value)
 
 

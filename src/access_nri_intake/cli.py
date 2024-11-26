@@ -8,6 +8,7 @@ import datetime
 import logging
 import os
 import re
+from collections.abc import Sequence
 from pathlib import Path
 
 import jsonschema
@@ -27,7 +28,9 @@ class MetadataCheckError(Exception):
     pass
 
 
-def _parse_build_inputs(config_yamls, build_path, data_base_path):
+def _parse_build_inputs(
+    config_yamls: list[str], build_path: str, data_base_path: str
+) -> list[tuple[str, dict]]:
     """
     Parse build inputs into a list of tuples of CatalogManager methods and args to
     pass to the methods
@@ -78,9 +81,12 @@ def _parse_build_inputs(config_yamls, build_path, data_base_path):
     return args
 
 
-def _check_build_args(args_list):
+def _check_build_args(args_list: list[dict]) -> None:
     """
     Run some checks on the parsed build argmuents to be passed to the CatalogManager
+
+    Raises:
+        MetadataCheckError: If there are experiments with the same name or experiment_uuid
     """
 
     names = []
@@ -91,18 +97,18 @@ def _check_build_args(args_list):
 
     if len(names) != len(set(names)):
         seen = set()
-        dupes = [name for name in names if name in seen or seen.add(name)]
+        dupes = [name for name in names if name in seen or seen.add(name)]  # type: ignore
         raise MetadataCheckError(f"There are experiments with the same name: {dupes}")
     if len(uuids) != len(set(uuids)):
         seen = set()
-        dupes = [uuid for uuid in uuids if uuid in seen or seen.add(uuid)]
+        dupes = [uuid for uuid in uuids if uuid in seen or seen.add(uuid)]  # type: ignore
         dupes = [name for name, uuid in zip(names, uuids) if uuid in dupes]
         raise MetadataCheckError(
             f"There are experiments with the same experiment_uuid: {dupes}"
         )
 
 
-def build():
+def build(argv: Sequence[str] | None = None):
     """
     Build an intake-dataframe-catalog from YAML configuration file(s).
     """
@@ -180,7 +186,7 @@ def build():
         ),
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
     catalog_base_path = args.catalog_base_path
@@ -212,21 +218,21 @@ def build():
         return match.groups()[0] if match else None
 
     project = set()
-    for method, args in parsed_sources:
+    for method, src_args in parsed_sources:
         if method == "load":
             # This is a hack but I don't know how else to get the storage from pre-built datastores
-            esm_ds = open_esm_datastore(args["path"][0])
+            esm_ds = open_esm_datastore(src_args["path"][0])
             project |= set(esm_ds.df["path"].map(_get_project))
 
-        project |= {_get_project(path) for path in args["path"]}
+        project |= {_get_project(path) for path in src_args["path"]}
     project |= {_get_project(build_base_path)}
     storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project]))
 
     # Build the catalog
     cm = CatalogManager(path=metacatalog_path)
-    for method, args in parsed_sources:
-        logger.info(f"Adding '{args['name']}' to metacatalog '{metacatalog_path}'")
-        getattr(cm, method)(**args)
+    for method, src_args in parsed_sources:
+        logger.info(f"Adding '{src_args['name']}' to metacatalog '{metacatalog_path}'")
+        getattr(cm, method)(**src_args)
 
     # Write catalog yaml file
     cat = cm.dfcat
@@ -367,7 +373,7 @@ def _combine_storage_flags(a: str, b: str) -> str:
     return "+".join(sorted(list(set(aflags + bflags))))
 
 
-def metadata_validate():
+def metadata_validate(argv: Sequence[str] | None = None):
     """
     Check provided metadata.yaml file(s) against the experiment schema
     """
@@ -379,7 +385,7 @@ def metadata_validate():
         help="The path to the metadata.yaml file. Multiple file paths can be passed.",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     files = args.file
 
     for f in files:
