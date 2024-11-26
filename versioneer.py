@@ -1,4 +1,5 @@
 # Version: 0.28
+# ruff: noqa: UP031
 
 """The Versioneer - like a rocketeer, but for versions.
 
