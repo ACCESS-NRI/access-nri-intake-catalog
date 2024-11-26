@@ -27,7 +27,7 @@ class MetadataCheckError(Exception):
     pass
 
 
-def _parse_build_inputs(config_yamls, build_path, data_path):
+def _parse_build_inputs(config_yamls, build_path, data_base_path):
     """
     Parse build inputs into a list of tuples of CatalogManager methods and args to
     pass to the methods
@@ -55,12 +55,12 @@ def _parse_build_inputs(config_yamls, build_path, data_path):
             source_args = config_args
 
             source_args["path"] = [
-                os.path.join(data_path, _) for _ in kwargs.pop("path")
+                os.path.join(data_base_path, _) for _ in kwargs.pop("path")
             ]
             metadata_yaml = kwargs.pop("metadata_yaml")
             try:
                 metadata = load_metadata_yaml(
-                    os.path.join(data_path, metadata_yaml), EXP_JSONSCHEMA
+                    os.path.join(data_base_path, metadata_yaml), EXP_JSONSCHEMA
                 )
             except jsonschema.exceptions.ValidationError:
                 raise MetadataCheckError(
@@ -148,7 +148,7 @@ def build():
     parser.add_argument(
         "--data_base_path",
         type=str,
-        default="",
+        default="./",
         help=(
             "Home directory that contains the data referenced by the input experiment YAML"
             "files. Typically only required for testing. Defaults to None."
