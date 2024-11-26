@@ -7,6 +7,7 @@ import intake
 import pandas as pd
 import pytest
 import xarray as xr
+from ecgtools.builder import INVALID_ASSET, TRACEBACK
 from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
 from intake_esm.utils import OPTIONS
 
@@ -220,6 +221,28 @@ def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     if member:
         assert info["member"] == member
     assert info["file_id"] == file_id
+
+
+@pytest.mark.parametrize(
+    "filename",
+    ["rubbish_name.nc"],
+)
+@pytest.mark.parametrize(
+    "builder",
+    [
+        "AccessOm2Builder",
+        "AccessOm3Builder",
+        "Mom6Builder",
+        "AccessEsm15Builder",
+        "AccessCm2Builder",
+    ],
+)
+def test_builder_parser_exception(test_data, filename, builder):
+    Builder = getattr(builders, builder)
+    info = Builder.parser(str(test_data / filename))
+    assert INVALID_ASSET in info.keys()
+    assert info[INVALID_ASSET] == str(test_data / filename)
+    assert TRACEBACK in info.keys()
 
 
 def test_builder_columns_with_iterables(test_data):
