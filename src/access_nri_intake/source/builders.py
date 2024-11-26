@@ -28,6 +28,7 @@ FREQUENCIES: dict[str, tuple[int, str]] = {
     "_mon$": (1, "mon"),
     "1mon": (1, "mon"),
     "yearly": (1, "yr"),
+    "annual": (1, "yr"),
     "_ann$": (1, "yr"),
 }
 
@@ -35,8 +36,11 @@ FREQUENCIES: dict[str, tuple[int, str]] = {
 PATTERNS_HELPERS = {
     "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
     "om3_components": "(?:cice|mom6|ww3)",
+    "mom6_components": "(?:ocean|ice)",
+    "mom6_added_timestamp": "(\\d{4}_\\d{3})",
     "ymds": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}[_,\\-]\\d{5}",
     "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
+    "ymd-ns": "\\d{4}\\d{2}\\d{2}",
     "ym": "\\d{4}[_,\\-]\\d{2}",
     "y": "\\d{4}",
 }
@@ -172,7 +176,10 @@ class BaseBuilder(Builder):
                 return self
 
         raise ParserError(
-            "Parser returns no valid assets. Try parsing a single file with Builder.parser(file)"
+            f"""Parser returns no valid assets.
+            Try parsing a single file with Builder.parser(file)
+            Last failed asset: {asset}
+            Asset parser return: {info}"""
         )
 
     def build(self):
@@ -262,11 +269,13 @@ class BaseBuilder(Builder):
         for pattern in patterns:
             match = re.match(pattern, file_id)
             if match:
+                # FIXME switch to using named group for timestamp
+                # Loop over all found groups and redact
                 timestamp = match.group(1)
-                redaction = re.sub(r"\d", redaction_fill, timestamp)
-                file_id = (
-                    file_id[: match.start(1)] + redaction + file_id[match.end(1) :]
-                )
+                for grp in match.groups():
+                    if grp is not None:
+                        redaction = re.sub(r"\d", redaction_fill, grp)
+                        file_id = re.sub(grp, redaction, file_id)
                 break
 
         # Remove non-python characters from file ids
@@ -456,6 +465,76 @@ class AccessOm3Builder(BaseBuilder):
             elif "ww3" in ncinfo_dict["filename"]:
                 realm = "wave"
             elif "cice" in ncinfo_dict["filename"]:
+                realm = "seaIce"
+            else:
+                raise ParserError(f"Cannot determine realm for file {file}")
+            ncinfo_dict["realm"] = realm
+
+            return ncinfo_dict
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
+# FIXME refactor to be called Mom6Builder (TBC)
+class Mom6Builder(BaseBuilder):
+    """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
+
+    # FIXME should be able to make one super-pattern, but couldn't
+    # make it work with the ? selector after mom6_added_timestamp
+    # NOTE: Order here is important!
+    PATTERNS = [
+        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
+        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
+    ]
+
+    def __init__(self, path):
+        """
+        Initialise a Mom6Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=1,
+            exclude_patterns=[
+                "*restart*",
+                "*MOM_IC.nc",
+                "*sea_ice_geometry.nc",
+                "*ocean_geometry.nc",
+                "*ocean.stats.nc",
+                "*Vertical_coordinate.nc",
+            ],
+            include_patterns=["*.nc"],
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file):
+        try:
+            output_nc_info = cls.parse_access_ncfile(file)
+            ncinfo_dict = output_nc_info.to_dict()
+
+            if "ocean" in ncinfo_dict["filename"]:
+                realm = "ocean"
+            elif "ice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
