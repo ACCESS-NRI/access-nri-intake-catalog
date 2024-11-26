@@ -141,7 +141,7 @@ def test_cmip_realm_translator(input, expected):
 def test_to_tuple(input):
     """Test the _to_tuple function"""
     series = pd.Series(input)
-    assert all(_to_tuple(series).map(type) == tuple)
+    assert all(_to_tuple(series).map(type) == tuple)  # noqa: E721
 
 
 @pytest.mark.parametrize(
@@ -181,7 +181,7 @@ def test_DefaultTranslator(test_data, name, description, something):
     assert all(df["name"].to_numpy() == name)
     assert all(df["description"].to_numpy() == description)
     assert all(df["something"].to_numpy() == something)
-    assert all(df["variable"].map(type) == tuple)
+    assert all(df["variable"].map(type) == tuple)  # noqa: E721
     assert all(df["version"].str.startswith("v"))
 
     if name:

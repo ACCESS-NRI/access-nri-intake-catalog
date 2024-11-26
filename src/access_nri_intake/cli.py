@@ -27,7 +27,7 @@ class MetadataCheckError(Exception):
     pass
 
 
-def _parse_build_inputs(config_yamls, build_path):
+def _parse_build_inputs(config_yamls, build_path, data_base_path):
     """
     Parse build inputs into a list of tuples of CatalogManager methods and args to
     pass to the methods
@@ -54,10 +54,14 @@ def _parse_build_inputs(config_yamls, build_path):
         for kwargs in sources:
             source_args = config_args
 
-            source_args["path"] = kwargs.pop("path")
+            source_args["path"] = [
+                os.path.join(data_base_path, _) for _ in kwargs.pop("path")
+            ]
             metadata_yaml = kwargs.pop("metadata_yaml")
             try:
-                metadata = load_metadata_yaml(metadata_yaml, EXP_JSONSCHEMA)
+                metadata = load_metadata_yaml(
+                    os.path.join(data_base_path, metadata_yaml), EXP_JSONSCHEMA
+                )
             except jsonschema.exceptions.ValidationError:
                 raise MetadataCheckError(
                     f"Failed to validate metadata.yaml @ {os.path.dirname(metadata_yaml)}. See traceback for details."
@@ -142,6 +146,16 @@ def build():
     )
 
     parser.add_argument(
+        "--data_base_path",
+        type=str,
+        default="./",
+        help=(
+            "Home directory that contains the data referenced by the input experiment YAML"
+            "files. Typically only required for testing. Defaults to None."
+        ),
+    )
+
+    parser.add_argument(
         "--catalog_file",
         type=str,
         default="metacatalog.csv",
@@ -170,6 +184,7 @@ def build():
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
     catalog_base_path = args.catalog_base_path
+    data_base_path = args.data_base_path
     catalog_file = args.catalog_file
     version = args.version
     update = not args.no_update
@@ -188,7 +203,7 @@ def build():
     os.makedirs(build_path, exist_ok=True)
 
     # Parse inputs to pass to CatalogManager
-    parsed_sources = _parse_build_inputs(config_yamls, build_path)
+    parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
     _check_build_args([parsed_source[1] for parsed_source in parsed_sources])
 
     # Get the project storage flags
@@ -292,9 +307,9 @@ def build():
                     yaml_dict, version, version
                 )
             elif storage_new != storage_old:
-                yaml_dict["sources"]["access_nri"]["metadata"][
-                    "storage"
-                ] = _combine_storage_flags(storage_new, storage_old)
+                yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
+                    _combine_storage_flags(storage_new, storage_old)
+                )
 
             # Set the minimum and maximum catalog versions, if they're not set already
             # in the 'new catalog' if statement above
@@ -385,10 +400,13 @@ def metadata_validate():
             raise FileNotFoundError(f"No such file(s): {f}")
 
 
-def metadata_template():
+def metadata_template(loc=None):
     """
     Create an empty template for a metadata.yaml file using the experiment schema
     """
+
+    if loc is None:
+        loc = os.getcwd()
 
     argparse.ArgumentParser(description="Generate a template for metadata.yaml")
 
@@ -404,5 +422,5 @@ def metadata_template():
 
         template[name] = description
 
-    with open("./metadata.yaml", "w") as outfile:
+    with open(os.path.join(loc, "metadata.yaml"), "w") as outfile:
         yaml.dump(template, outfile, default_flow_style=False, sort_keys=False)
