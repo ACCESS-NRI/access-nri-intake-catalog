@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from pathlib import Path
+from unittest import mock
 
 import intake
 import pandas as pd
@@ -221,6 +222,33 @@ def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     if member:
         assert info["member"] == member
     assert info["file_id"] == file_id
+
+
+@mock.patch("access_nri_intake.source.utils._AccessNCFileInfo.to_dict")
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "mom6/output000/19000101.ice_daily.nc",
+        "mom6/output001/19010101.ice_month.nc",
+        "mom6/output001/19010101.ocean_annual_rho2.nc",
+        "mom6/output000/19000101.ocean_annual_z.nc",
+        "mom6/output000/19000101.ocean_daily.nc",
+        "mom6/output001/19010101.ocean_month_rho2.nc",
+        "mom6/output000/19000101.ocean_month_z.nc",
+        "mom6/output001/19010101.ocean_month.nc",
+        "mom6/output000/19000101.ocean_scalar_annual.nc",
+        "mom6/output001/19010101.ocean_scalar_month.nc",
+        "mom6/output000/19000101.ocean_static.nc",
+    ],
+)
+def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
+    to_dict_mock.return_value = {
+        "filename": filename.replace("ice", "badrealm").replace("ocean", "badrealm")
+    }
+    info = builders.Mom6Builder.parser(str(test_data / filename))
+    assert INVALID_ASSET in info.keys()
+    assert TRACEBACK in info.keys()
+    assert "ParserError" in info[TRACEBACK]
 
 
 @pytest.mark.parametrize(
