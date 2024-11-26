@@ -29,7 +29,7 @@ class MetadataCheckError(Exception):
 
 
 def _parse_build_inputs(
-    config_yamls: list[str], build_path, data_base_path: str
+    config_yamls: list[str], build_path: str, data_base_path: str
 ) -> list[tuple[str, dict]]:
     """
     Parse build inputs into a list of tuples of CatalogManager methods and args to
@@ -313,9 +313,9 @@ def build(argv: Sequence[str] | None = None):
                     yaml_dict, version, version
                 )
             elif storage_new != storage_old:
-                yaml_dict["sources"]["access_nri"]["metadata"][
-                    "storage"
-                ] = _combine_storage_flags(storage_new, storage_old)
+                yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
+                    _combine_storage_flags(storage_new, storage_old)
+                )
 
             # Set the minimum and maximum catalog versions, if they're not set already
             # in the 'new catalog' if statement above
