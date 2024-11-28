@@ -99,3 +99,7 @@ data it references are available from your session. In particular:
   :code:`xp65` public analysis environment. You can activate the :code:`xp65` environment within your 
   JupyterLab session using the "Advanced options" to set the "Module directories" to 
   :code:`/g/data/xp65/public/modules` and "Modules" to :code:`conda/access-med`.
+
+  .. note::
+   If you are intending to do a multi-threaded catalog build, you will also need to explicitly load
+   the :code:`openmpi` module in "Modules".
