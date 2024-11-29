@@ -26,7 +26,8 @@ if [ ! $# -eq 0 ]; then
 fi
 
 module use /g/data/xp65/public/modules
-module load conda/access-med-0.6
+module load conda/analysis3-24.12
+module load openmpi
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog
 CONFIG_DIR=/g/data/xp65/admin/access-nri-intake-catalog/config
