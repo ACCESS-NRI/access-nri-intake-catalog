@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 #PBS -P iq82
-#PBS -l storage=gdata/xp65+gdata/ik11+gdata/cj50+gdata/hh5+gdata/p73+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10
+#PBS -l storage=gdata/xp65+gdata/ik11+gdata/cj50+gdata/p73+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10
 #PBS -q normal
 #PBS -W block=true
 #PBS -l walltime=03:00:00
@@ -26,7 +26,8 @@ if [ ! $# -eq 0 ]; then
 fi
 
 module use /g/data/xp65/public/modules
-module load conda/access-med-0.6
+module load conda/analysis3-24.12
+module load openmpi
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog
 CONFIG_DIR=/g/data/xp65/admin/access-nri-intake-catalog/config

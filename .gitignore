@@ -134,3 +134,6 @@ bin/build_all.sh.o*
 
 # Vs Code 
 .vscode/
+
+# User-made files
+bin/build_all_test.sh
