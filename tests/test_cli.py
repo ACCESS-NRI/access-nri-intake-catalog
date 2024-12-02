@@ -5,7 +5,6 @@ import argparse
 import glob
 import os
 import shutil
-import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -111,10 +110,10 @@ def test_check_build_args(args, raises):
         "2024-01-01",
     ],
 )
-def test_build(version, test_data):
+def test_build(version, test_data, tmp_path):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
-    build_base_path = tempfile.TemporaryDirectory().name
+    build_base_path = str(tmp_path)
 
     configs = [
         str(test_data / fname)
@@ -164,10 +163,10 @@ def test_build(version, test_data):
         "v0.1.2",  # Old-style version numbers
     ],
 )
-def test_build_bad_version(bad_vers, test_data):
+def test_build_bad_version(bad_vers, test_data, tmp_path):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
-    build_base_path = tempfile.TemporaryDirectory().name
+    build_base_path = str(tmp_path)
 
     configs = [
         str(test_data / fname)
@@ -201,7 +200,7 @@ def test_build_bad_version(bad_vers, test_data):
             "config/access-om2-bad.yaml",
             "config/cmip5.yaml",
         ],
-        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        build_base_path=None,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         data_base_path="",
         catalog_file="cat.csv",
@@ -209,7 +208,7 @@ def test_build_bad_version(bad_vers, test_data):
         no_update=False,
     ),
 )
-def test_build_bad_metadata(mockargs, get_catalog_fp, test_data):
+def test_build_bad_metadata(mockargs, get_catalog_fp, test_data, tmp_path):
     """
     Test if bad metadata is detected
     """
@@ -217,6 +216,7 @@ def test_build_bad_metadata(mockargs, get_catalog_fp, test_data):
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.data_base_path = test_data
+    mockargs.return_value.build_base_path = str(tmp_path)
 
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
@@ -235,7 +235,7 @@ def test_build_bad_metadata(mockargs, get_catalog_fp, test_data):
             "config/access-om2.yaml",
             "config/cmip5.yaml",
         ],
-        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        build_base_path="",  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         data_base_path="",
         catalog_file="cat.csv",
@@ -243,7 +243,7 @@ def test_build_bad_metadata(mockargs, get_catalog_fp, test_data):
         no_update=False,
     ),
 )
-def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
+def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data, tmp_path):
     """
     Test if the intelligent versioning works correctly when there is
     no significant change to the underlying catalogue
@@ -252,6 +252,7 @@ def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.data_base_path = test_data
+    mockargs.return_value.build_base_path = str(tmp_path)
 
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
@@ -291,7 +292,7 @@ def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
             "config/access-om2.yaml",
             # "config/cmip5.yaml",  # Save this for addition
         ],
-        build_base_path=tempfile.TemporaryDirectory().name,  # Use pytest fixture here?
+        build_base_path=None,  # Use pytest fixture here?
         catalog_base_path=None,  # Not required, get_catalog_fp is mocked
         data_base_path="",
         catalog_file="cat.csv",
@@ -299,11 +300,12 @@ def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data):
         no_update=False,
     ),
 )
-def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data):
+def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data, tmp_path):
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.data_base_path = test_data
+    mockargs.return_value.build_base_path = str(tmp_path)
 
     # Write the catalog.yamls to where the catalogs go
     get_catalog_fp.return_value = os.path.join(
@@ -364,15 +366,15 @@ def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data):
         ("v2001-01-01", None),
     ],
 )
-def test_build_existing_data(mockargs, get_catalog_fp, test_data, min_vers, max_vers):
+def test_build_existing_data(
+    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
+):
     """
     Test if the build process can handle min and max catalog
     versions when an original catalog.yaml does not exist
     """
     # New temp directory for each test
-    mockargs.return_value.build_base_path = (
-        tempfile.TemporaryDirectory().name
-    )  # Use pytest fixture here?
+    mockargs.return_value.build_base_path = str(tmp_path)  # Use pytest fixture here?
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
@@ -438,16 +440,14 @@ def test_build_existing_data(mockargs, get_catalog_fp, test_data, min_vers, max_
     ],
 )
 def test_build_existing_data_existing_old_cat(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers
+    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
 ):
     """
     Test if the build process can handle min and max catalog
     versions when a old-style catalog.yaml exists
     """
     # New temp directory for each test
-    mockargs.return_value.build_base_path = (
-        tempfile.TemporaryDirectory().name
-    )  # Use pytest fixture here?
+    mockargs.return_value.build_base_path = str(tmp_path)  # Use pytest fixture here?
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
@@ -525,22 +525,23 @@ def test_build_existing_data_existing_old_cat(
     ],
 )
 def test_build_separation_between_catalog_and_buildbase(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers
+    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
 ):
     """
     Test if the intelligent versioning works correctly when there is
     no significant change to the underlying catalogue
     """
-    mockargs.return_value.build_base_path = (
-        tempfile.TemporaryDirectory().name
-    )  # Use pytest fixture here?
-    # Update the config_yaml paths
+    bbp = os.path.join(tmp_path, "bbp")
+    os.mkdir(bbp)
+    catdir = os.path.join(tmp_path, "catdir")
+    os.mkdir(catdir)
+    mockargs.return_value.build_base_path = str(bbp)
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.data_base_path = test_data
 
     # Write the catalog.yamls to its own directory
-    catalog_dir = tempfile.TemporaryDirectory().name
+    catalog_dir = str(catdir)
     mockargs.return_value.catalog_base_path = catalog_dir
     get_catalog_fp.return_value = os.path.join(catalog_dir, "catalog.yaml")
 
@@ -604,14 +605,14 @@ def test_build_separation_between_catalog_and_buildbase(
     ],
 )
 def test_build_repeat_renamecatalogyaml(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers
+    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
 ):
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.data_base_path = test_data
 
-    mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
+    mockargs.return_value.build_base_path = str(tmp_path)
     mockargs.return_value.version = (
         "v2024-01-01"  # May have been overridden in previous parametrize pass
     )
@@ -713,14 +714,14 @@ def test_build_repeat_renamecatalogyaml(
     ],
 )
 def test_build_repeat_altercatalogstruct(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers
+    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
 ):
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.data_base_path = test_data
 
-    mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
+    mockargs.return_value.build_base_path = str(tmp_path)
     mockargs.return_value.version = (
         "v2024-01-01"  # May have been overridden in previous parametrize pass
     )
@@ -819,14 +820,14 @@ def test_build_repeat_altercatalogstruct(
     ],
 )
 def test_build_repeat_altercatalogstruct_multivers(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers
+    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
 ):
     # Update the config_yaml paths
     for i, p in enumerate(mockargs.return_value.config_yaml):
         mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
     mockargs.return_value.data_base_path = test_data
 
-    mockargs.return_value.build_base_path = tempfile.TemporaryDirectory().name
+    mockargs.return_value.build_base_path = str(tmp_path)
     mockargs.return_value.version = (
         "v2024-01-01"  # May have been overridden in previous parametrize pass
     )
@@ -945,10 +946,10 @@ def test_metadata_validate_no_file():
     assert "No such file(s)" in str(excinfo.value)
 
 
-def test_metadata_template():
-    loc = tempfile.TemporaryDirectory()
-    metadata_template(loc=loc.name)
-    if not os.path.isfile(os.path.join(loc.name, "metadata.yaml")):
+def test_metadata_template(tmp_path):
+    loc = str(tmp_path)
+    metadata_template(loc=loc)
+    if not os.path.isfile(os.path.join(loc, "metadata.yaml")):
         raise RuntimeError("Didn't write template into temp dir")
 
 
