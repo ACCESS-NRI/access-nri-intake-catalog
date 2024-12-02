@@ -4,6 +4,16 @@ Changelog
 This CHANGELOG documents only key changes between versions. For a full description 
 of all changes see https://github.com/ACCESS-NRI/access-nri-intake-catalog/releases
 
+v1.0.0
+------
+
+02/12/2024
+
+- Switch to stable release
+- Added MOM6 data support
+- Unit test fixes & upgrades
+- Documentation upgrades, obsolete data references removed
+
 v0.1.5
 ------
 
