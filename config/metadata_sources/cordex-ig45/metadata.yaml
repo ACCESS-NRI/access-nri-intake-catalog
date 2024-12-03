@@ -7,8 +7,8 @@ long_description: >-
 model:
 - CMIP6
 frequency:
-- day
-- mon
+- 1day
+- 1mon
 - 1hr
 - fx
 variable:
@@ -121,6 +121,7 @@ license:
 url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f7465_8388_5100_7022
 parent_experiment:
 related_experiments:
+- 
 notes: 
 keywords:
 - cmip
