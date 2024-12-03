@@ -1,6 +1,6 @@
 name: narclim2_zz63
 experiment_uuid: e238a14d-d3df-43f3-b7ff-fd247b03816e
-description: <REQUIRED Short description of the experiment (string, < 150 char)>
+description:  NARCliM2.0 climate pojections, downscaled from ACCESS-ESM1-5 over Australasia at ~18km resolution.
 long_description: >-
   NARCliM2.0 climate projections dynamically downscaled from ACCESS-ESM1-5 r6i1p1f1
   historical model using the WRF regional model version NARClIM2-0-WRF412R3. Domain
