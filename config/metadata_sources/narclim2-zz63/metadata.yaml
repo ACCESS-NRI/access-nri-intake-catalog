@@ -1,15 +1,15 @@
 name: narclim2_zz63
 experiment_uuid: e238a14d-d3df-43f3-b7ff-fd247b03816e
-description: <REQUIRED Short description of the experiment (string, < 150 char)>
+description:  NARCliM2.0 climate pojections, downscaled from ACCESS-ESM1-5 over Australasia at ~18km resolution.
 long_description: >-
-  NARCliM2.0 climate projections dynamically downscaled from ACCESS-ESM1-5 r6i1p1f1 
-  historical model using the WRF regional model version NARClIM2-0-WRF412R3. Domain 
-  covers a region encompassing CORDEX Australasia (AUS-18) at approximately 18km 
-  resolution in rotated grid format. The dataset includes 1-hour, 3-hour, daily 
-  and monthly data for variables such as temperature, humidity, wind, radiation 
-  and precipitation parameters. Data are provided at 1-hour steps for surface-level 
-  variables, other data at atmospheric pressure levels or subsurface processes is 
-  provided as 3-hour, daily and monthly data. Dataset includes all of CORDEX Core 
+  NARCliM2.0 climate projections dynamically downscaled from ACCESS-ESM1-5 r6i1p1f1
+  historical model using the WRF regional model version NARClIM2-0-WRF412R3. Domain
+  covers a region encompassing CORDEX Australasia (AUS-18) at approximately 18km
+  resolution in rotated grid format. The dataset includes 1-hour, 3-hour, daily
+  and monthly data for variables such as temperature, humidity, wind, radiation
+  and precipitation parameters. Data are provided at 1-hour steps for surface-level
+  variables, other data at atmospheric pressure levels or subsurface processes is
+  provided as 3-hour, daily and monthly data. Dataset includes all of CORDEX Core
   variables, most of the CORDEX Tier 1 and just over half of CORDEX Tier 2 variables.
 model:
 - MPI-ESM1-2-HR
@@ -21,8 +21,8 @@ realm:
 - atmos
 frequency:
 - 1hr
-- mon
-- day
+- 1mon
+- 1day
 - 3hr
 - fx
 variable:
@@ -194,17 +194,18 @@ contact: NCI
 email: help@nci.org.au
 created: 2024-07-09
 reference: >-
-- https://doi.org/10.1029/2021EF002625
-- https://doi.org/10.5194/gmd-2024-41
-- https://doi.org/10.5194/gmd-2024-87
+  https://doi.org/10.1029/2021EF002625
+  https://doi.org/10.5194/gmd-2024-41
+  https://doi.org/10.5194/gmd-2024-87
 license: Creative Commons Attribution 4.0 International
 url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f7334_2646_2487_9846
 parent_experiment: CMIP6
 related_experiments:
-notes: 
+-
+notes:
 keywords:
 - CMIP6
 - CORDEX
-- NARCliM, 
-- GCM 
+- NARCliM
+- GCM
 - RCM
