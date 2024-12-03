@@ -1,7 +1,6 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-import argparse
 import glob
 import os
 import shutil
@@ -192,82 +191,86 @@ def test_build_bad_version(bad_vers, test_data, tmp_path):
         )
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2-bad.yaml",
-            "config/cmip5.yaml",
-        ],
-        build_base_path=None,  # Use pytest fixture here?
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
-def test_build_bad_metadata(mockargs, get_catalog_fp, test_data, tmp_path):
+def test_build_bad_metadata(test_data, tmp_path):
     """
     Test if bad metadata is detected
     """
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
-    mockargs.return_value.build_base_path = str(tmp_path)
 
-    # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "catalog.yaml"
-    )
+    configs = [
+        str(test_data / "config/access-om2-bad.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
 
     with pytest.raises(MetadataCheckError):
-        build()
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+                "--no_update",
+            ]
+        )
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            "config/cmip5.yaml",
-        ],
-        build_base_path="",  # Use pytest fixture here?
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
-def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data, tmp_path):
+def test_build_repeat_nochange(test_data, tmp_path):
     """
     Test if the intelligent versioning works correctly when there is
     no significant change to the underlying catalogue
     """
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
-    mockargs.return_value.build_base_path = str(tmp_path)
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
 
-    # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "catalog.yaml"
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
     )
 
-    build()
-
     # Update the version number and have another crack at building
-    mockargs.return_value.version = "v2024-01-02"
-    build()
+    NEW_VERSION = "v2024-01-02"
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+        ]
+    )
 
     # There is no change between catalogs, so we should be able to
     # see just a version number change in the yaml
-    with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
     assert (
@@ -284,47 +287,52 @@ def test_build_repeat_nochange(mockargs, get_catalog_fp, test_data, tmp_path):
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            # "config/cmip5.yaml",  # Save this for addition
-        ],
-        build_base_path=None,  # Use pytest fixture here?
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
-def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data, tmp_path):
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
-    mockargs.return_value.build_base_path = str(tmp_path)
-
-    # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "catalog.yaml"
-    )
+def test_build_repeat_adddata(test_data, tmp_path):
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
 
     # Build the first catalog
-    build()
-
-    # Now, add the second data source & rebuild
-    mockargs.return_value.config_yaml.append(
-        os.path.join(test_data, "config/cmip5.yaml")
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
     )
-    mockargs.return_value.version = "v2024-01-02"
-    build()
+
+    configs.append(str(test_data / "config/cmip5.yaml"))
+    NEW_VERSION = "v2024-01-02"
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+        ]
+    )
 
     # There is no change between catalogs, so we should be able to
     # see just a version number change in the yaml
-    with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
+    with Path(tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
     assert (
@@ -342,22 +350,6 @@ def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data, tmp_path):
     assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            "config/cmip5.yaml",
-        ],
-        build_base_path=None,
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
 @pytest.mark.parametrize(
     "min_vers,max_vers",
     [
@@ -366,71 +358,59 @@ def test_build_repeat_adddata(mockargs, get_catalog_fp, test_data, tmp_path):
         ("v2001-01-01", None),
     ],
 )
-def test_build_existing_data(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
-):
+def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
     """
     Test if the build process can handle min and max catalog
     versions when an original catalog.yaml does not exist
     """
-    # New temp directory for each test
-    mockargs.return_value.build_base_path = str(tmp_path)  # Use pytest fixture here?
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
-
-    # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "catalog.yaml"
-    )
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+    VERSION = "v2024-01-01"
 
     # Put dummy version folders into the tempdir
     if min_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, min_vers),
-            exist_ok=False,
-        )
+        os.makedirs(os.path.join(build_base_path, min_vers), exist_ok=False)
     if max_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, max_vers),
-            exist_ok=False,
-        )
+        os.makedirs(os.path.join(build_base_path, max_vers), exist_ok=False)
 
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
 
-    with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
+    with Path(tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
-        min_vers if min_vers is not None else mockargs.return_value.version
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else mockargs.return_value.version}'
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
-        max_vers if max_vers is not None else mockargs.return_value.version
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else mockargs.return_value.version}'
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == (min_vers if min_vers is not None else VERSION)
+    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == (max_vers if max_vers is not None else VERSION)
+    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     # Default should always be the newly-built version
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
-        == mockargs.return_value.version
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {mockargs.return_value.version}'
+        == VERSION
+    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {VERSION}'
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            "config/cmip5.yaml",
-        ],
-        build_base_path=None,
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
 @pytest.mark.parametrize(
     "min_vers,max_vers",
     [
@@ -439,56 +419,60 @@ def test_build_existing_data(
         ("v2001-01-01", None),
     ],
 )
-def test_build_existing_data_existing_old_cat(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
-):
+def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp_path):
     """
     Test if the build process can handle min and max catalog
     versions when a old-style catalog.yaml exists
     """
-    # New temp directory for each test
-    mockargs.return_value.build_base_path = str(tmp_path)  # Use pytest fixture here?
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
-
-    # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "catalog.yaml"
-    )
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+    VERSION = "v2024-01-01"
 
     # Put dummy version folders into the tempdir
     if min_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, min_vers),
-            exist_ok=False,
-        )
+        os.makedirs(os.path.join(build_base_path, min_vers), exist_ok=False)
     if max_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, max_vers),
-            exist_ok=False,
-        )
+        os.makedirs(os.path.join(build_base_path, max_vers), exist_ok=False)
 
     # Copy the test data old-style catalog yaml to this location
-    shutil.copy(test_data / "catalog/catalog-orig.yaml", get_catalog_fp.return_value)
+    shutil.copy(test_data / "catalog/catalog-orig.yaml", str(tmp_path / "catalog.yaml"))
 
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
 
-    with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
-        min_vers if min_vers is not None else mockargs.return_value.version
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else mockargs.return_value.version}'
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
-        max_vers if max_vers is not None else mockargs.return_value.version
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else mockargs.return_value.version}'
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == (min_vers if min_vers is not None else VERSION)
+    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == (max_vers if max_vers is not None else VERSION)
+    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     # Default should always be the newly-built version
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
-        == mockargs.return_value.version
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {mockargs.return_value.version}'
+        == VERSION
+    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {VERSION}'
     # Make sure the catalog storage flags were correctly merged
     assert (
         cat_yaml["sources"]["access_nri"]["metadata"]["storage"]
@@ -496,26 +480,10 @@ def test_build_existing_data_existing_old_cat(
     )
     # Make sure the old catalog vanished (i.e. there's only one)
     assert (
-        len(glob.glob(mockargs.return_value.build_base_path + "/*.yaml")) == 1
+        len(glob.glob(build_base_path + "/*.yaml")) == 1
     ), "Found more than one catalog remains!"
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            "config/cmip5.yaml",
-        ],
-        build_base_path=None,  # Use pytest fixture here?
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
 @pytest.mark.parametrize(
     "min_vers,max_vers",
     [
@@ -525,77 +493,71 @@ def test_build_existing_data_existing_old_cat(
     ],
 )
 def test_build_separation_between_catalog_and_buildbase(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path
 ):
     """
     Test if the intelligent versioning works correctly when there is
     no significant change to the underlying catalogue
     """
-    bbp = os.path.join(tmp_path, "bbp")
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+    VERSION = "v2024-01-01"
+
+    bbp = str(tmp_path / "bbp")
     os.mkdir(bbp)
-    catdir = os.path.join(tmp_path, "catdir")
+    catdir = tmp_path / "catdir"
     os.mkdir(catdir)
-    mockargs.return_value.build_base_path = str(bbp)
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
 
     # Write the catalog.yamls to its own directory
-    catalog_dir = str(catdir)
-    mockargs.return_value.catalog_base_path = catalog_dir
-    get_catalog_fp.return_value = os.path.join(catalog_dir, "catalog.yaml")
+    catalog_fp = Path(catdir) / "catalog.yaml"
 
     # Create dummy version folders in the *catalog* directory
     # (They would normally be in the build directory)
     if min_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.catalog_base_path, min_vers),
-            exist_ok=False,
-        )
+        os.makedirs((catdir / min_vers), exist_ok=False)
     if max_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.catalog_base_path, max_vers),
-            exist_ok=False,
-        )
+        os.makedirs((catdir / max_vers), exist_ok=False)
 
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            str(catdir),
+            "--version",
+            VERSION,
+        ]
+    )
 
     # The version folders exist in the catalog directory, not the build
     # directory, hence they shouldn't have been found - therefore,
     # all the version numbers should align with the newly-built catalog
-    with Path(get_catalog_fp.return_value).open(mode="r") as fobj:
+    with catalog_fp.open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
     assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
-        == "v2024-01-01"
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == VERSION
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
     assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
-        == "v2024-01-01"
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == VERSION
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-01'
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
-        == "v2024-01-01"
+        == VERSION
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
 
 
 @mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            # "config/cmip5.yaml",  # Save this for addition
-        ],
-        build_base_path=None,  # Use pytest fixture here?
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
 @pytest.mark.parametrize(
     "min_vers,max_vers",
     [
@@ -605,57 +567,67 @@ def test_build_separation_between_catalog_and_buildbase(
     ],
 )
 def test_build_repeat_renamecatalogyaml(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
+    get_catalog_fp, test_data, min_vers, max_vers, tmp_path
 ):
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
-
-    mockargs.return_value.build_base_path = str(tmp_path)
-    mockargs.return_value.version = (
-        "v2024-01-01"  # May have been overridden in previous parametrize pass
-    )
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
 
     # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "catalog.yaml"
-    )
+    get_catalog_fp.return_value = os.path.join(build_base_path, "catalog.yaml")
 
+    VERSION = "v2024-01-01"
     # Build the first catalog
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
 
     # Update the version number, *and* the catalog name
     NEW_VERSION = "v2025-01-01"
-    mockargs.return_value.version = NEW_VERSION
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "metacatalog.yaml"
-    )
+    get_catalog_fp.return_value = os.path.join(build_base_path, "metacatalog.yaml")
     # Put dummy version folders into the tempdir
     # The new catalog will consider these, as the catalog.yaml
     # names are no longer consistent
     if min_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, min_vers),
-            exist_ok=False,
-        )
+        os.makedirs(os.path.join(build_base_path, min_vers), exist_ok=False)
     if max_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, max_vers),
-            exist_ok=False,
-        )
+        os.makedirs(os.path.join(build_base_path, max_vers), exist_ok=False)
 
     # Build another catalog
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+        ]
+    )
 
     # There should now be two catalogs - catalog.yaml and metacatalog.yaml
-    with Path(
-        os.path.join(os.path.dirname(get_catalog_fp.return_value), "catalog.yaml")
-    ).open(mode="r") as fobj:
+    with Path(os.path.join(build_base_path, "catalog.yaml")).open(mode="r") as fobj:
         cat_first = yaml.safe_load(fobj)
-    with Path(
-        os.path.join(os.path.dirname(get_catalog_fp.return_value), "metacatalog.yaml")
-    ).open(mode="r") as fobj:
+    with Path(os.path.join(build_base_path, "metacatalog.yaml")).open(mode="r") as fobj:
         cat_second = yaml.safe_load(fobj)
 
     assert (
@@ -675,36 +647,20 @@ def test_build_repeat_renamecatalogyaml(
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")
         == min_vers
         if min_vers is not None
-        else mockargs.return_value.version
-    ), f'Min version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else mockargs.return_value.version}'
+        else VERSION
+    ), f'Min version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")
         == max_vers
         if max_vers is not None
-        else mockargs.return_value.version
-    ), f'Max version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else mockargs.return_value.version}'
+        else VERSION
+    ), f'Max version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2025-01-01"
     ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            # "config/cmip5.yaml",  # Save this for addition
-        ],
-        build_base_path=None,  # Use pytest fixture here?
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file="cat.csv",
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
 @pytest.mark.parametrize(
     "min_vers,max_vers",
     [
@@ -713,59 +669,63 @@ def test_build_repeat_renamecatalogyaml(
         ("v2001-01-01", None),
     ],
 )
-def test_build_repeat_altercatalogstruct(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
-):
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
-
-    mockargs.return_value.build_base_path = str(tmp_path)
-    mockargs.return_value.version = (
-        "v2024-01-01"  # May have been overridden in previous parametrize pass
-    )
-    mockargs.return_value.catalog_file = "cat.csv"
-
-    # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "catalog.yaml"
-    )
+def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path):
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
 
     # Build the first catalog
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
 
     # Update the version number, *and* the catalog name
     NEW_VERSION = "v2025-01-01"
-    mockargs.return_value.version = NEW_VERSION
-    mockargs.return_value.catalog_file = "new_cat.csv"
     # Put dummy version folders into the tempdir
     # The new catalog will *not* consider these, as the catalog.yaml
     # names are no longer consistent
     if min_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, min_vers),
-            exist_ok=False,
-        )
+        os.makedirs(os.path.join(build_base_path, min_vers), exist_ok=False)
     if max_vers is not None:
-        os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, max_vers),
-            exist_ok=False,
-        )
+        os.makedirs(os.path.join(build_base_path, max_vers), exist_ok=False)
 
     # Build another catalog
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "new_cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+        ]
+    )
 
     # There should now be two catalogs - catalog.yaml and catalog-v2024-01-01.yaml
-    with Path(
-        os.path.join(
-            os.path.dirname(get_catalog_fp.return_value), "catalog-v2024-01-01.yaml"
-        )
-    ).open(mode="r") as fobj:
+    with Path(os.path.join(build_base_path, "catalog-v2024-01-01.yaml")).open(
+        mode="r"
+    ) as fobj:
         cat_first = yaml.safe_load(fobj)
-    with Path(
-        os.path.join(os.path.dirname(get_catalog_fp.return_value), "catalog.yaml")
-    ).open(mode="r") as fobj:
+    with Path(os.path.join(build_base_path, "catalog.yaml")).open(mode="r") as fobj:
         cat_second = yaml.safe_load(fobj)
 
     assert (
@@ -795,22 +755,6 @@ def test_build_repeat_altercatalogstruct(
     ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {NEW_VERSION}'
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        config_yaml=[
-            "config/access-om2.yaml",
-            # "config/cmip5.yaml",  # Save this for addition
-        ],
-        build_base_path=None,  # Use pytest fixture here?
-        catalog_base_path=None,  # Not required, get_catalog_fp is mocked
-        data_base_path="",
-        catalog_file=None,
-        version="v2024-01-01",
-        no_update=False,
-    ),
-)
 @pytest.mark.parametrize(
     "min_vers,max_vers",
     [
@@ -820,60 +764,72 @@ def test_build_repeat_altercatalogstruct(
     ],
 )
 def test_build_repeat_altercatalogstruct_multivers(
-    mockargs, get_catalog_fp, test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path
 ):
-    # Update the config_yaml paths
-    for i, p in enumerate(mockargs.return_value.config_yaml):
-        mockargs.return_value.config_yaml[i] = os.path.join(test_data, p)
-    mockargs.return_value.data_base_path = test_data
-
-    mockargs.return_value.build_base_path = str(tmp_path)
-    mockargs.return_value.version = (
-        "v2024-01-01"  # May have been overridden in previous parametrize pass
-    )
-    mockargs.return_value.catalog_file = "cat.csv"
+    configs = [
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
 
     # Put dummy version folders into the tempdir - these will
     # be picked up by the first catalog
     if min_vers is not None:
         os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, min_vers),
+            os.path.join(build_base_path, min_vers),
             exist_ok=False,
         )
     if max_vers is not None:
         os.makedirs(
-            os.path.join(mockargs.return_value.build_base_path, max_vers),
+            os.path.join(build_base_path, max_vers),
             exist_ok=False,
         )
 
-    # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(
-        mockargs.return_value.build_base_path, "catalog.yaml"
-    )
-
     # Build the first catalog
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
 
     # Update the version number, *and* the catalog name
     NEW_VERSION = "v2025-01-01"
-    mockargs.return_value.version = NEW_VERSION
-    mockargs.return_value.catalog_file = "new_cat.csv"
 
     # Build another catalog
-    build()
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "new_cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+        ]
+    )
 
     # There should now be two catalogs - catalog.yaml and catalog-<min>-<max>.yaml
     cat_first_name = f"catalog-{min_vers if min_vers is not None else 'v2024-01-01'}"
     if max_vers is not None or min_vers is not None:
         cat_first_name += f"-{max_vers if max_vers is not None else 'v2024-01-01'}"
     cat_first_name += ".yaml"
-    with Path(
-        os.path.join(os.path.dirname(get_catalog_fp.return_value), cat_first_name)
-    ).open(mode="r") as fobj:
+    with Path(os.path.join(build_base_path, cat_first_name)).open(mode="r") as fobj:
         cat_first = yaml.safe_load(fobj)
-    with Path(
-        os.path.join(os.path.dirname(get_catalog_fp.return_value), "catalog.yaml")
-    ).open(mode="r") as fobj:
+    with Path(os.path.join(build_base_path, "catalog.yaml")).open(mode="r") as fobj:
         cat_second = yaml.safe_load(fobj)
 
     assert (
