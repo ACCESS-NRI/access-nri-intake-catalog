@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 #PBS -P iq82
-#PBS -l storage=gdata/xp65+gdata/ik11+gdata/cj50+gdata/p73+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10+gdata/hq89
+#PBS -l storage=gdata/xp65+gdata/ik11+gdata/cj50+gdata/p73+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10+gdata/hq89+gdata/py18
 #PBS -q normal
 #PBS -W block=true
 #PBS -l walltime=03:00:00
