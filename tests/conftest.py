@@ -16,6 +16,10 @@ def test_data():
     return Path(here / "data")
 
 
+def metadata_sources():
+    return Path(here.parent / "config" / "metadata_sources")
+
+
 @fixture(scope="session")
 def config_dir():
     return Path(here / "e2e/configs")
