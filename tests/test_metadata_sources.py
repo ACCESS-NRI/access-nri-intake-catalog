@@ -17,7 +17,6 @@ def pytest_generate_tests(metafunc):
 
 
 def test_metadata_sources_valid(yamlfile, capsys):
-    # import pdb; pdb.set_trace()
     try:
         metadata_validate(
             [
