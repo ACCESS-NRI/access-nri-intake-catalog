@@ -406,9 +406,20 @@ def metadata_validate(argv: Sequence[str] | None = None):
             raise FileNotFoundError(f"No such file(s): {f}")
 
 
-def metadata_template(loc=None):
+def metadata_template(loc: str | Path | None = None) -> None:
     """
-    Create an empty template for a metadata.yaml file using the experiment schema
+    Create an empty template for a metadata.yaml file using the experiment schema.
+
+    Writes the template to the current working directory by default.
+
+    Parameters:
+    -----
+        loc (str, Path, optional): The directory in which to save the template.
+        Defaults to the current working directory.
+
+    Returns:
+    -----
+        None
     """
 
     if loc is None:
@@ -424,9 +435,9 @@ def metadata_template(loc=None):
             description = f"<{descr['description']}>"
 
         if _can_be_array(descr):
-            description = [description]
+            description = [description]  # type: ignore
 
         template[name] = description
 
-    with open(os.path.join(loc, "metadata.yaml"), "w") as outfile:
+    with open((Path(loc) / "metadata.yaml"), "w") as outfile:
         yaml.dump(template, outfile, default_flow_style=False, sort_keys=False)
