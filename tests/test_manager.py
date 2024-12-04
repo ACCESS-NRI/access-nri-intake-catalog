@@ -184,24 +184,26 @@ def test_CatalogManager_all(tmp_path, test_data):
     assert len(CatalogManager(path).dfcat) == len(models) + 1
 
 
-@pytest.mark.parametrize(
-    "intake_dataframe_err_str, access_nri_err_str, cause_str",
-    [
-        (
-            "Expected iterable metadata columns: ['model']. Unable to add entry with iterable metadata columns '[]' to dataframe catalog: columns ['model'] must be iterable to ensure metadata entries are consistent.",
-            "Error adding source 'cmip5-al33' to the catalog",
-            "Expected iterable metadata columns: ['model']",
-        ),
-        (
-            "Generic Exception for the CatalogManager class",
-            "Generic Exception for the CatalogManager class",
-            "None",
-        ),
-    ],
-)
-def test_CatalogManager_load_invalid_model(
-    tmp_path, test_data, intake_dataframe_err_str, access_nri_err_str, cause_str
-):
+class Cmip5MockTranslator(Cmip5Translator):
+    def __init__(self, source, columns):
+        """Mock the Cmip5Translator __init__ method - I've changed the model dispatch
+        to use a mock_model_translator method, which isn't tuplified.
+        """
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="model", core_colname="model", func=self.mock_model_translator
+        )
+
+    # @tuplify_series
+    def mock_model_translator(self):
+        """
+        The model translator method has been overriden to remove the tuplification
+        (commented out above for reference).
+        """
+        return self.source.df[self._dispatch_keys.model]
+
+
+def test_CatalogManager_load_non_iterable(tmp_path, test_data):
     """Test loading and adding an Intake-ESM datastore"""
     cat = CatalogManager(tmp_path / "cat.csv")
 
@@ -210,16 +212,14 @@ def test_CatalogManager_load_invalid_model(
         name="cmip5-al33",
         description="cmip5-al33",
         path=str(test_data / "esm_datastore/cmip5-al33.json"),
-        translator=Cmip5Translator,
+        translator=Cmip5MockTranslator,
     )
 
-    with mock.patch.object(
-        cat.dfcat,
-        "add",
-        side_effect=DfFileCatalogError(intake_dataframe_err_str),
-    ):
-        with pytest.raises(CatalogManagerError) as excinfo:
-            cat.load(**load_args)
+    with pytest.raises(CatalogManagerError) as excinfo:
+        cat.load(**load_args)
 
-    assert access_nri_err_str in str(excinfo.value)
-    assert cause_str in str(excinfo.value.__cause__)
+    assert "Error adding source 'cmip5-al33' to the catalog" in str(excinfo.value)
+    assert (
+        "Expected iterable metadata columns: ['model', 'realm', 'frequency', 'variable']"
+        in str(excinfo.value.__cause__)
+    )
