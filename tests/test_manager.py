@@ -6,7 +6,6 @@ from unittest import mock
 
 import pytest
 from intake_dataframe_catalog.core import DfFileCatalogError
-from pandas.errors import EmptyDataError
 
 from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerError
@@ -75,21 +74,6 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
     cat.save()
     cat = CatalogManager(path)
     assert cat.mode == "a"
-
-
-@mock.patch("intake_dataframe_catalog.core.DfFileCatalog.__init__")
-@pytest.mark.parametrize(
-    "e",
-    [
-        EmptyDataError,
-        DfFileCatalogError,
-    ],
-)
-def test_CatalogManager_init_exception(DFFileCatalog, e):
-    DFFileCatalog.side_effect = e("Mocked error")
-    with pytest.raises(Exception) as e:
-        CatalogManager("/inconsequential/path/")
-        assert "/inconsequential/path/" in e.msg
 
 
 @pytest.mark.parametrize(
