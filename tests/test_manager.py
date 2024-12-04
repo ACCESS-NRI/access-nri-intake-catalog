@@ -203,11 +203,8 @@ def test_CatalogManager_load_invalid_model(
     tmp_path, test_data, intake_dataframe_err_str, access_nri_err_str, cause_str
 ):
     """Test loading and adding an Intake-ESM datastore"""
-    path = str(tmp_path / "cat.csv")
-    cat = CatalogManager(path)
+    cat = CatalogManager(tmp_path / "cat.csv")
 
-    # Test can load when path is len 1 list
-    path = test_data / "esm_datastore/cmip5-al33.json"
     # Load source
     load_args = dict(
         name="cmip5-al33",
