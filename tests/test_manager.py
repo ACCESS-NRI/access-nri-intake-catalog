@@ -223,3 +223,34 @@ def test_CatalogManager_load_non_iterable(tmp_path, test_data):
         "Expected iterable metadata columns: ['model', 'realm', 'frequency', 'variable']"
         in str(excinfo.value.__cause__)
     )
+
+
+def test_CatalogManager_generic_exception(tmp_path, test_data):
+    """Test loading and adding an Intake-ESM datastore"""
+    intake_dataframe_err_str = "Generic Exception for the CatalogManager class"
+    access_nri_err_str = "Generic Exception for the CatalogManager class"
+    cause_str = "None"
+
+    path = str(tmp_path / "cat.csv")
+    cat = CatalogManager(path)
+
+    # Test can load when path is len 1 list
+    path = test_data / "esm_datastore/cmip5-al33.json"
+    # Load source
+    load_args = dict(
+        name="cmip5-al33",
+        description="cmip5-al33",
+        path=str(test_data / "esm_datastore/cmip5-al33.json"),
+        translator=Cmip5Translator,
+    )
+
+    with mock.patch.object(
+        cat.dfcat,
+        "add",
+        side_effect=DfFileCatalogError(intake_dataframe_err_str),
+    ):
+        with pytest.raises(CatalogManagerError) as excinfo:
+            cat.load(**load_args)
+
+    assert access_nri_err_str in str(excinfo.value)
+    assert cause_str in str(excinfo.value.__cause__)
