@@ -373,9 +373,9 @@ def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
 
     # Put dummy version folders into the tempdir
     if min_vers is not None:
-        os.makedirs(os.path.join(build_base_path, min_vers), exist_ok=False)
+        (tmp_path / min_vers).mkdir(parents=True, exist_ok=False)
     if max_vers is not None:
-        os.makedirs(os.path.join(build_base_path, max_vers), exist_ok=False)
+        (tmp_path / max_vers).mkdir(parents=True, exist_ok=False)
 
     build(
         [
@@ -393,7 +393,7 @@ def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
         ]
     )
 
-    with Path(tmp_path / "catalog.yaml").open(mode="r") as fobj:
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
     assert (
@@ -434,9 +434,9 @@ def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp
 
     # Put dummy version folders into the tempdir
     if min_vers is not None:
-        os.makedirs(os.path.join(build_base_path, min_vers), exist_ok=False)
+        (tmp_path / min_vers).mkdir(parents=True, exist_ok=False)
     if max_vers is not None:
-        os.makedirs(os.path.join(build_base_path, max_vers), exist_ok=False)
+        (tmp_path / max_vers).mkdir(parents=True, exist_ok=False)
 
     # Copy the test data old-style catalog yaml to this location
     shutil.copy(test_data / "catalog/catalog-orig.yaml", str(tmp_path / "catalog.yaml"))
@@ -508,10 +508,8 @@ def test_build_separation_between_catalog_and_buildbase(
     build_base_path = str(tmp_path)
     VERSION = "v2024-01-01"
 
-    bbp = str(tmp_path / "bbp")
-    os.mkdir(bbp)
-    catdir = tmp_path / "catdir"
-    os.mkdir(catdir)
+    bbp, catdir = tmp_path / "bbp", tmp_path / "catdir"
+    bbp.mkdir(parents=True), catdir.mkdir(parents=True)
 
     # Write the catalog.yamls to its own directory
     catalog_fp = Path(catdir) / "catalog.yaml"
@@ -519,9 +517,9 @@ def test_build_separation_between_catalog_and_buildbase(
     # Create dummy version folders in the *catalog* directory
     # (They would normally be in the build directory)
     if min_vers is not None:
-        os.makedirs((catdir / min_vers), exist_ok=False)
+        (catdir / min_vers).mkdir(parents=True, exist_ok=False)
     if max_vers is not None:
-        os.makedirs((catdir / max_vers), exist_ok=False)
+        (catdir / max_vers).mkdir(parents=True, exist_ok=False)
 
     build(
         [
@@ -574,11 +572,11 @@ def test_build_repeat_renamecatalogyaml(
     ]
     data_base_path = str(test_data)
     build_base_path = str(tmp_path)
+    VERSION = "v2024-01-01"
 
     # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = os.path.join(build_base_path, "catalog.yaml")
+    get_catalog_fp.return_value = str(tmp_path / "catalog.yaml")
 
-    VERSION = "v2024-01-01"
     # Build the first catalog
     build(
         [
@@ -598,14 +596,14 @@ def test_build_repeat_renamecatalogyaml(
 
     # Update the version number, *and* the catalog name
     NEW_VERSION = "v2025-01-01"
-    get_catalog_fp.return_value = os.path.join(build_base_path, "metacatalog.yaml")
+    get_catalog_fp.return_value = str(tmp_path / "metacatalog.yaml")
     # Put dummy version folders into the tempdir
     # The new catalog will consider these, as the catalog.yaml
     # names are no longer consistent
     if min_vers is not None:
-        os.makedirs(os.path.join(build_base_path, min_vers), exist_ok=False)
+        (tmp_path / min_vers).mkdir(parents=True, exist_ok=False)
     if max_vers is not None:
-        os.makedirs(os.path.join(build_base_path, max_vers), exist_ok=False)
+        (tmp_path / max_vers).mkdir(parents=True, exist_ok=False)
 
     # Build another catalog
     build(
@@ -625,9 +623,9 @@ def test_build_repeat_renamecatalogyaml(
     )
 
     # There should now be two catalogs - catalog.yaml and metacatalog.yaml
-    with Path(os.path.join(build_base_path, "catalog.yaml")).open(mode="r") as fobj:
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_first = yaml.safe_load(fobj)
-    with Path(os.path.join(build_base_path, "metacatalog.yaml")).open(mode="r") as fobj:
+    with (tmp_path / "metacatalog.yaml").open(mode="r") as fobj:
         cat_second = yaml.safe_load(fobj)
 
     assert (
@@ -699,9 +697,9 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
     # The new catalog will *not* consider these, as the catalog.yaml
     # names are no longer consistent
     if min_vers is not None:
-        os.makedirs(os.path.join(build_base_path, min_vers), exist_ok=False)
+        (tmp_path / min_vers).mkdir(parents=True, exist_ok=False)
     if max_vers is not None:
-        os.makedirs(os.path.join(build_base_path, max_vers), exist_ok=False)
+        (tmp_path / max_vers).mkdir(parents=True, exist_ok=False)
 
     # Build another catalog
     build(
@@ -721,11 +719,9 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
     )
 
     # There should now be two catalogs - catalog.yaml and catalog-v2024-01-01.yaml
-    with Path(os.path.join(build_base_path, "catalog-v2024-01-01.yaml")).open(
-        mode="r"
-    ) as fobj:
+    with (tmp_path / "catalog-v2024-01-01.yaml").open(mode="r") as fobj:
         cat_first = yaml.safe_load(fobj)
-    with Path(os.path.join(build_base_path, "catalog.yaml")).open(mode="r") as fobj:
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_second = yaml.safe_load(fobj)
 
     assert (
@@ -775,15 +771,9 @@ def test_build_repeat_altercatalogstruct_multivers(
     # Put dummy version folders into the tempdir - these will
     # be picked up by the first catalog
     if min_vers is not None:
-        os.makedirs(
-            os.path.join(build_base_path, min_vers),
-            exist_ok=False,
-        )
+        (tmp_path / min_vers).mkdir(parents=True, exist_ok=False)
     if max_vers is not None:
-        os.makedirs(
-            os.path.join(build_base_path, max_vers),
-            exist_ok=False,
-        )
+        (tmp_path / max_vers).mkdir(parents=True, exist_ok=False)
 
     # Build the first catalog
     build(
@@ -827,9 +817,9 @@ def test_build_repeat_altercatalogstruct_multivers(
     if max_vers is not None or min_vers is not None:
         cat_first_name += f"-{max_vers if max_vers is not None else 'v2024-01-01'}"
     cat_first_name += ".yaml"
-    with Path(os.path.join(build_base_path, cat_first_name)).open(mode="r") as fobj:
+    with (tmp_path / cat_first_name).open(mode="r") as fobj:
         cat_first = yaml.safe_load(fobj)
-    with Path(os.path.join(build_base_path, "catalog.yaml")).open(mode="r") as fobj:
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_second = yaml.safe_load(fobj)
 
     assert (
@@ -903,15 +893,14 @@ def test_metadata_validate_no_file():
 
 
 def test_metadata_template(tmp_path):
-    loc = str(tmp_path)
-    metadata_template(loc=loc)
-    if not os.path.isfile(os.path.join(loc, "metadata.yaml")):
+    metadata_template(loc=tmp_path)
+    if not (tmp_path / "metadata.yaml").is_file():
         raise RuntimeError("Didn't write template into temp dir")
 
 
 def test_metadata_template_default_loc():
     metadata_template()
-    if os.path.isfile(os.path.join(os.getcwd(), "metadata.yaml")):
-        os.remove(os.path.join(os.getcwd(), "metadata.yaml"))
+    if (Path.cwd() / "metadata.yaml").is_file():
+        (Path.cwd() / "metadata.yaml").unlink()
     else:
         raise RuntimeError("Didn't write template into PWD")
