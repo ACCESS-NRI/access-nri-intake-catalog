@@ -414,7 +414,7 @@ def metadata_template(loc: str | Path | None = None) -> None:
 
     Parameters:
     -----
-        loc (str, Path, optional): The directory in which to save the template. 
+        loc (str, Path, optional): The directory in which to save the template.
         Defaults to the current working directory.
 
     Returns:
