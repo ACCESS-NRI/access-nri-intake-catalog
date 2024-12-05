@@ -16,12 +16,8 @@ dependencies:
   - pooch
   - pre-commit
   - pytest
-  - xarray=2024.10.0
-  - pandas==2.2.3
-  - netcdf4==1.7.2
+  - xarray[complete]
   - pip
-  - hdf4==4.2.15
-  - hdf5==1.14.4
   - pip:
     - codecov
     - pytest-cov
