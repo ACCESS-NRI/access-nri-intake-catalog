@@ -192,15 +192,25 @@ def get_timeinfo(
         has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
         if has_bounds:
             bounds_var = ds.variables[time_var.bounds]
-            ts = _todate(bounds_var[0, 0])
-            te = _todate(bounds_var[-1, 1])
+            try:
+                ts = _todate(bounds_var[0, 0])
+                te = _todate(bounds_var[-1, 1])
+            except OverflowError:
+                ts = _todate(time_var[0])
+                te = _todate(time_var[-1])
         else:
             ts = _todate(time_var[0])
             te = _todate(time_var[-1])
 
         if len(time_var) > 1 or has_bounds:
             if has_bounds:
-                t1 = _todate(bounds_var[0, 1])
+                try:
+                    t1 = _todate(bounds_var[0, 1])
+                except OverflowError:
+                    try:
+                        t1 = _todate(time_var[1])
+                    except IndexError:
+                        t1 = _todate(time_var[-1])
             else:
                 t1 = _todate(time_var[1])
 
