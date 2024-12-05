@@ -14,7 +14,7 @@ dependencies:
   - pooch
   - pre-commit
   - pytest
-  - xarray
+  - xarray[complete]
   - pip
   - pip:
     - codecov
