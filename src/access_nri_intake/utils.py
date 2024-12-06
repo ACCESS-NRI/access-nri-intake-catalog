@@ -5,6 +5,7 @@
 
 import json
 import os
+import re
 from importlib import resources as rsr
 from pathlib import Path
 from warnings import warn
@@ -12,7 +13,7 @@ from warnings import warn
 import jsonschema
 import yaml
 
-from . import CATALOG_LOCATION, USER_CATALOG_LOCATION
+from . import CATALOG_LOCATION, CATALOG_VERSION_REGEX, USER_CATALOG_LOCATION
 
 
 def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
@@ -154,3 +155,36 @@ def get_catalog_fp(basepath=None):
         )
         return USER_CATALOG_LOCATION
     return CATALOG_LOCATION
+
+
+def available_catalogs(pretty=False):
+
+    # Get the catalog file path
+    cfp = get_catalog_fp()
+
+    # Get the data directory, and mix/max/default versions
+    with yaml.load(cfp, mode="r") as cat_yaml:
+        cat_path = cat_yaml["sources"]["access_nri"]["args"]["path"]
+        cat_min = cat_yaml["sources"]["access_nri"]["parameters"]["version"]["min"]
+        cat_max = cat_yaml["sources"]["access_nri"]["parameters"]["version"]["max"]
+        cat_default = cat_yaml["sources"]["access_nri"]["parameters"]["version"][
+            "default"
+        ]
+
+    # See what versions are present in the directory
+    basepath = Path(cat_path).parent.parent  # /basepath/{{version}}/catalog.yaml
+    vers_avail = sorted(
+        list([v for v in basepath.iterdir() if re.match(CATALOG_VERSION_REGEX, v)])
+    )
+    # Basic sanity check
+    if cat_default not in vers_avail:
+        raise RuntimeError(
+            f"Unable to find catalog default version {cat_default} in {str(basepath)} - configuration problem?"
+        )
+    vers_current = [v for v in vers_avail if v >= cat_min and v <= cat_max]
+    if not pretty:
+        return list(vers_current)
+
+    # If we're here, we now need to look for outdated YAML files and determine their
+    # available versions
+    # TODO complete
