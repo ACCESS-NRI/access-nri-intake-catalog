@@ -172,8 +172,28 @@ def get_timeinfo(
         If the dataset has a valid unlimited dimension, but no data
     """
 
-    def _todate(t):
-        return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
+    def _todate(t: xr.DataArray) -> cftime.datetime:
+        try:
+            ret = cftime.num2date(t, time_var.units, calendar=time_var.calendar)
+        except Exception:
+            # cftime cannot handle dates before 1678
+            breakpoint()
+            ret = cftime.datetime.fromordinal(t.astype("datetime64[D]").astype("int"))
+        return ret
+
+    def _has_bounds(time_var, ds):
+        """
+        Check for bounds - and whether they are valid and/or meaningful
+        """
+        _has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
+        if _has_bounds:
+            # Check that it doesn't overflow
+            bounds_var = ds.variables[time_var.bounds]
+            try:
+                cftime.num2date(bounds_var, time_var.units, calendar=time_var.calendar)
+            except OverflowError:
+                _has_bounds = False
+        return _has_bounds
 
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
@@ -189,28 +209,18 @@ def get_timeinfo(
                 "This file has a valid unlimited dimension, but no data"
             )
 
-        has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
+        has_bounds = _has_bounds(time_var, ds)
         if has_bounds:
             bounds_var = ds.variables[time_var.bounds]
-            try:
-                ts = _todate(bounds_var[0, 0])
-                te = _todate(bounds_var[-1, 1])
-            except OverflowError:
-                ts = _todate(time_var[0])
-                te = _todate(time_var[-1])
+            ts = _todate(bounds_var[0, 0])
+            te = _todate(bounds_var[-1, 1])
         else:
             ts = _todate(time_var[0])
             te = _todate(time_var[-1])
 
         if len(time_var) > 1 or has_bounds:
             if has_bounds:
-                try:
-                    t1 = _todate(bounds_var[0, 1])
-                except OverflowError:
-                    try:
-                        t1 = _todate(time_var[1])
-                    except IndexError:
-                        t1 = _todate(time_var[-1])
+                t1 = _todate(bounds_var[0, 1])
             else:
                 t1 = _todate(time_var[1])
 

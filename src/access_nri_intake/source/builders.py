@@ -314,7 +314,7 @@ class BaseBuilder(Builder):
             file_path.stem
         )
 
-        with xr.open_dataset(
+        with xr.load_dataset(
             file,
             chunks={},
             decode_cf=False,
@@ -543,6 +543,8 @@ class Mom6Builder(BaseBuilder):
             return ncinfo_dict
 
         except Exception:
+            if "OverflowError" in traceback.format_exc():
+                raise OverflowError(f"OverflowError: {file}")
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 
