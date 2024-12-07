@@ -15,9 +15,10 @@ from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import (
     EmptyFileError,
+    GenericTimeParser,
+    GfdlTimeParser,
     _AccessNCFileInfo,
     _VarInfo,
-    get_timeinfo,
 )
 
 # Frequency translations
@@ -327,9 +328,9 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = get_timeinfo(
+            start_date, end_date, frequency = GenericTimeParser(
                 ds, filename_frequency, time_dim
-            )
+            )()
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
@@ -543,9 +544,75 @@ class Mom6Builder(BaseBuilder):
             return ncinfo_dict
 
         except Exception:
-            if "OverflowError" in traceback.format_exc():
-                raise OverflowError(f"OverflowError: {file}")
+            if "NotImplementedError" in traceback.format_exc():
+                raise NotImplementedError(f"Ready to implement for {file}")
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+    @classmethod
+    def parse_access_ncfile(
+        cls, file: str, time_dim: str = "time"
+    ) -> _AccessNCFileInfo:
+        """
+        Get Intake-ESM datastore entry info from a GFDL netcdf file
+
+        NOTE: This methodname is misleading, we should change parse_access_ncfile to
+        parse_ncfile - mom6 is a GFDL model, not an ACCESS model.
+
+        Parameters
+        ----------
+        fname: str
+            The path to the netcdf file
+        time_dim: str
+            The name of the time dimension
+
+        Returns
+        -------
+        output_nc_info: _AccessNCFileInfo
+            A dataclass containing the information parsed from the file
+
+        Raises
+        ------
+        EmptyFileError: If the file contains no variables
+        """
+
+        file_path = Path(file)
+
+        file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
+            file_path.stem
+        )
+
+        with xr.load_dataset(
+            file,
+            chunks={},
+            decode_cf=False,
+            decode_times=False,
+            decode_coords=False,
+        ) as ds:
+            dvars = _VarInfo()
+
+            for var in ds.variables:
+                attrs = ds[var].attrs
+                dvars.append_attrs(var, attrs)  # type: ignore
+
+            start_date, end_date, frequency = GfdlTimeParser(
+                ds, filename_frequency, time_dim
+            )()
+
+        if not dvars.variable_list:
+            raise EmptyFileError("This file contains no variables")
+
+        output_ncfile = _AccessNCFileInfo(
+            filename=file_path.name,
+            path=file,
+            file_id=file_id,
+            filename_timestamp=filename_timestamp,
+            frequency=frequency,
+            start_date=start_date,
+            end_date=end_date,
+            **dvars.to_var_info_dict(),
+        )
+
+        return output_ncfile
 
 
 class AccessEsm15Builder(BaseBuilder):
