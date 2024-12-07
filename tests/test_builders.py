@@ -1505,9 +1505,9 @@ def test_parse_access_filename(builder, filename, expected):
                 filename="19000101.ice_daily.nc",
                 file_id="XXXXXXXX_ice_daily",
                 filename_timestamp="19000101",
-                frequency="subhr",
+                frequency="1day",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1900-01-01, 00:00:00",
+                end_date="1901-01-01, 00:00:00",
                 variable=[
                     "xT",
                     "xTe",
@@ -1588,7 +1588,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename="19000101.ocean_annual_z.nc",
                 file_id="XXXXXXXX_ocean_annual_z",
                 filename_timestamp="19000101",
-                frequency="subhr",
+                frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-01, 00:00:00",
                 variable=[
@@ -1751,7 +1751,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename="19000101.ocean_month_rho2.nc",
                 file_id="XXXXXXXX_ocean_month_rho2",
                 filename_timestamp="19000101",
-                frequency="subhr",
+                frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-01, 00:00:00",
                 variable=[
@@ -1844,7 +1844,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename="19000101.ocean_scalar_annual.nc",
                 file_id="XXXXXXXX_ocean_scalar_annual",
                 filename_timestamp="19000101",
-                frequency="subhr",
+                frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-01, 00:00:00",
                 variable=[
@@ -2105,7 +2105,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename="20051101.ocean_daily_2005_360.nc",
                 file_id="XXXXXXXX_ocean_daily_XXXX_XXX",
                 filename_timestamp="20051101",
-                frequency="subhr",
+                frequency="1day",
                 start_date="1991-01-01, 00:00:00",
                 end_date="1991-01-01, 00:00:00",
                 variable=[
@@ -2238,7 +2238,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename="20051101.ocean_daily_rho2_2005_360.nc",
                 file_id="XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
                 filename_timestamp="20051101",
-                frequency="subhr",
+                frequency="1day",
                 start_date="1991-01-01, 00:00:00",
                 end_date="1991-01-01, 00:00:00",
                 variable=[
@@ -2336,7 +2336,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename="20051101.ocean_daily_z_2005_360.nc",
                 file_id="XXXXXXXX_ocean_daily_z_XXXX_XXX",
                 filename_timestamp="20051101",
-                frequency="subhr",
+                frequency="1day",
                 start_date="1991-01-01, 00:00:00",
                 end_date="1991-01-01, 00:00:00",
                 variable=[
