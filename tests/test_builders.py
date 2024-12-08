@@ -1590,7 +1590,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename_timestamp="19000101",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1900-01-01, 00:00:00",
+                end_date="1901-01-01, 00:00:00",
                 variable=[
                     "xh",
                     "yh",
@@ -1753,7 +1753,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename_timestamp="19000101",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1900-01-01, 00:00:00",
+                end_date="1901-01-01, 00:00:00",
                 variable=[
                     "xh",
                     "yh",
@@ -1846,7 +1846,7 @@ def test_parse_access_filename(builder, filename, expected):
                 filename_timestamp="19000101",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1900-01-01, 00:00:00",
+                end_date="1901-01-01, 00:00:00",
                 variable=[
                     "scalar_axis",
                     "time",
@@ -2106,8 +2106,8 @@ def test_parse_access_filename(builder, filename, expected):
                 file_id="XXXXXXXX_ocean_daily_XXXX_XXX",
                 filename_timestamp="20051101",
                 frequency="1day",
-                start_date="1991-01-01, 00:00:00",
-                end_date="1991-01-01, 00:00:00",
+                start_date="2005-12-26, 00:00:00",
+                end_date="2005-12-27, 00:00:00",
                 variable=[
                     "xh",
                     "yh",
@@ -2239,8 +2239,8 @@ def test_parse_access_filename(builder, filename, expected):
                 file_id="XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
                 filename_timestamp="20051101",
                 frequency="1day",
-                start_date="1991-01-01, 00:00:00",
-                end_date="1991-01-01, 00:00:00",
+                start_date="2005-12-26, 00:00:00",
+                end_date="2005-12-27, 00:00:00",
                 variable=[
                     "xh",
                     "yh",
@@ -2337,8 +2337,8 @@ def test_parse_access_filename(builder, filename, expected):
                 file_id="XXXXXXXX_ocean_daily_z_XXXX_XXX",
                 filename_timestamp="20051101",
                 frequency="1day",
-                start_date="1991-01-01, 00:00:00",
-                end_date="1991-01-01, 00:00:00",
+                start_date="2005-12-26, 00:00:00",
+                end_date="2005-12-27, 00:00:00",
                 variable=[
                     "xh",
                     "yh",
