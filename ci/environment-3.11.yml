@@ -5,18 +5,16 @@ channels:
   - defaults
 dependencies:
   - python==3.11
-  - cftime==1.6.4
-  - cf_xarray==0.10.0
-  - ecgtools==2024.7.31
-  - intake==0.7.0
-  - intake-dataframe-catalog==0.2.4
-  - intake-esm==2024.2.6
-  - libnetcdf==4.9.2
+  - cftime
+  - ecgtools>=2023.7.13
+  - intake>=0.7.0
+  - intake-dataframe-catalog>=0.2.4
+  - intake-esm>=2023.11.10
   - jsonschema
   - pooch
   - pre-commit
   - pytest
-  - xarray[complete]
+  - xarray
   - pip
   - pip:
     - codecov
