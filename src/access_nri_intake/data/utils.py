@@ -3,6 +3,7 @@
 
 import os
 import re
+from pathlib import Path
 
 import yaml
 
@@ -28,7 +29,7 @@ def _get_catalog_rp():
 
     match = re.match(CATALOG_PATH_REGEX, catalog_fp)
     try:
-        return match.group("rootpath")
+        return Path(match.group("rootpath"))
     except AttributeError:  # Match failed
         raise RuntimeError(
             f"Catalog metadata {get_catalog_fp()} contains unexpected catalog filepath: {catalog_fp}"

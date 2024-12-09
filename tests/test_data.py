@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import re
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -23,8 +24,8 @@ def test__get_catalog_rp(mock_get_catalog_fp, test_data):
     ), "Mock failed"
 
     rp = _get_catalog_rp()
-    assert (
-        rp == "/this/is/root/path/"
+    assert rp == Path(
+        "/this/is/root/path/"
     ), f"Computed root path {rp} != expected value /this/is/root/path/"
 
 
