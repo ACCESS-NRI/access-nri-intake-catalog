@@ -57,8 +57,9 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries an empty set
+    # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
+    TIME_PARSER = GenericTimeParser
 
     def __init__(
         self,
@@ -288,7 +289,7 @@ class BaseBuilder(Builder):
     @classmethod
     def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
         """
-        Get Intake-ESM datastore entry info from an ACCESS netcdf file
+        Get Intake-ESM datastore entry info from a netcdf file
 
         Parameters
         ----------
@@ -326,7 +327,7 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = GenericTimeParser(
+            start_date, end_date, frequency = cls.TIME_PARSER(
                 ds, filename_frequency, time_dim
             )()
 
@@ -486,6 +487,7 @@ class Mom6Builder(BaseBuilder):
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
     ]
+    TIME_PARSER = GfdlTimeParser
 
     def __init__(self, path):
         """
@@ -543,70 +545,6 @@ class Mom6Builder(BaseBuilder):
 
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
-
-    @classmethod
-    def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
-        """
-        Get Intake-ESM datastore entry info from a GFDL netcdf file
-
-        NOTE: This methodname is misleading, we should change parse_ncfile to
-        parse_ncfile - mom6 is a GFDL model, not an ACCESS model.
-
-        Parameters
-        ----------
-        fname: str
-            The path to the netcdf file
-        time_dim: str
-            The name of the time dimension
-
-        Returns
-        -------
-        output_nc_info: _NCFileInfo
-            A dataclass containing the information parsed from the file
-
-        Raises
-        ------
-        EmptyFileError: If the file contains no variables
-        """
-
-        file_path = Path(file)
-
-        file_id, filename_timestamp, filename_frequency = cls.parse_filename(
-            file_path.stem
-        )
-
-        with xr.open_dataset(
-            file,
-            chunks={},
-            decode_cf=False,
-            decode_times=False,
-            decode_coords=False,
-        ) as ds:
-            dvars = _VarInfo()
-
-            for var in ds.variables:
-                attrs = ds[var].attrs
-                dvars.append_attrs(var, attrs)  # type: ignore
-
-            start_date, end_date, frequency = GfdlTimeParser(
-                ds, filename_frequency, time_dim
-            )()
-
-        if not dvars.variable_list:
-            raise EmptyFileError("This file contains no variables")
-
-        output_ncfile = _NCFileInfo(
-            filename=file_path.name,
-            path=file,
-            file_id=file_id,
-            filename_timestamp=filename_timestamp,
-            frequency=frequency,
-            start_date=start_date,
-            end_date=end_date,
-            **dvars.to_var_info_dict(),
-        )
-
-        return output_ncfile
 
 
 class AccessEsm15Builder(BaseBuilder):
