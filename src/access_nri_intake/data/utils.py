@@ -71,7 +71,6 @@ def available_versions(pretty: bool = True):
         and ((d.name >= vers_min and d.name <= vers_max) or d.name == vers_def)
     ]
     cats.sort(reverse=True)
-    # import pdb; pdb.set_trace()
 
     # Find all the symlinked versions
     symlinks = [s for s in cats if (Path(base_path) / s).is_symlink()]
