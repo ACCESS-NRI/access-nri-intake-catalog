@@ -1,7 +1,6 @@
 # Copyright 2024 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import re
 from pathlib import Path
 
@@ -50,18 +49,19 @@ def available_versions(pretty: bool = True):
     base_path = _get_catalog_rp()
 
     # Grab all the catalog names
-    cats = [d for d in os.listdir(base_path) if re.search(CATALOG_NAME_FORMAT, d)]
+    cats = [
+        d.name for d in base_path.iterdir() if re.search(CATALOG_NAME_FORMAT, d.name)
+    ]
     cats.sort(reverse=True)
+    # import pdb; pdb.set_trace()
 
     # Find all the symlinked versions
-    symlinks = [s for s in cats if os.path.islink(os.path.join(base_path, s))]
+    symlinks = [s for s in cats if (Path(base_path) / s).is_symlink()]
 
-    symlink_targets = {
-        s: os.path.basename(os.readlink(os.path.join(base_path, s))) for s in symlinks
-    }
+    symlink_targets = {s: (base_path / s).readlink().name for s in symlinks}
 
     if pretty:
-        for i, c in enumerate(cats):
+        for c in cats:
             if c in symlink_targets.keys():
                 c += f"(-->{symlink_targets[c]})"
             print(c)
