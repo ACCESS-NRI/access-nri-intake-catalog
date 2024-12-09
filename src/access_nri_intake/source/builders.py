@@ -575,7 +575,7 @@ class Mom6Builder(BaseBuilder):
             file_path.stem
         )
 
-        with xr.load_dataset(
+        with xr.open_dataset(
             file,
             chunks={},
             decode_cf=False,
