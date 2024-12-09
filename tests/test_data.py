@@ -74,6 +74,21 @@ def test_available_versions_pretty(
     ), "Did not get expected catalog printout"
 
 
+@mock.patch(
+    "access_nri_intake.data.utils.get_catalog_fp", return_value="/this/is/not/real.yaml"
+)
+def test_available_versions_no_catalog(mock_get_catalog_fp):
+    with pytest.raises(FileNotFoundError):
+        available_versions()
+
+
+@mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+def test_available_versions_bad_catalog(mock_get_catalog_fp, test_data):
+    mock_get_catalog_fp.return_value = test_data / "catalog/catalog-bad-structure.yaml"
+    with pytest.raises(RuntimeError):
+        available_versions()
+
+
 @pytest.mark.parametrize(
     "name",
     [
