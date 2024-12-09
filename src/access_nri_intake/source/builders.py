@@ -15,9 +15,10 @@ from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import (
     EmptyFileError,
-    _AccessNCFileInfo,
+    GenericTimeParser,
+    GfdlTimeParser,
+    _NCFileInfo,
     _VarInfo,
-    get_timeinfo,
 )
 
 # Frequency translations
@@ -56,8 +57,9 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries an empty set
+    # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
+    TIME_PARSER = GenericTimeParser
 
     def __init__(
         self,
@@ -222,7 +224,7 @@ class BaseBuilder(Builder):
         raise NotImplementedError
 
     @classmethod
-    def parse_access_filename(
+    def parse_filename(
         cls,
         filename: str,
         patterns: list[str] | None = None,
@@ -285,11 +287,9 @@ class BaseBuilder(Builder):
         return file_id, timestamp, frequency
 
     @classmethod
-    def parse_access_ncfile(
-        cls, file: str, time_dim: str = "time"
-    ) -> _AccessNCFileInfo:
+    def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
         """
-        Get Intake-ESM datastore entry info from an ACCESS netcdf file
+        Get Intake-ESM datastore entry info from a netcdf file
 
         Parameters
         ----------
@@ -300,7 +300,7 @@ class BaseBuilder(Builder):
 
         Returns
         -------
-        output_nc_info: _AccessNCFileInfo
+        output_nc_info: _NCFileInfo
             A dataclass containing the information parsed from the file
 
         Raises
@@ -310,7 +310,7 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
+        file_id, filename_timestamp, filename_frequency = cls.parse_filename(
             file_path.stem
         )
 
@@ -327,14 +327,14 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = get_timeinfo(
+            start_date, end_date, frequency = cls.TIME_PARSER(
                 ds, filename_frequency, time_dim
-            )
+            )()
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
 
-        output_ncfile = _AccessNCFileInfo(
+        output_ncfile = _NCFileInfo(
             filename=file_path.name,
             path=file,
             file_id=file_id,
@@ -399,7 +399,7 @@ class AccessOm2Builder(BaseBuilder):
             if realm == "ice":
                 realm = "seaIce"
 
-            nc_info = cls.parse_access_ncfile(file)
+            nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
@@ -457,7 +457,7 @@ class AccessOm3Builder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
-            output_nc_info = cls.parse_access_ncfile(file)
+            output_nc_info = cls.parse_ncfile(file)
             ncinfo_dict = output_nc_info.to_dict()
 
             if "mom6" in ncinfo_dict["filename"]:
@@ -487,6 +487,7 @@ class Mom6Builder(BaseBuilder):
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
     ]
+    TIME_PARSER = GfdlTimeParser
 
     def __init__(self, path):
         """
@@ -529,7 +530,7 @@ class Mom6Builder(BaseBuilder):
     @classmethod
     def parser(cls, file):
         try:
-            output_nc_info = cls.parse_access_ncfile(file)
+            output_nc_info = cls.parse_ncfile(file)
             ncinfo_dict = output_nc_info.to_dict()
 
             if "ocean" in ncinfo_dict["filename"]:
@@ -605,7 +606,7 @@ class AccessEsm15Builder(BaseBuilder):
 
             realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
 
-            nc_info = cls.parse_access_ncfile(file)
+            nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
             # Remove exp_id from file id so that members can be part of the same dataset
