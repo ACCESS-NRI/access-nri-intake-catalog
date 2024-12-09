@@ -338,86 +338,70 @@ def test_generic_empty_file_error(parser):
 
 
 @pytest.mark.parametrize(
-    "times, bounds, ffreq, expected",
+    "times, ffreq, expected",
     [
         (
             [365 / 2],
-            False,
             (1, "yr"),
             ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr"),
         ),
         (
             [31 / 2],
-            False,
             (1, "mon"),
             ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon"),
         ),
         (
             [1.5 / 24],
-            False,
             (3, "hr"),
             ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr"),
         ),
         (
             [1.5 / 24, 4.5 / 24],
-            False,
             None,
             ("1900-01-01, 00:00:00", "1900-01-01, 06:00:00", "3hr"),
         ),
         (
             [3 / 24, 9 / 24],
-            False,
             None,
             ("1900-01-01, 00:00:00", "1900-01-01, 12:00:00", "6hr"),
         ),
         (
             [0.5, 1.5],
-            False,
             None,
             ("1900-01-01, 00:00:00", "1900-01-03, 00:00:00", "1day"),
         ),
         (
             [31 / 2, 45],
-            False,
             None,
             ("1900-01-01, 00:00:00", "1900-03-01, 00:00:00", "1mon"),
         ),
         (
             [45, 135.5],
-            False,
             None,
             ("1900-01-01, 00:00:00", "1900-07-01, 00:00:00", "3mon"),
         ),
         (
             [365 / 2, 365 + 365 / 2],
-            False,
             None,
             ("1900-01-01, 00:00:00", "1902-01-01, 00:00:00", "1yr"),
         ),
         (
             [365, 3 * 365],
-            False,
             None,
             ("1900-01-01, 00:00:00", "1904-01-01, 00:00:00", "2yr"),
         ),
+        (
+            [365 / 86400 / 720, 365 / 86400 / 360],  # 1/2 second, 1 second
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 00:00:01", "subhr"),
+        ),
     ],
 )
-def test_gfdl_time_parser(times, bounds, ffreq, expected):
-    if bounds:
-        time = (times[0] + times[1]) / 2
-        ds = xr.Dataset(
-            data_vars={
-                "dummy": ("time", [0]),
-                "time_bounds": (("time", "nv"), [(times[0], times[1])]),
-            },
-            coords={"time": [time]},
-        )
-        ds["time"].attrs = dict(bounds="time_bounds")
-    else:
-        ds = xr.Dataset(
-            data_vars={"dummy": ("time", [0] * len(times))},
-            coords={"time": times},
-        )
+def test_gfdl_time_parser(times, ffreq, expected):
+    ds = xr.Dataset(
+        data_vars={"dummy": ("time", [0] * len(times))},
+        coords={"time": times},
+    )
 
     ds["time"].attrs |= dict(
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
