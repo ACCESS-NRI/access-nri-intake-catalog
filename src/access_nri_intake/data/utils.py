@@ -82,6 +82,8 @@ def available_versions(pretty: bool = True):
         for c in cats:
             if c in symlink_targets.keys():
                 c += f"(-->{symlink_targets[c]})"
+            if c == vers_def:
+                c += "*"
             print(c)
         return
 
