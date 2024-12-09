@@ -761,6 +761,7 @@ def test_builder_columns_with_iterables(test_data):
 )
 def test_parse_filename(builder, filename, expected):
     assert builder.parse_filename(filename) == expected
+    builder.parse_ncfile(filename)
 
 
 @pytest.mark.parametrize(
@@ -2443,7 +2444,7 @@ def test_parse_filename(builder, filename, expected):
         ),
     ],
 )
-def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
+def test_parse_ncfile(test_data, builder, filename, expected, compare_files):
     """
     Tests for correctness of parser. Note that if we are using intake-esm without
     coordinate discovery enabled, the `conftest.py` fixture will dynamically set
