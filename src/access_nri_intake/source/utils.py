@@ -19,7 +19,7 @@ class EmptyFileError(Exception):
 
 
 @dataclass
-class _AccessNCFileInfo:
+class _NCFileInfo:
     """
     Holds information about a NetCDF file that is used to create an intake-esm
     catalog entry.

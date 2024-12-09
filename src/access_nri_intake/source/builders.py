@@ -17,7 +17,7 @@ from .utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
-    _AccessNCFileInfo,
+    _NCFileInfo,
     _VarInfo,
 )
 
@@ -223,7 +223,7 @@ class BaseBuilder(Builder):
         raise NotImplementedError
 
     @classmethod
-    def parse_access_filename(
+    def parse_filename(
         cls,
         filename: str,
         patterns: list[str] | None = None,
@@ -286,9 +286,7 @@ class BaseBuilder(Builder):
         return file_id, timestamp, frequency
 
     @classmethod
-    def parse_access_ncfile(
-        cls, file: str, time_dim: str = "time"
-    ) -> _AccessNCFileInfo:
+    def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
         """
         Get Intake-ESM datastore entry info from an ACCESS netcdf file
 
@@ -301,7 +299,7 @@ class BaseBuilder(Builder):
 
         Returns
         -------
-        output_nc_info: _AccessNCFileInfo
+        output_nc_info: _NCFileInfo
             A dataclass containing the information parsed from the file
 
         Raises
@@ -311,11 +309,11 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
+        file_id, filename_timestamp, filename_frequency = cls.parse_filename(
             file_path.stem
         )
 
-        with xr.load_dataset(
+        with xr.open_dataset(
             file,
             chunks={},
             decode_cf=False,
@@ -335,7 +333,7 @@ class BaseBuilder(Builder):
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
 
-        output_ncfile = _AccessNCFileInfo(
+        output_ncfile = _NCFileInfo(
             filename=file_path.name,
             path=file,
             file_id=file_id,
@@ -400,7 +398,7 @@ class AccessOm2Builder(BaseBuilder):
             if realm == "ice":
                 realm = "seaIce"
 
-            nc_info = cls.parse_access_ncfile(file)
+            nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
@@ -458,7 +456,7 @@ class AccessOm3Builder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
-            output_nc_info = cls.parse_access_ncfile(file)
+            output_nc_info = cls.parse_ncfile(file)
             ncinfo_dict = output_nc_info.to_dict()
 
             if "mom6" in ncinfo_dict["filename"]:
@@ -530,7 +528,7 @@ class Mom6Builder(BaseBuilder):
     @classmethod
     def parser(cls, file):
         try:
-            output_nc_info = cls.parse_access_ncfile(file)
+            output_nc_info = cls.parse_ncfile(file)
             ncinfo_dict = output_nc_info.to_dict()
 
             if "ocean" in ncinfo_dict["filename"]:
@@ -544,18 +542,14 @@ class Mom6Builder(BaseBuilder):
             return ncinfo_dict
 
         except Exception:
-            if "NotImplementedError" in traceback.format_exc():
-                raise NotImplementedError(f"Ready to implement for {file}")
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
     @classmethod
-    def parse_access_ncfile(
-        cls, file: str, time_dim: str = "time"
-    ) -> _AccessNCFileInfo:
+    def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
         """
         Get Intake-ESM datastore entry info from a GFDL netcdf file
 
-        NOTE: This methodname is misleading, we should change parse_access_ncfile to
+        NOTE: This methodname is misleading, we should change parse_ncfile to
         parse_ncfile - mom6 is a GFDL model, not an ACCESS model.
 
         Parameters
@@ -567,7 +561,7 @@ class Mom6Builder(BaseBuilder):
 
         Returns
         -------
-        output_nc_info: _AccessNCFileInfo
+        output_nc_info: _NCFileInfo
             A dataclass containing the information parsed from the file
 
         Raises
@@ -577,7 +571,7 @@ class Mom6Builder(BaseBuilder):
 
         file_path = Path(file)
 
-        file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
+        file_id, filename_timestamp, filename_frequency = cls.parse_filename(
             file_path.stem
         )
 
@@ -601,7 +595,7 @@ class Mom6Builder(BaseBuilder):
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
 
-        output_ncfile = _AccessNCFileInfo(
+        output_ncfile = _NCFileInfo(
             filename=file_path.name,
             path=file,
             file_id=file_id,
@@ -674,7 +668,7 @@ class AccessEsm15Builder(BaseBuilder):
 
             realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
 
-            nc_info = cls.parse_access_ncfile(file)
+            nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
             # Remove exp_id from file id so that members can be part of the same dataset

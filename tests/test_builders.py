@@ -13,7 +13,7 @@ from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
 from intake_esm.utils import OPTIONS
 
 from access_nri_intake.source import CORE_COLUMNS, builders
-from access_nri_intake.source.utils import _AccessNCFileInfo
+from access_nri_intake.source.utils import _NCFileInfo
 
 
 @pytest.mark.parametrize(
@@ -224,7 +224,7 @@ def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     assert info["file_id"] == file_id
 
 
-@mock.patch("access_nri_intake.source.utils._AccessNCFileInfo.to_dict")
+@mock.patch("access_nri_intake.source.utils._NCFileInfo.to_dict")
 @pytest.mark.parametrize(
     "filename",
     [
@@ -759,8 +759,8 @@ def test_builder_columns_with_iterables(test_data):
         ),
     ],
 )
-def test_parse_access_filename(builder, filename, expected):
-    assert builder.parse_access_filename(filename) == expected
+def test_parse_filename(builder, filename, expected):
+    assert builder.parse_filename(filename) == expected
 
 
 @pytest.mark.parametrize(
@@ -776,7 +776,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_grid.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_grid.nc",
                 file_id="ocean_grid",
@@ -799,7 +799,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean.nc",
                 file_id="ocean",
@@ -849,7 +849,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_month.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month.nc",
                 file_id="ocean_month",
@@ -888,7 +888,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_month_inst_nobounds.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month_inst_nobounds.nc",
                 file_id="ocean_month_inst_nobounds",
@@ -921,7 +921,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ice/OUTPUT/iceh.1900-01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1900-01.nc",
                 file_id="iceh_XXXX_XX",
@@ -953,7 +953,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/atm/netCDF/by578a.pd201501_dai.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="by578a.pd201501_dai.nc",
                 file_id="by578a_pdXXXXXX_dai",
@@ -971,7 +971,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh_d.2015-01.nc",
                 file_id="iceh_d_XXXX_XX",
@@ -1003,7 +1003,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ocn/ocean_daily.nc-20150630",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_daily.nc-20150630",
                 file_id="ocean_daily",
@@ -1035,7 +1035,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ocn/ocean_scalar.nc-20150630",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_scalar.nc-20150630",
                 file_id="ocean_scalar",
@@ -1077,7 +1077,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/atm/netCDF/HI-C-05-r1.pa-185001_mon.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="HI-C-05-r1.pa-185001_mon.nc",
                 file_id="HI_C_05_r1_pa_XXXXXX_mon",
@@ -1095,7 +1095,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ice/iceh.1850-01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1850-01.nc",
                 file_id="iceh_XXXX_XX",
@@ -1127,7 +1127,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ocn/ocean_bgc_ann.nc-18501231",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc_ann.nc-18501231",
                 file_id="ocean_bgc_ann",
@@ -1166,7 +1166,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ocn/ocean_bgc.nc-18501231",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc.nc-18501231",
                 file_id="ocean_bgc",
@@ -1208,7 +1208,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.native_1900_01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.native_1900_01.nc",
                 file_id="GMOM_JRA_WD_mom6_h_native_XXXX_XX",
@@ -1281,7 +1281,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
                 file_id="GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
@@ -1349,7 +1349,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.static.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.static.nc",
                 file_id="GMOM_JRA_WD_mom6_h_static",
@@ -1377,7 +1377,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.z_1900_01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.z_1900_01.nc",
                 file_id="GMOM_JRA_WD_mom6_h_z_XXXX_XX",
@@ -1450,7 +1450,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.cice.h.1900-01-01.nc",
                 file_id="GMOM_JRA_WD_cice_h_XXXX_XX_XX",
@@ -1482,7 +1482,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
                 file_id="GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
@@ -1500,7 +1500,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ice_daily.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ice_daily.nc",
                 file_id="XXXXXXXX_ice_daily",
@@ -1583,7 +1583,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ocean_annual_z.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_annual_z.nc",
                 file_id="XXXXXXXX_ocean_annual_z",
@@ -1746,7 +1746,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ocean_month_rho2.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_month_rho2.nc",
                 file_id="XXXXXXXX_ocean_month_rho2",
@@ -1839,7 +1839,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ocean_scalar_annual.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_scalar_annual.nc",
                 file_id="XXXXXXXX_ocean_scalar_annual",
@@ -1922,7 +1922,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output000/19000101.ocean_static.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_static.nc",
                 file_id="XXXXXXXX_ocean_static",
@@ -2100,7 +2100,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output053/20051101.ocean_daily_2005_360.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_2005_360.nc",
                 file_id="XXXXXXXX_ocean_daily_XXXX_XXX",
@@ -2233,7 +2233,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output053/20051101.ocean_daily_rho2_2005_360.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_rho2_2005_360.nc",
                 file_id="XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
@@ -2331,7 +2331,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.Mom6Builder,
             "mom6/output053/20051101.ocean_daily_z_2005_360.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_z_2005_360.nc",
                 file_id="XXXXXXXX_ocean_daily_z_XXXX_XXX",
@@ -2456,7 +2456,7 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
     # Set the path to the test data directory
     expected.path = file
 
-    assert builder.parse_access_ncfile(file) == expected
+    assert builder.parse_ncfile(file) == expected
 
     if not compare_files:
         return None
