@@ -47,8 +47,10 @@ def test__get_catalog_rp_runtime_errors(mock_get_catalog_fp, test_data, cat):
 
 
 @mock.patch("access_nri_intake.data.utils._get_catalog_rp")
-def test_available_versions(mock__get_catalog_rp, test_data):
+@mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+def test_available_versions(mock_get_catalog_fp, mock__get_catalog_rp, test_data):
     mock__get_catalog_rp.return_value = test_data / "catalog/catalog-dirs"
+    mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
     cats = available_versions(pretty=False)
     assert cats == [
         "v2025-02-28",
@@ -59,8 +61,12 @@ def test_available_versions(mock__get_catalog_rp, test_data):
 
 
 @mock.patch("access_nri_intake.data.utils._get_catalog_rp")
-def test_available_versions_pretty(mock__get_catalog_rp, test_data, capfd):
+@mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+def test_available_versions_pretty(
+    mock_get_catalog_fp, mock__get_catalog_rp, test_data, capfd
+):
     mock__get_catalog_rp.return_value = test_data / "catalog/catalog-dirs"
+    mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
     available_versions(pretty=True)
     captured, _ = capfd.readouterr()
     assert (

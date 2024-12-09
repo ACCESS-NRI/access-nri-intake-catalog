@@ -48,11 +48,27 @@ def available_versions(pretty: bool = True):
     # Work out where the catalogs are stored
     base_path = _get_catalog_rp()
 
+    # Grab the extant catalog and work out its min and max versions
+    try:
+        with open(get_catalog_fp()) as cat:
+            cat_yaml = yaml.safe_load(cat)
+            vers_min = cat_yaml["sources"]["access_nri"]["parameters"]["version"]["min"]
+            vers_max = cat_yaml["sources"]["access_nri"]["parameters"]["version"]["max"]
+            vers_def = cat_yaml["sources"]["access_nri"]["parameters"]["version"][
+                "default"
+            ]
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Unable to find catalog at {get_catalog_fp()}")
+    except KeyError:
+        raise RuntimeError(f"Catalog at {get_catalog_fp()} not correctly formatted")
+
     # Grab all the catalog names
     cats = [
         d.name
         for d in base_path.iterdir()
-        if re.search(CATALOG_NAME_FORMAT, d.name) and d.is_dir()
+        if re.search(CATALOG_NAME_FORMAT, d.name)
+        and d.is_dir()
+        and ((d.name >= vers_min and d.name <= vers_max) or d.name == vers_def)
     ]
     cats.sort(reverse=True)
     # import pdb; pdb.set_trace()
