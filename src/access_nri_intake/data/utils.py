@@ -50,7 +50,9 @@ def available_versions(pretty: bool = True):
 
     # Grab all the catalog names
     cats = [
-        d.name for d in base_path.iterdir() if re.search(CATALOG_NAME_FORMAT, d.name)
+        d.name
+        for d in base_path.iterdir()
+        if re.search(CATALOG_NAME_FORMAT, d.name) and d.is_dir()
     ]
     cats.sort(reverse=True)
     # import pdb; pdb.set_trace()
