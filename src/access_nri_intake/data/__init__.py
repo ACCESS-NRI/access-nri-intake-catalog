@@ -8,7 +8,9 @@ import intake.catalog
 
 from access_nri_intake.utils import get_catalog_fp
 
-# FIXME remove all references to this, reference top-level version
+CATALOG_NAME_FORMAT = (
+    r"^v(?P<yr>2[0-9]{3})\-(?P<mon>1[0-2]|0[1-9])\-(?P<day>0[1-9]|[1-2][0-9]|3[0-1])$"
+)
 
 try:
     data = intake.open_catalog(get_catalog_fp()).access_nri
