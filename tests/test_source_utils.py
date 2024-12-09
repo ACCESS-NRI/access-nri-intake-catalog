@@ -318,7 +318,7 @@ def test_generic_time_parser_warnings(parser):
 
 @pytest.mark.parametrize(
     "parser",
-    [AccessTimeParser, GenericTimeParser],
+    [AccessTimeParser, GenericTimeParser, GfdlTimeParser],
 )
 def test_generic_empty_file_error(parser):
     times = []
@@ -424,3 +424,16 @@ def test_gfdl_time_parser(times, bounds, ffreq, expected):
     )
 
     assert GfdlTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected
+
+
+def test_gfdl_parser_notime():
+    ds = xr.Dataset(
+        data_vars={"dummy": ("latitude", [0])},
+        coords={"latitude": [0]},
+    )
+
+    assert GfdlTimeParser(ds, filename_frequency=None, time_dim="time")() == (
+        "none",
+        "none",
+        "fx",
+    )
