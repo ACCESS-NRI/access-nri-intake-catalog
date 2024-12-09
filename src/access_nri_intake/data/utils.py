@@ -6,8 +6,8 @@ import re
 
 import yaml
 
+from ...access_nri_intake import CATALOG_VERSION_REGEX
 from ..utils import get_catalog_fp
-from . import CATALOG_NAME_FORMAT
 
 CATALOG_PATH_REGEX = r"^(?P<rootpath>.*?)\{\{version\}\}.*?$"
 
@@ -49,7 +49,7 @@ def available_versions(pretty: bool = True):
     base_path = _get_catalog_rp()
 
     # Grab all the catalog names
-    cats = [d for d in os.listdir(base_path) if re.search(CATALOG_NAME_FORMAT, d)]
+    cats = [d for d in os.listdir(base_path) if re.search(CATALOG_VERSION_REGEX, d)]
     cats.sort(reverse=True)
 
     # Find all the symlinked versions
