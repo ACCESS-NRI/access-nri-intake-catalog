@@ -203,23 +203,38 @@ class DefaultTranslator:
         """
         Return model from dispatch_keys.model
         """
-        return self.source.df[self._dispatch_keys.model]
+        try:
+            return self.source.df[self._dispatch_keys.model]
+        except KeyError as exc:
+            raise KeyError(
+                f"Unable to find realm column '{self._dispatch_keys.model}' with translator {self.__class__.__name__}"
+            ) from exc
 
     @tuplify_series
     def _frequency_translator(self) -> pd.Series:
         """
         Return frequency, fixing a few issues
         """
-        return self.source.df[self._dispatch_keys.frequency].apply(
-            lambda x: FREQUENCY_TRANSLATIONS.get(x, x)
-        )
+        try:
+            return self.source.df[self._dispatch_keys.frequency].apply(
+                lambda x: FREQUENCY_TRANSLATIONS.get(x, x)
+            )
+        except KeyError as exc:
+            raise KeyError(
+                f"Unable to find realm column '{self._dispatch_keys.frequency}' with translator {self.__class__.__name__}"
+            ) from exc
 
     @tuplify_series
     def _variable_translator(self) -> pd.Series:
         """
         Return variable as a tuple
         """
-        return self.source.df[self._dispatch_keys.variable]
+        try:
+            return self.source.df[self._dispatch_keys.variable]
+        except KeyError as exc:
+            raise KeyError(
+                f"Unable to find realm column '{self._dispatch_keys.frequency}' with translator {self.__class__.__name__}"
+            ) from exc
 
 
 class Cmip6Translator(DefaultTranslator):
@@ -415,7 +430,12 @@ class Era5Translator(DefaultTranslator):
         where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1',
         'era5-derived'.
         """
-        return self.source.df["path"].str.split("/").str[4]
+        try:
+            return self.source.df["path"].str.split("/").str[4]
+        except KeyError as exc:
+            raise KeyError(
+                f"Unable to find model column '{self._dispatch_keys.model}' with translator {self.__class__.__name__}"
+            ) from exc
 
     def _realm_translator(self):
         """
@@ -451,7 +471,12 @@ class Era5Translator(DefaultTranslator):
             lambda x: ERA5_FREQUENCY_TRANSLATIONS.get(x, x)
         )
 
-        return preproc_config_str.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
+        try:
+            return preproc_config_str.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
+        except KeyError as exc:
+            raise KeyError(
+                f"Unable to find frequency column '{self._dispatch_keys.frequency}' with translator {self.__class__.__name__}"
+            ) from exc
 
 
 class CcamTranslator(DefaultTranslator):
