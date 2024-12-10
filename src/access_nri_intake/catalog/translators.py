@@ -15,7 +15,7 @@ import tlz
 from intake import DataSource
 
 from . import COLUMNS_WITH_ITERABLES
-from .utils import _to_tuple, tuplify_series
+from .utils import _to_tuple, trace_failure, tuplify_series
 
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
@@ -192,54 +192,38 @@ class DefaultTranslator:
         self._dispatch[core_colname] = func
         setattr(self._dispatch_keys, core_colname, input_name)
 
+    @trace_failure
     def _realm_translator(self) -> pd.Series:
         """
         Return realm, fixing a few issues
         """
-        try:
-            return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
-        except KeyError as exc:
-            raise KeyError(
-                f"Unable to find realm column '{self._dispatch_keys.realm}' with translator {self.__class__.__name__}"
-            ) from exc
+        return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
 
     @tuplify_series
+    @trace_failure
     def _model_translator(self) -> pd.Series:
         """
         Return model from dispatch_keys.model
         """
-        try:
-            return self.source.df[self._dispatch_keys.model]
-        except KeyError as exc:
-            raise KeyError(
-                f"Unable to find model column '{self._dispatch_keys.model}' with translator {self.__class__.__name__}"
-            ) from exc
+        return self.source.df[self._dispatch_keys.model]
 
     @tuplify_series
+    @trace_failure
     def _frequency_translator(self) -> pd.Series:
         """
         Return frequency, fixing a few issues
         """
-        try:
-            return self.source.df[self._dispatch_keys.frequency].apply(
-                lambda x: FREQUENCY_TRANSLATIONS.get(x, x)
-            )
-        except KeyError as exc:
-            raise KeyError(
-                f"Unable to find variable column '{self._dispatch_keys.variable}' with translator {self.__class__.__name__}"
-            ) from exc
+        return self.source.df[self._dispatch_keys.frequency].apply(
+            lambda x: FREQUENCY_TRANSLATIONS.get(x, x)
+        )
 
     @tuplify_series
+    @trace_failure
     def _variable_translator(self) -> pd.Series:
         """
         Return variable as a tuple
         """
-        try:
-            return self.source.df[self._dispatch_keys.variable]
-        except KeyError as exc:
-            raise KeyError(
-                f"Unable to find variable column '{self._dispatch_keys.variable}' with translator {self.__class__.__name__}"
-            ) from exc
+        return self.source.df[self._dispatch_keys.variable]
 
 
 class Cmip6Translator(DefaultTranslator):
@@ -427,6 +411,7 @@ class Era5Translator(DefaultTranslator):
         )
 
     @tuplify_series
+    @trace_failure
     def _model_translator(self):
         """
         Get the model from the path. This is a slightly hacky approach, using the
@@ -435,12 +420,7 @@ class Era5Translator(DefaultTranslator):
         where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1',
         'era5-derived'.
         """
-        try:
-            return self.source.df["path"].str.split("/").str[4]
-        except KeyError as exc:
-            raise KeyError(
-                f"Unable to find model column '{self._dispatch_keys.model}' with translator {self.__class__.__name__}"
-            ) from exc
+        return self.source.df["path"].str.split("/").str[4]
 
     def _realm_translator(self):
         """
@@ -450,6 +430,7 @@ class Era5Translator(DefaultTranslator):
         return self.source.df.apply(lambda x: ("none",), 1)
 
     @tuplify_series
+    @trace_failure
     def _frequency_translator(self):
         """
         Get the frequency from the path
@@ -476,12 +457,7 @@ class Era5Translator(DefaultTranslator):
             lambda x: ERA5_FREQUENCY_TRANSLATIONS.get(x, x)
         )
 
-        try:
-            return preproc_config_str.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
-        except KeyError as exc:
-            raise KeyError(
-                f"Unable to find frequency column '{self._dispatch_keys.frequency}' with translator {self.__class__.__name__}"
-            ) from exc
+        return preproc_config_str.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
 
 
 class CcamTranslator(DefaultTranslator):

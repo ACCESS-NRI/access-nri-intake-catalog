@@ -1,4 +1,4 @@
-from functools import partial, wraps
+from functools import wraps
 from typing import Callable
 
 import pandas as pd
@@ -33,11 +33,11 @@ def trace_failure(func: Callable) -> Callable:
     """
     Decorator that wraps a function and prints a message if it raises an exception
     """
-    func_name = func.__name__
-    colname = func_name[1:].split("_")[0]
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        func_name = func.__name__
+        colname = func_name[1:].split("_")[0]
         # Ensure the first argument is an instance of the class
         if not hasattr(args[0], "__class__"):
             raise TypeError("Decorator can only be applied to class methods")
@@ -51,4 +51,4 @@ def trace_failure(func: Callable) -> Callable:
                 f"Unable to find {colname} column '{dispatch_key}' with translator {args[0].__class__.__name__}"
             ) from exc
 
-    return partial(wrapper, colname)
+    return wrapper
