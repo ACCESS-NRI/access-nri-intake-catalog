@@ -226,7 +226,7 @@ class DefaultTranslator:
             )
         except KeyError as exc:
             raise KeyError(
-                f"Unable to find variable column '{self._dispatch_keys.bariable}' with translator {self.__class__.__name__}"
+                f"Unable to find variable column '{self._dispatch_keys.variable}' with translator {self.__class__.__name__}"
             ) from exc
 
     @tuplify_series
