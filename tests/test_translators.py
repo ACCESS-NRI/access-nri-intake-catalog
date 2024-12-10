@@ -382,7 +382,7 @@ def test_translator_failure(test_data):
         translator.translate()
 
     assert (
-        "Unable to find model column 'None' with translator 'DefaultTranslator'"
+        "Unable to translate 'model' column with translator 'DefaultTranslator'"
         in str(excinfo.value)
     )
 

@@ -52,13 +52,11 @@ def trace_failure(func: Callable) -> Callable:
         if not isinstance(args[0], DefaultTranslator):
             raise TypeError("Decorator can only be applied to class methods")
 
-        dispatch_key = getattr(args[0]._dispatch_keys, colname)
-
         try:
             return func(*args, **kwargs)
         except KeyError as exc:
             raise KeyError(
-                f"Unable to find {colname} column '{dispatch_key}' with translator '{args[0].__class__.__name__}'"
+                f"Unable to translate '{colname}' column with translator '{args[0].__class__.__name__}'"
             ) from exc
 
     return wrapper
