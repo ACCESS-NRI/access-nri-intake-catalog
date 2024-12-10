@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import re
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -23,8 +24,8 @@ def test__get_catalog_rp(mock_get_catalog_fp, test_data):
     ), "Mock failed"
 
     rp = _get_catalog_rp()
-    assert (
-        rp == "/this/is/root/path/"
+    assert rp == Path(
+        "/this/is/root/path/"
     ), f"Computed root path {rp} != expected value /this/is/root/path/"
 
 
@@ -46,8 +47,10 @@ def test__get_catalog_rp_runtime_errors(mock_get_catalog_fp, test_data, cat):
 
 
 @mock.patch("access_nri_intake.data.utils._get_catalog_rp")
-def test_available_versions(mock__get_catalog_rp, test_data):
+@mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+def test_available_versions(mock_get_catalog_fp, mock__get_catalog_rp, test_data):
     mock__get_catalog_rp.return_value = test_data / "catalog/catalog-dirs"
+    mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
     cats = available_versions(pretty=False)
     assert cats == [
         "v2025-02-28",
@@ -58,13 +61,32 @@ def test_available_versions(mock__get_catalog_rp, test_data):
 
 
 @mock.patch("access_nri_intake.data.utils._get_catalog_rp")
-def test_available_versions_pretty(mock__get_catalog_rp, test_data, capfd):
+@mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+def test_available_versions_pretty(
+    mock_get_catalog_fp, mock__get_catalog_rp, test_data, capfd
+):
     mock__get_catalog_rp.return_value = test_data / "catalog/catalog-dirs"
+    mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
     available_versions(pretty=True)
     captured, _ = capfd.readouterr()
     assert (
-        captured == "v2025-02-28\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n"
+        captured == "v2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n"
     ), "Did not get expected catalog printout"
+
+
+@mock.patch(
+    "access_nri_intake.data.utils.get_catalog_fp", return_value="/this/is/not/real.yaml"
+)
+def test_available_versions_no_catalog(mock_get_catalog_fp):
+    with pytest.raises(FileNotFoundError):
+        available_versions()
+
+
+@mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+def test_available_versions_bad_catalog(mock_get_catalog_fp, test_data):
+    mock_get_catalog_fp.return_value = test_data / "catalog/catalog-bad-structure.yaml"
+    with pytest.raises(RuntimeError):
+        available_versions()
 
 
 @pytest.mark.parametrize(
