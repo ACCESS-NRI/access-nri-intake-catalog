@@ -19,6 +19,7 @@ from access_nri_intake.catalog.translators import (
     TranslatorError,
     _cmip_realm_translator,
     _to_tuple,
+    trace_failure,
     tuplify_series,
 )
 
@@ -384,3 +385,12 @@ def test_translator_failure(test_data):
         "Unable to find model column 'None' with translator 'DefaultTranslator'"
         in str(excinfo.value)
     )
+
+    @trace_failure
+    def _(x: int) -> int:
+        return x
+
+    with pytest.raises(TypeError) as excinfo:
+        _(1)
+
+    assert "Decorator can only be applied to class methods" in str(excinfo.value)
