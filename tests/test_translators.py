@@ -19,6 +19,7 @@ from access_nri_intake.catalog.translators import (
     TranslatorError,
     _cmip_realm_translator,
     _to_tuple,
+    trace_failure,
     tuplify_series,
 )
 
@@ -361,3 +362,35 @@ def test_NarclimTranslator(test_data, groupby, n_entries):
     esmds.description = "description"
     df = NarclimTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries
+
+
+def test_translator_failure(test_data):
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/narclim2-zz63.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    translator = NarclimTranslator(esmds, CORE_COLUMNS)
+
+    default = DefaultTranslator(esmds, CORE_COLUMNS)
+
+    translator.set_dispatch(
+        input_name="dud_name",
+        core_colname="model",
+        func=default._model_translator,
+    )
+
+    with pytest.raises(KeyError) as excinfo:
+        translator.translate()
+
+    assert (
+        "Unable to translate 'model' column with translator 'DefaultTranslator'"
+        in str(excinfo.value)
+    )
+
+    @trace_failure
+    def _(x: int) -> int:
+        return x
+
+    with pytest.raises(TypeError) as excinfo:
+        _(1)
+
+    assert "Decorator can only be applied to class methods" in str(excinfo.value)
