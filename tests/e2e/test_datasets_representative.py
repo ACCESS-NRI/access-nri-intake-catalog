@@ -47,5 +47,4 @@ def test_alignment(translator_name, live_config_dir, BASE_DIR, v_num):
             ]
         )
     except Exception as exc:
-        # assert True, f"Expected failure {exc}"
         assert False, f"Failed to build {translator_name} with exception {exc}"
