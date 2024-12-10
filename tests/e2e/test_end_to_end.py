@@ -6,9 +6,7 @@ import pytest
 
 from access_nri_intake.cli import build
 
-e2e = pytest.mark.skipif(
-    "not config.getoption('--e2e')",
-)
+from . import e2e
 
 
 @e2e
