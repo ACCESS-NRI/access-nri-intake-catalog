@@ -17,7 +17,8 @@ from . import e2e
     ],
 )
 def test_alignment(translator_name, live_config_dir, BASE_DIR, v_num):
-    # Now live test the translator
+    # Now live test the translator. Honestly, might be overkill - it might be easier
+    # to just extract the json files, open them, check they match the test data
     filenames = [f for f in live_config_dir.glob("*.yaml")]
     # Now we want to open them & throw away anything where builder != null.
     translator_fnames = []
