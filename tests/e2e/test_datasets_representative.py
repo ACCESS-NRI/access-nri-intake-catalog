@@ -1,6 +1,8 @@
 import pytest
+import yaml
 
 import access_nri_intake.catalog.translators as translators
+from access_nri_intake.cli import build
 
 from . import e2e
 
@@ -14,43 +16,35 @@ from . import e2e
         if t.endswith("Translator") and not t.startswith("Default")
     ],
 )
-def test_alignment(translator_name, live_config_dir):
-    translator = getattr(translators, translator_name)
+def test_alignment(translator_name, live_config_dir, BASE_DIR, v_num):
     # Now live test the translator
-    print(translator, live_config_dir)
-    assert 1
-    # build(
-    #     [
-    #         str(config_dir / "cmip5.yaml"),
-    #         str(config_dir / "access-om2.yaml"),
-    #         "--build_base_path",
-    #         str(BASE_DIR),
-    #         "--catalog_base_path",
-    #         "./",
-    #         "--catalog_file",
-    #         "metacatalog.csv",
-    #         "--version",
-    #         v_num,
-    #         "--no_update",
-    #     ]
-    # )
+    filenames = [f for f in live_config_dir.glob("*.yaml")]
+    # Now we want to open them & throw away anything where builder != null.
+    translator_fnames = []
 
+    for fname in filenames:
+        with open(fname) as fo:
+            catalog_metadata = yaml.load(fo, yaml.FullLoader)
+            if catalog_metadata["translator"] == translator_name:
+                translator_fnames.append(str(fname))
 
-# def pytest_generate_tests(metafunc):
-#     if "translator" in metafunc.fixturenames:
-#         metafunc.parametrize(
-#             "yamlfile", glob.glob(str(Path(metadata_sources() / "*" / "metadata.yaml")))
-#         )
+    assert len(translator_fnames) == 1
 
-
-# def test_metadata_sources_valid(yamlfile, capsys):
-#     try:
-#         metadata_validate(
-#             [
-#                 yamlfile,
-#             ]
-#         )
-#     except Exception:
-#         assert False, f"Validation of {yamlfile} failed with uncaught exception"
-#     output = capsys.readouterr()
-#     assert "FAILED" not in output.out, f"Validation failed for {yamlfile}"
+    try:
+        build(
+            [
+                *translator_fnames,
+                "--build_base_path",
+                str(BASE_DIR),
+                "--catalog_base_path",
+                "./",
+                "--catalog_file",
+                "metacatalog.csv",
+                "--version",
+                v_num,
+                "--no_update",
+            ]
+        )
+    except Exception as exc:
+        # assert True, f"Expected failure {exc}"
+        assert False, f"Failed to build {translator_name} with exception {exc}"

@@ -27,8 +27,7 @@ def config_dir():
 
 @fixture(scope="session")
 def live_config_dir():
-    print(here.parent)
-    return Path(here).parent
+    return Path(here).parent / "config"
 
 
 @fixture(scope="session")
