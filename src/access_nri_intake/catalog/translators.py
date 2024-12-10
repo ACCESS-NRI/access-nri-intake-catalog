@@ -7,7 +7,7 @@ like the ACCESS-NRI catalog
 """
 
 from dataclasses import dataclass
-from functools import partial
+from functools import partial, wraps
 from typing import Callable
 
 import pandas as pd
@@ -16,6 +16,9 @@ from intake import DataSource
 
 from . import COLUMNS_WITH_ITERABLES
 from .utils import _to_tuple, tuplify_series
+
+# Note: important that when using @tuplify_series and @trace_failure decorators,
+# trace failure is the innermost decorator
 
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
@@ -34,6 +37,29 @@ FREQUENCY_TRANSLATIONS = {
     "yr": "1yr",
     "yrPt": "1yr",
 }
+
+
+def trace_failure(func: Callable) -> Callable:
+    """
+    Decorator that wraps a function and prints a message if it raises an exception
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        func_name = func.__name__
+        colname = func_name[1:].split("_")[0]
+        # Ensure the first argument is an instance of the class
+        if not isinstance(args[0], DefaultTranslator):
+            raise TypeError("Decorator can only be applied to class methods")
+
+        try:
+            return func(*args, **kwargs)
+        except KeyError as exc:
+            raise KeyError(
+                f"Unable to translate '{colname}' column with translator '{args[0].__class__.__name__}'"
+            ) from exc
+
+    return wrapper
 
 
 class TranslatorError(Exception):
@@ -192,6 +218,7 @@ class DefaultTranslator:
         self._dispatch[core_colname] = func
         setattr(self._dispatch_keys, core_colname, input_name)
 
+    @trace_failure
     def _realm_translator(self) -> pd.Series:
         """
         Return realm, fixing a few issues
@@ -199,6 +226,7 @@ class DefaultTranslator:
         return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
 
     @tuplify_series
+    @trace_failure
     def _model_translator(self) -> pd.Series:
         """
         Return model from dispatch_keys.model
@@ -206,6 +234,7 @@ class DefaultTranslator:
         return self.source.df[self._dispatch_keys.model]
 
     @tuplify_series
+    @trace_failure
     def _frequency_translator(self) -> pd.Series:
         """
         Return frequency, fixing a few issues
@@ -215,6 +244,7 @@ class DefaultTranslator:
         )
 
     @tuplify_series
+    @trace_failure
     def _variable_translator(self) -> pd.Series:
         """
         Return variable as a tuple
@@ -407,6 +437,7 @@ class Era5Translator(DefaultTranslator):
         )
 
     @tuplify_series
+    @trace_failure
     def _model_translator(self):
         """
         Get the model from the path. This is a slightly hacky approach, using the
@@ -425,6 +456,7 @@ class Era5Translator(DefaultTranslator):
         return self.source.df.apply(lambda x: ("none",), 1)
 
     @tuplify_series
+    @trace_failure
     def _frequency_translator(self):
         """
         Get the frequency from the path

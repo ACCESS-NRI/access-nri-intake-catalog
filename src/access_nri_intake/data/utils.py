@@ -12,7 +12,7 @@ from . import CATALOG_NAME_FORMAT
 CATALOG_PATH_REGEX = r"^(?P<rootpath>.*?)\{\{version\}\}.*?$"
 
 
-def _get_catalog_rp():
+def _get_catalog_root():
     """
     Get the catalog root path.
     """
@@ -35,7 +35,7 @@ def _get_catalog_rp():
         )
 
 
-def available_versions(pretty: bool = True):
+def available_versions(pretty: bool = True) -> list[str] | None:
     """
     Report the available versions of the `intake.cat.access_nri` catalog.
 
@@ -46,12 +46,12 @@ def available_versions(pretty: bool = True):
         (True, default), or to provide a list of version numbers only (False).
     """
     # Work out where the catalogs are stored
-    base_path = _get_catalog_rp()
+    base_path = _get_catalog_root()
 
     # Grab the extant catalog and work out its min and max versions
     try:
-        with open(get_catalog_fp()) as cat:
-            cat_yaml = yaml.safe_load(cat)
+        with open(get_catalog_fp()) as cat_file:
+            cat_yaml = yaml.safe_load(cat_file)
             vers_min = cat_yaml["sources"]["access_nri"]["parameters"]["version"]["min"]
             vers_max = cat_yaml["sources"]["access_nri"]["parameters"]["version"]["max"]
             vers_def = cat_yaml["sources"]["access_nri"]["parameters"]["version"][
@@ -64,11 +64,14 @@ def available_versions(pretty: bool = True):
 
     # Grab all the catalog names
     cats = [
-        d.name
-        for d in base_path.iterdir()
-        if re.search(CATALOG_NAME_FORMAT, d.name)
-        and d.is_dir()
-        and ((d.name >= vers_min and d.name <= vers_max) or d.name == vers_def)
+        dir_path.name
+        for dir_path in base_path.iterdir()
+        if re.search(CATALOG_NAME_FORMAT, dir_path.name)
+        and dir_path.is_dir()
+        and (
+            (dir_path.name >= vers_min and dir_path.name <= vers_max)
+            or dir_path.name == vers_def
+        )
     ]
     cats.sort(reverse=True)
 
@@ -84,6 +87,6 @@ def available_versions(pretty: bool = True):
             if c == vers_def:
                 c += "*"
             print(c)
-        return
+        return None
 
     return cats
