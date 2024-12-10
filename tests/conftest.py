@@ -26,6 +26,12 @@ def config_dir():
 
 
 @fixture(scope="session")
+def live_config_dir():
+    print(here.parent)
+    return Path(here).parent
+
+
+@fixture(scope="session")
 def BASE_DIR(tmp_path_factory):
     yield tmp_path_factory.mktemp("catalog-dir")
 
