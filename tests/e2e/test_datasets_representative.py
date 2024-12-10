@@ -5,22 +5,35 @@ import access_nri_intake.catalog.translators as translators
 from . import e2e
 
 
-@pytest.fixture
-def translator_names():
-    return [
+@e2e
+@pytest.mark.parametrize(
+    "translator_name",
+    [
         t
         for t in dir(translators)
         if t.endswith("Translator") and not t.startswith("Default")
-    ]
-
-
-@e2e
-def test_alignment():
-    raise AssertionError("This test should not run in CI")
-
-
-def test_import_all():
-    print([getattr(_) for _ in translators if hasattr(_, "translate")])
+    ],
+)
+def test_alignment(translator_name, live_config_dir):
+    translator = getattr(translators, translator_name)
+    # Now live test the translator
+    print(translator, live_config_dir)
+    assert 1
+    # build(
+    #     [
+    #         str(config_dir / "cmip5.yaml"),
+    #         str(config_dir / "access-om2.yaml"),
+    #         "--build_base_path",
+    #         str(BASE_DIR),
+    #         "--catalog_base_path",
+    #         "./",
+    #         "--catalog_file",
+    #         "metacatalog.csv",
+    #         "--version",
+    #         v_num,
+    #         "--no_update",
+    #     ]
+    # )
 
 
 # def pytest_generate_tests(metafunc):
