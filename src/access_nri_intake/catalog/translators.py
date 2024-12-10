@@ -196,7 +196,12 @@ class DefaultTranslator:
         """
         Return realm, fixing a few issues
         """
-        return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
+        try:
+            return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
+        except KeyError as exc:
+            raise KeyError(
+                f"Unable to find realm column '{self._dispatch_keys.realm}' with translator {self.__class__.__name__}"
+            ) from exc
 
     @tuplify_series
     def _model_translator(self) -> pd.Series:
@@ -207,7 +212,7 @@ class DefaultTranslator:
             return self.source.df[self._dispatch_keys.model]
         except KeyError as exc:
             raise KeyError(
-                f"Unable to find realm column '{self._dispatch_keys.model}' with translator {self.__class__.__name__}"
+                f"Unable to find model column '{self._dispatch_keys.model}' with translator {self.__class__.__name__}"
             ) from exc
 
     @tuplify_series
@@ -221,7 +226,7 @@ class DefaultTranslator:
             )
         except KeyError as exc:
             raise KeyError(
-                f"Unable to find realm column '{self._dispatch_keys.frequency}' with translator {self.__class__.__name__}"
+                f"Unable to find variable column '{self._dispatch_keys.bariable}' with translator {self.__class__.__name__}"
             ) from exc
 
     @tuplify_series
@@ -233,7 +238,7 @@ class DefaultTranslator:
             return self.source.df[self._dispatch_keys.variable]
         except KeyError as exc:
             raise KeyError(
-                f"Unable to find realm column '{self._dispatch_keys.frequency}' with translator {self.__class__.__name__}"
+                f"Unable to find variable column '{self._dispatch_keys.variable}' with translator {self.__class__.__name__}"
             ) from exc
 
 
