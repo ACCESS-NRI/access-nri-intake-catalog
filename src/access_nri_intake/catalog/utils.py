@@ -48,7 +48,7 @@ def trace_failure(func: Callable) -> Callable:
             return func(*args, **kwargs)
         except KeyError as exc:
             raise KeyError(
-                f"Unable to find {colname} column '{dispatch_key}' with translator {args[0].__class__.__name__}"
+                f"Unable to find {colname} column '{dispatch_key}' with translator '{args[0].__class__.__name__}'"
             ) from exc
 
     return wrapper

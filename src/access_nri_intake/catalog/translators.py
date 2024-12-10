@@ -17,6 +17,9 @@ from intake import DataSource
 from . import COLUMNS_WITH_ITERABLES
 from .utils import _to_tuple, trace_failure, tuplify_series
 
+# Note: important that when using @tuplify_series and @trace_failure decorators,
+# trace failure is the innermost decorator
+
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
     "monthly-averaged-by-day": "1hr",
