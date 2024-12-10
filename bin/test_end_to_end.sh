@@ -22,6 +22,7 @@
 set -e
 
 module use /g/data/xp65/public/modules
-module load conda/access-med-0.6
+module load conda/analysis3-24.12
+module load openmpi
 
 pytest -s --e2e tests
