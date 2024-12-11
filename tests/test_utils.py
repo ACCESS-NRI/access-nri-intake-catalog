@@ -230,12 +230,12 @@ def test_get_catalog_fp_basepath(mock_isfile, isfile_return, basepath):
     assert str(get_catalog_fp(basepath=basepath)) == "/path/like/string/catalog.yaml"
 
 
-@mock.patch("os.path.isfile", return_value=True)
-def test_get_catalog_fp_local(mock_isfile):
+@mock.patch("pathlib.Path.is_file", return_value=True)
+def test_get_catalog_fp_local(mock_is_file):
     """
     Check that we get pointed back to the user catalog
     """
-    assert get_catalog_fp() == USER_CATALOG_LOCATION
+    assert str(get_catalog_fp()) == USER_CATALOG_LOCATION
 
 
 @mock.patch("os.path.isfile", return_value=False)
@@ -243,4 +243,4 @@ def test_get_catalog_fp_xp65(mock_isfile):
     """
     Check that we get pointed back to the user catalog
     """
-    assert get_catalog_fp() == CATALOG_LOCATION
+    assert str(get_catalog_fp()) == CATALOG_LOCATION
