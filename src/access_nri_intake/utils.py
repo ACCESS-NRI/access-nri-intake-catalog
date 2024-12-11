@@ -43,7 +43,7 @@ def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
     return schema, schema_required
 
 
-def load_metadata_yaml(path: str, jsonschema: dict) -> dict:
+def load_metadata_yaml(path: str | Path, jsonschema: dict) -> dict:
     """
     Load a metadata.yaml file, leaving dates as strings, and validate against a jsonschema,
     allowing for tuples as arrays
