@@ -9,6 +9,7 @@
 #PBS -l ncpus=12
 #PBS -l wd
 #PBS -j oe
+#PBS -W umask=0022
 
 ########################################################################################### 
 # Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
