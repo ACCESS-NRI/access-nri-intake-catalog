@@ -26,4 +26,4 @@ module use /g/data/xp65/public/modules
 module load conda/analysis3-24.12
 module load openmpi
 
-pytest -s --e2e /g/data/xp65/admin/access-nri-intake-catalog/tests
+pytest -s --e2e /g/data/xp65/admin/access-nri-intake-catalog/tests/e2e
