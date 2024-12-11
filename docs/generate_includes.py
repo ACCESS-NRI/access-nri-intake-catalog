@@ -14,7 +14,6 @@ STORAGE_FLAG_REGEXP = r"^/g/data/(?P<proj>[a-z]{1,2}[0-9]{1,2})/.*?$"
 
 def storage_includes() -> None:
     here = Path(__file__).parent.absolute()
-    # here = os.path.abspath(os.path.dirname(__file__))
 
     project_list = set()
     for source_yaml in (here.parent / "config").glob("*.yaml"):
@@ -39,7 +38,6 @@ def storage_includes() -> None:
 
     with open("project_list.rst", "w") as fobj:
         [fobj.write(f"* :code:`{proj}`\n") for proj in project_list]
-        # fobj.write("\n".join(project_list) + "\n")
     storage_string = "+".join([f"gdata/{proj}" for proj in project_list])
     with open("storage_flags.rst", "w") as fobj:
         fobj.write(f".. code-block::\n\n   {storage_string}")
