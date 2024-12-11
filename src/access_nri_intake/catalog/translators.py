@@ -385,7 +385,9 @@ class CordexTranslator(DefaultTranslator):
 
         super().__init__(source, columns)
         self.set_dispatch(
-            input_name="source_id", core_colname="model", func=super()._model_translator
+            input_name="project_id",
+            core_colname="model",
+            func=super()._model_translator,
         )
         self.set_dispatch(
             input_name="variable_id",
