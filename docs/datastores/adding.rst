@@ -20,3 +20,12 @@ we're happy to help you through the process.
    Datastores don't have to have been created by access-nri-intake Builders in order to be added to the 
    catalog. If you have an Intake-ESM datastore (or indeed another type of Intake source) that you think should be in the 
    catalog, please open a catalog data request.
+
+.. warning:: 
+    If you are providing an existing Intake-ESM datastore to be added to :code:`access-nri-intake-catalog`, the 
+    datastore must be in its final form **before** you make a data request. If a datastore is changed
+    after we have verified that we are able to ingest it, it will break future catalog builds and may be 
+    removed.
+
+    If you need to update a datastore that is already in :code:`access-nri-intake-catalog`, please contact us as
+    described above.

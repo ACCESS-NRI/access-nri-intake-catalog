@@ -11,9 +11,6 @@
         "groupby_attrs": [
             "file_type",
             "project_id",
-            "resolution",
-            "institution_id",
-            "source_id",
             "experiment_id",
             "member_id",
             "frequency",
@@ -38,15 +35,6 @@
         },
         {
             "column_name": "project_id"
-        },
-        {
-            "column_name": "resolution"
-        },
-        {
-            "column_name": "institution_id"
-        },
-        {
-            "column_name": "source_id"
         },
         {
             "column_name": "experiment_id"
