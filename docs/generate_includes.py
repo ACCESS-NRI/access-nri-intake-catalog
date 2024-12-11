@@ -3,7 +3,6 @@
 
 """ Generate includes for documentation """
 
-import os
 import re
 import warnings
 from pathlib import Path
@@ -46,19 +45,6 @@ def storage_includes() -> None:
         fobj.write(f".. code-block::\n\n   {storage_string}")
 
     return None
-
-    with open(
-        os.path.join(here, "..", "src", "access_nri_intake", "data", "catalog.yaml")
-    ) as fobj:
-        contents = yaml.safe_load(fobj)
-    project_list = contents["sources"]["access_nri"]["metadata"]["storage"]
-    project_list = [
-        f"* :code:`{proj.removeprefix('gdata/')}`" for proj in project_list.split("+")
-    ]
-    with open("storage_flags.rst", "w") as fobj:
-        fobj.write(f".. code-block::\n\n   {project_list}")
-    with open("project_list.rst", "w") as fobj:
-        fobj.write("\n".join(project_list) + "\n")
 
 
 if __name__ == "__main__":
