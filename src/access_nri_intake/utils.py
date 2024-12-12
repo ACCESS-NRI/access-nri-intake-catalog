@@ -4,7 +4,6 @@
 """General utility functions for access-rni-intake"""
 
 import json
-import os
 from importlib import resources as rsr
 from pathlib import Path
 from warnings import warn
@@ -44,7 +43,7 @@ def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
     return schema, schema_required
 
 
-def load_metadata_yaml(path: str, jsonschema: dict) -> dict:
+def load_metadata_yaml(path: str | Path, jsonschema: dict) -> dict:
     """
     Load a metadata.yaml file, leaving dates as strings, and validate against a jsonschema,
     allowing for tuples as arrays
@@ -143,7 +142,7 @@ def get_catalog_fp(basepath=None):
         if not isinstance(basepath, Path):
             basepath = Path(basepath)
         return basepath / "catalog.yaml"
-    if os.path.isfile(USER_CATALOG_LOCATION):
+    if Path(USER_CATALOG_LOCATION).is_file():
         warn(
             (
                 "User defined catalog found in `$HOME/.access_nri_intake_catalog`. "

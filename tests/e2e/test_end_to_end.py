@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import intake
 import numpy as np
@@ -41,14 +41,14 @@ def metacat(BASE_DIR, config_dir, v_num):
             "--no_update",
         ]
     )
-    cat_path = os.path.join(BASE_DIR, v_num, "metacatalog.csv")
+    cat_path = Path(BASE_DIR) / v_num / "metacatalog.csv"
     metacat = intake.open_df_catalog(cat_path)
     yield metacat
 
 
 @e2e
 def test_catalog_subset_exists(BASE_DIR, v_num, metacat):
-    assert os.path.exists(os.path.join(BASE_DIR, v_num, "metacatalog.csv"))
+    assert (Path(BASE_DIR) / v_num / "metacatalog.csv").exists()
 
 
 @e2e
