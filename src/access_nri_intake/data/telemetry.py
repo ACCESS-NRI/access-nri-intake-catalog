@@ -36,8 +36,10 @@ def send_api_request(function_name, kwargs):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    # Schedule the telemetry data to be sent in the background
-    asyncio.create_task(send_telemetry(telemetry_data))
+    if loop.is_running():
+        loop.create_task(send_telemetry(telemetry_data))
+    else:
+        loop.run_until_complete(send_telemetry(telemetry_data))
     return None
 
 
