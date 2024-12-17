@@ -24,7 +24,6 @@ def load_ipython_extension(ipython):
         Returns the function calls from the code in the cell
         """
         ipython.events.register("pre_run_cell", capture_datastore_searches)
-        print("Function calls will be captured for the next cell execution")
 
 
 # Register the extension

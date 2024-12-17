@@ -7,6 +7,11 @@ from IPython import get_ipython
 
 TELEMETRY_SERVER_URL = "https://intake-telemetry-bb870061f91a.herokuapp.com"
 
+TELEMETRY_REGISTRED_FUNCTIONS = [
+    "esm_datastore.search",
+    "DfFileCatalog.search",
+]
+
 
 def send_api_request(function_name, kwargs):
     telemetry_data = {
@@ -77,9 +82,7 @@ def capture_datastore_searches(info):
                         print(f"Error evaluating instance: {e}")
                         continue
 
-            if func_name in [
-                "esm_datastore.search",
-            ]:
+            if func_name in TELEMETRY_REGISTRED_FUNCTIONS:
                 # args = [ast.dump(arg) for arg in node.args]
                 kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in node.keywords}
                 send_api_request(
@@ -87,5 +90,3 @@ def capture_datastore_searches(info):
                     # args,
                     kwargs,
                 )
-            else:
-                print(f"Function call: {func_name}; not tracking")
