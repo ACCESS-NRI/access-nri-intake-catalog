@@ -29,6 +29,13 @@ def send_api_request(function_name, kwargs):
                     f"Request failed: {e}", category=RuntimeWarning, stacklevel=2
                 )
 
+    # Check if there's an existing event loop, otherwise create a new one
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
     # Schedule the telemetry data to be sent in the background
     asyncio.create_task(send_telemetry(telemetry_data))
     return None
