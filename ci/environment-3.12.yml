@@ -15,7 +15,6 @@ dependencies:
   - pre-commit
   - pytest
   - xarray
-  - ipython
   - pip
   - pip:
     - codecov

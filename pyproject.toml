@@ -22,7 +22,7 @@ dependencies = [
     "jsonschema",
     "pooch",
     "xarray",
-    "httpx>=0.28"
+    "access-ipy-telemetry>=0.1.0",
 ]
 dynamic = ["version"]
 
