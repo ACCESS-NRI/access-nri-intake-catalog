@@ -24,7 +24,6 @@ try:
     )  # Get the catalog version number and set it to "latest" if it can't be found
     configure_telemetry(["--enable", "--silent"])
     api_handler.add_extra_field("catalog", {"catalog_version": cat_version})
-    print(f"Telemetry enabled for catalog version {cat_version}.")
 except FileNotFoundError:
     warnings.warn(
         "Unable to access a default catalog location. Calling intake.cat.access_nri will not work.",
