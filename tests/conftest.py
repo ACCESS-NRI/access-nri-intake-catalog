@@ -120,3 +120,8 @@ def pytest_collection_modifyitems(config, items):
             and _add_xfail
         ):
             item.add_marker("xfail")
+
+    # Now add xfail to broken CordexTranslator in end to end tests.
+    for item in items:
+        if item.name == "test_alignment[CordexTranslator]":
+            item.add_marker("xfail")

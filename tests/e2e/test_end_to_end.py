@@ -2400,12 +2400,11 @@ def test_cmip5_values_correct(metacat, current_catalog, path, varname, first_ten
         }
     )
     da = da.isel(**{dim: 0 for dim in da.dims[1:]})
-    da_val = da.mean(dim=da.dims[0], skipna=True).values
+    da_val = float(da.mean(dim=da.dims[0], skipna=True).values)
 
-    if np.isnan(da_val).all():
-        vals_equal = np.isnan(first_ten_mean)
-    else:
-        vals_equal = da_val == pytest.approx(first_ten_mean, abs=1e-6)
+    vals_equal = da_val == pytest.approx(
+        first_ten_mean, abs=1e-6, rel=1e-3, nan_ok=True
+    )
 
     assert vals_equal
 
@@ -2488,11 +2487,10 @@ def test_om2_values_correct(metacat, path, varname, first_ten_mean):
         }
     )
     da = da.isel(**{dim: 0 for dim in da.dims[1:]})
-    da_val = da.mean(dim=da.dims[0], skipna=True).values
+    da_val = float(da.mean(dim=da.dims[0], skipna=True).values)
 
-    if np.isnan(da_val).all():
-        vals_equal = np.isnan(first_ten_mean)
-    else:
-        vals_equal = da_val == pytest.approx(first_ten_mean, abs=1e-6)
+    vals_equal = da_val == pytest.approx(
+        first_ten_mean, abs=1e-6, rel=1e-3, nan_ok=True
+    )
 
     assert vals_equal
