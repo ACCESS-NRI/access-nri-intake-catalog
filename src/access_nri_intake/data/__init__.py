@@ -5,8 +5,8 @@ import warnings
 
 import intake
 import intake.catalog
+from access_ipy_telemetry.api import ApiHandler
 from access_ipy_telemetry.cli import configure_telemetry
-from access_ipy_telemetry.utils import ApiHandler
 
 from access_nri_intake.utils import get_catalog_fp
 
