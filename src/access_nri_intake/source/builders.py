@@ -505,7 +505,7 @@ class Mom6Builder(BaseBuilder):
     # make it work with the ? selector after mom6_added_timestamp
     # NOTE: Order here is important!
     PATTERNS = [
-        rf"[^\.]*(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
+        rf"[^\.]*(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*(?P<mom6_added_timestamp>{PATTERNS_HELPERS['mom6_added_timestamp']}).*$",  # Daily snapshot naming
         rf"[^\.]*(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
     ]
     TIME_PARSER = GfdlTimeParser
