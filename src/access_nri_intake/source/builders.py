@@ -67,6 +67,9 @@ class BaseBuilder(Builder):
 
     # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
+    REDACTION_GROUPS: list = [
+        TIMESTAMP_GROUP,
+    ]
     TIME_PARSER = GenericTimeParser
 
     def __init__(
@@ -243,9 +246,6 @@ class BaseBuilder(Builder):
         patterns: list[str] | None = None,
         frequencies: dict = FREQUENCIES,
         redaction_fill: str = "X",
-        redaction_groups: list[str] = [
-            TIMESTAMP_GROUP,
-        ],
     ) -> tuple[str, str | None, str | None]:
         """
         Parse an ACCESS model filename and return a file id and any time information
@@ -291,7 +291,7 @@ class BaseBuilder(Builder):
             match = re.match(pattern, file_id)
             if match:
                 timestamp = match.group(TIMESTAMP_GROUP)
-                for grp in redaction_groups:
+                for grp in cls.REDACTION_GROUPS:
                     if grp in match.groupdict().keys():
                         redaction = re.sub(r"\d", redaction_fill, match.group(grp))
                         file_id = (
@@ -508,6 +508,10 @@ class Mom6Builder(BaseBuilder):
         rf"[^\.]*(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*(?P<mom6_added_timestamp>{PATTERNS_HELPERS['mom6_added_timestamp']}).*$",  # Daily snapshot naming
         rf"[^\.]*(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
     ]
+    REDACTION_GROUPS = [
+        TIMESTAMP_GROUP,
+        "mom6_added_timestamp",
+    ]
     TIME_PARSER = GfdlTimeParser
 
     def __init__(self, path):
@@ -547,23 +551,6 @@ class Mom6Builder(BaseBuilder):
         )
 
         super().__init__(**kwargs)
-
-    @classmethod
-    def parse_filename(
-        cls,
-        filename,
-        patterns=None,
-        frequencies=FREQUENCIES,
-        redaction_fill="X",
-        redaction_groups=[TIMESTAMP_GROUP],
-    ):
-        return super().parse_filename(
-            filename,
-            patterns,
-            frequencies,
-            redaction_fill,
-            redaction_groups=[TIMESTAMP_GROUP, "mom6_added_timestamp"],
-        )
 
     @classmethod
     def parser(cls, file):
