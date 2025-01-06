@@ -8,7 +8,7 @@ set of Intake-ESM datastore Builders for different ACCESS model outputs. In gene
 datastore for your ACCESS model output should be as simple as passing your output base directory to an 
 appropriate Builder.
 
-The access-nri-intake package is installed in the :code:`hh5` and :code:`xp65` analysis environments, or 
+The access-nri-intake package is installed in the :code:`xp65` analysis environment, or 
 users can install it into their own environment (see :ref:`installation` for details). The Builders can be 
 imported from the :code:`access_nri_intake.source.builders` submodule.
 

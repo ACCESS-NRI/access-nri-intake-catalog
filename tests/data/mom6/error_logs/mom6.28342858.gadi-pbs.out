@@ -1,0 +1,1069 @@
+NOTE from PE     0: MPP_DOMAINS_SET_STACK_SIZE: stack size set to    32768.
+ &MPP_IO_NML
+ HEADER_BUFFER_VAL       =       16384,
+ GLOBAL_FIELD_ON_ROOT_PE = T,
+ IO_CLOCKS_ON    = F,
+ SHUFFLE =           0,
+ DEFLATE_LEVEL   =          -1,
+ CF_COMPLIANCE   = F
+ /
+NOTE from PE     0: MPP_IO_SET_STACK_SIZE: stack size set to     131072.
+NOTE from PE     0: MPP_DOMAINS_SET_STACK_SIZE: stack size set to  5000000.
+NOTE from PE     0: coupler_init: Atmos PE range:      0  1755 ens_01
+NOTE from PE     0: coupler_init: Ocean PE range:      0  1755 ens_01
+NOTE from PE     0: coupler_init: Land PE range:      0  1755 ens_01
+NOTE from PE     0: coupler_init: Ice PE range:      0  1755 ens_01
+NOTE from PE     0: coupler_init: Running with SERIAL coupling.
+NOTE from PE     0: coupler_init: Sending most recent fluxes to ocean.
+NOTE from PE     0: diag_manager_mod::diag_manager_init: diag_manager is using fms2_io
+ 
+ Dumping coupler_mod/types tree
+types/
+      air_sea_gas_flux_generic/
+            implementation/
+                  ocmip2/
+                        num_parameters = 2
+                  duce/
+                        num_parameters = 1
+                  johnson/
+                        num_parameters = 2
+            num_flags = 0
+            use_atm_pressure = T
+            use_10m_wind_speed = T
+            pass_through_ice = F
+            atm/
+                  name[1] = 'pcair'
+                  name[2] = 'u10'
+                  name[3] = 'psurf'
+                  long_name[1] = 'Atmospheric concentration'
+                  long_name[2] = 'Wind speed at 10 m'
+                  long_name[3] = 'Surface atmospheric pressure'
+                  units[1] = 'mol/mol'
+                  units[2] = 'm/s'
+                  units[3] = 'Pa'
+            ice/
+                  name[1] = 'alpha'
+                  name[2] = 'csurf'
+                  name[3] = 'sc_no'
+                  long_name[1] = 'Solubility w.r.t. atmosphere'
+                  long_name[2] = 'Ocean concentration'
+                  long_name[3] = 'Schmidt number'
+                  units[1] = 'mol/m^3/atm'
+                  units[2] = 'mol/m^3'
+                  units[3] = 'dimensionless'
+            flux/
+                  name[1] = 'flux'
+                  name[2] = 'deltap'
+                  name[3] = 'kw'
+                  name[4] = 'flux0'
+                  long_name[1] = 'Surface flux'
+                  long_name[2] = 'Ocean-air delta pressure'
+                  long_name[3] = 'Piston velocity'
+                  long_name[4] = 'Surface flux no atm'
+                  units[1] = 'mol/m^2/s'
+                  units[2] = 'uatm'
+                  units[3] = 'm/s'
+                  units[4] = 'mol/m^2/s'
+      air_sea_gas_flux/
+            implementation/
+                  ocmip2/
+                        num_parameters = 2
+                  ocmip2_data/
+                        num_parameters = 2
+                  linear/
+                        num_parameters = 3
+            num_flags = 0
+            use_atm_pressure = T
+            use_10m_wind_speed = T
+            pass_through_ice = F
+            atm/
+                  name[1] = 'pcair'
+                  name[2] = 'u10'
+                  name[3] = 'psurf'
+                  long_name[1] = 'Atmospheric concentration'
+                  long_name[2] = 'Wind speed at 10 m'
+                  long_name[3] = 'Surface atmospheric pressure'
+                  units[1] = 'mol/mol'
+                  units[2] = 'm/s'
+                  units[3] = 'Pa'
+            ice/
+                  name[1] = 'alpha'
+                  name[2] = 'csurf'
+                  long_name[1] = 'Solubility from atmosphere times Schmidt number term'
+                  long_name[2] = 'Ocean concentration times Schmidt number term'
+                  units[1] = 'mol/m^3/atm'
+                  units[2] = 'mol/m^3'
+            flux/
+                  name = 'flux'
+                  long_name = 'Surface flux'
+                  units = 'mol/m^2/s'
+      air_sea_deposition/
+            implementation/
+                  dry/
+                        num_parameters = 1
+                  wet/
+                        num_parameters = 1
+            num_flags = 0
+            use_atm_pressure = F
+            use_10m_wind_speed = F
+            pass_through_ice = T
+            atm/
+                  name = 'deposition'
+                  long_name = 'Atmospheric deposition'
+                  units = 'kg/m^2/s'
+            ice/
+                  name = NULL
+                  long_name = NULL
+                  units = NULL
+            flux/
+                  name = 'flux'
+                  long_name = 'Surface deposition'
+                  units = 'mol/m^2/s'
+      land_sea_runoff/
+            implementation/
+                  river/
+                        num_parameters = 1
+            num_flags = 0
+            use_atm_pressure = F
+            use_10m_wind_speed = F
+            pass_through_ice = T
+            atm/
+                  name = 'runoff'
+                  long_name = 'Concentration in land runoff'
+                  units = 'mol/m^3'
+            ice/
+                  name = NULL
+                  long_name = NULL
+                  units = NULL
+            flux/
+                  name = 'flux'
+                  long_name = 'Concentration in land runoff'
+                  units = 'mol/m^3'
+NOTE from PE     0: open_param_file: MOM_input has been opened successfully.
+NOTE from PE     0: open_param_file: MOM_layout has been opened successfully.
+NOTE from PE     0: open_param_file: MOM_saltrestore has been opened successfully.
+NOTE from PE     0: open_param_file: MOM_override has been opened successfully.
+NOTE from PE     0: close_param_file: MOM_input has been closed successfully.
+NOTE from PE     0: close_param_file: MOM_layout has been closed successfully.
+NOTE from PE     0: close_param_file: MOM_saltrestore has been closed successfully.
+NOTE from PE     0: close_param_file: MOM_override has been closed successfully.
+ ==>Note from atmos_ocean_fluxes_mod(atmos_ocean_fluxes_init): No gas fluxes
+ atmos model domain decomposition
+whalo =    1, ehalo =    1, shalo =    1, nhalo =    1
+  X-AXIS =  360 360 360 360
+  Y-AXIS =    3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3
+NOTE from PE     0: grid_mod/get_grid_cell_vertices: domain is not present, global data will be read
+NOTE from PE     0: MPP_IO_SET_STACK_SIZE: stack size set to    6225841.
+NOTE from PE     0: grid_mod/get_grid_cell_centers: domain is not present, global data will be read
+ land model domain decomposition
+whalo =    1, ehalo =    1, shalo =    1, nhalo =    1
+  X-AXIS =  360 360 360 360
+  Y-AXIS =    3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+              2   2   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3   3
+              3   3   3   3   3   3   3
+NOTE from PE     0: grid_mod/get_grid_cell_centers: domain is not present, global data will be read
+NOTE from PE     0: open_param_file: SIS_input has been opened successfully.
+NOTE from PE     0: open_param_file: SIS_layout has been opened successfully.
+NOTE from PE     0: open_param_file: SIS_override has been opened successfully.
+NOTE from PE     0: callTree: ---> ice_model_init(), ice_model.F90
+NOTE from PE     0: MOM_domains_init: reading maskmap information from INPUT/mask_table.548.32x72.1756
+ parse_mask_table: Number of domain regions masked in ice model =          548
+ ice model domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ ice modelc domain decomposition
+whalo =    2, ehalo =    2, shalo =    2, nhalo =    2
+  X-AXIS =   23  23  23  23  23  23  23  23  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22
+             23  23  23  23  23  23  23  23
+  Y-AXIS =    8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   7   7   7   7   7   7
+              7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+              7   7   7   7   7   7   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8
+NOTE from PE     0: callTree:    o domains initialized (ice_model_init)
+ ice model domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ ice model domain decomposition
+whalo =    2, ehalo =    2, shalo =    2, nhalo =    2
+  X-AXIS =   23  23  23  23  23  23  23  23  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22
+             23  23  23  23  23  23  23  23
+  Y-AXIS =    8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   7   7   7   7   7   7
+              7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+              7   7   7   7   7   7   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8
+NOTE from PE     0: callTree:    ---> SIS_initialize_fixed(), SIS_fixed_initialization.F90
+NOTE from PE     0: callTree:       ---> set_grid_metrics(), MOM_grid_initialize.F90
+NOTE from PE     0: callTree:          ---> set_grid_metrics_from_mosaic(), MOM_grid_initialize.F90
+ MOM_MOSAIC domain decomposition
+whalo =    9, ehalo =    9, shalo =    9, nhalo =    9
+  X-AXIS =   90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90
+             90  90  90  90  90  90  90  90
+  Y-AXIS =   30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30
+             30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30
+             30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30
+ MOM_MOSAIC domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+NOTE from PE     0: callTree:          <--- set_grid_metrics_from_mosaic()
+NOTE from PE     0: callTree:          ---> set_derived_metrics(), MOM_grid_initialize.F90
+NOTE from PE     0: callTree:          <--- set_derived_metrics()
+NOTE from PE     0: callTree:       <--- set_grid_metrics()
+NOTE from PE     0: callTree:       ---> initialize_topography_from_file(), MOM_shared_initialization.F90
+NOTE from PE     0: callTree:          ---> apply_topography_edits_from_file(), MOM_shared_initialization.F90
+NOTE from PE     0: callTree:          <--- initialize_topography_from_file()
+NOTE from PE     0: callTree:          ---> limit_topography(), MOM_shared_initialization.F90
+NOTE from PE     0: callTree:          <--- limit_topography()
+NOTE from PE     0: callTree:          ---> initialize_masks(), MOM_grid_initialize.F90
+NOTE from PE     0: callTree:          <--- initialize_masks()
+NOTE from PE     0: callTree:          ---> MOM_initialize_rotation(), MOM_shared_initialization.F90
+NOTE from PE     0: callTree:             ---> set_rotation_planetary(), MOM_shared_initialization.F90
+NOTE from PE     0: callTree:             <--- set_rotation_planetary()
+NOTE from PE     0: callTree:          <--- MOM_initialize_rotation()
+NOTE from PE     0: callTree:          ---> write_ocean_geometry_file()
+NOTE from PE     0: callTree:          <--- write_ocean_geometry_file()
+NOTE from PE     0: callTree:       <--- SIS_initialize_fixed()
+NOTE from PE     0:   SIS_hor_grid.F90, set_hor_grid: allocating metrics
+ ice model aux domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ ice model aux domain decomposition
+whalo =    2, ehalo =    2, shalo =    2, nhalo =    2
+  X-AXIS =   23  23  23  23  23  23  23  23  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22
+             23  23  23  23  23  23  23  23
+  Y-AXIS =    8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   7   7   7   7   7   7
+              7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+              7   7   7   7   7   7   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8
+ ice_nohalo domain decomposition
+whalo =    0, ehalo =    0, shalo =    0, nhalo =    0
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ ice_nohalo domain decomposition
+whalo =    0, ehalo =    0, shalo =    0, nhalo =    0
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+NOTE from PE     0: callTree:       ---> ice_model_init():restore_from_restart_files ice_model.res.nc
+NOTE from PE     0: fms_io(query_initialized_name): Unknown restart variable str_s queried for initialization.
+NOTE from PE     0: fms_io(query_initialized_name): Unknown restart variable stress_mag queried for initialization.
+NOTE from PE     0: callTree:       <--- ice_model_init():restore_from_restart_files
+NOTE from PE     0: callTree:       ---> SIS_slow_thermo_init(), SIS_slow_thermo.F90
+NOTE from PE     0: callTree:       <--- SIS_slow_thermo_init()
+NOTE from PE     0: callTree:       ---> SIS_dyn_trans_init(), SIS_dyn_trans.F90
+NOTE from PE     0: callTree:       <--- SIS_dyn_trans_init()
+ diamond domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ Begining Basal Melting Unit Test
+ Two equation model basal_melt =  4.330631808975770E-006
+ Three equation model basal_melt =  7.090487055660092E-006
+diamonds, grd_chksum3: read_restart_calvi chksum=            -378547276 chksum2=             311102150 min= 0.000000000E+00 max= 7.399998653E+11 mean= 1.279419589E+11 rms= 1.872008716E+11 sd= 1.366565823E+11
+diamonds, grd_chksum2: read_restart_calvi chksum=                     0 chksum2=                     0 min= 0.000000000E+00 max= 0.000000000E+00 mean= 0.000000000E+00 rms= 0.000000000E+00 sd= 0.000000000E+00
+diamonds, grd_chksum2: read_restart_calvi chksum=                     0 chksum2=                     0 min= 0.000000000E+00 max= 0.000000000E+00 mean= 0.000000000E+00 rms= 0.000000000E+00 sd= 0.000000000E+00
+diamonds, grd_chksum2: read_restart_calvi chksum=                     0 chksum2=                     0 min= 0.000000000E+00 max= 0.000000000E+00 mean= 0.000000000E+00 rms= 0.000000000E+00 sd= 0.000000000E+00
+diamonds, bergs_chksum: read_restart bergs chksum=            1608197199 chksum2=            -227614841 chksum3=             353162375 chksum4=             353162375 chksum5=            1877112824 #=                  7145
+diamonds, grd_chksum2:    # of bergs/cell chksum=                     0 chksum2=                     0 min= 0.000000000E+00 max= 0.000000000E+00 mean= 0.000000000E+00 rms= 0.000000000E+00 sd= 0.000000000E+00
+diamonds: Bergs found with creation dates after model date! Adjusting berg dates by        1 years
+diamonds, bergs_chksum: before adjusting s chksum=            1608197199 chksum2=            -227614841 chksum3=             353162375 chksum4=             353162375 chksum5=            1877112824 #=                  7145
+diamonds, grd_chksum2:    # of bergs/cell chksum=                     0 chksum2=                     0 min= 0.000000000E+00 max= 0.000000000E+00 mean= 0.000000000E+00 rms= 0.000000000E+00 sd= 0.000000000E+00
+diamonds, bergs_chksum: after adjusting st chksum=           -1294261169 chksum2=           -2116886649 chksum3=             648786683 chksum4=             648786683 chksum5=            1877098775 #=                  7145
+diamonds, grd_chksum2:    # of bergs/cell chksum=                     0 chksum2=                     0 min= 0.000000000E+00 max= 0.000000000E+00 mean= 0.000000000E+00 rms= 0.000000000E+00 sd= 0.000000000E+00
+SIS Date   1959/01/01 00:00:00      0: Area 1.350004093353E+13 8.419845823706E+12, Mass  1.31198264261E+16 4.98288115817E+15
+ Total Ice Mass:   1.8102707584301912E+16, Change:  0.00000E+00 Error:  0.00000E+00 ( 0.0E+00)
+ Total Ice Salt:   4.8744590972747719E+10, Change:  0.00000E+00 Error:  0.00000E+00 ( 0.0E+00)
+ Total Ice Heat:  -6.1563347487000290E+21, Change:  0.00000E+00 Error:  0.00000E+00 ( 0.0E+00)
+NOTE from PE     0: callTree:       ---> SIS_fast_thermo_init(), SIS_fast_thermo.F90
+NOTE from PE     0: callTree:       <--- SIS_fast_thermo_init()
+NOTE from PE     0: close_param_file: SIS_input has been closed successfully.
+NOTE from PE     0: close_param_file: SIS_layout has been closed successfully.
+NOTE from PE     0: close_param_file: SIS_override has been closed successfully.
+NOTE from PE     0: callTree:    <--- ice_model_init()
+NOTE from PE     0: callTree:    ---> ocean_model_init(), ocean_model_MOM.F90
+NOTE from PE     0: open_param_file: MOM_input has been opened successfully.
+NOTE from PE     0: open_param_file: MOM_layout has been opened successfully.
+NOTE from PE     0: open_param_file: MOM_saltrestore has been opened successfully.
+NOTE from PE     0: open_param_file: MOM_override has been opened successfully.
+NOTE from PE     0: MOM_domains_init: reading maskmap information from INPUT/mask_table.548.32x72.1756
+ parse_mask_table: Number of domain regions masked in MOM_in =          548
+ MOM_in domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ MOM_inc domain decomposition
+whalo =    2, ehalo =    2, shalo =    2, nhalo =    2
+  X-AXIS =   23  23  23  23  23  23  23  23  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22
+             23  23  23  23  23  23  23  23
+  Y-AXIS =    8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   7   7   7   7   7   7
+              7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+              7   7   7   7   7   7   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8
+ MOM_in domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ MOM_in domain decomposition
+whalo =    2, ehalo =    2, shalo =    2, nhalo =    2
+  X-AXIS =   23  23  23  23  23  23  23  23  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22
+             23  23  23  23  23  23  23  23
+  Y-AXIS =    8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   7   7   7   7   7   7
+              7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+              7   7   7   7   7   7   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8
+ MOM_MOSAIC domain decomposition
+whalo =    9, ehalo =    9, shalo =    9, nhalo =    9
+  X-AXIS =   90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90  90
+             90  90  90  90  90  90  90  90
+  Y-AXIS =   30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30
+             30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30
+             30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30  30
+ MOM_MOSAIC domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+Ocean topography edit:    40  883  600  457.40->  500.00  33   5
+Ocean topography edit:    41  881  601  339.21->  500.00  31   6
+Ocean topography edit:    46  881  614  646.24->  730.00  31  19
+Ocean topography edit:    47  881  613  669.98->  730.00  31  18
+Ocean topography edit:    48  881  612  692.16->  730.00  31  17
+Ocean topography edit:    49  881  611  718.72->  730.00  31  16
+Ocean topography edit:    50  879  605  681.07->  730.00  29  10
+Ocean topography edit:    51  878  604  706.24->  730.00  28   9
+Ocean topography edit:    52  878  602  329.73->  730.00  28   7
+Ocean topography edit:    53  884  613  466.71->  600.00  34  18
+Ocean topography edit:    54  885  613  360.50->  600.00  35  18
+Ocean topography edit:     9 1176  657  227.78->  280.00  11  17
+Ocean topography edit:    10 1177  657  201.30->  280.00  12  17
+Ocean topography edit:    11 1178  657  179.89->  280.00  13  17
+Ocean topography edit:    12  953  550  685.97->  730.00  13  15
+Ocean topography edit:    13  952  550  679.21->  730.00  12  15
+Ocean topography edit:    14  952  551  188.74->   40.00  12  16
+Ocean topography edit:    15  953  552   98.68->   40.00  13  17
+Ocean topography edit:    16  954  553  230.73->   40.00  14  18
+Ocean topography edit:    17  954  554  134.81->   40.00  14  19
+Ocean topography edit:    26  944  578 1365.65-> 1850.00  49  13
+Ocean topography edit:    27  944  577 1234.00-> 1850.00  49  12
+Ocean topography edit:    28  942  575 1656.42-> 1400.00  47  10
+Ocean topography edit:    59 1424  612   51.14->   80.00  34  17
+Ocean topography edit:    72 1166  808  599.70->  540.00  46  18
+Ocean topography edit:    73 1167  807  598.73->  510.00  47  17
+Ocean topography edit:    74 1168  807  647.22->  530.00  48  17
+Ocean topography edit:    75 1169  806  583.86->  610.00  49  16
+Ocean topography edit:    70 1373  554  112.89->  180.00  28  19
+Ocean topography edit:    71 1373  553   31.54->  180.00  28  18
+Ocean topography edit:    29  889  595  394.39->  500.00  39  15
+Ocean topography edit:    30  888  595  375.17->  500.00  38  15
+Ocean topography edit:    31  888  596  222.70->  500.00  38  16
+Ocean topography edit:    32  887  596  436.80->  500.00  37  16
+Ocean topography edit:    33  886  596  349.77->  500.00  36  16
+Ocean topography edit:    34  885  596  169.91->  500.00  35  16
+Ocean topography edit:    35  885  597  411.25->  500.00  35  17
+Ocean topography edit:    36  884  597  405.56->  500.00  34  17
+Ocean topography edit:    37  884  598  462.69->  500.00  34  18
+Ocean topography edit:    38  883  598  470.05->  500.00  33  18
+Ocean topography edit:    39  882  598  456.70->  500.00  32  18
+Ocean topography edit:    42  881  618  610.68->  700.00  31   8
+Ocean topography edit:    43  881  617  627.58->  730.00  31   7
+Ocean topography edit:    44  881  616  624.95->  730.00  31   6
+Ocean topography edit:    45  881  615  630.68->  730.00  31   5
+Ocean topography edit:    55  881  619  625.10->  710.00  31   9
+Ocean topography edit:    56  881  620  651.12->  710.00  31  10
+Ocean topography edit:    57  881  621  667.51->  710.00  31  11
+Ocean topography edit:    58  881  622  700.03->  710.00  31  12
+Ocean topography edit:    76 1170  805  544.52->  500.00   5  15
+Ocean topography edit:    77 1171  805  513.92->  460.00   6  15
+Ocean topography edit:    78 1172  805  553.43->  490.00   7  15
+Ocean topography edit:    79 1173  805  528.28->  330.00   8  15
+Ocean topography edit:    80 1174  804  499.22->  450.00   9  14
+Ocean topography edit:    18  955  555  257.78->   40.00  15   5
+Ocean topography edit:    19  956  558  495.10->   40.00  16   8
+Ocean topography edit:    20  956  559  148.92->   40.00  16   9
+Ocean topography edit:    21  956  560  343.66->   40.00  16  10
+Ocean topography edit:    22  955  557  705.76->  900.00  15   7
+Ocean topography edit:    23  956  561  831.60->  950.00  16  11
+Ocean topography edit:    24  956  564  609.99->  800.00  16  14
+Ocean topography edit:    25  955  565  897.07-> 1000.00  15  15
+Ocean topography edit:     1 1166  818  664.73->  800.00  46  13
+Ocean topography edit:     2 1166  817  728.35->  800.00  46  12
+Ocean topography edit:     3 1166  816  557.18->  800.00  46  11
+Ocean topography edit:     4 1167  816  763.71->  800.00  47  11
+Ocean topography edit:     5 1168  816  584.82->  800.00  48  11
+Ocean topography edit:     6 1168  815  771.28->  800.00  48  10
+Ocean topography edit:     7 1168  814  623.90->  800.00  48   9
+Ocean topography edit:     8 1169  814  754.62->  800.00  49   9
+Ocean topography edit:    60 1369  560  151.45->  180.00  24  10
+Ocean topography edit:    61 1369  559   97.29->  180.00  24   9
+Ocean topography edit:    62 1370  559   68.19->  180.00  25   9
+Ocean topography edit:    63 1370  558   93.68->  180.00  25   8
+Ocean topography edit:    64 1370  557   80.73->  180.00  25   7
+Ocean topography edit:    65 1371  557  127.90->  180.00  26   7
+Ocean topography edit:    66 1371  556   41.25->  180.00  26   6
+Ocean topography edit:    67 1372  556   96.19->  180.00  27   6
+Ocean topography edit:    68 1372  555   60.64->  180.00  27   5
+Ocean topography edit:    69 1373  555   32.38->  180.00  28   5
+read_face_lengths_list : Modifying dy_Cu gridpoint at    35.89   -5.75 (   35.80   36.20   -5.90   -5.40) to  12000.00m
+read_face_lengths_list : Modifying dy_Cu gridpoint at    35.89   -5.50 (   35.80   36.20   -5.90   -5.40) to  12000.00m
+read_face_lengths_list : G%mask2dCu=0 at    36.09   -5.75 (   35.80   36.20   -5.90   -5.40) so grid metric is unmodified.
+read_face_lengths_list : G%mask2dCu=0 at    36.09   -5.50 (   35.80   36.20   -5.90   -5.40) so grid metric is unmodified.
+read_face_lengths_list : Modifying dx_Cv gridpoint at    12.77   43.38 (   12.60   12.80   43.25   43.50) to  10000.00m
+read_face_lengths_list : Modifying dy_Cu gridpoint at    40.41   26.50 (   40.40   40.60   26.40   26.80) to   5000.00m
+read_face_lengths_list : Modifying dy_Cu gridpoint at    40.41   26.75 (   40.40   40.60   26.40   26.80) to   5000.00m
+read_face_lengths_list : Modifying dx_Cv gridpoint at    52.02 -218.38 (   52.00   52.15  141.50  141.70) to   2500.00m
+
+WARNING from PE     0: reset_face_lengths_list unused v-face line: V_width,  28.8,  29.4, 41.1, 41.2,   2500.0
+
+ MOM_in domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ MOM_in domain decomposition
+whalo =    2, ehalo =    2, shalo =    2, nhalo =    2
+  X-AXIS =   23  23  23  23  23  23  23  23  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22
+             23  23  23  23  23  23  23  23
+  Y-AXIS =    8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   7   7   7   7   7   7
+              7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+              7   7   7   7   7   7   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8
+ MOM_in domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ MOM_in domain decomposition
+whalo =    2, ehalo =    2, shalo =    2, nhalo =    2
+  X-AXIS =   23  23  23  23  23  23  23  23  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22
+             23  23  23  23  23  23  23  23
+  Y-AXIS =    8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   7   7   7   7   7   7
+              7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+              7   7   7   7   7   7   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8
+NOTE from PE     0: MOM_restart: MOM run restarted using : INPUT/MOM.res.nc
+NOTE from PE     0: MOM_restart: MOM run restarted using : INPUT/MOM.res_1.nc
+NOTE from PE     0: MOM_restart: MOM run restarted using : INPUT/MOM.res_2.nc
+NOTE from PE     0: MOM_restart: MOM run restarted using : INPUT/MOM.res_3.nc
+
+WARNING from PE     0: Previous msg:INTERPOLATION_SCHEME = "P1M_H2" ! default = "P1M_H2"
+
+
+WARNING from PE     0: New message :INTERPOLATION_SCHEME = "PPM_H4" ! default = "PPM_H4"
+
+
+WARNING from PE     0: Encountered inconsistent documentation line for parameter INTERPOLATION_SCHEME!
+
+ MOM_in domain decomposition
+whalo =    4, ehalo =    4, shalo =    4, nhalo =    4
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+ MOM_in domain decomposition
+whalo =    2, ehalo =    2, shalo =    2, nhalo =    2
+  X-AXIS =   23  23  23  23  23  23  23  23  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22  22
+             23  23  23  23  23  23  23  23
+  Y-AXIS =    8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   7   7   7   7   7   7
+              7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+              7   7   7   7   7   7   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8   8
+ MOM_in domain decomposition
+whalo =    0, ehalo =    0, shalo =    0, nhalo =    0
+  X-AXIS =   45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45  45
+             45  45  45  45  45  45  45  45
+  Y-AXIS =   15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+             15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+NOTE from PE     0: ==== Completed MOM6 Coupled Initialization ====
+ ==>Note from flux_exchange_mod(flux_exchange_init):
+  Number of exchanged tracers =            1
+ Tracer field name :sphum
+NOTE from PE     0: atm_land_ice_flux_exchange_mod: tracer "co2" not present in the atmosphere
+NOTE from PE     0: xgrid_init: Using fms2_io in xgrid_mod
+ NOTE from xgrid_mod: use second_order conservative exchange
+NOTE from PE     0: xgrid_mod: reading exchange grid information from mosaic grid file
+ Checked data is array of constant 1
+ ATM(ATMOCNLND)=  0.993455479799171       0.993455479799171     
+  0.993455479799171     
+ OCN(ATMOCNLND)=  0.706790214084559       0.706790214084559     
+  0.706790214084559     
+ LND(ATMOCNLND)=  0.286665265714612       0.286665265714612     
+  0.286665265714612     
+ Checked data is array of random number between 0 and 1 using second_order
+ ATM(ATMOCNLND)=  0.516457088109675       0.516457088109675     
+  0.516457088109675     
+ OCN(ATMOCNLND)=  0.355870067524916       0.355870067524917     
+  0.355870067524916     
+ LND(ATMOCNLND)=  0.143261423070307       0.143261423070307     
+  0.143261423070307     
+PE =    917      Surface exchange size equals one.
+PE =    933      Surface exchange size equals one.
+PE =   1065      Surface exchange size equals one.
+PE =    849      Surface exchange size equals one.
+PE =    945      Surface exchange size equals one.
+PE =   1073      Surface exchange size equals one.
+PE =    885      Surface exchange size equals one.
+PE =    745      Surface exchange size equals one.
+PE =    913      Surface exchange size equals one.
+PE =    336      Surface exchange size equals one.
+PE =    985      Surface exchange size equals one.
+PE =   1077      Surface exchange size equals one.
+PE =    861      Surface exchange size equals one.
+PE =    169      Surface exchange size equals one.
+PE =    781      Surface exchange size equals one.
+PE =    889      Surface exchange size equals one.
+PE =    483      Surface exchange size equals one.
+PE =    435      Surface exchange size equals one.
+PE =    925      Surface exchange size equals one.
+PE =    697      Surface exchange size equals one.
+PE =    241      Surface exchange size equals one.
+PE =    391      Surface exchange size equals one.
+PE =    989      Surface exchange size equals one.
+PE =   1093      Surface exchange size equals one.
+PE =    825      Surface exchange size equals one.
+PE =    173      Surface exchange size equals one.
+PE =    793      Surface exchange size equals one.
+PE =    893      Surface exchange size equals one.
+PE =    293      Surface exchange size equals one.
+PE =    495      Surface exchange size equals one.
+PE =    459      Surface exchange size equals one.
+PE =    921      Surface exchange size equals one.
+PE =    339      Surface exchange size equals one.
+PE =    193      Surface exchange size equals one.
+PE =    701      Surface exchange size equals one.
+PE =    404      Surface exchange size equals one.
+PE =   1001      Surface exchange size equals one.
+PE =   1085      Surface exchange size equals one.
+PE =    829      Surface exchange size equals one.
+PE =    177      Surface exchange size equals one.
+PE =    797      Surface exchange size equals one.
+PE =    897      Surface exchange size equals one.
+PE =    641      Surface exchange size equals one.
+PE =    499      Surface exchange size equals one.
+PE =    463      Surface exchange size equals one.
+PE =    929      Surface exchange size equals one.
+PE =    356      Surface exchange size equals one.
+PE =    705      Surface exchange size equals one.
+PE =    411      Surface exchange size equals one.
+PE =   1005      Surface exchange size equals one.
+PE =   1013      Surface exchange size equals one.
+PE =   1061      Surface exchange size equals one.
+PE =    833      Surface exchange size equals one.
+PE =    181      Surface exchange size equals one.
+PE =    777      Surface exchange size equals one.
+PE =    905      Surface exchange size equals one.
+PE =    304      Surface exchange size equals one.
+PE =    487      Surface exchange size equals one.
+PE =    471      Surface exchange size equals one.
+PE =    953      Surface exchange size equals one.
+PE =    361      Surface exchange size equals one.
+PE =    203      Surface exchange size equals one.
+PE =    709      Surface exchange size equals one.
+PE =    243      Surface exchange size equals one.
+PE =    419      Surface exchange size equals one.
+PE =    993      Surface exchange size equals one.
+PE =   1017      Surface exchange size equals one.
+PE =   1081      Surface exchange size equals one.
+PE =    841      Surface exchange size equals one.
+PE =    189      Surface exchange size equals one.
+PE =    789      Surface exchange size equals one.
+PE =    909      Surface exchange size equals one.
+PE =    653      Surface exchange size equals one.
+PE =    308      Surface exchange size equals one.
+PE =    491      Surface exchange size equals one.
+PE =    439      Surface exchange size equals one.
+PE =    941      Surface exchange size equals one.
+PE =    365      Surface exchange size equals one.
+PE =    207      Surface exchange size equals one.
+PE =    713      Surface exchange size equals one.
+PE =    247      Surface exchange size equals one.
+PE =    387      Surface exchange size equals one.
+PE =    997      Surface exchange size equals one.
+PE =   1037      Surface exchange size equals one.
+PE =   1089      Surface exchange size equals one.
+PE =    853      Surface exchange size equals one.
+PE =    185      Surface exchange size equals one.
+PE =    801      Surface exchange size equals one.
+PE =    865      Surface exchange size equals one.
+PE =    665      Surface exchange size equals one.
+PE =    309      Surface exchange size equals one.
+PE =    503      Surface exchange size equals one.
+PE =    443      Surface exchange size equals one.
+PE =    949      Surface exchange size equals one.
+PE =    373      Surface exchange size equals one.
+PE =    213      Surface exchange size equals one.
+PE =    685      Surface exchange size equals one.
+PE =    250      Surface exchange size equals one.
+PE =    388      Surface exchange size equals one.
+PE =   1045      Surface exchange size equals one.
+PE =   1069      Surface exchange size equals one.
+PE =    857      Surface exchange size equals one.
+PE =    805      Surface exchange size equals one.
+PE =    869      Surface exchange size equals one.
+PE =    645      Surface exchange size equals one.
+PE =    311      Surface exchange size equals one.
+PE =    507      Surface exchange size equals one.
+PE =    451      Surface exchange size equals one.
+PE =    937      Surface exchange size equals one.
+PE =    379      Surface exchange size equals one.
+PE =    215      Surface exchange size equals one.
+PE =    689      Surface exchange size equals one.
+PE =    253      Surface exchange size equals one.
+PE =    392      Surface exchange size equals one.
+PE =   1025      Surface exchange size equals one.
+PE =   1057      Surface exchange size equals one.
+PE =    817      Surface exchange size equals one.
+PE =    809      Surface exchange size equals one.
+PE =    873      Surface exchange size equals one.
+PE =    649      Surface exchange size equals one.
+PE =    316      Surface exchange size equals one.
+PE =    455      Surface exchange size equals one.
+PE =    957      Surface exchange size equals one.
+PE =    337      Surface exchange size equals one.
+PE =    217      Surface exchange size equals one.
+PE =    255      Surface exchange size equals one.
+PE =    395      Surface exchange size equals one.
+PE =   1009      Surface exchange size equals one.
+PE =    821      Surface exchange size equals one.
+PE =    813      Surface exchange size equals one.
+PE =    877      Surface exchange size equals one.
+PE =    327      Surface exchange size equals one.
+PE =    460      Surface exchange size equals one.
+PE =    340      Surface exchange size equals one.
+PE =    220      Surface exchange size equals one.
+PE =    259      Surface exchange size equals one.
+PE =    396      Surface exchange size equals one.
+PE =   1021      Surface exchange size equals one.
+PE =    837      Surface exchange size equals one.
+PE =    881      Surface exchange size equals one.
+PE =    332      Surface exchange size equals one.
+PE =    467      Surface exchange size equals one.
+PE =    341      Surface exchange size equals one.
+PE =    235      Surface exchange size equals one.
+PE =    260      Surface exchange size equals one.
+PE =    399      Surface exchange size equals one.
+PE =   1029      Surface exchange size equals one.
+PE =    845      Surface exchange size equals one.
+PE =    901      Surface exchange size equals one.
+PE =    333      Surface exchange size equals one.
+PE =    345      Surface exchange size equals one.
+PE =    197      Surface exchange size equals one.
+PE =    274      Surface exchange size equals one.
+PE =   1033      Surface exchange size equals one.
+PE =    288      Surface exchange size equals one.
+PE =    475      Surface exchange size equals one.
+PE =    348      Surface exchange size equals one.
+PE =    201      Surface exchange size equals one.
+PE =    282      Surface exchange size equals one.
+PE =    400      Surface exchange size equals one.
+PE =   1041      Surface exchange size equals one.
+PE =    479      Surface exchange size equals one.
+PE =    351      Surface exchange size equals one.
+PE =    403      Surface exchange size equals one.
+PE =    289      Surface exchange size equals one.
+PE =    447      Surface exchange size equals one.
+PE =    352      Surface exchange size equals one.
+PE =    205      Surface exchange size equals one.
+PE =    240      Surface exchange size equals one.
+PE =    407      Surface exchange size equals one.
+PE =    290      Surface exchange size equals one.
+PE =    355      Surface exchange size equals one.
+PE =    209      Surface exchange size equals one.
+PE =    244      Surface exchange size equals one.
+PE =    408      Surface exchange size equals one.
+PE =   1049      Surface exchange size equals one.
+PE =    291      Surface exchange size equals one.
+PE =    357      Surface exchange size equals one.
+PE =    211      Surface exchange size equals one.
+PE =    245      Surface exchange size equals one.
+PE =    412      Surface exchange size equals one.
+PE =   1053      Surface exchange size equals one.
+PE =    292      Surface exchange size equals one.
+PE =    367      Surface exchange size equals one.
+PE =    212      Surface exchange size equals one.
+PE =    248      Surface exchange size equals one.
+PE =    415      Surface exchange size equals one.
+PE =    294      Surface exchange size equals one.
+PE =    375      Surface exchange size equals one.
+PE =    216      Surface exchange size equals one.
+PE =    249      Surface exchange size equals one.
+PE =    423      Surface exchange size equals one.
+PE =    295      Surface exchange size equals one.
+PE =    380      Surface exchange size equals one.
+PE =    219      Surface exchange size equals one.
+PE =    251      Surface exchange size equals one.
+PE =    427      Surface exchange size equals one.
+PE =    296      Surface exchange size equals one.
+PE =    383      Surface exchange size equals one.
+PE =    221      Surface exchange size equals one.
+PE =    252      Surface exchange size equals one.
+PE =    431      Surface exchange size equals one.
+PE =    297      Surface exchange size equals one.
+PE =    343      Surface exchange size equals one.
+PE =    223      Surface exchange size equals one.
+PE =    256      Surface exchange size equals one.
+PE =    384      Surface exchange size equals one.
+PE =    298      Surface exchange size equals one.
+PE =    344      Surface exchange size equals one.
+PE =    224      Surface exchange size equals one.
+PE =    257      Surface exchange size equals one.
+PE =    299      Surface exchange size equals one.
+PE =    347      Surface exchange size equals one.
+PE =    225      Surface exchange size equals one.
+PE =    261      Surface exchange size equals one.
+PE =    300      Surface exchange size equals one.
+PE =    349      Surface exchange size equals one.
+PE =    227      Surface exchange size equals one.
+PE =    262      Surface exchange size equals one.
+PE =    301      Surface exchange size equals one.
+PE =    353      Surface exchange size equals one.
+PE =    228      Surface exchange size equals one.
+PE =    263      Surface exchange size equals one.
+PE =    302      Surface exchange size equals one.
+PE =    359      Surface exchange size equals one.
+PE =    229      Surface exchange size equals one.
+PE =    264      Surface exchange size equals one.
+PE =    303      Surface exchange size equals one.
+PE =    360      Surface exchange size equals one.
+PE =    231      Surface exchange size equals one.
+PE =    265      Surface exchange size equals one.
+PE =    305      Surface exchange size equals one.
+PE =    363      Surface exchange size equals one.
+PE =    232      Surface exchange size equals one.
+PE =    266      Surface exchange size equals one.
+PE =    306      Surface exchange size equals one.
+PE =    369      Surface exchange size equals one.
+PE =    233      Surface exchange size equals one.
+PE =    267      Surface exchange size equals one.
+PE =    307      Surface exchange size equals one.
+PE =    371      Surface exchange size equals one.
+PE =    236      Surface exchange size equals one.
+PE =    268      Surface exchange size equals one.
+PE =    310      Surface exchange size equals one.
+PE =    376      Surface exchange size equals one.
+PE =    237      Surface exchange size equals one.
+PE =    269      Surface exchange size equals one.
+PE =    312      Surface exchange size equals one.
+PE =    377      Surface exchange size equals one.
+PE =    239      Surface exchange size equals one.
+PE =    270      Surface exchange size equals one.
+PE =    313      Surface exchange size equals one.
+PE =    381      Surface exchange size equals one.
+PE =    271      Surface exchange size equals one.
+PE =    315      Surface exchange size equals one.
+PE =    272      Surface exchange size equals one.
+PE =    317      Surface exchange size equals one.
+PE =    273      Surface exchange size equals one.
+PE =    319      Surface exchange size equals one.
+PE =    275      Surface exchange size equals one.
+PE =    320      Surface exchange size equals one.
+PE =    276      Surface exchange size equals one.
+PE =    321      Surface exchange size equals one.
+PE =    277      Surface exchange size equals one.
+PE =    323      Surface exchange size equals one.
+PE =    278      Surface exchange size equals one.
+PE =    324      Surface exchange size equals one.
+PE =    279      Surface exchange size equals one.
+PE =    325      Surface exchange size equals one.
+PE =    280      Surface exchange size equals one.
+PE =    328      Surface exchange size equals one.
+PE =    281      Surface exchange size equals one.
+PE =    329      Surface exchange size equals one.
+PE =    283      Surface exchange size equals one.
+PE =    331      Surface exchange size equals one.
+PE =    284      Surface exchange size equals one.
+PE =    335      Surface exchange size equals one.
+PE =    285      Surface exchange size equals one.
+PE =    286      Surface exchange size equals one.
+PE =    287      Surface exchange size equals one.
+NOTE from PE     0: diag_field_init in atm_land_ice_flux_exchange_mod: diagnostic field "dynamics", "area" is not in the diag_table
+NOTE from PE     0: xgrid_mod: reading exchange grid information from mosaic grid file
+ Checked data is array of constant 1
+ LND(LNDOCN)=  0.706790214084559       0.706790214084559     
+  0.706790214084559     
+ OCN(LNDOCN)=  0.706790214084559       0.706790214084559     
+  0.706790214084559     
+PE =    910      Runoff  exchange size equals one.
+PE =    729      Runoff  exchange size equals one.
+PE =    939      Runoff  exchange size equals one.
+PE =   1430      Runoff  exchange size equals one.
+PE =   1099      Runoff  exchange size equals one.
+PE =   1525      Runoff  exchange size equals one.
+PE =   1374      Runoff  exchange size equals one.
+PE =    126      Runoff  exchange size equals one.
+PE =    947      Runoff  exchange size equals one.
+PE =   1627      Runoff  exchange size equals one.
+PE =   1656      Runoff  exchange size equals one.
+PE =   1452      Runoff  exchange size equals one.
+PE =   1755      Runoff  exchange size equals one.
+PE =   1473      Runoff  exchange size equals one.
+PE =   1481      Runoff  exchange size equals one.
+PE =   1486      Runoff  exchange size equals one.
+PE =   1442      Runoff  exchange size equals one.
+ BEGIN CHECKSUM(Atmos_data_type):: coupler_init+           0
+CHECKSUM::     atm%lon_bnd                 =     9BC0B9F9AFEDE96C
+CHECKSUM::     atm%lat_bnd                 =     B9BDFECE809AF4D4
+CHECKSUM::     atm%t_bot                   =      6B0000000000000
+CHECKSUM::     atm%tr_bot(:,:,n)           =                    0
+CHECKSUM::     atm%z_bot                   =     4C00000000000000
+CHECKSUM::     atm%p_bot                   =     3046800000000000
+CHECKSUM::     atm%u_bot                   =                    0
+CHECKSUM::     atm%v_bot                   =                    0
+CHECKSUM::     atm%p_surf                  =     FB6E000000000000
+CHECKSUM::     atm%slp                     =     FB6E000000000000
+CHECKSUM::     atm%gust                    =                    0
+CHECKSUM::     atm%coszen                  =                    0
+CHECKSUM::     atm%flux_sw                 =                    0
+CHECKSUM::     atm%flux_sw_dir             =                    0
+CHECKSUM::     atm%flux_sw_dif             =                    0
+CHECKSUM::     atm%flux_sw_down_vis_dir    =                    0
+CHECKSUM::     atm%flux_sw_down_vis_dif    =                    0
+CHECKSUM::     atm%flux_sw_down_total_dir  =                    0
+CHECKSUM::     atm%flux_sw_down_total_dif  =                    0
+CHECKSUM::     atm%flux_sw_vis             =                    0
+CHECKSUM::     atm%flux_sw_vis_dir         =                    0
+CHECKSUM::     atm%flux_sw_vis_dif         =                    0
+CHECKSUM::     atm%flux_lw                 =                    0
+CHECKSUM::     atm%lprec                   =                    0
+CHECKSUM::     atm%fprec                   =                    0
+ BEGIN CHECKSUM(lnd_ice_Atm_bnd_type):: coupler_init+           0
+CHECKSUM::lnd_ice_atm_bnd_type%t           =      6B0000000000000
+CHECKSUM::lnd_ice_atm_bnd_type%albedo      =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%albedo_vis_ =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%albedo_nir_ =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%albedo_vis_ =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%albedo_nir_ =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%land_frac   =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%dt_t        =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%dt_tr(:,:,n =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%dt_tr(:,:,n =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%dt_tr(:,:,n =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%dt_tr(:,:,n =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%u_flux      =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%v_flux      =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%dtaudu      =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%dtaudv      =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%u_star      =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%b_star      =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%q_star      =                    0
+CHECKSUM::lnd_ice_atm_bnd_type%rough_mom   =     D00000000002D900
+ BEGIN CHECKSUM(ice_data_type):: coupler_init+           0
+   CHECKSUM::ice_data_type%part_size          =                    0
+   CHECKSUM::ice_data_type%t_surf             =                    0
+   CHECKSUM::ice_data_type%s_surf             =                    0
+   CHECKSUM::ice_data_type%albedo             =                    0
+   CHECKSUM::ice_data_type%albedo_vis_dir     =                    0
+   CHECKSUM::ice_data_type%albedo_nir_dir     =                    0
+   CHECKSUM::ice_data_type%albedo_vis_dif     =                    0
+   CHECKSUM::ice_data_type%albedo_nir_dif     =                    0
+   CHECKSUM::ice_data_type%rough_mom          =     388909BED8970D9A
+   CHECKSUM::ice_data_type%rough_heat         =     BFB13E0017A069B9
+   CHECKSUM::ice_data_type%rough_moist        =     66DB01533EEC21EF
+   CHECKSUM::ice_data_type%u_surf             =                    0
+   CHECKSUM::ice_data_type%v_surf             =                    0
+   CHECKSUM::ice_data_type%flux_u             =     865F02B06B830AE9
+   CHECKSUM::ice_data_type%flux_v             =     1C748331B290AF32
+   CHECKSUM::ice_data_type%flux_t             =     FDBEFFFF572A500C
+   CHECKSUM::ice_data_type%flux_q             =     EA843476094D794F
+   CHECKSUM::ice_data_type%flux_lw            =     2F2C46AB7873FCCD
+   CHECKSUM::ice_data_type%flux_sw_vis_dir    =     F3A21EDC82996CCD
+   CHECKSUM::ice_data_type%flux_sw_vis_dif    =     8294952DA7AF6D99
+   CHECKSUM::ice_data_type%flux_sw_nir_dir    =     94126EA2617D0C5C
+   CHECKSUM::ice_data_type%flux_sw_nir_dif    =     94126EA2617D0C5C
+   CHECKSUM::ice_data_type%flux_lh            =                    0
+   CHECKSUM::ice_data_type%lprec              =     3D137AC18C73E558
+   CHECKSUM::ice_data_type%fprec              =     25D0E76ADCE1FA77
+   CHECKSUM::ice_data_type%p_surf             =     4086E2944E71679D
+   CHECKSUM::ice_data_type%runoff             =     F7C3056B9293D3D7
+   CHECKSUM::ice_data_type%calving            =     54E37A9F55E03B6B
+   CHECKSUM::ice_data_type%flux_salt          =     E33F287286B49848
+ BEGIN CHECKSUM(atmos_ice_boundary_type):: coupler_init+           0
+CHECKSUM::atm_ice_bnd_type%u_flux          =                    0
+CHECKSUM::atm_ice_bnd_type%v_flux          =                    0
+CHECKSUM::atm_ice_bnd_type%u_star          =                    0
+CHECKSUM::atm_ice_bnd_type%t_flux          =                    0
+CHECKSUM::atm_ice_bnd_type%q_flux          =                    0
+CHECKSUM::atm_ice_bnd_type%lw_flux         =                    0
+CHECKSUM::atm_ice_bnd_type%sw_flux_vis_dir =                    0
+CHECKSUM::atm_ice_bnd_type%sw_flux_vis_dif =                    0
+CHECKSUM::atm_ice_bnd_type%sw_flux_nir_dir =                    0
+CHECKSUM::atm_ice_bnd_type%sw_flux_nir_dif =                    0
+CHECKSUM::atm_ice_bnd_type%sw_down_vis_dir =                    0
+CHECKSUM::atm_ice_bnd_type%sw_down_vis_dif =                    0
+CHECKSUM::atm_ice_bnd_type%sw_down_nir_dir =                    0
+CHECKSUM::atm_ice_bnd_type%sw_down_nir_dif =                    0
+CHECKSUM::atm_ice_bnd_type%lprec           =                    0
+CHECKSUM::atm_ice_bnd_type%fprec           =                    0
+CHECKSUM::atm_ice_bnd_type%dhdt            =                    0
+CHECKSUM::atm_ice_bnd_type%dedt            =                    0
+CHECKSUM::atm_ice_bnd_type%drdt            =                    0
+CHECKSUM::atm_ice_bnd_type%coszen          =                    0
+CHECKSUM::atm_ice_bnd_type%p               =                    0
+ BEGIN CHECKSUM(land_data_type):: coupler_init+           0
+CHECKSUM::         land%tile_size          =     7E5FFE4E0E220B28
+CHECKSUM::         land%t_surf             =     6880000000000000
+CHECKSUM::         land%t_ca               =     6880000000000000
+CHECKSUM::         land%albedo             =                    0
+CHECKSUM::         land%albedo_vis_dir     =                    0
+CHECKSUM::         land%albedo_nir_dir     =                    0
+CHECKSUM::         land%albedo_vis_dif     =                    0
+CHECKSUM::         land%albedo_nir_dif     =                    0
+CHECKSUM::         land%rough_mom          =                    0
+CHECKSUM::         land%rough_heat         =                    0
+CHECKSUM::         land%rough_scale        =     5000000000000000
+CHECKSUM::         land%tr                 =                    0
+CHECKSUM::         land%discharge          =                    0
+CHECKSUM::         land%discharge_snow     =                    0
+CHECKSUM::         land%discharge_heat     =                    0
+ BEGIN CHECKSUM(atmos_land_boundary_type):: coupler_init+           0
+CHECKSUM::     albt%t_flux                 =                    0
+CHECKSUM::     albt%lw_flux                =                    0
+CHECKSUM::     albt%lwdn_flux              =                    0
+CHECKSUM::     albt%sw_flux                =                    0
+CHECKSUM::   albt%swdn_flux                =                    0
+CHECKSUM::     albt%lprec                  =                    0
+CHECKSUM::     albt%fprec                  =                    0
+CHECKSUM::     albt%tprec                  =                    0
+CHECKSUM::     albt%sw_flux_down_vis_dir   =                    0
+CHECKSUM::     albt%sw_flux_down_total_dir =                    0
+CHECKSUM::     albt%sw_flux_down_vis_dif   =                    0
+CHECKSUM::     albt%sw_flux_down_total_dif =                    0
+CHECKSUM::     albt%dhdt                   =                    0
+CHECKSUM::     albt%dhdq                   =                    0
+CHECKSUM::     albt%drdt                   =                    0
+CHECKSUM::     albt%cd_m                   =                    0
+CHECKSUM::     albt%cd_t                   =                    0
+CHECKSUM::     albt%ustar                  =                    0
+CHECKSUM::     albt%bstar                  =                    0
+CHECKSUM::     albt%wind                   =                    0
+CHECKSUM::     albt%z_bot                  =                    0
+CHECKSUM::     albt%drag_q                 =                    0
+CHECKSUM::     albt%p_surf                 =     FB6E000000000000
+CHECKSUM::     albt%tr_flux                =                    0
+CHECKSUM::     albt%dfdtr                  =                    0
+ BEGIN CHECKSUM(ice_data_type):: coupler_init+           0
+   CHECKSUM::ice_data_type%part_size          =                    0
+   CHECKSUM::ice_data_type%t_surf             =                    0
+   CHECKSUM::ice_data_type%s_surf             =                    0
+   CHECKSUM::ice_data_type%albedo             =                    0
+   CHECKSUM::ice_data_type%albedo_vis_dir     =                    0
+   CHECKSUM::ice_data_type%albedo_nir_dir     =                    0
+   CHECKSUM::ice_data_type%albedo_vis_dif     =                    0
+   CHECKSUM::ice_data_type%albedo_nir_dif     =                    0
+   CHECKSUM::ice_data_type%rough_mom          =     388909BED8970D9A
+   CHECKSUM::ice_data_type%rough_heat         =     BFB13E0017A069B9
+   CHECKSUM::ice_data_type%rough_moist        =     66DB01533EEC21EF
+   CHECKSUM::ice_data_type%u_surf             =                    0
+   CHECKSUM::ice_data_type%v_surf             =                    0
+   CHECKSUM::ice_data_type%flux_u             =     865F02B06B830AE9
+   CHECKSUM::ice_data_type%flux_v             =     1C748331B290AF32
+   CHECKSUM::ice_data_type%flux_t             =     FDBEFFFF572A500C
+   CHECKSUM::ice_data_type%flux_q             =     EA843476094D794F
+   CHECKSUM::ice_data_type%flux_lw            =     2F2C46AB7873FCCD
+   CHECKSUM::ice_data_type%flux_sw_vis_dir    =     F3A21EDC82996CCD
+   CHECKSUM::ice_data_type%flux_sw_vis_dif    =     8294952DA7AF6D99
+   CHECKSUM::ice_data_type%flux_sw_nir_dir    =     94126EA2617D0C5C
+   CHECKSUM::ice_data_type%flux_sw_nir_dif    =     94126EA2617D0C5C
+   CHECKSUM::ice_data_type%flux_lh            =                    0
+   CHECKSUM::ice_data_type%lprec              =     3D137AC18C73E558
+   CHECKSUM::ice_data_type%fprec              =     25D0E76ADCE1FA77
+   CHECKSUM::ice_data_type%p_surf             =     4086E2944E71679D
+   CHECKSUM::ice_data_type%runoff             =     F7C3056B9293D3D7
+   CHECKSUM::ice_data_type%calving            =     54E37A9F55E03B6B
+   CHECKSUM::ice_data_type%flux_salt          =     E33F287286B49848
+ BEGIN CHECKSUM(ocean_ice_boundary_type):: coupler_init+           0
+CHECKSUM::      ocn_ice_bnd_type%u         =                    0
+CHECKSUM::      ocn_ice_bnd_type%v         =                    0
+CHECKSUM::      ocn_ice_bnd_type%t         =     E035400000000000
+CHECKSUM::      ocn_ice_bnd_type%s         =                    0
+CHECKSUM::      ocn_ice_bnd_type%frazil    =                    0
+CHECKSUM::      ocn_ice_bnd_type%sea_level =                    0
+ BEGIN CHECKSUM(ocean_type):: coupler_init+           0
+   CHECKSUM::     ocean%t_surf    =     1D0E3BDB73A845A1
+   CHECKSUM::     ocean%s_surf    =     555CA6C777B3051D
+   CHECKSUM::     ocean%u_surf    =     E271E3DBECBEFFA8
+   CHECKSUM::     ocean%v_surf    =     24F4AD786D818C9C
+   CHECKSUM::     ocean%sea_lev   =     528D4889FFF7E046
+   CHECKSUM::     ocean%frazil    =     DC5BA59389E00BAF
+   CHECKSUM::ocean%melt_potential =                    0
+ BEGIN CHECKSUM(ice_ocean_boundary_type):: coupler_init+           0
+   CHECKSUM::iobt%u_flux          =                    0
+   CHECKSUM::iobt%v_flux          =                    0
+   CHECKSUM::iobt%t_flux          =                    0
+   CHECKSUM::iobt%q_flux          =                    0
+   CHECKSUM::iobt%salt_flux       =                    0
+   CHECKSUM::iobt%lw_flux         =                    0
+   CHECKSUM::iobt%sw_flux_vis_dir =                    0
+   CHECKSUM::iobt%sw_flux_vis_dif =                    0
+   CHECKSUM::iobt%sw_flux_nir_dir =                    0
+   CHECKSUM::iobt%sw_flux_nir_dif =                    0
+   CHECKSUM::iobt%lprec           =                    0
+   CHECKSUM::iobt%fprec           =                    0
+   CHECKSUM::iobt%runoff          =                    0
+   CHECKSUM::iobt%calving         =                    0
+   CHECKSUM::iobt%p               =                    0
+
+FATAL from PE     0: time_interp_external 2: time 715159 (19590101.010000 is after range of list 714794-715159(19580101.000000 - 19590101.000000),file=./INPUT/JRA_tas.nc,field=tas
+

@@ -5,5 +5,5 @@ translator: DefaultTranslator
 sources:
 
   - path:
-      - tests/data/access-om2
-    metadata_yaml: tests/data/access-om2/metadata-bad.yaml
+      - access-om2
+    metadata_yaml: access-om2/metadata-bad.yaml

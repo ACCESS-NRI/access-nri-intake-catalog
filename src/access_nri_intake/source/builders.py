@@ -19,9 +19,10 @@ from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 # PP check if I still need this?
 from .utils import (
     EmptyFileError,
-    _AccessNCFileInfo,
+    GenericTimeParser,
+    GfdlTimeParser,
+    _NCFileInfo,
     _VarInfo,
-    get_timeinfo,
 )
 
 # Frequency translations
@@ -33,6 +34,7 @@ FREQUENCIES: dict[str, tuple[int, str]] = {
     "_mon$": (1, "mon"),
     "1mon": (1, "mon"),
     "yearly": (1, "yr"),
+    "annual": (1, "yr"),
     "_ann$": (1, "yr"),
 }
 
@@ -40,9 +42,12 @@ FREQUENCIES: dict[str, tuple[int, str]] = {
 PATTERNS_HELPERS = {
     "not_multi_digit": "(?:\\d(?!\\d)|[^\\d](?=\\d)|[^\\d](?!\\d))",
     "om3_components": "(?:cice|mom6|ww3)",
+    "mom6_components": "(?:ocean|ice)",
+    "mom6_added_timestamp": "(\\d{4}_\\d{3})",
     "ymd00hm-2": "\\d{4}\\d{2}\\d{2}[0]{0,2}\\d{4}[_,\\-]\\d{4}\\d{2}\\d{2}[0]{0,2}\\d{4}",
     "ymds": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}[_,\\-]\\d{5}",
     "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
+    "ymd-ns": "\\d{4}\\d{2}\\d{2}",
     "ym": "\\d{4}[_,\\-]\\d{2}",
     "y": "\\d{4}",
 }
@@ -60,8 +65,9 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries an empty set
+    # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
+    TIME_PARSER = GenericTimeParser
 
     def __init__(
         self,
@@ -180,7 +186,10 @@ class BaseBuilder(Builder):
                 return self
 
         raise ParserError(
-            "Parser returns no valid assets. Try parsing a single file with Builder.parser(file)"
+            f"""Parser returns no valid assets.
+            Try parsing a single file with Builder.parser(file)
+            Last failed asset: {asset}
+            Asset parser return: {info}"""
         )
 
     def build(self):
@@ -228,7 +237,7 @@ class BaseBuilder(Builder):
         raise NotImplementedError
 
     @classmethod
-    def parse_access_filename(
+    def parse_filename(
         cls,
         filename: str,
         patterns: list[str] | None = None,
@@ -291,13 +300,9 @@ class BaseBuilder(Builder):
         return file_id, timestamp, frequency
 
     @classmethod
-    def parse_access_ncfile(
-        cls,
-        file: str,
-        time_dim: str = "time",
-    ) -> _AccessNCFileInfo:
+    def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
         """
-        Get Intake-ESM datastore entry info from an ACCESS netcdf file
+        Get Intake-ESM datastore entry info from a netcdf file
 
         Parameters
         ----------
@@ -308,7 +313,7 @@ class BaseBuilder(Builder):
 
         Returns
         -------
-        output_nc_info: _AccessNCFileInfo
+        output_nc_info: _NCFileInfo
             A dataclass containing the information parsed from the file
 
         Raises
@@ -318,8 +323,8 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        file_id, filename_timestamp, filename_frequency = cls.parse_access_filename(
-            cls._get_relevant_filepath(file_path)
+        file_id, filename_timestamp, filename_frequency = cls.parse_filename(
+            file_path.stem
         )
 
         with xr.open_dataset(
@@ -335,14 +340,14 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = get_timeinfo(
+            start_date, end_date, frequency = cls.TIME_PARSER(
                 ds, filename_frequency, time_dim
-            )
+            )()
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
 
-        output_ncfile = _AccessNCFileInfo(
+        output_ncfile = _NCFileInfo(
             filename=file_path.name,
             path=file,
             file_id=file_id,
@@ -407,7 +412,7 @@ class AccessOm2Builder(BaseBuilder):
             if realm == "ice":
                 realm = "seaIce"
 
-            nc_info = cls.parse_access_ncfile(file)
+            nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
@@ -465,7 +470,7 @@ class AccessOm3Builder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
-            output_nc_info = cls.parse_access_ncfile(file)
+            output_nc_info = cls.parse_ncfile(file)
             ncinfo_dict = output_nc_info.to_dict()
 
             if "mom6" in ncinfo_dict["filename"]:
@@ -473,6 +478,77 @@ class AccessOm3Builder(BaseBuilder):
             elif "ww3" in ncinfo_dict["filename"]:
                 realm = "wave"
             elif "cice" in ncinfo_dict["filename"]:
+                realm = "seaIce"
+            else:
+                raise ParserError(f"Cannot determine realm for file {file}")
+            ncinfo_dict["realm"] = realm
+
+            return ncinfo_dict
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
+# FIXME refactor to be called Mom6Builder (TBC)
+class Mom6Builder(BaseBuilder):
+    """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
+
+    # FIXME should be able to make one super-pattern, but couldn't
+    # make it work with the ? selector after mom6_added_timestamp
+    # NOTE: Order here is important!
+    PATTERNS = [
+        rf"[^\.]*(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
+        rf"[^\.]*(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
+    ]
+    TIME_PARSER = GfdlTimeParser
+
+    def __init__(self, path):
+        """
+        Initialise a Mom6Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=1,
+            exclude_patterns=[
+                "*restart*",
+                "*MOM_IC.nc",
+                "*sea_ice_geometry.nc",
+                "*ocean_geometry.nc",
+                "*ocean.stats.nc",
+                "*Vertical_coordinate.nc",
+            ],
+            include_patterns=["*.nc"],
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file):
+        try:
+            output_nc_info = cls.parse_ncfile(file)
+            ncinfo_dict = output_nc_info.to_dict()
+
+            if "ocean" in ncinfo_dict["filename"]:
+                realm = "ocean"
+            elif "ice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
@@ -543,7 +619,7 @@ class AccessEsm15Builder(BaseBuilder):
 
             realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
 
-            nc_info = cls.parse_access_ncfile(file)
+            nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
             # Remove exp_id from file id so that members can be part of the same dataset
@@ -649,7 +725,7 @@ class MopperBuilder(BaseBuilder):
 
         # import pdb; pdb.set_trace()
 
-        ncinfo = cls.parse_access_ncfile(fpath)
+        ncinfo = cls.parse_ncfile(fpath)
         ncinfo_dict = ncinfo.to_dict()
 
         # Look for the additional to_selects we wish to explicitly extract
@@ -668,10 +744,10 @@ class MopperBuilder(BaseBuilder):
 
         return ncinfo_dict
 
-    # TODO work out if more appropriate to override parse_access_ncfile
+    # TODO work out if more appropriate to override parse_ncfile
     # FIXME self --> cls
     @classmethod
-    def parse_ncfile(self, fpath, exargs):
+    def parse_ncfile(self, fpath, exargs={}):
         """
         Get Intake-ESM datastore entry info from an ACCESS netcdf file
         CMOR has its own base date format, length depends on frequency
@@ -695,7 +771,7 @@ class MopperBuilder(BaseBuilder):
         # get format for dates based on dates lenght
         # dformat is the longest possible datetime format for cmor
         dformat = "%Y%m%d%H%M%S"
-        date_range = exargs.pop("date_range")  # FIXME proof against no value, use get
+        date_range = exargs.get("date_range", "")
         if date_range == "":
             start_date = "none"
             end_date = "none"
@@ -707,7 +783,7 @@ class MopperBuilder(BaseBuilder):
             te = datetime.strptime(te, cmor_format)
             end_date = te.strftime(time_format)
 
-        variable = exargs.pop("variable")  # FIXME proof against no value, use get
+        variable = exargs.get("variable", "")
         with xr.open_dataset(
             fpath,
             chunks={},
@@ -722,12 +798,12 @@ class MopperBuilder(BaseBuilder):
             variable_units = attrs.get("units", "unknown")
             tracking_id = ds.attrs.get("tracking_id", "unknown")
 
-        output_nc_info = _AccessNCFileInfo(
+        output_nc_info = _NCFileInfo(
             filename=Path(fpath).name,
             path=fpath,
             file_id=tracking_id,
             filename_timestamp=date_range,
-            frequency=exargs.pop("frequency"),  # FIXME proof against no value, use get
+            frequency=exargs.get("frequency", ""),
             start_date=start_date,
             end_date=end_date,
             variable=[variable],

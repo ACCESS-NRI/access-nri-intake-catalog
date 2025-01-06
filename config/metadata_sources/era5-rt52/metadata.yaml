@@ -285,19 +285,21 @@ version:
 contact: NCI
 email: help@nci.org.au
 created: 2020-08-28 
-reference: 
-- https://rmets.onlinelibrary.wiley.com/doi/10.1002/qj.3803
-- https://rmets.onlinelibrary.wiley.com/doi/10.1002/qj.4174
-- https://www.ecmwf.int/en/elibrary/81149-global-stratospheric-temperature-bias-and-other-stratospheric-aspects-era5-and
-- https://www.ecmwf.int/en/elibrary/19911-low-frequency-variability-and-trends-surface-air-temperature-and-humidity-era5-and
-- https://www.ecmwf.int/en/publications/search?searc_all_field=era5
+reference: >-
+  https://rmets.onlinelibrary.wiley.com/doi/10.1002/qj.3803
+  https://rmets.onlinelibrary.wiley.com/doi/10.1002/qj.4174
+  https://www.ecmwf.int/en/elibrary/81149-global-stratospheric-temperature-bias-and-other-stratospheric-aspects-era5-and
+  https://www.ecmwf.int/en/elibrary/19911-low-frequency-variability-and-trends-surface-air-temperature-and-humidity-era5-and
+  https://www.ecmwf.int/en/publications/search?searc_all_field=era5
 license: https://apps.ecmwf.int/datasets/licences/copernicus/
 url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f2836_1346_3774_9763
 parent_experiment: 
 related_experiments:
+- 
 notes: >-
  This dataset contains hourly and monthly averaged data, as well as monthly 
  data averaged by hour (eg January Mean, 00:00-01:00) and monthly data averaged by day
  (same format, different name convention, eg. January Mean, 00:00-01:00). era5-derived
  contains daily data.
 keywords:
+- 

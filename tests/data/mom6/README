@@ -1,0 +1,39 @@
+Generated using the following Python on NCI ARE:
+
+```
+import netCDF4
+import glob
+import os
+
+srcdir = "/g/data/ik11/outputs/mom6-om4-025/OM4_025.JRA_RYF/"
+destdir = "/home/120/mcw120/scratch/"
+
+targets = ["output000", "output001"]
+target_glob = "190*.nc"
+
+for target in targets:
+    srcglob = os.path.join(srcdir, target, target_glob)
+    srcfns = [os.path.basename(_) for _ in glob.glob(srcglob)]
+    for srcfn in srcfns:
+        with netCDF4.Dataset(os.path.join(srcdir, target, srcfn), "r") as old, netCDF4.Dataset(os.path.join(destdir, target, srcfn), "w") as new:
+            print(old.filepath())
+            print(new.filepath())
+            new.setncattr("file_format", old.file_format)
+            new.setncatts(old.__dict__)
+            # new.set_fill_off()
+            for name, dimension in old.dimensions.items():
+                if name == "nv":
+                        dimn = 2
+                elif not dimension.isunlimited():
+                    dimn = 1
+                else:
+                    dimn = dimension.size
+                new.createDimension(name, dimn)
+            for name, variable in old.variables.items():
+                x = new.createVariable(name, variable.datatype, variable.dimensions)
+                new[name].setncatts(old[name].__dict__)
+                if name == "time" or name == "nv":  # Need time-related data only
+                    new[name][:] = old[name][:]
+            print(">> Complete!")
+            print("--")
+```
