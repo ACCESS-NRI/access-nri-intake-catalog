@@ -243,6 +243,9 @@ class BaseBuilder(Builder):
         patterns: list[str] | None = None,
         frequencies: dict = FREQUENCIES,
         redaction_fill: str = "X",
+        redaction_groups: list[str] = [
+            TIMESTAMP_GROUP,
+        ],
     ) -> tuple[str, str | None, str | None]:
         """
         Parse an ACCESS model filename and return a file id and any time information
@@ -257,6 +260,9 @@ class BaseBuilder(Builder):
             A dictionary of regex patterns to match against the filename to determine the frequency
         redaction_fill: str, optional
             The character to replace time information with. Defaults to "X"
+        redaction_groups: list of str, optional
+            The pattern regexp groups to redact dates from (e.g., 1234-56-78 --> XXXX-XX-XX, where 'X' is the value
+            of `redaction_fill`). Defaults to `[TIMESTAMP_GROUP, ]`.
 
         Returns
         -------
@@ -285,12 +291,14 @@ class BaseBuilder(Builder):
             match = re.match(pattern, file_id)
             if match:
                 timestamp = match.group(TIMESTAMP_GROUP)
-                redaction = re.sub(r"\d", redaction_fill, timestamp)
-                file_id = (
-                    file_id[: match.start(TIMESTAMP_GROUP)]
-                    + redaction
-                    + file_id[match.end(TIMESTAMP_GROUP) :]
-                )
+                for grp in redaction_groups:
+                    if grp in match.groupdict().keys():
+                        redaction = re.sub(r"\d", redaction_fill, match.group(grp))
+                        file_id = (
+                            file_id[: match.start(grp)]
+                            + redaction
+                            + file_id[match.end(grp) :]
+                        )
                 break
 
         # Remove non-python characters from file ids
@@ -539,6 +547,23 @@ class Mom6Builder(BaseBuilder):
         )
 
         super().__init__(**kwargs)
+
+    @classmethod
+    def parse_filename(
+        cls,
+        filename,
+        patterns=None,
+        frequencies=FREQUENCIES,
+        redaction_fill="X",
+        redaction_groups=[TIMESTAMP_GROUP],
+    ):
+        return super().parse_filename(
+            filename,
+            patterns,
+            frequencies,
+            redaction_fill,
+            redaction_groups=[TIMESTAMP_GROUP, "mom6_added_timestamp"],
+        )
 
     @classmethod
     def parser(cls, file):
