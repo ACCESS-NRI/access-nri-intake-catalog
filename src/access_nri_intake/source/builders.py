@@ -246,7 +246,7 @@ class BaseBuilder(Builder):
         patterns: list[str] | None = None,
         frequencies: dict = FREQUENCIES,
         redaction_fill: str = "X",
-    ) -> tuple[str, str | None, str | None]:
+    ) -> tuple[str, str | None, str | None, dict | None]:
         """
         Parse an ACCESS model filename and return a file id and any time information
 
@@ -273,6 +273,9 @@ class BaseBuilder(Builder):
             A string of the redacted time information (e.g. "1990-01") if available, otherwise None
         frequency: str | None
             The frequency of the file if available in the filename, otherwise None
+        exargs: dict | None
+            The dictionary of named groups found in the filename regexp match. Includes the initial
+            values of any groups that have been redacted to create the `file_id`.
         """
         if patterns is None:
             patterns = cls.PATTERNS
@@ -287,6 +290,7 @@ class BaseBuilder(Builder):
         # Parse file id
         file_id = filename
         timestamp = None
+        exargs = None
         for pattern in patterns:
             match = re.match(pattern, file_id)
             if match:
@@ -299,13 +303,14 @@ class BaseBuilder(Builder):
                             + redaction
                             + file_id[match.end(grp) :]
                         )
+                exargs = match.groupdict()
                 break
 
         # Remove non-python characters from file ids
         file_id = re.sub(r"[-.]", "_", file_id)
         file_id = re.sub(r"_+", "_", file_id).strip("_")
 
-        return file_id, timestamp, frequency
+        return file_id, timestamp, frequency, exargs
 
     @classmethod
     def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
@@ -331,7 +336,7 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        file_id, filename_timestamp, filename_frequency = cls.parse_filename(
+        file_id, filename_timestamp, filename_frequency, _ = cls.parse_filename(
             file_path.stem
         )
 

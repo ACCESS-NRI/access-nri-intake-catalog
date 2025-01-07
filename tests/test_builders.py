@@ -322,92 +322,105 @@ def test_builder_columns_with_iterables(test_data):
         (
             builders.AccessCm2Builder,
             "bz687a.pm107912_mon",
-            ("bz687a_pmXXXXXX_mon", "107912", (1, "mon")),
+            ("bz687a_pmXXXXXX_mon", "107912", (1, "mon"), {"ts": "107912"}),
         ),
         (
             builders.AccessCm2Builder,
             "bz687a.p7107912_mon",
-            ("bz687a_p7XXXXXX_mon", "107912", (1, "mon")),
+            ("bz687a_p7XXXXXX_mon", "107912", (1, "mon"), {"ts": "107912"}),
         ),
         (
             builders.AccessCm2Builder,
             "bz687a.p7107912_dai",
-            ("bz687a_p7XXXXXX_dai", "107912", (1, "day")),
+            ("bz687a_p7XXXXXX_dai", "107912", (1, "day"), {"ts": "107912"}),
         ),
         (
             builders.AccessCm2Builder,
             "iceh_m.2014-06",
-            ("iceh_m_XXXX_XX", "2014-06", None),
+            ("iceh_m_XXXX_XX", "2014-06", None, {"ts": "2014-06"}),
         ),
         (
             builders.AccessCm2Builder,
             "iceh.1917-05-daily",
-            ("iceh_XXXX_XX_daily", "1917-05", (1, "day")),
+            ("iceh_XXXX_XX_daily", "1917-05", (1, "day"), {"ts": "1917-05"}),
         ),
         (
             builders.AccessCm2Builder,
             "iceh_03h.2016-01-3hourly",
-            ("iceh_03h_XXXX_XX_3hourly", "2016-01", None),
+            ("iceh_03h_XXXX_XX_3hourly", "2016-01", None, {"ts": "2016-01"}),
         ),
         (
             builders.AccessCm2Builder,
             "ocean_bgc_ann",
-            ("ocean_bgc_ann", None, (1, "yr")),
+            ("ocean_bgc_ann", None, (1, "yr"), None),
         ),
-        (builders.AccessCm2Builder, "ocean_daily", ("ocean_daily", None, (1, "day"))),
+        (
+            builders.AccessCm2Builder,
+            "ocean_daily",
+            ("ocean_daily", None, (1, "day"), None),
+        ),
         # Example ACCESS-ESM1.5 filenames
         (
             builders.AccessEsm15Builder,
             "PI-GWL-B2035.pe-109904_dai",
-            ("PI_GWL_B2035_pe_XXXXXX_dai", "109904", (1, "day")),
+            ("PI_GWL_B2035_pe_XXXXXX_dai", "109904", (1, "day"), {"ts": "109904"}),
         ),
         (
             builders.AccessEsm15Builder,
             "PI-GWL-B2035.pa-109904_mon",
-            ("PI_GWL_B2035_pa_XXXXXX_mon", "109904", (1, "mon")),
+            ("PI_GWL_B2035_pa_XXXXXX_mon", "109904", (1, "mon"), {"ts": "109904"}),
         ),
         (
             builders.AccessEsm15Builder,
             "PI-1pct-02.pe-011802_dai.nc_dai",
-            ("PI_1pct_02_pe_XXXXXX_dai_nc_dai", "011802", (1, "day")),
+            ("PI_1pct_02_pe_XXXXXX_dai_nc_dai", "011802", (1, "day"), {"ts": "011802"}),
         ),
         (
             builders.AccessEsm15Builder,
             "iceh.1917-05",
-            ("iceh_XXXX_XX", "1917-05", None),
+            ("iceh_XXXX_XX", "1917-05", None, {"ts": "1917-05"}),
         ),
         # Example ACCESS-OM2 filenames
         (
             builders.AccessOm2Builder,
             "iceh.057-daily",
-            ("iceh_XXX_daily", "057", (1, "day")),
+            ("iceh_XXX_daily", "057", (1, "day"), {"ts": "057"}),
         ),
         (
             builders.AccessOm2Builder,
             "iceh.1985-08-31",
-            ("iceh_XXXX_XX_XX", "1985-08-31", None),
+            ("iceh_XXXX_XX_XX", "1985-08-31", None, {"ts": "1985-08-31"}),
         ),
-        (builders.AccessOm2Builder, "ocean", ("ocean", None, None)),
-        (builders.AccessOm2Builder, "ocean_month", ("ocean_month", None, (1, "mon"))),
+        (builders.AccessOm2Builder, "ocean", ("ocean", None, None, None)),
+        (
+            builders.AccessOm2Builder,
+            "ocean_month",
+            ("ocean_month", None, (1, "mon"), None),
+        ),
         (
             builders.AccessOm2Builder,
             "ocean-2d-area_t",
-            ("ocean_2d_area_t", None, None),
+            ("ocean_2d_area_t", None, None, None),
         ),
         (
             builders.AccessOm2Builder,
             "ocean_daily_3d_pot_rho_1",
-            ("ocean_daily_3d_pot_rho_1", None, (1, "day")),
+            ("ocean_daily_3d_pot_rho_1", None, (1, "day"), None),
         ),
         (
             builders.AccessOm2Builder,
             "ocean_daily_3d_vhrho_nt_07",
-            ("ocean_daily_3d_vhrho_nt_XX", "07", (1, "day")),
+            ("ocean_daily_3d_vhrho_nt_XX", "07", (1, "day"), {"ts": "07"}),
         ),
         (
             builders.AccessOm2Builder,
             "ocean-3d-v-1-monthly-pow02-ym_1958_04",
-            ("ocean_3d_v_1_monthly_pow02_ym_XXXX_XX", "1958_04", (1, "mon")),
+            (
+                "ocean_3d_v_1_monthly_pow02_ym_XXXX_XX",
+                "1958_04",
+                (1, "mon"),
+                {"ts": "1958_04"},
+            ),
         ),
         (
             builders.AccessOm2Builder,
@@ -416,6 +429,7 @@ def test_builder_columns_with_iterables(test_data):
                 "ocean_2d_sfc_salt_flux_restore_1_monthly_mean_ym_XXXX_XX",
                 "1958_04",
                 (1, "mon"),
+                {"ts": "1958_04"},
             ),
         ),
         (
@@ -425,6 +439,7 @@ def test_builder_columns_with_iterables(test_data):
                 "ocean_2d_sea_level_540_seconds_snap_ym_XXXX_XX_XX",
                 "2022_04_01",
                 None,
+                {"ts": "2022_04_01"},
             ),
         ),
         (
@@ -434,17 +449,28 @@ def test_builder_columns_with_iterables(test_data):
                 "ocean_3d_salt_1_daily_mean_ym_XXXX_XX_jmax511_sigfig4",
                 "2018_10",
                 (1, "day"),
+                {"ts": "2018_10"},
             ),
         ),
         (
             builders.AccessOm2Builder,
             "oceanbgc-3d-caco3-1-yearly-mean-y_2015",
-            ("oceanbgc_3d_caco3_1_yearly_mean_y_XXXX", "2015", (1, "yr")),
+            (
+                "oceanbgc_3d_caco3_1_yearly_mean_y_XXXX",
+                "2015",
+                (1, "yr"),
+                {"ts": "2015"},
+            ),
         ),
         (
             builders.AccessOm2Builder,
             "oceanbgc-2d-wdet100-1-daily-mean-y_2015",
-            ("oceanbgc_2d_wdet100_1_daily_mean_y_XXXX", "2015", (1, "day")),
+            (
+                "oceanbgc_2d_wdet100_1_daily_mean_y_XXXX",
+                "2015",
+                (1, "day"),
+                {"ts": "2015"},
+            ),
         ),
         (
             builders.AccessOm2Builder,
@@ -453,12 +479,13 @@ def test_builder_columns_with_iterables(test_data):
                 "oceanbgc_3d_phy_1_daily_mean_3_sigfig_5_daily_ymd_XXXX_XX_XX",
                 "2020_12_01",
                 (1, "day"),
+                {"ts": "2020_12_01"},
             ),
         ),
         (
             builders.AccessOm2Builder,
             "rregionPrydz_temp_xflux_adv",
-            ("rregionPrydz_temp_xflux_adv", None, None),
+            ("rregionPrydz_temp_xflux_adv", None, None, None),
         ),
         # Example ACCESS-OM3 filenames
         (
@@ -468,6 +495,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_ww3_hi_XXXX_XX_XX_XXXXX",
                 "1958-01-02-00000",
                 None,
+                {"ts": "1958-01-02-00000"},
             ),
         ),
         (
@@ -477,6 +505,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_cice_h_XXXX_XX_XX",
                 "1900-01-01",
                 None,
+                {"ts": "1900-01-01"},
             ),
         ),
         (
@@ -486,6 +515,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_cice_h_XXXX_XX",
                 "1900-01",
                 None,
+                {"ts": "1900-01"},
             ),
         ),
         (
@@ -495,6 +525,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_cice_h_XXXX_XX_daily",
                 "1900-01",
                 (1, "day"),
+                {"ts": "1900-01"},
             ),
         ),
         (
@@ -504,6 +535,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_ocean_sfc_XXXX_XX_XX",
                 "1900_01_01",
                 None,
+                {"ts": "1900_01_01"},
             ),
         ),
         (
@@ -513,6 +545,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_sfc_XXXX_XX",
                 "1900_01",
                 None,
+                {"ts": "1900_01"},
             ),
         ),
         (
@@ -522,6 +555,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_sfc_XXXX",
                 "1900",
                 None,
+                {"ts": "1900"},
             ),
         ),
         (
@@ -531,6 +565,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_static",
                 None,
                 None,
+                None,
             ),
         ),
         (
@@ -538,6 +573,7 @@ def test_builder_columns_with_iterables(test_data):
             "access-om3.mom6.static",
             (
                 "access_om3_mom6_static",
+                None,
                 None,
                 None,
             ),
@@ -549,6 +585,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_3d_uh_1mon_mean_XXXX",
                 "1900",
                 (1, "mon"),
+                {"ts": "1900"},
             ),
         ),
         (
@@ -558,6 +595,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
                 "1900-01-01-00000",
                 (1, "mon"),
+                {"ts": "1900-01-01-00000"},
             ),
         ),
         (
@@ -567,6 +605,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
                 "1900-01",
                 (1, "mon"),
+                {"ts": "1900-01"},
             ),
         ),
         (
@@ -576,6 +615,7 @@ def test_builder_columns_with_iterables(test_data):
                 "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
                 "1900-01-03-00000",
                 None,
+                {"ts": "1900-01-03-00000"},
             ),
         ),
         (
@@ -585,6 +625,7 @@ def test_builder_columns_with_iterables(test_data):
                 "GMOM_JRA_WD_ww3_hi_XXXX",
                 "1900",
                 None,
+                {"ts": "1900"},
             ),
         ),
         (
@@ -594,6 +635,7 @@ def test_builder_columns_with_iterables(test_data):
                 "GMOM_JRA_WD_ww3_hi_XXXX_XX",
                 "1900-01",
                 None,
+                {"ts": "1900-01"},
             ),
         ),
         (
@@ -603,6 +645,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_3d_uh_1mon_mean_XXXX",
                 "1900",
                 (1, "mon"),
+                {"ts": "1900"},
             ),
         ),
         (
@@ -612,6 +655,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
                 "1900-01-01-00000",
                 (1, "mon"),
+                {"ts": "1900-01-01-00000"},
             ),
         ),
         (
@@ -621,6 +665,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
                 "1900-01",
                 (1, "mon"),
+                {"ts": "1900-01"},
             ),
         ),
         (
@@ -630,6 +675,7 @@ def test_builder_columns_with_iterables(test_data):
                 "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
                 "1900-01-03-00000",
                 None,
+                {"ts": "1900-01-03-00000"},
             ),
         ),
         (
@@ -639,6 +685,7 @@ def test_builder_columns_with_iterables(test_data):
                 "GMOM_JRA_WD_ww3_hi_XXXX",
                 "1900",
                 None,
+                {"ts": "1900"},
             ),
         ),
         (
@@ -648,6 +695,7 @@ def test_builder_columns_with_iterables(test_data):
                 "GMOM_JRA_WD_ww3_hi_XXXX_XX",
                 "1900-01",
                 None,
+                {"ts": "1900-01"},
             ),
         ),
         # MOM6
@@ -658,6 +706,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ice_daily",
                 "19000101",
                 (1, "day"),
+                {"ts": "19000101"},
             ),
         ),
         (
@@ -667,6 +716,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ice_month",
                 "19010101",
                 (1, "mon"),
+                {"ts": "19010101"},
             ),
         ),
         (
@@ -676,6 +726,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_annual_rho2",
                 "19010101",
                 (1, "yr"),
+                {"ts": "19010101"},
             ),
         ),
         (
@@ -685,6 +736,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_annual_z",
                 "19000101",
                 (1, "yr"),
+                {"ts": "19000101"},
             ),
         ),
         (
@@ -694,6 +746,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_annual",
                 "19000101",
                 (1, "yr"),
+                {"ts": "19000101"},
             ),
         ),
         (
@@ -703,6 +756,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_daily",
                 "19000101",
                 (1, "day"),
+                {"ts": "19000101"},
             ),
         ),
         (
@@ -712,6 +766,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_month_rho2",
                 "19010101",
                 (1, "mon"),
+                {"ts": "19010101"},
             ),
         ),
         (
@@ -721,6 +776,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_month_z",
                 "19000101",
                 (1, "mon"),
+                {"ts": "19000101"},
             ),
         ),
         (
@@ -730,6 +786,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_month",
                 "19000101",
                 (1, "mon"),
+                {"ts": "19000101"},
             ),
         ),
         (
@@ -739,6 +796,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_scalar_annual",
                 "19000101",
                 (1, "yr"),
+                {"ts": "19000101"},
             ),
         ),
         (
@@ -748,6 +806,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_scalar_month",
                 "19010101",
                 (1, "mon"),
+                {"ts": "19010101"},
             ),
         ),
         (
@@ -757,6 +816,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_static",
                 "19010101",
                 None,
+                {"ts": "19010101"},
             ),
         ),
         (
@@ -766,6 +826,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_daily_XXXX_XXX",
                 "20000201",
                 (1, "day"),
+                {"ts": "20000201", "mom6_added_timestamp": "2000_032"},
             ),
         ),
         (
@@ -775,6 +836,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
                 "20000201",
                 (1, "day"),
+                {"ts": "20000201", "mom6_added_timestamp": "2000_056"},
             ),
         ),
         (
@@ -784,6 +846,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_daily_z_XXXX_XXX",
                 "20000201",
                 (1, "day"),
+                {"ts": "20000201", "mom6_added_timestamp": "2000_119"},
             ),
         ),
     ],
@@ -792,6 +855,7 @@ def test_parse_filename(builder, filename, expected):
     assert builder.parse_filename(filename) == expected
 
 
+# FIXME update test data for exargs output
 @pytest.mark.parametrize(
     "compare_files",
     [
