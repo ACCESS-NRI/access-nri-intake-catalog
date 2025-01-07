@@ -352,12 +352,12 @@ def test_builder_columns_with_iterables(test_data):
         (
             builders.AccessCm2Builder,
             "ocean_bgc_ann",
-            ("ocean_bgc_ann", None, (1, "yr"), None),
+            ("ocean_bgc_ann", None, (1, "yr"), {}),
         ),
         (
             builders.AccessCm2Builder,
             "ocean_daily",
-            ("ocean_daily", None, (1, "day"), None),
+            ("ocean_daily", None, (1, "day"), {}),
         ),
         # Example ACCESS-ESM1.5 filenames
         (
@@ -391,21 +391,21 @@ def test_builder_columns_with_iterables(test_data):
             "iceh.1985-08-31",
             ("iceh_XXXX_XX_XX", "1985-08-31", None, {"ts": "1985-08-31"}),
         ),
-        (builders.AccessOm2Builder, "ocean", ("ocean", None, None, None)),
+        (builders.AccessOm2Builder, "ocean", ("ocean", None, None, {})),
         (
             builders.AccessOm2Builder,
             "ocean_month",
-            ("ocean_month", None, (1, "mon"), None),
+            ("ocean_month", None, (1, "mon"), {}),
         ),
         (
             builders.AccessOm2Builder,
             "ocean-2d-area_t",
-            ("ocean_2d_area_t", None, None, None),
+            ("ocean_2d_area_t", None, None, {}),
         ),
         (
             builders.AccessOm2Builder,
             "ocean_daily_3d_pot_rho_1",
-            ("ocean_daily_3d_pot_rho_1", None, (1, "day"), None),
+            ("ocean_daily_3d_pot_rho_1", None, (1, "day"), {}),
         ),
         (
             builders.AccessOm2Builder,
@@ -485,7 +485,7 @@ def test_builder_columns_with_iterables(test_data):
         (
             builders.AccessOm2Builder,
             "rregionPrydz_temp_xflux_adv",
-            ("rregionPrydz_temp_xflux_adv", None, None, None),
+            ("rregionPrydz_temp_xflux_adv", None, None, {}),
         ),
         # Example ACCESS-OM3 filenames
         (
@@ -565,7 +565,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_static",
                 None,
                 None,
-                None,
+                {},
             ),
         ),
         (
@@ -575,7 +575,7 @@ def test_builder_columns_with_iterables(test_data):
                 "access_om3_mom6_static",
                 None,
                 None,
-                None,
+                {},
             ),
         ),
         (
