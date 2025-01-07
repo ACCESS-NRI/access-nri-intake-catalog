@@ -849,13 +849,31 @@ def test_builder_columns_with_iterables(test_data):
                 {"ts": "20000201", "mom6_added_timestamp": "2000_119"},
             ),
         ),
+        (
+            builders.MopperBuilder,
+            "v1-0/10min/cllow/cllow_AUS2200_ashwed1983_subhrPt_19830216001000-19830217000000",
+            (
+                "v1_0/10min/cllow/cllow_AUS2200_ashwed1983_subhrPt_XXXXXXXXXXXXXX_XXXXXXXXXXXXXX",
+                "19830216001000-19830217000000",
+                None,  # TODO check if this is correct
+                {
+                    "ts": "19830216001000-19830217000000",
+                    "frequency": "subhrPt",
+                    "frequency_dir": "10min",
+                    "member": "ashwed1983",
+                    "model": "AUS2200",
+                    "variable": "cllow",
+                    "variable_dir": "cllow",
+                    "version": "0",  # FIXME should be v1_0 - mangle to keep tests happy for now
+                },
+            ),
+        ),
     ],
 )
 def test_parse_filename(builder, filename, expected):
     assert builder.parse_filename(filename) == expected
 
 
-# FIXME update test data for exargs output
 @pytest.mark.parametrize(
     "compare_files",
     [

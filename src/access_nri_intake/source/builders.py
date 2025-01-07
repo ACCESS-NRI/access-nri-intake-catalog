@@ -670,6 +670,7 @@ class MopperBuilder(BaseBuilder):
 
     # Using os.path.join and .replace makes the pattern more human-readable,
     # and avoids any cross-OS problems
+    # FIXME losing version number (v1_0 comes out as 0)
     PATTERNS = [
         (
             (
