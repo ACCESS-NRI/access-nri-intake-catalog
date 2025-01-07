@@ -75,6 +75,9 @@
                     "pattern": "^subhr$"
                 },
                 {
+                    "pattern": "^subhrPt$"
+                },
+                {
                     "pattern": "^\\d+hr$"
                 },
                 {
