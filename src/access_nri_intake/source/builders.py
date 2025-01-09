@@ -7,7 +7,6 @@ import multiprocessing
 import os
 import re
 import traceback
-from datetime import datetime
 from pathlib import Path
 
 import xarray as xr
@@ -792,21 +791,21 @@ class MopperBuilder(BaseBuilder):
             cls._get_relevant_filepath(file_path)
         )
 
-        time_format = "%Y-%m-%d, %H:%M:%S"
-        # get format for dates based on dates lenght
-        # dformat is the longest possible datetime format for cmor
-        dformat = "%Y%m%d%H%M%S"
-        date_range = exargs.get("date_range", None)
-        if date_range is None:
-            start_date = "none"
-            end_date = "none"
-        else:
-            ts, te = date_range.split("-")
-            cmor_format = dformat[: (len(ts) - 2)]
-            ts = datetime.strptime(ts, cmor_format)
-            start_date = ts.strftime(time_format)
-            te = datetime.strptime(te, cmor_format)
-            end_date = te.strftime(time_format)
+        # time_format = "%Y-%m-%d, %H:%M:%S"
+        # # get format for dates based on dates lenght
+        # # dformat is the longest possible datetime format for cmor
+        # dformat = "%Y%m%d%H%M%S"
+        # date_range = exargs.get("date_range", None)
+        # if date_range is None:
+        #     start_date = "none"
+        #     end_date = "none"
+        # else:
+        #     ts, te = date_range.split("-")
+        #     cmor_format = dformat[: (len(ts) - 2)]
+        #     ts = datetime.strptime(ts, cmor_format)
+        #     start_date = ts.strftime(time_format)
+        #     te = datetime.strptime(te, cmor_format)
+        #     end_date = te.strftime(time_format)
 
         variable = exargs.get("variable", None)
         if variable is None:
@@ -824,13 +823,16 @@ class MopperBuilder(BaseBuilder):
             variable_cell_methods = attrs.get("cell_methods", "unknown")
             variable_units = attrs.get("units", "unknown")
             # tracking_id = ds.attrs.get("tracking_id", "unknown")
+            start_date, end_date, frequency = cls.TIME_PARSER(
+                ds, filename_frequency, time_dim
+            )()
 
         output_nc_info = _NCFileInfo(
             filename=Path(file).name,
             path=file,
             file_id=file_id,
-            filename_timestamp=date_range,
-            frequency=exargs.get("frequency", ""),
+            filename_timestamp=filename_timestamp,
+            frequency=frequency,
             start_date=start_date,
             end_date=end_date,
             variable=[variable],
