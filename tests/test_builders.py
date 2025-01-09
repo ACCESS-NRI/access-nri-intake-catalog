@@ -2587,7 +2587,7 @@ def test_parse_filename(builder, filename, expected):
         ),
     ],
 )
-def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
+def test_parse_ncfile(test_data, builder, filename, expected, compare_files):
     """
     Tests for correctness of parser. Note that if we are using intake-esm without
     coordinate discovery enabled, the `conftest.py` fixture will dynamically set
