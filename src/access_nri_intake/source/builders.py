@@ -336,7 +336,7 @@ class BaseBuilder(Builder):
         file_path = Path(file)
 
         file_id, filename_timestamp, filename_frequency, _ = cls.parse_filename(
-            file_path.stem
+            cls._get_relevant_filepath(file_path)
         )
 
         with xr.open_dataset(
@@ -760,86 +760,3 @@ class MopperBuilder(BaseBuilder):
             ncinfo_dict["realm"] = "unknown"
 
         return ncinfo_dict
-
-    # TODO work out if more appropriate to override parse_ncfile
-    # FIXME self --> cls
-    @classmethod
-    def parse_ncfile(cls, file: str, time_dim: str = "time"):
-        """
-        Get Intake-ESM datastore entry info from an ACCESS netcdf file
-        CMOR has its own base date format, length depends on frequency
-
-        Parameters
-        ----------
-        fpath: str
-            The path to the netcdf file
-        exargs: dict
-            Stores extra arguments as frequency, date_range, variable etc, derived from fpattern
-
-        Returns
-        -------
-        output_nc_info: _AccessNCFileInfo
-            A dataclass containing the information parsed from the file
-        exargs: dict
-            Stores extra arguments as frequency, date_range, variable etc, derived from fpattern
-
-        """
-
-        file_path = Path(file)
-
-        file_id, filename_timestamp, filename_frequency, exargs = cls.parse_filename(
-            cls._get_relevant_filepath(file_path)
-        )
-
-        # time_format = "%Y-%m-%d, %H:%M:%S"
-        # # get format for dates based on dates lenght
-        # # dformat is the longest possible datetime format for cmor
-        # dformat = "%Y%m%d%H%M%S"
-        # date_range = exargs.get("date_range", None)
-        # if date_range is None:
-        #     start_date = "none"
-        #     end_date = "none"
-        # else:
-        #     ts, te = date_range.split("-")
-        #     cmor_format = dformat[: (len(ts) - 2)]
-        #     ts = datetime.strptime(ts, cmor_format)
-        #     start_date = ts.strftime(time_format)
-        #     te = datetime.strptime(te, cmor_format)
-        #     end_date = te.strftime(time_format)
-
-        variable = exargs.get("variable", None)
-        if variable is None:
-            raise RuntimeError(f"Unable to parse variable name from {file}")
-        with xr.open_dataset(
-            file,
-            chunks={},
-            decode_cf=False,
-            decode_times=False,
-            decode_coords=False,
-        ) as ds:
-            attrs = ds[variable].attrs
-            variable_long_name = attrs.get("long_name", "unknown")
-            variable_standard_name = attrs.get("standard_name", "unknown")
-            variable_cell_methods = attrs.get("cell_methods", "unknown")
-            variable_units = attrs.get("units", "unknown")
-            # tracking_id = ds.attrs.get("tracking_id", "unknown")
-            start_date, end_date, frequency = cls.TIME_PARSER(
-                ds, filename_frequency, time_dim
-            )()
-
-        output_nc_info = _NCFileInfo(
-            filename=Path(file).name,
-            path=file,
-            file_id=file_id,
-            filename_timestamp=filename_timestamp,
-            frequency=frequency,
-            start_date=start_date,
-            end_date=end_date,
-            variable=[variable],
-            variable_long_name=[variable_long_name],
-            variable_standard_name=[variable_standard_name],
-            variable_units=[variable_units],
-            variable_cell_methods=[variable_cell_methods],
-        )
-
-        return output_nc_info
