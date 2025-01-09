@@ -1,12 +1,13 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog """
+"""Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
-import os
+from pathlib import Path
 
 import intake
-from intake_dataframe_catalog.core import DfFileCatalog
+from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
+from pandas.errors import EmptyDataError
 
 from ..utils import validate_against_schema
 from . import (
@@ -22,6 +23,7 @@ from .translators import DefaultTranslator
 
 class CatalogManagerError(Exception):
     "Generic Exception for the CatalogManager class"
+
     pass
 
 
@@ -30,7 +32,7 @@ class CatalogManager:
     Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
-    def __init__(self, path):
+    def __init__(self, path: Path | str):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog like the ACCESS-NRI catalog
@@ -40,32 +42,36 @@ class CatalogManager:
         path: str
             The path to the intake-dataframe-catalog
         """
+        path = Path(path)
 
-        self.path = path
+        self.path = str(path)
 
-        self.mode = "a" if os.path.exists(path) else "w"
+        self.mode = "a" if path.exists() else "w"
 
-        self.dfcat = DfFileCatalog(
-            path=self.path,
-            yaml_column=YAML_COLUMN,
-            name_column=NAME_COLUMN,
-            mode=self.mode,
-            columns_with_iterables=COLUMNS_WITH_ITERABLES,
-        )
+        try:
+            self.dfcat = DfFileCatalog(
+                path=self.path,
+                yaml_column=YAML_COLUMN,
+                name_column=NAME_COLUMN,
+                mode=self.mode,
+                columns_with_iterables=COLUMNS_WITH_ITERABLES,
+            )
+        except (EmptyDataError, DfFileCatalogError) as e:
+            raise Exception(str(e) + f": {self.path}") from e
 
         self.source = None
         self.source_metadata = None
 
     def build_esm(
         self,
-        name,
-        description,
+        name: str,
+        description: str,
         builder,
-        path,
+        path: str | list[str],
         translator=DefaultTranslator,
-        metadata=None,
-        directory=None,
-        overwrite=False,
+        metadata: dict | None = None,
+        directory: str | None = None,
+        overwrite: bool = False,
         **kwargs,
     ):
         """
@@ -99,8 +105,8 @@ class CatalogManager:
         metadata = metadata or {}
         directory = directory or ""
 
-        json_file = os.path.abspath(f"{os.path.join(directory, name)}.json")
-        if os.path.isfile(json_file):
+        json_file = (Path(directory) / f"{name}.json").absolute()
+        if json_file.is_file():
             if not overwrite:
                 raise CatalogManagerError(
                     f"An Intake-ESM datastore already exists for {name}. To overwrite, "
@@ -124,12 +130,12 @@ class CatalogManager:
 
     def load(
         self,
-        name,
-        description,
-        path,
-        driver="esm_datastore",
+        name: str,
+        description: str,
+        path: str,
+        driver: str = "esm_datastore",
         translator=DefaultTranslator,
-        metadata=None,
+        metadata: dict | None = None,
         **kwargs,
     ):
         """
@@ -197,7 +203,20 @@ class CatalogManager:
 
         overwrite = True
         for _, row in self.source_metadata.iterrows():
-            self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
+            try:
+                self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
+            except DfFileCatalogError as exc:
+                # If we have 'iterable metadata' in the error message, it likely relates to
+                # issues discussed at https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/223,
+                # so if the error message contains 'iterable metadata', we wrap the error with some
+                # additional information about catalog issues and then raise
+                if "iterable metadata" in str(exc):
+                    raise CatalogManagerError(
+                        f"Error adding source '{name}' to the catalog due to iterable metadata issues. "
+                        " See https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/223: likely"
+                        " due to issues with 'model' column in the catalog"
+                    ) from exc
+                raise CatalogManagerError(exc)
             overwrite = False
 
     def save(self, **kwargs):

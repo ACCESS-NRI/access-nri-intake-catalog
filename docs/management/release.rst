@@ -1,34 +1,13 @@
 .. _release:
 
-Preparing a new release
-^^^^^^^^^^^^^^^^^^^^^^^
+Releases
+########
+
+Preparing a new code release
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 New releases of access-nri-intake to PyPI and conda are published automatically when a tag is pushed to Github. A new release may 
-or may not include an update to the ACCESS-NRI catalog files on Gadi and associated 
-`data sub-package <https://intake.readthedocs.io/en/latest/data-packages.html>`_ :code:`access_nri_intake.data`. If it does, the 
-person doing the release must ensure that the version of the new catalog matches the version of the new release by carefully 
-following all steps below. Steps 1 and 2 below should be done in a PR and merged before commencing step 3. If the release does 
-not include an update to the catalog on Gadi, skip the first two steps below:
-
-#. [IF UPDATING THE CATALOG] Create a new version of the catalog on Gadi (this will take about 1 hour)::
-
-     $ export RELEASE=vX.X.X
-     $ cd bin
-     $ qsub -v version=${RELEASE} build_all.sh
-
-   .. note:: 
-      If the `schema <https://github.com/ACCESS-NRI/schema>`_ has changed, or you have not used the intake catalog recently, this step may fail with a *Network is unreachable* error trying to download the schema json files. To download and cache the schema, first import the :code:`access_nri_intake.source` and :code:`access_nri_intake.catalog` sub-packages from a Gadi node with network access (e.g. a login or ARE node). I.e., using the release version of :code:`access_nri_intake`::
-
-        $ python3 -c "from access_nri_intake import source, catalog"
-      
-      This will cache a copy of the schema in your home directory. Then re-run ``$ qsub -v version=${RELEASE} build_all.sh``
-    
-#. [IF UPDATING THE CATALOG] Upon successful completion of the previous step, the :code:`access_nri_intake` data package module 
-   will be updated to point at the new version just created. Commit this update::
-   
-      $ cd ../
-      $ git add src/access_nri_intake/cat
-      $ git commit "Update catalog to $RELEASE"
+or may not include an update to the ACCESS-NRI catalog files on Gadi.
 
 #. Go to https://github.com/ACCESS-NRI/access-nri-intake-catalog
 
@@ -36,12 +15,54 @@ not include an update to the catalog on Gadi, skip the first two steps below:
 
 #. Enter the new version (vX.X.X) as the tag and release title. Add a brief description of the release.
 
+   .. note::
+
+      It is recommended to attempt a beta release before committing to a major code update.
+      In this case, the version number requires an ordinal after the :code:`b`, e.g., :code:`vYYYY-MM-DDb0`. If the
+      ordinal isn't provided, the GitHub PyPI build action will append one, which breaks the linkage
+      between the PyPI and Conda build actions.
+
 #. Click on "Publish release". This should create the release on GitHub and trigger the workflow that builds and uploads 
    the new version to PyPI and conda
 
-Alternatively (though discouraged), one can trigger the new release from the command line. Replace steps 3 onwards with::
+Alternatively (though discouraged), one can trigger the new release from the command line::
 
+    $ export RELEASE=vX.X.X
     $ git fetch --all --tags
     $ git commit --allow-empty -m "Release $RELEASE"
     $ git tag -a $RELEASE -m "Version $RELEASE"
     $ git push --tags
+
+Generating a new catalog version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+#. Create a new version of the catalog on Gadi (this will take about 1 hour)::
+
+     $ export RELEASE=vYYYY-MM-DD
+     $ cd bin
+     $ qsub -v version=${RELEASE} build_all.sh
+
+   .. note::
+      Running the build script requires access to an up-to-date checkout of the :code:`access-nri-intake-catalog`
+      repository. The default location for this is :code:`/g/data/xp65/admin/access-nri-intake-catalog`. If you do 
+      not have the ability to update this checkout, you may use a local one; however, you will need to update
+      the :code:`CONFIG_DIR` variable in :code:`bin/build_all.sh` to point at your checkout location.
+
+   .. note:: 
+      If :code:`version` is not provided, the default used is the current date, in the format :code:`vYYYY-MM-DD`. This should 
+      be acceptable in most cases.
+    
+#. Updating :code:`access_nri_intake_catalog` is no longer necessary - the new catalog will be available immediately as 
+   :code:`intake.cat.access_nri`.
+
+
+New release with new catalog
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In the case of a linked release of a new major :code:`access-nri-intake-catalog` and a new catalog 
+build, the recommened process is:
+
+#. Create a beta release of :code:`access-nri-intake-catalog`;
+#. Use the beta release to build a new catalog;
+#. Iterate over the above steps until the desired result is achieved;
+#. Make a definitive code release.

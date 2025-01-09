@@ -2,6 +2,9 @@
 ACCESS-NRI Intake Catalog
 =========================
 
+.. image:: https://zenodo.org/badge/620085541.svg
+  :target: https://doi.org/10.5281/zenodo.8388384
+
 **Tools and configuration info used to manage ACCESS-NRI's intake catalog**
 
 Read the `documentation here <https://access-nri-intake-catalog.readthedocs.io/en/latest/index.html>`_. 

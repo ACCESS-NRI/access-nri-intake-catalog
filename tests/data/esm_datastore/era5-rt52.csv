@@ -1,0 +1,6 @@
+path,file_type,product,variable,stream,levtype,time_range
+/g/data/rt52/era5/single-levels/monthly-averaged/stl1/2011/stl1_era5_moda_sfc_20110601-20110630.nc,f,era5-monthly-averaged,stl1,moda,sfc,20110601-20110630
+/g/data/rt52/era5/single-levels/reanalysis/flsr/1986/flsr_era5_oper_sfc_19860901-19860930.nc,f,era5-reanalysis,flsr,oper,sfc,19860901-19860930
+/g/data/rt52/era5/single-levels/monthly-averaged-by-hour/tco3/1988/tco3_era5_mnth_sfc_19880501-19880531.nc,f,era5-monthly-averaged-by-hour,tco3,mnth,sfc,19880501-19880531
+/g/data/rt52/era5-derived/cems/v3-1/oper/erc/erc_era5_cems_v3-1_oper_19820501-19820531.nc,f,era5-derived-cems-v3-1,erc,oper,na,19820501-19820531
+/g/data/rt52/era5-preliminary/single-levels/monthly-averaged/tco3/1954/tco3_era5_moda_sfc_19540901-19540930.nc,f,era5-preliminary-monthly-averaged,tco3,moda,sfc,19540901-19540930

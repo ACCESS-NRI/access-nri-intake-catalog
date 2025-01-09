@@ -1,0 +1,38 @@
+contact: Ryan Holmes
+email: ryan.holmes@unsw.edu.au
+created: 2020-02-01
+name: 1deg_jra55_ryf9091_gadi
+model:
+  - ACCESS-OM2
+nominal_resolution:
+  - 1 degree
+version: 1
+description: >-
+  1 degree ACCESS-OM2 physics-only global configuration with JRA55-do
+  v1.3 RYF9091 repeat year forcing (May 1990 to Apr 1991)
+long_description: >-
+  1 degree ACCESS-OM2 global model configuration under 1990-1991
+  repeat year forcing. 780-year spinup run ideal for use as a control
+  run for perturbations. Updated configuration with many improvements
+  from the original GMD configuration. Run exclusively on Gadi. (The
+  last 260 years of the run include monthly outputs of 3D temperature
+  field.)
+notes: >-
+  output051 also contains extra diagnostic output for closing
+  the heat budget in both Eulerian model coordinates (ocean_heat.nc)
+  and in temperature coordinates (ocean_wmass.nc). This includes
+  snapshots of the temperature and grid-cell thicknesses
+  (ocean_snap.nc). If you have any questions about using this output
+  please contact Ryan.
+reference: null
+license: null
+url: null
+parent_experiment: null
+related_experiments:
+  - null
+keywords:
+  - one
+  - cosima
+  - access-om2-1
+  - jra55-do-v1.3.0
+  - ryf
