@@ -2552,6 +2552,39 @@ def test_parse_filename(builder, filename, expected):
                 ],
             ),
         ),
+        (
+            builders.MopperBuilder,
+            "access-mopper/ashwed83/v1-0/10min/cllow/cllow_AUS2200_ashwed1983_subhrPt_19830216001000-19830217000000.nc",
+            _NCFileInfo(
+                filename="cllow_AUS2200_ashwed1983_subhrPt_19830216001000-19830217000000.nc",
+                file_id="v1_0/10min/cllow/cllow_AUS2200_ashwed1983_subhrPt_XXXXXXXXXXXXXX_XXXXXXXXXXXXXX",
+                path=None,  # type: ignore
+                filename_timestamp="19830216001000-19830217000000",
+                frequency="subhr",
+                start_date="1983-02-16, 00:10:00",
+                end_date="1983-02-17, 00:00:00",
+                variable=["time", "lon", "lat", "cllow"],
+                variable_long_name=[
+                    "time",
+                    "Longitude",
+                    "Latitude",
+                    "Low Cloud Amount",
+                ],
+                variable_standard_name=[
+                    "time",
+                    "longitude",
+                    "latitude",
+                    "low_type_cloud_area_fraction",
+                ],
+                variable_cell_methods=["", "", "", "area: time: point"],
+                variable_units=[
+                    "days since 1970-01-01",
+                    "degrees_east",
+                    "degrees_north",
+                    "1",
+                ],
+            ),
+        ),
     ],
 )
 def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
