@@ -125,7 +125,7 @@ from access_nri_intake.source.utils import (
         ),
     ],
 )
-def test_get_timeinfo(times, bounds, ffreq, expected):
+def test_genericparser_get_timeinfo(times, bounds, ffreq, expected):
     if bounds:
         time = (times[0] + times[1]) / 2
         ds = xr.Dataset(
