@@ -202,6 +202,7 @@ def build(argv: Sequence[str] | None = None):
         )
 
     # Create the build directories
+    # TODO atomize this block
     build_base_path = Path(build_base_path).absolute()
     build_path = Path(build_base_path) / version / "source"
     metacatalog_path = Path(build_base_path) / version / catalog_file
@@ -217,6 +218,7 @@ def build(argv: Sequence[str] | None = None):
         return match.groups()[0] if match else None
 
     project = set()
+    # TODO atomize this loop so that individual failures won't derail the whole build
     for method, src_args in parsed_sources:
         if method == "load":
             # This is a hack but I don't know how else to get the storage from pre-built datastores
@@ -229,11 +231,14 @@ def build(argv: Sequence[str] | None = None):
 
     # Build the catalog
     cm = CatalogManager(path=metacatalog_path)
+    # TODO atomize this loop to avoid individual failures killing the build
     for method, src_args in parsed_sources:
         logger.info(f"Adding '{src_args['name']}' to metacatalog '{metacatalog_path}'")
         getattr(cm, method)(**src_args)
 
     # Write catalog yaml file
+    # TODO atomize this block into a helper function
+    # Should fail LOUD
     cat = cm.dfcat
     cat.name = "access_nri"
     cat.description = "ACCESS-NRI intake catalog"
@@ -254,6 +259,7 @@ def build(argv: Sequence[str] | None = None):
     # Save the catalog
     cm.save()
 
+    # TODO atomize this away into a helper function
     if update:
         cat_loc = get_catalog_fp(basepath=catalog_base_path)
         existing_cat = Path(cat_loc).exists()
