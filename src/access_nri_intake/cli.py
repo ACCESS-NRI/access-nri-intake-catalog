@@ -107,6 +107,29 @@ def _check_build_args(args_list: list[dict]) -> None:
         )
 
 
+def _create_build_directory(
+    build_base_path: str | Path, version: str, catalog_file: str
+) -> tuple[Path, Path, Path]:
+    """
+    Build the location for the new catalog
+
+    Parameters
+    ----------
+    base_build_path : str | Path
+        Base path for catalog directories.
+    version : str
+        New catalog version
+    catalog_file : str
+        Catalog file name
+    """
+    build_base_path = Path(build_base_path).absolute()
+    build_path = Path(build_base_path) / version / "source"
+    metacatalog_path = Path(build_base_path) / version / catalog_file
+    Path(build_path).mkdir(parents=True, exist_ok=True)
+
+    return build_base_path, build_path, metacatalog_path
+
+
 def build(argv: Sequence[str] | None = None):
     """
     Build an intake-dataframe-catalog from YAML configuration file(s).
@@ -203,10 +226,14 @@ def build(argv: Sequence[str] | None = None):
 
     # Create the build directories
     # TODO atomize this block
-    build_base_path = Path(build_base_path).absolute()
-    build_path = Path(build_base_path) / version / "source"
-    metacatalog_path = Path(build_base_path) / version / catalog_file
-    Path(build_path).mkdir(parents=True, exist_ok=True)
+    try:
+        build_base_path, build_path, metacatalog_path = _create_build_directory(
+            build_base_path, version, catalog_file
+        )
+    except PermissionError:
+        raise PermissionError(
+            f"You lack the necessary permissions to create a catalog at {build_path}"
+        )
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
