@@ -168,6 +168,38 @@ def _get_project(paths: list[str], method: str | None = None):
     return project
 
 
+def _write_catalog_yaml(
+    cm: CatalogManager,
+    build_base_path: str | Path,
+    storage_flags: str,
+    catalog_file: str,
+    version: str,
+) -> dict:
+    """
+    Write the catalog details out to YAML.
+    """
+    cat = cm.dfcat
+    cat.name = "access_nri"
+    cat.description = "ACCESS-NRI intake catalog"
+    yaml_dict = yaml.safe_load(cat.yaml())
+
+    yaml_dict["sources"]["access_nri"]["args"]["path"] = str(
+        Path(build_base_path) / "{{version}}" / catalog_file
+    )
+    yaml_dict["sources"]["access_nri"]["args"]["mode"] = "r"
+    yaml_dict["sources"]["access_nri"]["metadata"] = {
+        "version": "{{version}}",
+        "storage": storage_flags,
+    }
+    yaml_dict["sources"]["access_nri"]["parameters"] = {
+        "version": {"description": "Catalog version", "type": "str", "default": version}
+    }
+
+    # Save the catalog
+    cm.save()
+    return yaml_dict
+
+
 def build(argv: Sequence[str] | None = None):
     """
     Build an intake-dataframe-catalog from YAML configuration file(s).
@@ -312,27 +344,13 @@ def build(argv: Sequence[str] | None = None):
         _add_source_to_catalog(cm, method, src_args, metacatalog_path, logger=logger)
 
     # Write catalog yaml file
-    # TODO atomize this block into a helper function
     # Should fail LOUD
-    cat = cm.dfcat
-    cat.name = "access_nri"
-    cat.description = "ACCESS-NRI intake catalog"
-    yaml_dict = yaml.safe_load(cat.yaml())
-
-    yaml_dict["sources"]["access_nri"]["args"]["path"] = str(
-        Path(build_base_path) / "{{version}}" / catalog_file
-    )
-    yaml_dict["sources"]["access_nri"]["args"]["mode"] = "r"
-    yaml_dict["sources"]["access_nri"]["metadata"] = {
-        "version": "{{version}}",
-        "storage": storage_flags,
-    }
-    yaml_dict["sources"]["access_nri"]["parameters"] = {
-        "version": {"description": "Catalog version", "type": "str", "default": version}
-    }
-
-    # Save the catalog
-    cm.save()
+    try:
+        yaml_dict = _write_catalog_yaml(
+            cm, build_base_path, storage_flags, catalog_file, version
+        )
+    except Exception as e:
+        raise RuntimeError(f"Catalog save failed: {str(e)}")
 
     # TODO atomize this away into a helper function
     if update:
