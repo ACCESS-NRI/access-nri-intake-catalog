@@ -108,7 +108,24 @@ def _check_build_args(args_list: list[dict]) -> None:
         )
 
 
-# def _compile_project_set(method, src_args):
+def _add_source_to_catalog(
+    cm: CatalogManager,
+    method: str,
+    src_args: dict,
+    metacatalog_path: str | Path,
+    logger: logging.Logger | None,
+):
+    """
+    Add an experiment to the catalog.
+    """
+    if logger is not None:
+        logger.info(f"Adding '{src_args['name']}' to metacatalog '{metacatalog_path}'")
+    try:
+        getattr(cm, method)(**src_args)
+    except Exception as e:  # actually valid for once - it may raise naked Exceptions
+        warnings.warn(
+            f"Unable to add {src_args['name']} to catalog - continuing\n({str(e)})"
+        )
 
 
 def _parse_build_directory(
@@ -291,10 +308,8 @@ def build(argv: Sequence[str] | None = None):
 
     # Build the catalog
     cm = CatalogManager(path=metacatalog_path)
-    # TODO atomize this loop to avoid individual failures killing the build
     for method, src_args in parsed_sources:
-        logger.info(f"Adding '{src_args['name']}' to metacatalog '{metacatalog_path}'")
-        getattr(cm, method)(**src_args)
+        _add_source_to_catalog(cm, method, src_args, metacatalog_path, logger=logger)
 
     # Write catalog yaml file
     # TODO atomize this block into a helper function
