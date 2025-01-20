@@ -7,6 +7,7 @@ import argparse
 import datetime
 import logging
 import re
+import warnings
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -107,6 +108,9 @@ def _check_build_args(args_list: list[dict]) -> None:
         )
 
 
+# def _compile_project_set(method, src_args):
+
+
 def _create_build_directory(
     build_base_path: str | Path, version: str, catalog_file: str
 ) -> tuple[Path, Path, Path]:
@@ -128,6 +132,24 @@ def _create_build_directory(
     Path(build_path).mkdir(parents=True, exist_ok=True)
 
     return build_base_path, build_path, metacatalog_path
+
+
+def _get_project_code(path: str | Path):
+    match = re.match(r"/g/data/([^/]*)/.*", str(path))
+    return match.groups()[0] if match else None
+
+
+# Get the project storage flags
+def _get_project(paths: list[str], method: str | None = None):
+    project = set()
+    if method == "load":
+        # This is a hack but I don't know how else to get the storage from pre-built datastores
+        esm_ds = open_esm_datastore(paths[0])
+        project |= set(esm_ds.df["path"].map(_get_project_code))
+    else:  # I know this isn't formally necessary, but I find it easier to read
+        project |= {_get_project_code(path) for path in paths}
+
+    return project
 
 
 def build(argv: Sequence[str] | None = None):
@@ -225,7 +247,6 @@ def build(argv: Sequence[str] | None = None):
         )
 
     # Create the build directories
-    # TODO atomize this block
     try:
         build_base_path, build_path, metacatalog_path = _create_build_directory(
             build_base_path, version, catalog_file
@@ -234,26 +255,26 @@ def build(argv: Sequence[str] | None = None):
         raise PermissionError(
             f"You lack the necessary permissions to create a catalog at {build_path}"
         )
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"Unable to locate {build_path} and/or {build_base_path}"
+        )
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
     _check_build_args([parsed_source[1] for parsed_source in parsed_sources])
 
-    # Get the project storage flags
-    def _get_project(path):
-        match = re.match(r"/g/data/([^/]*)/.*", str(path))
-        return match.groups()[0] if match else None
-
     project = set()
-    # TODO atomize this loop so that individual failures won't derail the whole build
+    # Determine the project list & storage flags for this build
     for method, src_args in parsed_sources:
-        if method == "load":
-            # This is a hack but I don't know how else to get the storage from pre-built datastores
-            esm_ds = open_esm_datastore(src_args["path"][0])
-            project |= set(esm_ds.df["path"].map(_get_project))
+        try:
+            project |= _get_project(src_args["path"], method)
+        except KeyError:  # There's no 'path' in the processed source
+            warnings.warn(
+                f"Unable to determine storage flags/projects for {src_args.get('name', '<no name either')} - may not be able to be ingested"
+            )
 
-        project |= {_get_project(path) for path in src_args["path"]}
-    project |= {_get_project(build_base_path)}
+    project |= {_get_project_code(build_base_path)}
     storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project]))
 
     # Build the catalog
