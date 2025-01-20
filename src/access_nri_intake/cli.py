@@ -111,7 +111,7 @@ def _check_build_args(args_list: list[dict]) -> None:
 # def _compile_project_set(method, src_args):
 
 
-def _create_build_directory(
+def _parse_build_directory(
     build_base_path: str | Path, version: str, catalog_file: str
 ) -> tuple[Path, Path, Path]:
     """
@@ -129,7 +129,6 @@ def _create_build_directory(
     build_base_path = Path(build_base_path).absolute()
     build_path = Path(build_base_path) / version / "source"
     metacatalog_path = Path(build_base_path) / version / catalog_file
-    Path(build_path).mkdir(parents=True, exist_ok=True)
 
     return build_base_path, build_path, metacatalog_path
 
@@ -248,7 +247,7 @@ def build(argv: Sequence[str] | None = None):
 
     # Create the build directories
     try:
-        build_base_path, build_path, metacatalog_path = _create_build_directory(
+        build_base_path, build_path, metacatalog_path = _parse_build_directory(
             build_base_path, version, catalog_file
         )
     except PermissionError:
@@ -274,8 +273,21 @@ def build(argv: Sequence[str] | None = None):
                 f"Unable to determine storage flags/projects for {src_args.get('name', '<no name either')} - may not be able to be ingested"
             )
 
-    project |= {_get_project_code(build_base_path)}
+    base_project = _get_project_code(build_base_path)
+    if base_project is not None:
+        project |= {_get_project_code(build_base_path)}
+    else:
+        warnings.warn(f"Unable to determine project for base path {build_base_path}")
+
     storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project]))
+
+    # Now that that's all passed, create the physical build location
+    try:
+        Path(build_path).mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        raise PermissionError(
+            f"You lack the necessary permissions to create a catalog at {build_path}"
+        )
 
     # Build the catalog
     cm = CatalogManager(path=metacatalog_path)
