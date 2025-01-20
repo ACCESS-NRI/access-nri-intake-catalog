@@ -92,52 +92,6 @@ class _VarInfo:
         }
 
 
-def _add_month_start(time, n: int):
-    """Add months to cftime datetime and truncate to start"""
-    year = time.year + ((time.month + n - 1) // 12)
-    month = (time.month + n - 1) % 12 + 1
-    return time.replace(
-        year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0
-    )
-
-
-def _add_year_start(time, n: int):
-    """Add years to cftime datetime and truncate to start"""
-    return time.replace(
-        year=time.year + n, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
-    )
-
-
-def _guess_start_end_dates(ts, te, frequency):
-    """Guess the start and end bounded times for a given frequency"""
-    warnings.warn(
-        "Time coordinate does not include bounds information. Guessing "
-        "start and end times."
-    )
-    num, unit = frequency
-    if unit == "yr":
-        step_back = -int(num / 2)
-        step_fwd = num + step_back
-        ts = _add_year_start(ts, step_back)
-        te = _add_year_start(te, step_fwd)
-    elif unit == "mon":
-        step_back = -int(num / 2)
-        step_fwd = num + step_back
-        ts = _add_month_start(ts, step_back)
-        te = _add_month_start(te, step_fwd)
-    elif unit == "day":
-        dt = timedelta(days=num) / 2
-        ts = ts - dt
-        te = te + dt
-    elif unit == "hr":
-        dt = timedelta(hours=num) / 2
-        ts = ts - dt
-        te = te + dt
-    else:
-        warnings.warn("Cannot infer start and end times for subhourly frequencies.")
-    return ts, te
-
-
 class GenericTimeParser:
     """
     Generic time parser
