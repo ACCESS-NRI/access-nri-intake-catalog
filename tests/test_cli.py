@@ -849,6 +849,46 @@ def test_build_repeat_altercatalogstruct_multivers(
     ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
 
 
+@mock.patch("access_nri_intake.cli._parse_build_directory")
+@pytest.mark.parametrize(
+    "failure",
+    [
+        PermissionError,
+        FileNotFoundError,
+    ],
+)
+def test_build_parse_builddir_failure(
+    mock_parse_build_directory, failure, test_data, tmp_path
+):
+    """Test build's response to a failure in _parse_build_directory"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_parse_build_directory.side_effect = failure
+
+    # Build the first catalog
+    with pytest.raises(failure):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
 def test_metadata_validate(test_data):
     """Test metadata_validate"""
 

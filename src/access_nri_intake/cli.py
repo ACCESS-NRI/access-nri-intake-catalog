@@ -396,12 +396,10 @@ def build(argv: Sequence[str] | None = None):
         )
     except PermissionError:
         raise PermissionError(
-            f"You lack the necessary permissions to create a catalog at {build_path}"
+            f"You lack the necessary permissions to create a catalog at {build_base_path}"
         )
     except FileNotFoundError:
-        raise FileNotFoundError(
-            f"Unable to locate {build_path} and/or {build_base_path}"
-        )
+        raise FileNotFoundError(f"Unable to locate {build_base_path}")
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
