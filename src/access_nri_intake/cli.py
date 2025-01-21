@@ -200,6 +200,101 @@ def _write_catalog_yaml(
     return yaml_dict
 
 
+def _compute_previous_versions(
+    yaml_dict: dict,
+    catalog_base_path: Path,
+    build_base_path: Path,
+    version: str,
+) -> dict:
+    cat_loc = get_catalog_fp(basepath=catalog_base_path)
+    existing_cat = Path(cat_loc).exists()
+
+    # See if there's an existing catalog
+    if existing_cat:
+        with Path(cat_loc).open(mode="r") as fobj:
+            yaml_old = yaml.safe_load(fobj)
+
+        # Check to see what has changed. We care if the following keys
+        # have changed (ignoring the sources.access_nri at the head
+        # of each dict path):
+        # - args (all parts - mode should never change)
+        # - driver
+        # If these have changed, we need to move the old catalog aside,
+        # labelled with its min and max version numbers
+        # The exception to this rule is if the old catalog doesn't have
+        # a min or max version - this makes it likely to be an old-style
+        # catalog, so we'll need to grab its storage flags, but we don't
+        # want to save it (we assume all existing catalog versions are
+        # compatible with the new one).
+
+        args_new, args_old = (
+            yaml_dict["sources"]["access_nri"]["args"],
+            yaml_old["sources"]["access_nri"]["args"],
+        )
+        driver_new, driver_old = (
+            yaml_dict["sources"]["access_nri"]["driver"],
+            yaml_old["sources"]["access_nri"]["driver"],
+        )
+        vmin_old, vmax_old = (
+            yaml_old["sources"]["access_nri"]["parameters"]["version"].get("min"),
+            yaml_old["sources"]["access_nri"]["parameters"]["version"].get("max"),
+        )
+        storage_new, storage_old = (
+            yaml_dict["sources"]["access_nri"]["metadata"]["storage"],
+            yaml_old["sources"]["access_nri"]["metadata"]["storage"],
+        )
+
+        if (
+            (args_new != args_old or driver_new != driver_old)
+            and vmin_old is not None
+            and vmax_old is not None
+        ):
+            # Move the old catalog out of the way
+            # New catalog.yaml will have restricted version bounds
+            if vmin_old == vmax_old:
+                vers_str = vmin_old
+            else:
+                vers_str = f"{vmin_old}-{vmax_old}"
+            Path(cat_loc).rename(Path(cat_loc).parent / f"catalog-{vers_str}.yaml")
+            yaml_dict = _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+        elif storage_new != storage_old:
+            yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
+                _combine_storage_flags(storage_new, storage_old)
+            )
+
+        # Set the minimum and maximum catalog versions, if they're not set already
+        # in the 'new catalog' if statement above
+        if (
+            yaml_dict["sources"]["access_nri"]["parameters"]["version"].get("min")
+            is None
+        ):
+            yaml_dict = _set_catalog_yaml_version_bounds(
+                yaml_dict,
+                min(version, vmin_old if vmin_old is not None else version),
+                max(version, vmax_old if vmax_old is not None else version),
+            )
+
+    if (not existing_cat) or (vmin_old is None and vmax_old is None):
+        # No existing catalog, so set min = max = current version,
+        # unless there are folders with the right names in the write
+        # directory
+        existing_vers = [
+            v.name
+            for v in build_base_path.iterdir()
+            if re.match(CATALOG_NAME_FORMAT, v.name)
+        ]
+        if len(existing_vers) > 0:
+            yaml_dict = _set_catalog_yaml_version_bounds(
+                yaml_dict,
+                min(min(existing_vers), version),
+                max(max(existing_vers), version),
+            )
+        else:
+            yaml_dict = _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+
+    return yaml_dict
+
+
 def build(argv: Sequence[str] | None = None):
     """
     Build an intake-dataframe-catalog from YAML configuration file(s).
@@ -352,97 +447,11 @@ def build(argv: Sequence[str] | None = None):
     except Exception as e:
         raise RuntimeError(f"Catalog save failed: {str(e)}")
 
-    # TODO atomize this away into a helper function
     if update:
-        cat_loc = get_catalog_fp(basepath=catalog_base_path)
-        existing_cat = Path(cat_loc).exists()
 
-        # See if there's an existing catalog
-        if existing_cat:
-            with Path(cat_loc).open(mode="r") as fobj:
-                yaml_old = yaml.safe_load(fobj)
-
-            # Check to see what has changed. We care if the following keys
-            # have changed (ignoring the sources.access_nri at the head
-            # of each dict path):
-            # - args (all parts - mode should never change)
-            # - driver
-            # If these have changed, we need to move the old catalog aside,
-            # labelled with its min and max version numbers
-            # The exception to this rule is if the old catalog doesn't have
-            # a min or max version - this makes it likely to be an old-style
-            # catalog, so we'll need to grab its storage flags, but we don't
-            # want to save it (we assume all existing catalog versions are
-            # compatible with the new one).
-
-            args_new, args_old = (
-                yaml_dict["sources"]["access_nri"]["args"],
-                yaml_old["sources"]["access_nri"]["args"],
-            )
-            driver_new, driver_old = (
-                yaml_dict["sources"]["access_nri"]["driver"],
-                yaml_old["sources"]["access_nri"]["driver"],
-            )
-            vmin_old, vmax_old = (
-                yaml_old["sources"]["access_nri"]["parameters"]["version"].get("min"),
-                yaml_old["sources"]["access_nri"]["parameters"]["version"].get("max"),
-            )
-            storage_new, storage_old = (
-                yaml_dict["sources"]["access_nri"]["metadata"]["storage"],
-                yaml_old["sources"]["access_nri"]["metadata"]["storage"],
-            )
-
-            if (
-                (args_new != args_old or driver_new != driver_old)
-                and vmin_old is not None
-                and vmax_old is not None
-            ):
-                # Move the old catalog out of the way
-                # New catalog.yaml will have restricted version bounds
-                if vmin_old == vmax_old:
-                    vers_str = vmin_old
-                else:
-                    vers_str = f"{vmin_old}-{vmax_old}"
-                Path(cat_loc).rename(Path(cat_loc).parent / f"catalog-{vers_str}.yaml")
-                yaml_dict = _set_catalog_yaml_version_bounds(
-                    yaml_dict, version, version
-                )
-            elif storage_new != storage_old:
-                yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
-                    _combine_storage_flags(storage_new, storage_old)
-                )
-
-            # Set the minimum and maximum catalog versions, if they're not set already
-            # in the 'new catalog' if statement above
-            if (
-                yaml_dict["sources"]["access_nri"]["parameters"]["version"].get("min")
-                is None
-            ):
-                yaml_dict = _set_catalog_yaml_version_bounds(
-                    yaml_dict,
-                    min(version, vmin_old if vmin_old is not None else version),
-                    max(version, vmax_old if vmax_old is not None else version),
-                )
-
-        if (not existing_cat) or (vmin_old is None and vmax_old is None):
-            # No existing catalog, so set min = max = current version,
-            # unless there are folders with the right names in the write
-            # directory
-            existing_vers = [
-                v.name
-                for v in build_base_path.iterdir()
-                if re.match(CATALOG_NAME_FORMAT, v.name)
-            ]
-            if len(existing_vers) > 0:
-                yaml_dict = _set_catalog_yaml_version_bounds(
-                    yaml_dict,
-                    min(min(existing_vers), version),
-                    max(max(existing_vers), version),
-                )
-            else:
-                yaml_dict = _set_catalog_yaml_version_bounds(
-                    yaml_dict, version, version
-                )
+        yaml_dict = _compute_previous_versions(
+            yaml_dict, catalog_base_path, build_base_path, version
+        )
 
         with Path(get_catalog_fp(basepath=catalog_base_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
