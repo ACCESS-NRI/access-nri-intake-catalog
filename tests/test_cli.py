@@ -852,10 +852,7 @@ def test_build_repeat_altercatalogstruct_multivers(
 @mock.patch("access_nri_intake.cli._parse_build_directory")
 @pytest.mark.parametrize(
     "failure",
-    [
-        PermissionError,
-        FileNotFoundError,
-    ],
+    [PermissionError, FileNotFoundError, OSError, RuntimeError, Exception],
 )
 def test_build_parse_builddir_failure(
     mock_parse_build_directory, failure, test_data, tmp_path
@@ -870,8 +867,12 @@ def test_build_parse_builddir_failure(
 
     mock_parse_build_directory.side_effect = failure
 
+    expected_failure = (
+        failure if failure in [PermissionError, FileNotFoundError] else Exception
+    )
+
     # Build the first catalog
-    with pytest.raises(failure):
+    with pytest.raises(expected_failure):
         build(
             [
                 *configs,
