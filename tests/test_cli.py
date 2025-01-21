@@ -921,6 +921,36 @@ def test_build_parse_get_project_code_failure(
         )
 
 
+@mock.patch("access_nri_intake.cli.Path.mkdir")
+def test_build_mkdir_failure(mock_mkdir, test_data, tmp_path):
+    """Test build's response to a failure in _get_project (should just carry on)"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_mkdir.side_effect = PermissionError("Simulated permission error")
+
+    with pytest.raises(PermissionError, match="You lack the necessary permissions"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
 def test_metadata_validate(test_data):
     """Test metadata_validate"""
 
