@@ -11,8 +11,10 @@ import intake
 import pytest
 import yaml
 
+from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
     MetadataCheckError,
+    _add_source_to_catalog,
     _check_build_args,
     build,
     metadata_template,
@@ -949,6 +951,18 @@ def test_build_mkdir_failure(mock_mkdir, test_data, tmp_path):
                 "v2024-01-01",
             ]
         )
+
+
+@pytest.mark.parametrize("method", ["load", "build_esm"])
+def test_add_source_to_catalog_failure(method):
+
+    mock_method = mock.patch(
+        "access_nri_intake.catalog.manager.CatalogManager." + method
+    )
+    mock_method.side_effect = Exception("Simulated catalog load exception")
+
+    with pytest.warns(UserWarning, match="Unable to add"):
+        _add_source_to_catalog(CatalogManager(path=""), method, {}, "", None)
 
 
 def test_metadata_validate(test_data):
