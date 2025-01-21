@@ -871,8 +871,39 @@ def test_build_parse_builddir_failure(
         failure if failure in [PermissionError, FileNotFoundError] else Exception
     )
 
-    # Build the first catalog
     with pytest.raises(expected_failure):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+@mock.patch("access_nri_intake.cli._get_project")
+def test_build_parse_get_project_code_failure(
+    mock_get_project_code, test_data, tmp_path
+):
+    """Test build's response to a failure in _get_project (should just carry on)"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_get_project_code.side_effect = KeyError("Simulated key error")
+
+    with pytest.warns(UserWarning, match="Unable to determine storage flags/projects"):
         build(
             [
                 *configs,
