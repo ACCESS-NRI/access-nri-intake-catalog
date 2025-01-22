@@ -18,9 +18,21 @@ from access_nri_intake.experiment.main import DatastoreInfo
         ),
         (
             "malformed/missing_csv_col.json",
+            "malformed/missing_attribute.csv",
+            False,
+            "mismatch between json and csv.gz file names",
+        ),
+        (
+            "malformed/missing_csv_col.json",
             "malformed/missing_csv_col.csv",
             False,
             "columns specified in JSON do not match csv.gz file",
+        ),
+        (
+            "malformed/corrupted.json",
+            "malformed/corrupted.csv",
+            False,
+            "datastore JSON corrupted",
         ),
         (
             "malformed/wrong_fname.json",

@@ -26,6 +26,9 @@ class DatastoreInfo:
         """
         Run through a bunch of potential issues with the datastore and valid flag
         and cause accordingly.
+
+        This fails at the first issue it finds. We should find a more comprehensive/elegant/faster
+        way to deal with it, but that's a problem for another day.
         """
         if not any(
             [self.json_handle, self.csv_handle, self.valid, self.invalid_ds_cause]
@@ -37,8 +40,9 @@ class DatastoreInfo:
         self.csv_handle = Path(self.csv_handle)
 
         if self.json_handle.stem != self.csv_handle.stem:
-            self.valid = True
-            self.invalid_ds_cause = "Mismatch between json and csv.gz file names"
+            self.valid = False
+            self.invalid_ds_cause = "mismatch between json and csv.gz file names"
+            return None
 
         with open(self.json_handle) as f:
             try:
@@ -46,6 +50,7 @@ class DatastoreInfo:
             except json.JSONDecodeError:
                 self.valid = False
                 self.invalid_ds_cause = "datastore JSON corrupted"
+                return None
 
         colnames = pd.read_csv(self.csv_handle, nrows=0).columns
 
@@ -54,12 +59,14 @@ class DatastoreInfo:
         if ds_json["catalog_file"] != self.csv_handle.name:
             self.valid = False
             self.invalid_ds_cause = "catalog_file in JSON does not match csv.gz file"
+            return None
 
         if set(colnames) != set(
             [item["column_name"] for item in ds_json["attributes"]]
         ).union({"path"}):
             self.valid = False
             self.invalid_ds_cause = "columns specified in JSON do not match csv.gz file"
+            return None
 
         # If all of these pass, then we can try to open the datastore
 
