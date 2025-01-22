@@ -17,6 +17,7 @@ from intake import open_esm_datastore
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
+from .experiment import use_datastore
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
@@ -438,3 +439,51 @@ def metadata_template(loc: str | Path | None = None) -> None:
 
     with open((Path(loc) / "metadata.yaml"), "w") as outfile:
         yaml.dump(template, outfile, default_flow_style=False, sort_keys=False)
+
+
+def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
+    """
+    Either creates, verifies, or updates the intake-esm datastore
+    """
+    parser = argparse.ArgumentParser(
+        description=(
+            "Build an esm-datastore by inspecting a directory containing model outputs."
+            " If no datastore exists, a new one will be created. If a datastore exists,"
+            " it's integrity will be verified, and the datastore regenerated if necessary."
+        )
+    )
+    parser.add_argument(
+        "builder",
+        type=str,
+        help=(
+            "Builder to use to create the esm-datastore."
+            " Builders are defined the source.builders module, currently available options are"
+            f" {', '.join(builders.__all__)}."
+            " To build a datastore for a new model, please contact the ACCESS-NRI team."
+        ),
+    )
+
+    parser.add_argument(
+        "--experiment-dir",
+        type=str,
+        default="./",
+        help=(
+            "Directory containing the model outputs to be added to the esm-datastore."
+            " Defaults to the current working directory."
+        ),
+    )
+
+    args = parser.parse_args(argv)
+    builder = args.builder
+    experiment_dir = Path(args.experiment_dir)
+
+    builder = getattr(builders, builder)
+
+    if not isinstance(builder, builders.Builder):
+        raise ValueError(
+            f"Builder {builder} is not a valid builder. Please choose from {builders.__all__}"
+        )
+
+    use_datastore(builder, experiment_dir, open_ds=False)
+
+    return 0

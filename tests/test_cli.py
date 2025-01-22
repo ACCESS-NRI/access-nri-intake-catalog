@@ -33,6 +33,9 @@ def test_entrypoint():
     exit_status = os.system("metadata-template --help")
     assert exit_status == 0
 
+    exit_status = os.system("use-esm-datastore --help")
+    assert exit_status == 0
+
 
 @pytest.mark.parametrize(
     "args, raises",
@@ -396,11 +399,13 @@ def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
     with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
-        min_vers if min_vers is not None else VERSION
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == (min_vers if min_vers is not None else VERSION)
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
-        max_vers if max_vers is not None else VERSION
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == (max_vers if max_vers is not None else VERSION)
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     # Default should always be the newly-built version
     assert (
@@ -458,11 +463,13 @@ def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp
     with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
-        min_vers if min_vers is not None else VERSION
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == (min_vers if min_vers is not None else VERSION)
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
-        max_vers if max_vers is not None else VERSION
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == (max_vers if max_vers is not None else VERSION)
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     # Default should always be the newly-built version
     assert (
