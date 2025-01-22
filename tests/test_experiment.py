@@ -43,3 +43,27 @@ def test_datastore_info(json_name, csv_name, validity, invalid_ds_cause, test_da
 
     assert ds_info.valid == validity
     assert ds_info.invalid_ds_cause == invalid_ds_cause
+
+
+@pytest.mark.parametrize(
+    "args, expected",
+    [
+        (["malformed/missing_attribute.json", "malformed/missing_attribute.csv"], True),
+        (["malformed/missing_csv_col.json", "malformed/missing_csv_col.csv"], True),
+        (["malformed/wrong_fname.json", "malformed/wrong_fname.csv"], True),
+        (["cmip6-oi10.json", "cmip6-oi10.csv"], True),
+        (["", "", False, ""], False),
+    ],
+)
+def test_DatastoreInfo_bool(test_data, args, expected):
+    """
+    Check that the __bool__ method of the DatastoreInfo class works as expected.
+    """
+    base_path = test_data / "esm_datastore"
+
+    if expected:
+        args = [base_path / arg for arg in args]
+
+    ds_info = DatastoreInfo(*args)
+
+    assert bool(ds_info) == expected
