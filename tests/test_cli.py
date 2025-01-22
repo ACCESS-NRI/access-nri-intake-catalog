@@ -970,6 +970,36 @@ def test_add_source_to_catalog_failure(method, tmpdir):
             _add_source_to_catalog(cm, method, {"name": "dummy_name"}, "", None)
 
 
+@mock.patch("access_nri_intake.cli._write_catalog_yaml")
+def test_build_write_catalog_yaml_failure(mock_write_catalog_yaml, test_data, tmp_path):
+    """Test build's response to a failure in _write_catalog_yaml"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_write_catalog_yaml.side_effect = Exception("Simulated Exception")
+
+    with pytest.raises(RuntimeError, match="Simulated Exception"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
 def test_metadata_validate(test_data):
     """Test metadata_validate"""
 
