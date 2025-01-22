@@ -953,16 +953,21 @@ def test_build_mkdir_failure(mock_mkdir, test_data, tmp_path):
         )
 
 
+class NoInitCatalogManager(CatalogManager):
+    def __init__(self):
+        pass
+
+
 @pytest.mark.parametrize("method", ["load", "build_esm"])
-def test_add_source_to_catalog_failure(method):
+def test_add_source_to_catalog_failure(method, tmpdir):
 
-    mock_method = mock.patch(
-        "access_nri_intake.catalog.manager.CatalogManager." + method
-    )
-    mock_method.side_effect = Exception("Simulated catalog load exception")
+    with mock.patch.object(
+        NoInitCatalogManager, method, side_effect=Exception("Dummy Exception injected")
+    ):
+        cm = NoInitCatalogManager()
 
-    with pytest.warns(UserWarning, match="Unable to add"):
-        _add_source_to_catalog(CatalogManager(path=""), method, {}, "", None)
+        with pytest.warns(UserWarning, match="Dummy Exception injected"):
+            _add_source_to_catalog(cm, method, {"name": "dummy_name"}, "", None)
 
 
 def test_metadata_validate(test_data):
