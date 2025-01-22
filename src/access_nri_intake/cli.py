@@ -6,7 +6,6 @@
 import argparse
 import datetime
 import logging
-import os
 import re
 from collections.abc import Sequence
 from pathlib import Path
@@ -29,7 +28,7 @@ class MetadataCheckError(Exception):
 
 
 def _parse_build_inputs(
-    config_yamls: list[str], build_path: str, data_base_path: str
+    config_yamls: list[str | Path], build_path: str | Path, data_base_path: str | Path
 ) -> list[tuple[str, dict]]:
     """
     Parse build inputs into a list of tuples of CatalogManager methods and args to
@@ -49,7 +48,7 @@ def _parse_build_inputs(
         if builder:
             method = "build_esm"
             config_args["builder"] = getattr(builders, builder)
-            config_args["directory"] = build_path
+            config_args["directory"] = str(build_path)
             config_args["overwrite"] = True
         else:
             method = "load"
@@ -58,16 +57,16 @@ def _parse_build_inputs(
             source_args = config_args
 
             source_args["path"] = [
-                os.path.join(data_base_path, _) for _ in kwargs.pop("path")
+                str(Path(data_base_path) / _) for _ in kwargs.pop("path")
             ]
             metadata_yaml = kwargs.pop("metadata_yaml")
             try:
                 metadata = load_metadata_yaml(
-                    os.path.join(data_base_path, metadata_yaml), EXP_JSONSCHEMA
+                    Path(data_base_path) / metadata_yaml, EXP_JSONSCHEMA
                 )
             except jsonschema.exceptions.ValidationError:
                 raise MetadataCheckError(
-                    f"Failed to validate metadata.yaml @ {os.path.dirname(metadata_yaml)}. See traceback for details."
+                    f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
                 )
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
@@ -203,10 +202,10 @@ def build(argv: Sequence[str] | None = None):
         )
 
     # Create the build directories
-    build_base_path = os.path.abspath(build_base_path)
-    build_path = os.path.join(build_base_path, version, "source")
-    metacatalog_path = os.path.join(build_base_path, version, catalog_file)
-    os.makedirs(build_path, exist_ok=True)
+    build_base_path = Path(build_base_path).absolute()
+    build_path = Path(build_base_path) / version / "source"
+    metacatalog_path = Path(build_base_path) / version / catalog_file
+    Path(build_path).mkdir(parents=True, exist_ok=True)
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
@@ -214,7 +213,7 @@ def build(argv: Sequence[str] | None = None):
 
     # Get the project storage flags
     def _get_project(path):
-        match = re.match(r"/g/data/([^/]*)/.*", path)
+        match = re.match(r"/g/data/([^/]*)/.*", str(path))
         return match.groups()[0] if match else None
 
     project = set()
@@ -240,8 +239,8 @@ def build(argv: Sequence[str] | None = None):
     cat.description = "ACCESS-NRI intake catalog"
     yaml_dict = yaml.safe_load(cat.yaml())
 
-    yaml_dict["sources"]["access_nri"]["args"]["path"] = os.path.join(
-        build_base_path, "{{version}}", catalog_file
+    yaml_dict["sources"]["access_nri"]["args"]["path"] = str(
+        Path(build_base_path) / "{{version}}" / catalog_file
     )
     yaml_dict["sources"]["access_nri"]["args"]["mode"] = "r"
     yaml_dict["sources"]["access_nri"]["metadata"] = {
@@ -257,7 +256,7 @@ def build(argv: Sequence[str] | None = None):
 
     if update:
         cat_loc = get_catalog_fp(basepath=catalog_base_path)
-        existing_cat = os.path.exists(cat_loc)
+        existing_cat = Path(cat_loc).exists()
 
         # See if there's an existing catalog
         if existing_cat:
@@ -305,10 +304,7 @@ def build(argv: Sequence[str] | None = None):
                     vers_str = vmin_old
                 else:
                     vers_str = f"{vmin_old}-{vmax_old}"
-                os.rename(
-                    cat_loc,
-                    os.path.join(os.path.dirname(cat_loc), f"catalog-{vers_str}.yaml"),
-                )
+                Path(cat_loc).rename(Path(cat_loc).parent / f"catalog-{vers_str}.yaml")
                 yaml_dict = _set_catalog_yaml_version_bounds(
                     yaml_dict, version, version
                 )
@@ -333,9 +329,10 @@ def build(argv: Sequence[str] | None = None):
             # No existing catalog, so set min = max = current version,
             # unless there are folders with the right names in the write
             # directory
-            existing_vers = os.listdir(build_base_path)
             existing_vers = [
-                v for v in existing_vers if re.match(CATALOG_NAME_FORMAT, v)
+                v.name
+                for v in build_base_path.iterdir()
+                if re.match(CATALOG_NAME_FORMAT, v.name)
             ]
             if len(existing_vers) > 0:
                 yaml_dict = _set_catalog_yaml_version_bounds(
@@ -389,7 +386,7 @@ def metadata_validate(argv: Sequence[str] | None = None):
     files = args.file
 
     for f in files:
-        if os.path.isfile(f):
+        if Path(f).is_file():
             print(f"Validating {f}... ")
             try:
                 load_metadata_yaml(f, EXP_JSONSCHEMA)
@@ -423,7 +420,7 @@ def metadata_template(loc: str | Path | None = None) -> None:
     """
 
     if loc is None:
-        loc = os.getcwd()
+        loc = Path.cwd()
 
     argparse.ArgumentParser(description="Generate a template for metadata.yaml")
 
