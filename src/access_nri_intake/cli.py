@@ -482,7 +482,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
 
     builder = getattr(builders, builder)
 
-    if not isinstance(builder, builders.Builder):
+    if not issubclass(builder, builders.Builder):
         raise ValueError(
             f"Builder {builder} is not a valid builder. Please choose from {builders.__all__}"
         )
