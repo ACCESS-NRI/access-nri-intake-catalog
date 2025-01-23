@@ -3,6 +3,7 @@ import warnings
 from pathlib import Path
 
 import intake
+from colorama import Fore, Style
 from intake_esm import esm_datastore
 
 from ..source.builders import Builder
@@ -64,18 +65,22 @@ def use_datastore(
 
     if ds_info.valid:
         # Nothing is obviously wrong with the datastore, so
-        print(f"Datastore found in {experiment_dir}, verifying datastore integrity...")
+        print(
+            f"{Fore.BLUE}Datastore found in {Style.BRIGHT}{experiment_dir}{Style.BRIGHT}, verifying datastore integrity...{Style.RESET_ALL}"
+        )
         ds_info.valid = verify_ds_current(ds_info)  # Currently just returns True
     elif ds_info:
         # The datastore was found but was invalid. Rebuild it.
         warnings.warn(
-            f"esm_datastore broken due to {ds_info.invalid_ds_cause}. Regenerating datastore...",
+            f"{Fore.YELLOW}esm_datastore broken due to {ds_info.invalid_ds_cause}. Regenerating datastore...{Style.RESET_ALL}",
             category=DataStoreWarning,
             stacklevel=2,
         )
     else:
         # No datastore found. Build one.
-        print(f"Generating esm-datastore for {experiment_dir}")
+        print(
+            f"{Fore.GREEN}Generating esm-datastore for {experiment_dir}{Style.RESET_ALL}"
+        )
 
     if not ds_info.valid:
         builder_instance: Builder = builder(path=str(experiment_dir))
@@ -89,9 +94,9 @@ def use_datastore(
 
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
     print(
-        f"Datastore sucessfully written to {str(experiment_dir / 'catalog.json')}!"
+        f"{Fore.GREEN}Datastore sucessfully written to {Fore.BLUE}{str(experiment_dir / 'catalog.json')}{Fore.GREEN}!"
         f" Please note that this has not added the datastore to the access-nri-intake catalog."
-        f" To add to catalog, please run '{scaffold_cmd}' for help on how to do so."
+        f" To add to catalog, please run '{Fore.BLUE}{Style.BRIGHT}{scaffold_cmd}{Fore.GREEN}{Style.NORMAL}' for help on how to do so."
     )
 
     if open_ds:
@@ -101,8 +106,8 @@ def use_datastore(
         )
     else:
         print(
-            f"To open the datastore, run `intake.open_esm_datastore({str(experiment_dir / 'catalog.json')},"
-            " columns_with_iterables=['variable'])` in a Python session."
+            f"{Fore.BLUE}To open the datastore, run `{Fore.CYAN}{Style.BRIGHT}intake.open_esm_datastore({str(experiment_dir / 'catalog.json')},"
+            f" columns_with_iterables=['variable']){Fore.BLUE}{Style.NORMAL}` in a Python session."
         )
     return None
 
