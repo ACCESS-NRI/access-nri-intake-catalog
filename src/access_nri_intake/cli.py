@@ -453,12 +453,12 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         )
     )
     parser.add_argument(
-        "builder",
+        "--builder",
         type=str,
         help=(
             "Builder to use to create the esm-datastore."
-            " Builders are defined the source.builders module, currently available options are"
-            f" {', '.join(builders.__all__)}."
+            " Builders are defined the source.builders module. Currently available options are:"
+            f" {', '.join(builders.__all__)}.\n"
             " To build a datastore for a new model, please contact the ACCESS-NRI team."
         ),
     )

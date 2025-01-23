@@ -39,7 +39,7 @@ e2e = [
 catalog-build = "access_nri_intake.cli:build"
 metadata-validate = "access_nri_intake.cli:metadata_validate"
 metadata-template = "access_nri_intake.cli:metadata_template"
-use-esm-datastore = "access_nri_intake.cli:use_esm_datastore"
+build-esm-datastore = "access_nri_intake.cli:use_esm_datastore"
 
 [project.entry-points."intake.catalogs"]
 access_nri = "access_nri_intake.data:data"
