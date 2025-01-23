@@ -74,10 +74,22 @@ def use_datastore(
     builder_instance.build()
     builder_instance.save
 
+    scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
+    print(
+        f"Datastore sucessfully written to {str(experiment_dir / 'catalog.json')}!"
+        f" Please note that this has not added the datastore to the access-nri-intake catalog."
+        f" To add to catalog, please run '{scaffold_cmd}' for help on how to do so."
+    )
+
     if open_ds:
         return intake.open_esm_datastore(
             str(experiment_dir / "catalog.json"),
             columns_with_iterables=["variable"],
+        )
+    else:
+        print(
+            f"To open the datastore, run `intake.open_esm_datastore({str(experiment_dir / 'catalog.json')},"
+            " columns_with_iterables=['variable'])` in a Python session."
         )
     return None
 
