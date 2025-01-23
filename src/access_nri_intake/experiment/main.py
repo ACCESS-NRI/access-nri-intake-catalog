@@ -1,3 +1,4 @@
+import itertools
 import warnings
 from pathlib import Path
 
@@ -5,13 +6,17 @@ import intake
 from intake_esm import esm_datastore
 
 from ..source.builders import Builder
-from .utils import DatastoreInfo, DataStoreWarning
+from .utils import DatastoreInfo, DataStoreWarning, MultipleDataStoreError
 
 warnings.simplefilter("always")
 
 
 def use_datastore(
-    builder: Builder, experiment_dir: Path, open_ds: bool = True
+    builder: Builder,
+    experiment_dir: Path,
+    open_ds: bool = True,
+    datastore_name: str = "experiment_datastore",
+    description: str | None = None,
 ) -> esm_datastore | None:
     """
     Handles building datastores for experiments for experiments contained in a
@@ -51,14 +56,16 @@ def use_datastore(
     TBC
 
     """
-
-    # What do we know about how to find the datastore? Potentially expensive?
+    description = (
+        description or f"esm_datastore for the model output in '{str(experiment_dir)}'"
+    )
 
     ds_info = find_esm_datastore(experiment_dir)
 
     if ds_info.valid:
         # Nothing is obviously wrong with the datastore, so
         print(f"Datastore found in {experiment_dir}, verifying datastore integrity...")
+        ds_info.valid = verify_ds_current(ds_info)  # Currently just returns True
     elif ds_info:
         # The datastore was found but was invalid. Rebuild it.
         warnings.warn(
@@ -70,9 +77,15 @@ def use_datastore(
         # No datastore found. Build one.
         print(f"Generating esm-datastore for {experiment_dir}")
 
-    builder_instance: Builder = builder(path=str(experiment_dir))
-    builder_instance.build()
-    builder_instance.save
+    if not ds_info.valid:
+        builder_instance: Builder = builder(path=str(experiment_dir))
+        builder_instance.build()
+        builder_instance.save(
+            name=datastore_name,
+            description=description
+            or f"esm_datastore for the model output in '{str(experiment_dir)}'",
+            directory=experiment_dir,
+        )
 
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
     print(
@@ -98,9 +111,65 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
     """
     Try to find an ESM datastore in the experiment directory. If not, return a dummy
     DatastoreInfo object.
-    """
-    cant_be_found = False
-    if cant_be_found:
-        return DatastoreInfo("", "", False, "")
 
-    return DatastoreInfo("dummy_json_handle", "dummy_csv_handle")
+    To find an ESM datastore, we use the heuristic that an esm_datastore comprises
+    a json file and a csv.gz file with the same name. To find these, we are first
+    going to search experiment_dir and all its subdirectories for a json file, and
+    then look for a file in the same directory where '.csv' is a member of the file
+    objects suffixes property.
+    """
+
+    json_files = experiment_dir.rglob("*.json")
+    csv_files = itertools.chain(
+        experiment_dir.rglob("*.csv"), experiment_dir.rglob("*.csv.gz")
+    )
+
+    matched_pairs: list[tuple[Path, Path]] = []
+    for json_file in json_files:
+        for csv_file in csv_files:
+            if (
+                json_file.stem
+                == csv_file.name.replace(
+                    "".join([suffix for suffix in csv_file.suffixes]), ""
+                )  # THis gnarly statement removes the whole suffix
+                and json_file.parent == csv_file.parent
+            ):
+                matched_pairs.append((json_file, csv_file))
+
+    if len(matched_pairs) == 0:
+        return DatastoreInfo("", "", False, "")
+    elif len(matched_pairs) > 1:
+        raise MultipleDataStoreError(
+            f"Multiple datastores found in {experiment_dir}. Please remove duplicates."
+        )
+
+    return DatastoreInfo(*matched_pairs[0])
+
+
+def verify_ds_current(ds_info: DatastoreInfo) -> bool:
+    """
+    Check that the datastore is current - do we have assets in our directory that
+    are not in the datastore? Do we have assets in the datastore that are not in
+    our directory? Are the assets in the datastore the same as the assets in our
+    directory? If any of these are true, then we need to rebuild the datastore.
+
+    For now, we'll just return True.
+
+    Parameters
+    ----------
+    ds_info : DatastoreInfo
+        The datastore information object.
+
+    Returns
+    -------
+    bool
+        Whether the datastore is valid.
+
+    """
+
+    warnings.warn(
+        "Datastore verification not yet implemented. Returning True.",
+        category=DataStoreWarning,
+        stacklevel=2,
+    )
+    return True

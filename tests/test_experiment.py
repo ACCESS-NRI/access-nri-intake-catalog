@@ -4,7 +4,8 @@
 
 import pytest
 
-from access_nri_intake.experiment.main import DatastoreInfo
+from access_nri_intake.experiment.main import DatastoreInfo, find_esm_datastore
+from access_nri_intake.experiment.utils import MultipleDataStoreError
 
 
 @pytest.mark.parametrize(
@@ -38,7 +39,13 @@ from access_nri_intake.experiment.main import DatastoreInfo
             "malformed/wrong_fname.json",
             "malformed/wrong_fname.csv",
             False,
-            "catalog_file in JSON does not match csv.gz file",
+            "catalog_filename in JSON does not match csv.gz filename",
+        ),
+        (
+            "malformed/wrong_path.json",
+            "malformed/wrong_path.csv",
+            False,
+            "path in JSON does not match csv.gz",
         ),
         (
             "cmip6-oi10.json",
@@ -63,6 +70,7 @@ def test_datastore_info(json_name, csv_name, validity, invalid_ds_cause, test_da
         (["malformed/missing_attribute.json", "malformed/missing_attribute.csv"], True),
         (["malformed/missing_csv_col.json", "malformed/missing_csv_col.csv"], True),
         (["malformed/wrong_fname.json", "malformed/wrong_fname.csv"], True),
+        (["malformed/wrong_path.json", "malformed/wrong_path.csv"], True),
         (["cmip6-oi10.json", "cmip6-oi10.csv"], True),
         (["", "", False, ""], False),
     ],
@@ -79,3 +87,18 @@ def test_DatastoreInfo_bool(test_data, args, expected):
     ds_info = DatastoreInfo(*args)
 
     assert bool(ds_info) == expected
+
+
+@pytest.mark.parametrize(
+    "subdir, expected",
+    [("single_match", True), ("multi_matches", "err"), ("no_matches", False)],
+)
+def test_find_esm_datastore(test_data, subdir, expected):
+    dir = test_data / "experiment_dirs" / subdir
+
+    if expected != "err":
+        ds = find_esm_datastore(dir)
+        assert bool(ds) == expected
+    else:
+        with pytest.raises(MultipleDataStoreError):
+            find_esm_datastore(dir)

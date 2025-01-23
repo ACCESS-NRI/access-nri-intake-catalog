@@ -1,4 +1,5 @@
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -9,12 +10,25 @@ class DataStoreWarning(RuntimeWarning):
     pass
 
 
+class DataStoreError(RuntimeError):
+    pass
+
+
+class MultipleDataStoreError(DataStoreError):
+    pass
+
+
 @dataclass
 class DatastoreInfo:
     """
     Datastores have a json file and a csv.gz file. This class is a simple way to
     handle both of these files. It also contans a validity flag, which defaults to
     True, and is flipped to False if any of the checks in __post_init__ fail.
+
+
+    It might be necessary to add a hash handle to this? I want to create a hash
+    of the experiment dir, and then check that if we hash the dir we get the same
+    hash.
     """
 
     json_handle: Path | str
@@ -56,9 +70,40 @@ class DatastoreInfo:
 
         # We need to check that the 'catalog_file' field of the json file matches the
         # csv file, and that we hav all the right attributes in the csv file.
-        if ds_json["catalog_file"] != self.csv_handle.name:
+
+        """
+        The internal reference (on Gadi) typically starts with file:///path/filename.csv.gz
+        What this means is that we might need to be careful if we are moving things about.
+        What intake_esm does is:
+        look at ds_json["catalog_file"] and check that this exists, using a fsspec 
+        get_mapper. If it doesn't exist, then it prepends the dirname of fsspec.get_mapper().root
+        to the path, which winds up creating a horrendously bundled path, something
+        like '/home/189/ct1163/experiments_274/file:///home/189/ct1163/test_datastore_built_in_homedir.csv.gz 
+
+        - The reason we need to be careful is that potentially the .name attribute of the Path object
+        might still match, even though the handles are invalid
+
+        We can match fo this pattern with the reget r'.+/file:///.+$
+        """
+        if (
+            match := re.search(r"^file:///.+$", ds_json["catalog_file"])
+        ) and match.group().lstrip("file://") != str(self.csv_handle):
+            # If our internal reference starts with /file:///, then we need to
+            # ensure that the rest of this *perfectly* matches the csv file or the
+            # datastore will break when we try to open it.
             self.valid = False
-            self.invalid_ds_cause = "catalog_file in JSON does not match csv.gz file"
+            self.invalid_ds_cause = "path in JSON does not match csv.gz"
+            return None
+
+        # If the previous check passes, then we need to check that the name in
+        # the catalog_file matches the name of the csv file. Someone might have
+        # manually fiddled with it, so we'll convert it to a path object and check
+        # the name attribute.
+        if Path(ds_json["catalog_file"]).name != self.csv_handle.name:
+            self.valid = False
+            self.invalid_ds_cause = (
+                "catalog_filename in JSON does not match csv.gz filename"
+            )
             return None
 
         if set(colnames) != set(
