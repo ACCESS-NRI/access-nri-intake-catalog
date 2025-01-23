@@ -75,10 +75,10 @@ class DatastoreInfo:
         The internal reference (on Gadi) typically starts with file:///path/filename.csv.gz
         What this means is that we might need to be careful if we are moving things about.
         What intake_esm does is:
-        look at ds_json["catalog_file"] and check that this exists, using a fsspec 
+        look at ds_json["catalog_file"] and check that this exists, using a fsspec
         get_mapper. If it doesn't exist, then it prepends the dirname of fsspec.get_mapper().root
         to the path, which winds up creating a horrendously bundled path, something
-        like '/home/189/ct1163/experiments_274/file:///home/189/ct1163/test_datastore_built_in_homedir.csv.gz 
+        like '/home/189/ct1163/experiments_274/file:///home/189/ct1163/test_datastore_built_in_homedir.csv.gz
 
         - The reason we need to be careful is that potentially the .name attribute of the Path object
         might still match, even though the handles are invalid
