@@ -88,6 +88,9 @@ def use_datastore(
             f"{Fore.GREEN}Generating esm-datastore for {experiment_dir}{Style.RESET_ALL}"
         )
 
+    scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
+    ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
+
     if not ds_info.valid:
         builder_instance: Builder = builder(path=str(experiment_dir))
         print(f"{Fore.BLUE}Building esm-datastore...{Style.RESET_ALL}")
@@ -103,11 +106,6 @@ def use_datastore(
             directory=str(catalog_dir),
         )
 
-    ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
-
-    scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
-
-    if ds_info.valid:
         print(
             f"{Fore.GREEN}Datastore sucessfully written to {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
             f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
