@@ -109,7 +109,7 @@ def use_datastore(
     print(
         f"{Fore.GREEN}Datastore sucessfully written to {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
         f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
-        f"\nTo add to catalog, please run '{Fore.BLUE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
+        f"\nTo add to catalog, please run '{Fore.WHITE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
     )
 
     if open_ds:
