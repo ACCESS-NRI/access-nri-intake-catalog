@@ -103,7 +103,7 @@ def use_datastore(
             directory=str(catalog_dir),
         )
 
-    ds_full_path = str(catalog_dir / f"{datastore_name}.json")
+    ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
 
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
     print(
