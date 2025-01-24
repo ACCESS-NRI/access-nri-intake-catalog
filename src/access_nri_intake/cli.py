@@ -478,7 +478,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     builder = args.builder
-    experiment_dir = Path(args.experiment_dir)
+    experiment_dir = Path(args.expt_dir)
 
     builder = getattr(builders, builder)
 
