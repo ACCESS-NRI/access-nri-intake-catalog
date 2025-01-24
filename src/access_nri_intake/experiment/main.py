@@ -15,6 +15,7 @@ warnings.simplefilter("always")
 def use_datastore(
     builder: Builder,
     experiment_dir: Path,
+    catalog_dir: Path | None = None,
     open_ds: bool = True,
     datastore_name: str = "experiment_datastore",
     description: str | None = None,
@@ -44,6 +45,9 @@ def use_datastore(
         The builder object that will be used to build the datastore.
     experiment_dir : Path
         The directory containing the experiment.
+    catalog_dir : Path, optional
+        The directory containing/to write the catalog to, if it differs from the
+        experiment directory. If None, it will default to the experiment directory.
     open_ds : bool
         Whether to open the datastore after building it.
 
@@ -60,6 +64,7 @@ def use_datastore(
     description = (
         description or f"esm_datastore for the model output in '{str(experiment_dir)}'"
     )
+    catalog_dir = catalog_dir or experiment_dir
 
     ds_info = find_esm_datastore(experiment_dir)
 
@@ -89,7 +94,7 @@ def use_datastore(
             name=datastore_name,
             description=description
             or f"esm_datastore for the model output in '{str(experiment_dir)}'",
-            directory=str(experiment_dir),
+            directory=str(catalog_dir),
         )
 
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
