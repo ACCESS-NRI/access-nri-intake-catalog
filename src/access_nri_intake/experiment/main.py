@@ -94,7 +94,7 @@ def use_datastore(
         builder_instance.build()
         print(f"{Fore.GREEN}Sucessfully built esm-datastore!{Style.RESET_ALL}")
         print(
-            f"{Fore.BLUE}Saving esm-datastore to {Fore.CYAN}{Style.BRIGHT}{str(catalog_dir.absolute())}{Style.NORMAL}{Fore.BLUE}...{Style.RESET_ALL}"
+            f"{Fore.BLUE}Saving esm-datastore to {Fore.CYAN}{Style.BRIGHT}{str(catalog_dir.absolute())}{Style.RESET_ALL}"
         )
         builder_instance.save(
             name=datastore_name,
@@ -108,7 +108,7 @@ def use_datastore(
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
     print(
         f"{Fore.GREEN}Datastore sucessfully written to {Fore.BLUE}{ds_full_path}{Fore.GREEN}!"
-        f" Please note that this has not added the datastore to the access-nri-intake catalog."
+        f" \n\nPlease note that this has not added the datastore to the access-nri-intake catalog."
         f" To add to catalog, please run '{Fore.BLUE}{Style.BRIGHT}{scaffold_cmd}{Fore.GREEN}{Style.NORMAL}' for help on how to do so."
     )
 
