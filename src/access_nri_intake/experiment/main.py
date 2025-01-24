@@ -106,11 +106,19 @@ def use_datastore(
     ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
 
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
-    print(
-        f"{Fore.GREEN}Datastore sucessfully written to {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
-        f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
-        f"\nTo add to catalog, please run '{Fore.WHITE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
-    )
+
+    if ds_info.valid:
+        print(
+            f"{Fore.GREEN}Datastore sucessfully written to {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
+            f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
+            f"\nTo add to catalog, please run '{Fore.WHITE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
+        )
+    else:
+        print(
+            f"{Fore.GREEN}Datastore found in {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
+            f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
+            f"\nTo add to catalog, please run '{Fore.WHITE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
+        )
 
     if open_ds:
         return intake.open_esm_datastore(

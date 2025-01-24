@@ -88,9 +88,9 @@ class DatastoreInfo:
 
         We can match fo this pattern with the reget r'.+/file:///.+$
         """
-        if (
-            match := re.search(r"^file:///.+$", ds_json["catalog_file"])
-        ) and match.group().lstrip("file://") != str(self.csv_handle):
+        if (match := re.search(r"^file:///.+$", ds_json["catalog_file"])) and re.sub(
+            r"^file://", "", match.group()
+        ) != str(self.csv_handle.absolute()):
             # If our internal reference starts with /file:///, then we need to
             # ensure that the rest of this *perfectly* matches the csv file or the
             # datastore will break when we try to open it.
