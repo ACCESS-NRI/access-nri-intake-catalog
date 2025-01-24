@@ -119,7 +119,7 @@ def use_datastore(
         )
     else:
         print(
-            f"{Fore.BLUE}To open the datastore, run `{Fore.WHITE}{Style.BRIGHT}intake.open_esm_datastore({ds_full_path},"
+            f"{Fore.BLUE}To open the datastore, run `{Fore.WHITE}{Style.BRIGHT}intake.open_esm_datastore('{ds_full_path}',"
             f" columns_with_iterables=['variable']){Fore.BLUE}{Style.NORMAL}` in a Python session."
         )
 
