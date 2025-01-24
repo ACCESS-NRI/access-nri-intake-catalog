@@ -480,8 +480,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         "--cat-dir",
         type=str,
         help=(
-            "Directory in which to place the catalog.json file. This file is the descriptor of the catalog,"
-            " and provides references to the data locations where the catalog data itself is stored."
+            "Directory in which to place the catalog.json file."
             " Defaults to the value of --expt-dir if not set."
         ),
     )
@@ -489,7 +488,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     builder = args.builder
     experiment_dir = Path(args.expt_dir)
-    catalog_dir = args.cat_dir or experiment_dir
+    catalog_dir = Path(args.cat_dir) or experiment_dir
 
     builder = getattr(builders, builder)
 
@@ -498,6 +497,6 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
             f"Builder {builder} is not a valid builder. Please choose from {builders.__all__}"
         )
 
-    use_datastore(builder, experiment_dir, open_ds=False)
+    use_datastore(builder, experiment_dir, catalog_dir, open_ds=False)
 
     return 0

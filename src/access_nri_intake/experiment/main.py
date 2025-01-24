@@ -47,7 +47,8 @@ def use_datastore(
         The directory containing the experiment.
     catalog_dir : Path, optional
         The directory containing/to write the catalog to, if it differs from the
-        experiment directory. If None, it will default to the experiment directory.
+        experiment directory. If None, the catalog will be written to the experiment
+        directory.
     open_ds : bool
         Whether to open the datastore after building it.
 
@@ -89,7 +90,12 @@ def use_datastore(
 
     if not ds_info.valid:
         builder_instance: Builder = builder(path=str(experiment_dir))
+        print(f"{Fore.BLUE}Building esm-datastore...{Style.RESET_ALL}")
         builder_instance.build()
+        print(f"{Fore.GREEN}Sucessfully built esm-datastore!{Style.RESET_ALL}")
+        print(
+            f"{Fore.BLUE}Saving esm-datastore to {Fore.CYAN}{Style.BRIGHT}{str(catalog_dir)}{Style.NORMAL}{Fore.BLUE}...{Style.RESET_ALL}"
+        )
         builder_instance.save(
             name=datastore_name,
             description=description
@@ -106,14 +112,16 @@ def use_datastore(
 
     if open_ds:
         return intake.open_esm_datastore(
-            str(experiment_dir / "catalog.json"),
+            str(catalog_dir / f"{datastore_name}.json"),
             columns_with_iterables=["variable"],
         )
     else:
         print(
-            f"{Fore.BLUE}To open the datastore, run `{Fore.CYAN}{Style.BRIGHT}intake.open_esm_datastore({str(experiment_dir / 'catalog.json')},"
+            f"{Fore.BLUE}To open the datastore, run `{Fore.CYAN}{Style.BRIGHT}intake.open_esm_datastore({str(catalog_dir /f'{datastore_name}.json')},"
             f" columns_with_iterables=['variable']){Fore.BLUE}{Style.NORMAL}` in a Python session."
         )
+
+    print(f"{Style.RESET_ALL}")
     return None
 
 
