@@ -467,7 +467,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     )
 
     parser.add_argument(
-        "--experiment-dir",
+        "--expt-dir",
         type=str,
         default="./",
         help=(

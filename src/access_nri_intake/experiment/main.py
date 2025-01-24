@@ -89,7 +89,7 @@ def use_datastore(
             name=datastore_name,
             description=description
             or f"esm_datastore for the model output in '{str(experiment_dir)}'",
-            directory=experiment_dir,
+            directory=str(experiment_dir),
         )
 
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
@@ -136,7 +136,7 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
                 json_file.stem
                 == csv_file.name.replace(
                     "".join([suffix for suffix in csv_file.suffixes]), ""
-                )  # THis gnarly statement removes the whole suffix
+                )  # THis gnarly statement removes the whole suffix to compaer stems
                 and json_file.parent == csv_file.parent
             ):
                 matched_pairs.append((json_file, csv_file))
