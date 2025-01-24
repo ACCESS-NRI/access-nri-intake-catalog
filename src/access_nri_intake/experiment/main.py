@@ -107,7 +107,7 @@ def use_datastore(
 
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
     print(
-        f"{Fore.GREEN}Datastore sucessfully written to {Fore.BLUE}{ds_full_path}{Fore.GREEN}!"
+        f"{Fore.GREEN}Datastore sucessfully written to {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
         f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
         f"\nTo add to catalog, please run '{Fore.BLUE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
     )
@@ -119,7 +119,7 @@ def use_datastore(
         )
     else:
         print(
-            f"{Fore.BLUE}To open the datastore, run `{Fore.CYAN}{Style.BRIGHT}intake.open_esm_datastore({ds_full_path},"
+            f"{Fore.BLUE}To open the datastore, run `{Fore.WHITE}{Style.BRIGHT}intake.open_esm_datastore({ds_full_path},"
             f" columns_with_iterables=['variable']){Fore.BLUE}{Style.NORMAL}` in a Python session."
         )
 
