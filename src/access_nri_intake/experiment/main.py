@@ -108,8 +108,8 @@ def use_datastore(
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
     print(
         f"{Fore.GREEN}Datastore sucessfully written to {Fore.BLUE}{ds_full_path}{Fore.GREEN}!"
-        f" \n\nPlease note that this has not added the datastore to the access-nri-intake catalog."
-        f" To add to catalog, please run '{Fore.BLUE}{Style.BRIGHT}{scaffold_cmd}{Fore.GREEN}{Style.NORMAL}' for help on how to do so."
+        f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
+        f"\nTo add to catalog, please run '{Fore.BLUE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
     )
 
     if open_ds:
