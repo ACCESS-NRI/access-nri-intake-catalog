@@ -94,7 +94,7 @@ def use_datastore(
         builder_instance.build()
         print(f"{Fore.GREEN}Sucessfully built esm-datastore!{Style.RESET_ALL}")
         print(
-            f"{Fore.BLUE}Saving esm-datastore to {Fore.CYAN}{Style.BRIGHT}{str(catalog_dir)}{Style.NORMAL}{Fore.BLUE}...{Style.RESET_ALL}"
+            f"{Fore.BLUE}Saving esm-datastore to {Fore.CYAN}{Style.BRIGHT}{str(catalog_dir.absolute())}{Style.NORMAL}{Fore.BLUE}...{Style.RESET_ALL}"
         )
         builder_instance.save(
             name=datastore_name,
