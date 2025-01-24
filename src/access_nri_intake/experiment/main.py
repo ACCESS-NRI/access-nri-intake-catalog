@@ -67,7 +67,7 @@ def use_datastore(
     )
     catalog_dir = catalog_dir or experiment_dir
 
-    ds_info = find_esm_datastore(experiment_dir)
+    ds_info = find_esm_datastore(catalog_dir)
 
     if ds_info.valid:
         # Nothing is obviously wrong with the datastore, so

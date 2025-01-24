@@ -53,7 +53,10 @@ class DatastoreInfo:
         self.json_handle = Path(self.json_handle)
         self.csv_handle = Path(self.csv_handle)
 
-        if self.json_handle.stem != self.csv_handle.stem:
+        if self.json_handle.stem != self.csv_handle.name.replace(
+            "".join([suffix for suffix in self.csv_handle.suffixes]), ""
+        ):  # This gnarly statement removes the whole suffix to compare stems
+            # I think this might duplicate the check in find_esm_datastore
             self.valid = False
             self.invalid_ds_cause = "mismatch between json and csv.gz file names"
             return None
