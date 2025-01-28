@@ -441,7 +441,7 @@ def build(argv: Sequence[str] | None = None):
             project |= _get_project(src_args["path"], method)
         except KeyError:  # There's no 'path' in the processed source
             warnings.warn(
-                f"Unable to determine storage flags/projects for {src_args.get('name', '<no name either')} - may not be able to be ingested"
+                f"Unable to determine storage flags/projects for {src_args.get('name', '<no name either>')} - may not be able to be ingested"
             )
 
     base_project = _get_project_code(build_base_path)
