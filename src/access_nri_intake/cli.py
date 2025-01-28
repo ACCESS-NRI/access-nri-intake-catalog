@@ -124,7 +124,7 @@ def _add_source_to_catalog(
         getattr(cm, method)(**src_args)
     except Exception as e:  # actually valid for once - it may raise naked Exceptions
         warnings.warn(
-            f"Unable to add {src_args['name']} to catalog - continuing\n({str(e)})"
+            f"Unable to add {src_args['name']} to catalog - continuing", source=e
         )
 
 

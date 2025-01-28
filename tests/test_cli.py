@@ -1011,7 +1011,7 @@ def test_add_source_to_catalog_failure(method, tmpdir):
     ):
         cm = NoInitCatalogManager()
 
-        with pytest.warns(UserWarning, match="Dummy Exception injected"):
+        with pytest.warns(UserWarning, match="Unable to add dummy_name"):
             _add_source_to_catalog(cm, method, {"name": "dummy_name"}, "", None)
 
 
