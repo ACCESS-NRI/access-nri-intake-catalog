@@ -206,6 +206,38 @@ def _compute_previous_versions(
     build_base_path: Path,
     version: str,
 ) -> dict:
+    """Calculate previous version information for a new catalog build.
+
+    Parameters
+    ----------
+    yaml_dict : dict
+        The existing YAML dictionary describing the new catalog
+    catalog_base_path : Path
+        The catalog base path.
+    build_base_path : Path
+        The catalog build base path.
+    version : str
+        The current version of the catalog (this has yet to enter `yaml_dict`).
+
+    Returns
+    -------
+    dict
+        An updated YAML dict describing the new catalog, including current/min/max version.
+
+    Notes
+    -----
+    The logic for determining the min/max catalog version is as follows:
+    - If there are no existing catalogs, then min=max=current.
+    - If there are existing catalogs, the following happens:
+      - If the `args` or `driver` parts of the catalog YAML are changing in the
+        new version, the versions are incompatible. The existing catalog.yaml
+        will be moved aside to a new filename, labelled with its min and max
+        version numbers. (An exception to this rule is legacy catalogs without
+        a min or max version will have their storage flags retained.)
+      - If existing catalogs are otherwise compatible with the new catalog, their
+        min and max versions will be incorporated in with the new catalog and the
+        existing catalog.yaml will be overwritten.
+    """
     cat_loc = get_catalog_fp(basepath=catalog_base_path)
     existing_cat = Path(cat_loc).exists()
 
@@ -219,13 +251,6 @@ def _compute_previous_versions(
         # of each dict path):
         # - args (all parts - mode should never change)
         # - driver
-        # If these have changed, we need to move the old catalog aside,
-        # labelled with its min and max version numbers
-        # The exception to this rule is if the old catalog doesn't have
-        # a min or max version - this makes it likely to be an old-style
-        # catalog, so we'll need to grab its storage flags, but we don't
-        # want to save it (we assume all existing catalog versions are
-        # compatible with the new one).
 
         args_new, args_old = (
             yaml_dict["sources"]["access_nri"]["args"],
