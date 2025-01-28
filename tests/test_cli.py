@@ -126,7 +126,7 @@ def test_build(version, test_data, tmpdir):
             *configs,
             "--catalog_file",
             "cat.csv",
-            # "--no_update",
+            # "--no_update",  # commented out to test brand-new-catalog-versioning
             "--version",
             version,
             "--build_base_path",
@@ -360,6 +360,41 @@ def test_build_repeat_adddata(test_data, tmp_path):
         == "v2024-01-02"
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
     assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
+
+
+@mock.patch("access_nri_intake.cli._get_project", return_value=set())
+@mock.patch("access_nri_intake.cli._get_project_code", return_value="aa99")
+def test_build_project_base_code(
+    mock_get_project, mock_get_project_code, test_data, tmp_path
+):
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    # Build the first catalog
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
+
+    # Check that the metacatalog is correct
+    metacat = Path(build_base_path) / "catalog.yaml"
+    with metacat.open(mode="r") as fobj:
+        cat_info = yaml.safe_load(fobj)
+    assert "gdata/aa99" in cat_info["sources"]["access_nri"]["metadata"]["storage"]
 
 
 @pytest.mark.parametrize(

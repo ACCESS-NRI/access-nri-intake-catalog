@@ -421,7 +421,7 @@ def build(argv: Sequence[str] | None = None):
 
     base_project = _get_project_code(build_base_path)
     if base_project is not None:
-        project |= {_get_project_code(build_base_path)}
+        project |= {base_project}
     else:
         warnings.warn(f"Unable to determine project for base path {build_base_path}")
 
