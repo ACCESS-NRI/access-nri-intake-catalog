@@ -193,6 +193,7 @@ def verify_ds_current(ds_info: DatastoreInfo) -> bool:
 
     """
 
+    raise NotImplementedError("TODO")
     warnings.warn(
         "Datastore verification not yet implemented. Returning True.",
         category=DataStoreWarning,
