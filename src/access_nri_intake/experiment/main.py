@@ -204,10 +204,9 @@ def verify_ds_current(
     builder_instance: Builder = builder(path=str(experiment_dir))
     print(f"{Fore.BLUE}Parsing experiment dir...{Style.RESET_ALL}")
 
-    # Might be able to just run get_assets() here?
-    builder_instance.get_assets().parse()
+    builder_instance.get_assets()
 
-    experiment_files = set(builder_instance.df.path.unique())
+    experiment_files = {str(Path(file).resolve()) for file in builder_instance.assets}
 
     hashfile = catalog_dir / f".{Path(ds_info.json_handle).stem}.hash"
 
