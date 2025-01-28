@@ -402,8 +402,8 @@ def build(argv: Sequence[str] | None = None):
         raise FileNotFoundError(f"Unable to locate {build_base_path}")
     except Exception as e:
         raise Exception(
-            f"An unexpected error occurred while trying to create the build directories. Please contact ACCESS-NRI.\n{str(e)}"
-        )
+            "An unexpected error occurred while trying to create the build directories. Please contact ACCESS-NRI."
+        ) from e
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
