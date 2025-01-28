@@ -11,8 +11,10 @@ import intake
 import pytest
 import yaml
 
+from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
     MetadataCheckError,
+    _add_source_to_catalog,
     _check_build_args,
     build,
     metadata_template,
@@ -113,10 +115,10 @@ def test_check_build_args(args, raises):
         "2024-01-01",
     ],
 )
-def test_build(version, test_data, tmp_path):
+def test_build(version, test_data, tmpdir):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
-    build_base_path = str(tmp_path)
+    build_base_path = str(tmpdir)
 
     configs = [
         str(test_data / fname)
@@ -128,7 +130,7 @@ def test_build(version, test_data, tmp_path):
             *configs,
             "--catalog_file",
             "cat.csv",
-            "--no_update",
+            # "--no_update",  # commented out to test brand-new-catalog-versioning
             "--version",
             version,
             "--build_base_path",
@@ -149,6 +151,16 @@ def test_build(version, test_data, tmp_path):
     build_path = Path(build_base_path) / version / "cat.csv"
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
+
+    # Check that the metacatalog is correct
+    metacat = Path(build_base_path) / "catalog.yaml"
+    with metacat.open(mode="r") as fobj:
+        cat_info = yaml.safe_load(fobj)
+    assert (
+        cat_info["sources"]["access_nri"]["parameters"]["version"]["default"] == version
+    )
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
 
 
 @pytest.mark.parametrize(
@@ -352,6 +364,41 @@ def test_build_repeat_adddata(test_data, tmp_path):
         == "v2024-01-02"
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
     assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
+
+
+@mock.patch("access_nri_intake.cli._get_project", return_value=set())
+@mock.patch("access_nri_intake.cli._get_project_code", return_value="aa99")
+def test_build_project_base_code(
+    mock_get_project, mock_get_project_code, test_data, tmp_path
+):
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    # Build the first catalog
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
+
+    # Check that the metacatalog is correct
+    metacat = Path(build_base_path) / "catalog.yaml"
+    with metacat.open(mode="r") as fobj:
+        cat_info = yaml.safe_load(fobj)
+    assert "gdata/aa99" in cat_info["sources"]["access_nri"]["metadata"]["storage"]
 
 
 @pytest.mark.parametrize(
@@ -851,6 +898,155 @@ def test_build_repeat_altercatalogstruct_multivers(
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2025-01-01"
     ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
+
+
+@mock.patch("access_nri_intake.cli._parse_build_directory")
+@pytest.mark.parametrize(
+    "failure",
+    [PermissionError, FileNotFoundError, OSError, RuntimeError, Exception],
+)
+def test_build_parse_builddir_failure(
+    mock_parse_build_directory, failure, test_data, tmp_path
+):
+    """Test build's response to a failure in _parse_build_directory"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_parse_build_directory.side_effect = failure
+
+    expected_failure = (
+        failure if failure in [PermissionError, FileNotFoundError] else Exception
+    )
+
+    with pytest.raises(expected_failure):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+@mock.patch("access_nri_intake.cli._get_project")
+def test_build_parse_get_project_code_failure(
+    mock_get_project_code, test_data, tmp_path
+):
+    """Test build's response to a failure in _get_project (should just carry on)"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_get_project_code.side_effect = KeyError("Simulated key error")
+
+    with pytest.warns(UserWarning, match="Unable to determine storage flags/projects"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+@mock.patch("access_nri_intake.cli.Path.mkdir")
+def test_build_mkdir_failure(mock_mkdir, test_data, tmp_path):
+    """Test build's response to a failure in _get_project (should just carry on)"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_mkdir.side_effect = PermissionError("Simulated permission error")
+
+    with pytest.raises(PermissionError, match="You lack the necessary permissions"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+class NoInitCatalogManager(CatalogManager):
+    def __init__(self):
+        pass
+
+
+@pytest.mark.parametrize("method", ["load", "build_esm"])
+def test_add_source_to_catalog_failure(method, tmpdir):
+
+    with mock.patch.object(
+        NoInitCatalogManager, method, side_effect=Exception("Dummy Exception injected")
+    ):
+        cm = NoInitCatalogManager()
+
+        with pytest.warns(UserWarning, match="Unable to add dummy_name"):
+            _add_source_to_catalog(cm, method, {"name": "dummy_name"}, "", None)
+
+
+@mock.patch("access_nri_intake.cli._write_catalog_yaml")
+def test_build_write_catalog_yaml_failure(mock_write_catalog_yaml, test_data, tmp_path):
+    """Test build's response to a failure in _write_catalog_yaml"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_write_catalog_yaml.side_effect = Exception("Simulated Exception")
+
+    with pytest.raises(RuntimeError, match="Simulated Exception"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
 
 
 def test_metadata_validate(test_data):
