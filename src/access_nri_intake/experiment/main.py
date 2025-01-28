@@ -73,9 +73,9 @@ def use_datastore(
     if ds_info.valid:
         # Nothing is obviously wrong with the datastore, so
         print(
-            f"{Fore.BLUE}Datastore found in {Style.BRIGHT}{experiment_dir}{Style.BRIGHT}, verifying datastore integrity...{Style.RESET_ALL}"
+            f"{Fore.BLUE}Datastore found in {Style.BRIGHT}{experiment_dir}{Style.NORMAL}, verifying datastore integrity...{Style.RESET_ALL}"
         )
-        ds_info.valid = verify_ds_current(ds_info, builder, experiment_dir)
+        ds_info.valid = verify_ds_current(ds_info, builder, experiment_dir, catalog_dir)
     elif ds_info:
         # The datastore was found but was invalid. Rebuild it.
         warnings.warn(
@@ -180,7 +180,7 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
 
 
 def verify_ds_current(
-    ds_info: DatastoreInfo, builder: Builder, experiment_dir: Path
+    ds_info: DatastoreInfo, builder: Builder, experiment_dir: Path, catalog_dir: Path
 ) -> bool:
     """
     Check that the datastore is current - do we have assets in our directory that
@@ -203,11 +203,13 @@ def verify_ds_current(
     """
     builder_instance: Builder = builder(path=str(experiment_dir))
     print(f"{Fore.BLUE}Parsing experiment dir...{Style.RESET_ALL}")
-    builder_instance.parse()
+
+    # Might be able to just run get_assets() here?
+    builder_instance.get_assets().parse()
 
     experiment_files = set(builder_instance.df.path.unique())
 
-    hashfile = experiment_dir / f".{Path(ds_info.json_handle).stem}.hash"
+    hashfile = catalog_dir / f".{Path(ds_info.json_handle).stem}.hash"
 
     if not hashfile.exists():
         warnings.warn(
