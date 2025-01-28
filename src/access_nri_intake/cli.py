@@ -283,7 +283,7 @@ def _compute_previous_versions(
             for v in build_base_path.iterdir()
             if re.match(CATALOG_NAME_FORMAT, v.name)
         ]
-        if len(existing_vers) > 0:
+        if len(existing_vers) > 1:
             yaml_dict = _set_catalog_yaml_version_bounds(
                 yaml_dict,
                 min(min(existing_vers), version),

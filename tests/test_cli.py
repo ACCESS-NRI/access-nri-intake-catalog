@@ -111,10 +111,10 @@ def test_check_build_args(args, raises):
         "2024-01-01",
     ],
 )
-def test_build(version, test_data, tmp_path):
+def test_build(version, test_data, tmpdir):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
-    build_base_path = str(tmp_path)
+    build_base_path = str(tmpdir)
 
     configs = [
         str(test_data / fname)
@@ -126,7 +126,7 @@ def test_build(version, test_data, tmp_path):
             *configs,
             "--catalog_file",
             "cat.csv",
-            "--no_update",
+            # "--no_update",
             "--version",
             version,
             "--build_base_path",
@@ -147,6 +147,16 @@ def test_build(version, test_data, tmp_path):
     build_path = Path(build_base_path) / version / "cat.csv"
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
+
+    # Check that the metacatalog is correct
+    metacat = Path(build_base_path) / "catalog.yaml"
+    with metacat.open(mode="r") as fobj:
+        cat_info = yaml.safe_load(fobj)
+    assert (
+        cat_info["sources"]["access_nri"]["parameters"]["version"]["default"] == version
+    )
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
 
 
 @pytest.mark.parametrize(
