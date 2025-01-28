@@ -20,4 +20,5 @@ dependencies:
     - sphinx-panels
     - sphinxcontrib-napoleon
     - myst-nb
+    - yamanifest
     - -e ..

@@ -23,6 +23,7 @@ dependencies = [
     "pooch",
     "xarray",
     "colorama",
+    "yamanifest",
 ]
 dynamic = ["version"]
 

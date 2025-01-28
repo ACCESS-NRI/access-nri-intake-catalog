@@ -5,6 +5,7 @@ from pathlib import Path
 import intake
 from colorama import Fore, Style
 from intake_esm import esm_datastore
+from yamanifest import Manifest
 
 from ..source.builders import Builder
 from .utils import DatastoreInfo, DataStoreWarning, MultipleDataStoreError
@@ -106,6 +107,8 @@ def use_datastore(
             directory=str(catalog_dir),
         )
 
+        hash_catalog(catalog_dir, datastore_name, builder_instance)
+
         print(
             f"{Fore.GREEN}Datastore sucessfully written to {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
             f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
@@ -200,3 +203,20 @@ def verify_ds_current(ds_info: DatastoreInfo) -> bool:
         stacklevel=2,
     )
     return True
+
+
+def hash_catalog(
+    catalog_dir: Path, datastore_name: str, builder_instance: Builder
+) -> None:
+    """
+    Use yamanifest to hash the files contained in the builder, and then stick that in a
+    .$datastore_name.hash file in the catalog_dir. This will be used to check if the datastore
+    is current.
+    """
+
+    mf = Manifest(str(catalog_dir / f".{datastore_name}.hash"))
+
+    for file in builder_instance.df.path:
+        mf.add(file, hashfn="binhash")
+
+    mf.dump()
