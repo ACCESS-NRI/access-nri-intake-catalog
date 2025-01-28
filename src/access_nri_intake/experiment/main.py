@@ -5,7 +5,7 @@ from pathlib import Path
 import intake
 from colorama import Fore, Style
 from intake_esm import esm_datastore
-from yamanifest import Manifest
+from yamanifest.manifest import Manifest
 
 from ..source.builders import Builder
 from .utils import DatastoreInfo, DataStoreWarning, MultipleDataStoreError
