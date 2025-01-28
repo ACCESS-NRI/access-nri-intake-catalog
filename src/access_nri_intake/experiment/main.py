@@ -75,7 +75,7 @@ def use_datastore(
         print(
             f"{Fore.BLUE}Datastore found in {Style.BRIGHT}{experiment_dir}{Style.BRIGHT}, verifying datastore integrity...{Style.RESET_ALL}"
         )
-        ds_info.valid = verify_ds_current(ds_info)  # Currently just returns True
+        ds_info.valid = verify_ds_current(ds_info, builder, experiment_dir)
     elif ds_info:
         # The datastore was found but was invalid. Rebuild it.
         warnings.warn(
@@ -107,7 +107,11 @@ def use_datastore(
             directory=str(catalog_dir),
         )
 
+        print(
+            f"{Fore.BLUE}Hashing catalog to prevent unnecessary rebuilds.\nThis may take some time...{Style.RESET_ALL}"
+        )
         hash_catalog(catalog_dir, datastore_name, builder_instance)
+        print(f"{Fore.GREEN}Catalog sucessfully hashed!{Style.RESET_ALL}")
 
         print(
             f"{Fore.GREEN}Datastore sucessfully written to {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
@@ -175,14 +179,16 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
     return DatastoreInfo(*matched_pairs[0])
 
 
-def verify_ds_current(ds_info: DatastoreInfo) -> bool:
+def verify_ds_current(
+    ds_info: DatastoreInfo, builder: Builder, experiment_dir: Path
+) -> bool:
     """
     Check that the datastore is current - do we have assets in our directory that
     are not in the datastore? Do we have assets in the datastore that are not in
     our directory? Are the assets in the datastore the same as the assets in our
     directory? If any of these are true, then we need to rebuild the datastore.
 
-    For now, we'll just return True.
+
 
     Parameters
     ----------
@@ -195,12 +201,36 @@ def verify_ds_current(ds_info: DatastoreInfo) -> bool:
         Whether the datastore is valid.
 
     """
+    builder_instance: Builder = builder(path=str(experiment_dir))
+    print(f"{Fore.BLUE}Parsing experiment dir...{Style.RESET_ALL}")
+    builder_instance.parse()
 
-    raise NotImplementedError("TODO")
+    experiment_files = set(builder_instance.df.path.unique())
+
+    hashfile = experiment_dir / f".{Path(ds_info.json_handle).stem}.hash"
+
+    if not hashfile.exists():
+        warnings.warn(
+            f"{Fore.YELLOW}No hash file found for datastore. Regenerating datastore...{Style.RESET_ALL}",
+            category=DataStoreWarning,
+            stacklevel=2,
+        )
+        return False
+
+    mf = Manifest(str(hashfile)).load()
+    manifest_files = {v.get("fullpath") for v in mf.data.values()}
+
+    if experiment_files != manifest_files:
+        warnings.warn(
+            f"{Fore.YELLOW}Experiment directory and datastore do not match. Regenerating datastore...{Style.RESET_ALL}",
+            category=DataStoreWarning,
+            stacklevel=2,
+        )
+        return False
+
     warnings.warn(
-        "Datastore verification not yet implemented. Returning True.",
+        "*** I haven't checked the hashes! Otherwise looks good bro ***",
         category=DataStoreWarning,
-        stacklevel=2,
     )
     return True
 
@@ -216,7 +246,7 @@ def hash_catalog(
 
     mf = Manifest(str(catalog_dir / f".{datastore_name}.hash"))
 
-    for file in builder_instance.df.path:
-        mf.add(file, hashfn="binhash")
+    mf.add(builder_instance.df.path.tolist(), hashfn="binhash")
 
     mf.dump()
+    return None
