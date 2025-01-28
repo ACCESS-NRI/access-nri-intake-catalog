@@ -229,10 +229,18 @@ def verify_ds_current(
         )
         return False
 
-    warnings.warn(
-        "*** I haven't checked the hashes! Otherwise looks good bro ***",
-        category=DataStoreWarning,
-    )
+    expdir_manifest = Manifest("_")
+    expdir_manifest.add(experiment_files, hashfn="binhash")
+
+    if not expdir_manifest.equals(mf):
+        warnings.warn(
+            f"{Fore.YELLOW}Experiment directory and datastore do not match. Regenerating datastore...{Style.RESET_ALL}",
+            category=DataStoreWarning,
+            stacklevel=2,
+        )
+        return False
+
+    print(f"{Fore.GREEN}Datastore integrity verified!{Style.RESET_ALL}")
     return True
 
 
@@ -244,10 +252,12 @@ def hash_catalog(
     .$datastore_name.hash file in the catalog_dir. This will be used to check if the datastore
     is current.
     """
+    cat_files = builder_instance.df.path.tolist()
+    cat_fullfiles = [str(Path(file).resolve()) for file in cat_files]
 
     mf = Manifest(str(catalog_dir / f".{datastore_name}.hash"))
 
-    mf.add(builder_instance.df.path.tolist(), hashfn="binhash")
+    mf.add(cat_fullfiles, hashfn="binhash")
 
     mf.dump()
     return None
