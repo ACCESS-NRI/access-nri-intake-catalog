@@ -1,0 +1,28 @@
+contact: NCI
+email: help@nci.org.au
+created: null
+name: cmip5_al33
+experiment_uuid: 658c95cc-c299-450c-82a1-b2b2308f7c6e
+model:
+  - CMIP5
+nominal_resolution:
+  - null
+version: null
+description: >-
+  Replicated CMIP5-era datasets catalogued by NCI
+long_description: >-
+  All CMIP5-era replicated data contained under the project al33.
+  All file versions present are in the listing.
+  Maintained By: NCI
+  Contact: help@nci.org.au
+  References: https://pcmdi.llnl.gov/mips/cmip5/
+notes: >-
+  null
+reference: null
+license: null
+url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f9489_5106_5649_5038
+parent_experiment: null
+related_experiments:
+  - null
+keywords:
+  - cmip

@@ -115,7 +115,7 @@ def test_find_esm_datastore(test_data, subdir, expected):
         ("barpa-py18", True, None),
         ("ccam-hq89", False, "extra files in datastore"),
         ("cmip5-al33", False, "missing files from datastore"),
-        # ("cmip6-oi10", True),
+        ("cmip6-oi10", False, "differing hashes"),
         ("cordex-ig45", False, "No hash file found for datastore"),
     ],
 )
