@@ -1,0 +1,19 @@
+format: yamanifest
+version: 1.0
+---
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/nc_files/cmip6-oi10/cct_Amon_AWI-ESM-1-1-LR_historical_r1i1p1f1_gn_196301-196312.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/nc_files/cmip6-oi10/cct_Amon_AWI-ESM-1-1-LR_historical_r1i1p1f1_gn_196301-196312.nc
+  hashes:
+    binhash: 622ec70f26da9a8b03320cbf2221015a
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/nc_files/cmip6-oi10/ps_3hr_AWI-CM-1-1-MR_piControl_r1i1p1f1_gn_252601010300-252701010000.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/nc_files/cmip6-oi10/ps_3hr_AWI-CM-1-1-MR_piControl_r1i1p1f1_gn_252601010300-252701010000.nc
+  hashes:
+    binhash: b225ac3946838b1e2560f010521ee866
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/nc_files/cmip6-oi10/ta_Amon_BCC-CSM2-HR_control-1950_r1i1p1f1_gn_200401-200912.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/nc_files/cmip6-oi10/ta_Amon_BCC-CSM2-HR_control-1950_r1i1p1f1_gn_200401-200912.nc
+  hashes:
+    binhash: 59e560fbadd89aff9edbb1df8c86b409
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/nc_files/cmip6-oi10/vo_Omon_ACCESS-OM2-025_omip2_r1i1p1f1_gn_015701-015712.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/nc_files/cmip6-oi10/vo_Omon_ACCESS-OM2-025_omip2_r1i1p1f1_gn_015701-015712.nc
+  hashes:
+    binhash: 00000000000000000000000000000000

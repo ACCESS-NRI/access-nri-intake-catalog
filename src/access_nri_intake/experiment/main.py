@@ -5,10 +5,16 @@ from pathlib import Path
 import intake
 from colorama import Fore, Style
 from intake_esm import esm_datastore
-from yamanifest.manifest import Manifest
 
 from ..source.builders import Builder
-from .utils import DatastoreInfo, DataStoreWarning, MultipleDataStoreError
+from .utils import (
+    DatastoreInfo,
+    DataStoreWarning,
+    MultipleDataStoreError,
+    find_experiment_files,
+    hash_catalog,
+    verify_ds_current,
+)
 
 warnings.simplefilter("always")
 
@@ -75,7 +81,8 @@ def use_datastore(
         print(
             f"{Fore.BLUE}Datastore found in {Style.BRIGHT}{experiment_dir}{Style.NORMAL}, verifying datastore integrity...{Style.RESET_ALL}"
         )
-        ds_info.valid = verify_ds_current(ds_info, builder, experiment_dir, catalog_dir)
+        found_experiment_files = find_experiment_files(builder, experiment_dir)
+        ds_info.valid = verify_ds_current(ds_info, found_experiment_files)
     elif ds_info:
         # The datastore was found but was invalid. Rebuild it.
         warnings.warn(
@@ -177,87 +184,3 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
         )
 
     return DatastoreInfo(*matched_pairs[0])
-
-
-def verify_ds_current(
-    ds_info: DatastoreInfo, builder: Builder, experiment_dir: Path, catalog_dir: Path
-) -> bool:
-    """
-    Check that the datastore is current - do we have assets in our directory that
-    are not in the datastore? Do we have assets in the datastore that are not in
-    our directory? Are the assets in the datastore the same as the assets in our
-    directory? If any of these are true, then we need to rebuild the datastore.
-
-
-
-    Parameters
-    ----------
-    ds_info : DatastoreInfo
-        The datastore information object.
-
-    Returns
-    -------
-    bool
-        Whether the datastore is valid.
-
-    """
-    builder_instance: Builder = builder(path=str(experiment_dir))
-    print(f"{Fore.BLUE}Parsing experiment dir...{Style.RESET_ALL}")
-
-    builder_instance.get_assets()
-
-    experiment_files = {str(Path(file).resolve()) for file in builder_instance.assets}
-
-    hashfile = catalog_dir / f".{Path(ds_info.json_handle).stem}.hash"
-
-    if not hashfile.exists():
-        warnings.warn(
-            f"{Fore.YELLOW}No hash file found for datastore. Regenerating datastore...{Style.RESET_ALL}",
-            category=DataStoreWarning,
-            stacklevel=2,
-        )
-        return False
-
-    mf = Manifest(str(hashfile)).load()
-    manifest_files = {v.get("fullpath") for v in mf.data.values()}
-
-    if experiment_files != manifest_files:
-        warnings.warn(
-            f"{Fore.YELLOW}Experiment directory and datastore do not match. Regenerating datastore...{Style.RESET_ALL}",
-            category=DataStoreWarning,
-            stacklevel=2,
-        )
-        return False
-
-    expdir_manifest = Manifest("_")
-    expdir_manifest.add(experiment_files, hashfn="binhash")
-
-    if not expdir_manifest.equals(mf):
-        warnings.warn(
-            f"{Fore.YELLOW}Experiment directory and datastore do not match. Regenerating datastore...{Style.RESET_ALL}",
-            category=DataStoreWarning,
-            stacklevel=2,
-        )
-        return False
-
-    print(f"{Fore.GREEN}Datastore integrity verified!{Style.RESET_ALL}")
-    return True
-
-
-def hash_catalog(
-    catalog_dir: Path, datastore_name: str, builder_instance: Builder
-) -> None:
-    """
-    Use yamanifest to hash the files contained in the builder, and then stick that in a
-    .$datastore_name.hash file in the catalog_dir. This will be used to check if the datastore
-    is current.
-    """
-    cat_files = builder_instance.df.path.tolist()
-    cat_fullfiles = [str(Path(file).resolve()) for file in cat_files]
-
-    mf = Manifest(str(catalog_dir / f".{datastore_name}.hash"))
-
-    mf.add(cat_fullfiles, hashfn="binhash")
-
-    mf.dump()
-    return None

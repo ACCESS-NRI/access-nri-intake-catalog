@@ -4,8 +4,13 @@
 
 import pytest
 
-from access_nri_intake.experiment.main import DatastoreInfo, find_esm_datastore
-from access_nri_intake.experiment.utils import MultipleDataStoreError
+from access_nri_intake.experiment.main import find_esm_datastore
+from access_nri_intake.experiment.utils import (
+    DatastoreInfo,
+    DataStoreWarning,
+    MultipleDataStoreError,
+    verify_ds_current,
+)
 
 
 @pytest.mark.parametrize(
@@ -102,3 +107,45 @@ def test_find_esm_datastore(test_data, subdir, expected):
     else:
         with pytest.raises(MultipleDataStoreError):
             find_esm_datastore(dir)
+
+
+@pytest.mark.parametrize(
+    "ds_name, expected, warning_str",
+    [
+        ("barpa-py18", True, None),
+        ("ccam-hq89", False, "extra files in datastore"),
+        ("cmip5-al33", False, "missing files from datastore"),
+        # ("cmip6-oi10", True),
+        ("cordex-ig45", False, "No hash file found for datastore"),
+    ],
+)
+def test_verify_ds_current(test_data, ds_name, expected, warning_str):
+    """
+    We have the following hashes here:
+    - barpa-py18: This should match up.
+    - ccam-hq89: This should contain a hash that is not in the csv/json files (stolen from Barpa)
+    - cmip5-al33: This should miss a hash that is in the csv/json files
+    - cmip6-oi10: This should match up but have a different hash
+    - cordex-ig45: No hash, so should be rebuilt
+
+    # To make sure this works, we will need to grab & subset all the netcdf files
+    # that are in these datastores & hash them.
+    """
+
+    dir = test_data / "esm_datastore"
+    experiment_files = set((dir / "nc_files" / ds_name).glob("*.nc"))
+    ds_info = DatastoreInfo(dir / f"{ds_name}.json", dir / f"{ds_name}.csv")
+
+    if warning_str:
+        with pytest.warns(DataStoreWarning, match=warning_str):
+            ds_current_bool = verify_ds_current(
+                ds_info,
+                experiment_files,
+            )
+    else:
+        ds_current_bool = verify_ds_current(
+            ds_info,
+            experiment_files,
+        )
+
+    assert ds_current_bool == expected
