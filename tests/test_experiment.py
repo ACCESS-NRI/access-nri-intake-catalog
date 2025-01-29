@@ -132,7 +132,7 @@ def test_verify_ds_current(test_data, ds_name, expected, warning_str):
     # that are in these datastores & hash them.
     """
 
-    dir = test_data / "esm_datastore"
+    dir = test_data / "esm_datastore" / "local_paths"
     experiment_files = set((dir / "nc_files" / ds_name).glob("*.nc"))
     ds_info = DatastoreInfo(dir / f"{ds_name}.json", dir / f"{ds_name}.csv")
 
