@@ -490,12 +490,15 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     experiment_dir = Path(args.expt_dir)
     catalog_dir = Path(args.cat_dir) or experiment_dir
 
-    builder = getattr(builders, builder)
-
-    if not issubclass(builder, builders.Builder):
-        raise ValueError(
-            f"Builder {builder} is not a valid builder. Please choose from {builders.__all__}"
-        )
+    try:
+        builder = getattr(builders, builder)
+    except AttributeError:
+        builder = object
+    finally:
+        if not isinstance(builder, type) or not issubclass(builder, builders.Builder):
+            raise ValueError(
+                f"Builder {builder} is not a valid builder. Please choose from {builders.__all__}"
+            )
 
     use_datastore(builder, experiment_dir, catalog_dir, open_ds=False)
 

@@ -17,6 +17,7 @@ from access_nri_intake.cli import (
     build,
     metadata_template,
     metadata_validate,
+    use_esm_datastore,
 )
 
 
@@ -903,3 +904,49 @@ def test_metadata_template_default_loc():
         (Path.cwd() / "metadata.yaml").unlink()
     else:
         raise RuntimeError("Didn't write template into PWD")
+
+
+@pytest.mark.parametrize(
+    "builder",
+    [
+        "not_a_real_builder",  # Complete nonsense, not in the builders module
+        "PATTERNS_HELPERS",  # We can get this from the module with getattr but it's not a builder
+    ],
+)
+def test_use_esm_datastore_bad_builder(builder):
+    with pytest.raises(ValueError) as excinfo:
+        use_esm_datastore(
+            [
+                "--builder",
+                builder,
+                "--expt-dir",
+                ".",
+                "--cat-dir",
+                ".",
+            ]
+        )
+
+        assert f"Builder {builder} is not a valid builder." in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "expt_dir, cat_dir",
+    [
+        ("/not/a/real/dir", "."),
+        (".", "/not/a/real/dir"),
+    ],
+)
+def test_use_esm_datastore_nonexistent_dirs(expt_dir, cat_dir):
+    with pytest.raises(ValueError) as excinfo:
+        use_esm_datastore(
+            [
+                "--builder",
+                "ACCESS_OM2",
+                "--expt-dir",
+                expt_dir,
+                "--cat-dir",
+                cat_dir,
+            ]
+        )
+
+        assert "Directory /not/a/real/dir does not exist" in str(excinfo.value)
