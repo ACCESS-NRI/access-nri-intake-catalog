@@ -112,7 +112,11 @@ def test_find_esm_datastore(test_data, subdir, expected):
 @pytest.mark.parametrize(
     "ds_name, expected, warning_str",
     [
-        ("barpa-py18", True, None),
+        (
+            "barpa-py18",
+            True,
+            None,
+        ),  # This test will always fail in CI because of modification time.
         ("ccam-hq89", False, "extra files in datastore"),
         ("cmip5-al33", False, "missing files from datastore"),
         ("cmip6-oi10", False, "differing hashes"),
