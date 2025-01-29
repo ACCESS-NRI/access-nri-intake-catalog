@@ -488,7 +488,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     builder = args.builder
     experiment_dir = Path(args.expt_dir)
-    catalog_dir = Path(args.cat_dir) or experiment_dir
+    catalog_dir = Path(args.cat_dir) if args.cat_dir else experiment_dir
 
     try:
         builder = getattr(builders, builder)
@@ -499,6 +499,11 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
             raise ValueError(
                 f"Builder {builder} is not a valid builder. Please choose from {builders.__all__}"
             )
+
+    if not experiment_dir.exists():
+        raise FileNotFoundError(f"Directory {experiment_dir} does not exist.")
+    if not catalog_dir.exists():
+        raise FileNotFoundError(f"Directory {catalog_dir} does not exist.")
 
     use_datastore(builder, experiment_dir, catalog_dir, open_ds=False)
 
