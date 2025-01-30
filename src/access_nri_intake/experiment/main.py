@@ -92,7 +92,7 @@ def use_datastore(
     elif ds_info:
         # The datastore was found but was invalid. Rebuild it.
         warnings.warn(
-            f"{Fore.YELLOW}esm_datastore broken due to {ds_info.invalid_ds_cause}. Regenerating datastore...{Style.RESET_ALL}",
+            f"{Fore.YELLOW}esm-datastore broken due to {ds_info.invalid_ds_cause}. Regenerating datastore...{Style.RESET_ALL}",
             category=DataStoreWarning,
             stacklevel=2,
         )
