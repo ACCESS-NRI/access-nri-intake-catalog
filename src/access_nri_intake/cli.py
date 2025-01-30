@@ -19,6 +19,7 @@ from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
+from .experiment.utils import parse_kwargs, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
@@ -476,7 +477,6 @@ def build(argv: Sequence[str] | None = None):
         raise RuntimeError(f"Catalog save failed: {str(e)}")
 
     if update:
-
         yaml_dict = _compute_previous_versions(
             yaml_dict, catalog_base_path, build_base_path, version
         )
@@ -602,12 +602,23 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     )
 
     parser.add_argument(
+        "--builder-kwargs",
+        type=parse_kwargs,
+        nargs="*",
+        help=(
+            "Additional keyword arguments to pass to the builder."
+            " Should be in the form of key=value."
+        ),
+    )
+
+    parser.add_argument(
         "--expt-dir",
         type=str,
         default="./",
         help=(
             "Directory containing the model outputs to be added to the esm-datastore."
-            " Defaults to the current working directory."
+            " Defaults to the current working directory. Although builders support adding"
+            " multiple directories, this tool only supports one directory at a time - at present."
         ),
     )
 
@@ -624,6 +635,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     builder = args.builder
     experiment_dir = Path(args.expt_dir)
     catalog_dir = Path(args.cat_dir) if args.cat_dir else experiment_dir
+    builder_kwargs = args.builder_kwargs or {}
 
     try:
         builder = getattr(builders, builder)
@@ -640,6 +652,14 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     if not catalog_dir.exists():
         raise FileNotFoundError(f"Directory {catalog_dir} does not exist.")
 
-    use_datastore(builder, experiment_dir, catalog_dir, open_ds=False)
+    validate_args(builder, builder_kwargs)
+
+    use_datastore(
+        builder,
+        experiment_dir,
+        catalog_dir,
+        builder_kwargs=builder_kwargs,
+        open_ds=False,
+    )
 
     return 0

@@ -563,7 +563,7 @@ class AccessEsm15Builder(BaseBuilder):
         r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
     ]
 
-    def __init__(self, path, ensemble):
+    def __init__(self, path, ensemble: bool):
         """
         Initialise a AccessEsm15Builder
 

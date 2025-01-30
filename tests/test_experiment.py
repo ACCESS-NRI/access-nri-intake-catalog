@@ -17,6 +17,8 @@ from access_nri_intake.experiment.utils import (
     DataStoreWarning,
     MultipleDataStoreError,
     hash_catalog,
+    parse_kwargs,
+    validate_args,
     verify_ds_current,
 )
 from access_nri_intake.source import builders
@@ -382,3 +384,64 @@ def test_use_datastore_broken_existing(
     captured = capsys.readouterr()
 
     assert "Building esm-datastore" in captured.out
+
+
+@pytest.mark.parametrize(
+    "builder, kwargs, fails, err_msg",
+    [
+        ("AccessOm2Builder", {}, False, ""),
+        ("AccessOm2Builder", {"ensemble": True}, True, "Builder does not accept"),
+        ("AccessEsm15Builder", {}, False, ""),
+        ("AccessEsm15Builder", {"ensemble": True}, False, ""),
+        ("AccessEsm15Builder", {"ensemble": "nonsense"}, True, "must be of type"),
+        ("AccessEsm15Builder", {"esnmebel": True}, True, "Builder does not accept"),
+    ],
+)
+def test_validate_args(builder: str, kwargs, fails, err_msg):
+    builder_type: Builder = getattr(builders, builder)
+
+    if not fails:
+        validate_args(builder_type, kwargs)
+        assert True
+        return None
+
+    with pytest.raises(TypeError, match=err_msg):
+        validate_args(builder_type, kwargs)
+
+
+@pytest.mark.parametrize(
+    "kwargs, fails, expected",
+    [
+        (
+            "ensemble=True",
+            False,
+            {"ensemble": True},
+        ),
+        (
+            "ensemble=False",
+            False,
+            {"ensemble": False},
+        ),
+        (
+            "ensemble=false",
+            False,
+            {"ensemble": False},
+        ),
+        (
+            "ensemble=nonsense",
+            True,
+            None,
+        ),
+        (
+            "esnmebel=True",
+            False,
+            {},
+        ),
+    ],
+)
+def test_parse_kwargs(kwargs, fails, expected):
+    if not fails:
+        assert parse_kwargs(kwargs) == expected
+    else:
+        with pytest.raises(TypeError):
+            parse_kwargs(kwargs)

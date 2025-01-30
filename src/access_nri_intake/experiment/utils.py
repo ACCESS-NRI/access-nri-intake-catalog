@@ -2,7 +2,9 @@ import json
 import re
 import warnings
 from dataclasses import dataclass, field
+from inspect import signature
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from colorama import Fore, Style
@@ -254,3 +256,71 @@ def find_experiment_files(
     builder_instance: Builder = builder(path=str(experiment_dir), **builder_kwargs)
 
     return {Path(file).resolve() for file in builder_instance.get_assets().assets}
+
+
+def parse_kwargs(kwargs: str) -> dict:
+    """
+    Builder kwargs can be passed as `--builder-kwargs arg1=val1 arg2=val2` etc.
+    This function parses them into a dictionary. It will require some additional
+    type coercion to pass on non string kwargs.
+
+    The builders we use only take either a path, list of paths, or an `ensemble`
+    kwarg. Ensemble is a boolean.
+    """
+    ret = {}
+    for item in kwargs.split():
+        kw, arg = item.split("=")
+        if kw == "ensemble":
+            if arg.lower() not in ["true", "false"]:
+                raise TypeError(f"Ensemble kwarg must be a boolean, not {arg}.")
+            else:
+                ret[kw] = True if arg.lower() == "true" else False
+
+    return ret
+
+
+def validate_args(builder: Builder, builder_kwargs: dict[str, Any]) -> None:
+    """
+    Take a builder and validate the kwargs provided against the builder's signature.
+    This is provided to smooth debugging when wrong kwargs are passed from the command
+    line.
+
+    Parameters
+    ----------
+    builder : Builder
+        The builder object that will be used to build the datastore.
+
+    builder_kwargs : dict[str, Any]
+        The keyword arguments to pass to the builder.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    TypeError
+        If the builder_kwargs do not match the builder's signature.
+    """
+
+    builder_sig = signature(builder.__init__).parameters
+
+    builder_params = {k: v for k, v in builder_sig.items() if k != "self"}
+
+    for key, val in builder_kwargs.items():
+        if key not in builder_params:
+            raise TypeError(
+                f"Builder does not accept kwarg {key}."
+                f" Accepted kwargs are: {builder_params.keys()}"
+            )
+        param = builder_params[key]
+        expected_type = param.annotation if param.annotation is not param.empty else Any
+        if expected_type is not Any and not isinstance(val, expected_type):  # type: ignore
+            # Mypy thinks we might be passing Any into isinstance.
+            # Might also be issues if we have a type like Union[str, int], etc - we
+            # might need to handle this differently.
+            raise TypeError(
+                f"Builder kwarg {key} must be of type {expected_type}, not {type(val)}."
+            )
+
+    return None
