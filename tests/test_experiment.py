@@ -261,6 +261,7 @@ def test_use_datastore(
     tmp_path,
     open_ds,
     return_type,
+    capsys,
 ):
     """
     Run the `use_datastore` function on a bunch of different builders to make sure
@@ -283,3 +284,51 @@ def test_use_datastore(
         builder_type, Path(basedir[0]), open_ds=open_ds, builder_kwargs=kwargs
     )
     assert isinstance(ret, return_type)
+
+    captured = capsys.readouterr()
+    assert "Generating esm-datastore for" in captured.out
+    assert "Hashing catalog" in captured.out
+    assert (
+        "Please note that this has not added the datastore to the access-nri-intake catalog"
+        in captured.out
+    )
+    if not open_ds:
+        assert "To open the datastore" in captured.out
+    else:
+        assert "To open the datastore" not in captured.out
+
+
+def test_use_datastore_existing(
+    test_data: Path,
+    tmp_path,
+    capsys,
+):
+    """
+    Run the `use_datastore` function on a bunch of different builders to make sure
+    they all work as expected.
+    """
+    srcdir, destdir = (
+        test_data / "access-om2",
+        tmp_path / "tests" / "data" / "access-om2",
+    )
+
+    shutil.copytree(src=srcdir, dst=destdir)
+    basedir = [str(destdir)]
+    # I think the str wrapper here is a bug- type hint implies we can pass a single string
+    builder_type: Builder = getattr(builders, "AccessOm2Builder")
+    builder = builder_type(basedir, **{})
+    builder.get_assets()
+
+    assert isinstance(builder.assets, list)
+
+    # This creates a bunch of datastoers that we don't actually want here.
+    ret = use_datastore(
+        builder_type, Path(basedir[0]), open_ds=False, builder_kwargs={}
+    )
+    # Run it again so that we can test the case where the datastore already exists
+    ret = use_datastore(builder_type, Path(basedir[0]), open_ds=True, builder_kwargs={})
+    assert isinstance(ret, esm_datastore)
+
+    captured = capsys.readouterr()
+
+    assert "Datastore found in " in captured.out
