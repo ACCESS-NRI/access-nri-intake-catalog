@@ -22,8 +22,8 @@ warnings.simplefilter("always")
 def use_datastore(
     builder: Builder,
     experiment_dir: Path,
-    builder_kwargs: dict | None = None,
     catalog_dir: Path | None = None,
+    builder_kwargs: dict | None = None,
     open_ds: bool = True,
     datastore_name: str = "experiment_datastore",
     description: str | None = None,
