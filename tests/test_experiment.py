@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
+import yamanifest
 
 from access_nri_intake.experiment.main import find_esm_datastore
 from access_nri_intake.experiment.utils import (
@@ -119,14 +120,12 @@ def test_find_esm_datastore(test_data, subdir, expected):
     [
         ("ccam-hq89", "extra files in datastore"),
         ("cmip5-al33", "missing files from datastore"),
-        ("cmip6-oi10", "differing hashes"),
         ("cordex-ig45", "No hash file found for datastore"),
     ],
 )
-def test_verify_ds_current_fail_cases(test_data, ds_name, warning_str):
+def test_verify_ds_current_fail_wrong_fileno(test_data, ds_name, warning_str):
     """
     We have the following hashes here:
-    - barpa-py18: This should match up.
     - ccam-hq89: This should contain a hash that is not in the csv/json files (stolen from Barpa)
     - cmip5-al33: This should miss a hash that is in the csv/json files
     - cmip6-oi10: This should match up but have a different hash
@@ -183,3 +182,50 @@ def test_verify_ds_current_valid(mock_builder, test_data, tmpdir):
     )
 
     assert ds_current_bool
+
+
+@mock.patch("access_nri_intake.source.builders.Builder")
+def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir):
+    """
+    We have the following hashes here:
+    - cmip6-oi10: This should match up but have a different hash
+
+    We can't guarantee that filesystem information will be the same across the
+    various systems this test might be run on, so to circumvent that issue, we
+    will write the hash out to a temporary file and verify against that.
+    """
+
+    shutil.copytree(test_data / "esm_datastore" / "local_paths", tmpdir / "local_paths")
+
+    experiment_files = [
+        str(file)
+        for file in Path(tmpdir / "local_paths" / "nc_files" / "cmip6-oi10")
+        .resolve()
+        .glob("*.nc")
+    ]
+
+    ds_dir = tmpdir / "local_paths"
+
+    # Mock the builder instance to haev a df.path.tolist() method that returns
+    # the experiment files.
+    mock_builder.df.path.tolist.return_value = experiment_files
+
+    hash_catalog(ds_dir, "cmip6-oi10", mock_builder)
+    # Now we need to open the hash file and change the hash to something else
+
+    manifest = yamanifest.Manifest(str(ds_dir / ".cmip6-oi10.hash")).load()
+
+    for bh in manifest.data.values():
+        bh["hashes"]["binhash"] = "0" * len(bh["hashes"]["binhash"])
+
+    manifest.dump()
+
+    ds_info = DatastoreInfo(ds_dir / "cmip6-oi10.json", ds_dir / "cmip6-oi10.csv")
+
+    with pytest.warns(DataStoreWarning, match="differing hashes"):
+        ds_current_bool = verify_ds_current(
+            ds_info,
+            set(experiment_files),
+        )
+
+    assert not ds_current_bool
