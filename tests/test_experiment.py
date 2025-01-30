@@ -2,6 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+import shutil
+from pathlib import Path
+from unittest import mock
+
 import pytest
 
 from access_nri_intake.experiment.main import find_esm_datastore
@@ -9,6 +13,7 @@ from access_nri_intake.experiment.utils import (
     DatastoreInfo,
     DataStoreWarning,
     MultipleDataStoreError,
+    hash_catalog,
     verify_ds_current,
 )
 
@@ -110,20 +115,15 @@ def test_find_esm_datastore(test_data, subdir, expected):
 
 
 @pytest.mark.parametrize(
-    "ds_name, expected, warning_str",
+    "ds_name, warning_str",
     [
-        (
-            "barpa-py18",
-            True,
-            None,
-        ),  # This test will always fail in CI because of modification time.
-        ("ccam-hq89", False, "extra files in datastore"),
-        ("cmip5-al33", False, "missing files from datastore"),
-        ("cmip6-oi10", False, "differing hashes"),
-        ("cordex-ig45", False, "No hash file found for datastore"),
+        ("ccam-hq89", "extra files in datastore"),
+        ("cmip5-al33", "missing files from datastore"),
+        ("cmip6-oi10", "differing hashes"),
+        ("cordex-ig45", "No hash file found for datastore"),
     ],
 )
-def test_verify_ds_current(test_data, ds_name, expected, warning_str):
+def test_verify_ds_current_fail_cases(test_data, ds_name, warning_str):
     """
     We have the following hashes here:
     - barpa-py18: This should match up.
@@ -140,16 +140,46 @@ def test_verify_ds_current(test_data, ds_name, expected, warning_str):
     experiment_files = set((dir / "nc_files" / ds_name).glob("*.nc"))
     ds_info = DatastoreInfo(dir / f"{ds_name}.json", dir / f"{ds_name}.csv")
 
-    if warning_str:
-        with pytest.warns(DataStoreWarning, match=warning_str):
-            ds_current_bool = verify_ds_current(
-                ds_info,
-                experiment_files,
-            )
-    else:
+    with pytest.warns(DataStoreWarning, match=warning_str):
         ds_current_bool = verify_ds_current(
             ds_info,
             experiment_files,
         )
 
-    assert ds_current_bool == expected
+    assert not ds_current_bool
+
+
+@mock.patch("access_nri_intake.source.builders.Builder")
+def test_verify_ds_current_valid(mock_builder, test_data, tmpdir):
+    """
+    We have the following hashes here:
+    - barpa-py18: This should match up.
+
+    We can't guarantee that filesystem information will be the same across the
+    various systems this test might be run on, so to circumvent that issue, we
+    will write the hash out to a temporary file and verify against that.
+    """
+    shutil.copytree(test_data / "esm_datastore" / "local_paths", tmpdir / "local_paths")
+
+    experiment_files = [
+        str(file)
+        for file in Path(tmpdir / "local_paths" / "nc_files" / "barpa-py18")
+        .resolve()
+        .glob("*.nc")
+    ]
+
+    # Mock the builder instance to haev a df.path.tolist() method that returns
+    # the experiment files.
+    mock_builder.df.path.tolist.return_value = experiment_files
+
+    hash_catalog(tmpdir / "local_paths", "barpa-py18", mock_builder)
+
+    dir = tmpdir / "local_paths"
+    ds_info = DatastoreInfo(dir / "barpa-py18.json", dir / "barpa-py18.csv")
+
+    ds_current_bool = verify_ds_current(
+        ds_info,
+        set(experiment_files),
+    )
+
+    assert ds_current_bool
