@@ -8,8 +8,9 @@ from unittest import mock
 
 import pytest
 import yamanifest
+from intake_esm import esm_datastore
 
-from access_nri_intake.experiment.main import find_esm_datastore
+from access_nri_intake.experiment.main import find_esm_datastore, use_datastore
 from access_nri_intake.experiment.utils import (
     DatastoreInfo,
     DataStoreWarning,
@@ -17,6 +18,8 @@ from access_nri_intake.experiment.utils import (
     hash_catalog,
     verify_ds_current,
 )
+from access_nri_intake.source import builders
+from access_nri_intake.source.builders import Builder
 
 
 @pytest.mark.parametrize(
@@ -229,3 +232,54 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
         )
 
     assert not ds_current_bool
+
+
+@pytest.mark.parametrize(
+    "basedir, builder, kwargs, num_assets",
+    [
+        ("access-om2", "AccessOm2Builder", {}, 12),
+        (
+            "access-cm2",
+            "AccessCm2Builder",
+            {"ensemble": True},
+            10,
+        ),  # This was 18 - changed it to ten, I think because of crawl-depth & by578 / by578a
+        ("access-esm1-5", "AccessEsm15Builder", {"ensemble": False}, 11),
+        ("access-om3", "AccessOm3Builder", {}, 12),
+        ("mom6", "Mom6Builder", {}, 27),
+    ],
+)
+@pytest.mark.parametrize(
+    "open_ds, return_type", [(True, esm_datastore), (False, type(None))]
+)
+def test_use_datastore(
+    test_data: Path,
+    basedir,
+    builder,
+    kwargs,
+    num_assets,
+    tmp_path,
+    open_ds,
+    return_type,
+):
+    """
+    Run the `use_datastore` function on a bunch of different builders to make sure
+    they all work as expected.
+    """
+    srcdir, destdir = test_data / basedir, tmp_path / "tests" / "data" / basedir
+
+    shutil.copytree(src=srcdir, dst=destdir)
+    basedir = [str(destdir)]
+    # I think the str wrapper here is a bug- type hint implies we can pass a single string
+    builder_type: Builder = getattr(builders, builder)
+    builder = builder_type(basedir, **kwargs)
+    builder.get_assets()
+
+    assert isinstance(builder.assets, list)
+    assert len(builder.assets) == num_assets
+
+    # This creates a bunch of datastoers that we don't actually want here.
+    ret = use_datastore(
+        builder_type, Path(basedir[0]), open_ds=open_ds, builder_kwargs=kwargs
+    )
+    assert isinstance(ret, return_type)

@@ -226,9 +226,12 @@ def hash_catalog(
     return None
 
 
-def find_experiment_files(builder: Builder, experiment_dir: Path) -> set[Path]:
+def find_experiment_files(
+    builder: Builder, experiment_dir: Path, builder_kwargs: dict | None = None
+) -> set[Path]:
     """
-    Find all the files in the experiment directory and return them as a set.
+    Find all the relevant files in the experiment directory and return them as a set, using
+    the builder.get_assets() method.
 
     Parameters
     ----------
@@ -236,15 +239,18 @@ def find_experiment_files(builder: Builder, experiment_dir: Path) -> set[Path]:
         The builder object that will be used to build the datastore.
     experiment_dir : Path
         The directory containing the experiment.
+    builder_kwargs : dict, optional
+        Any additional keyword arguments to pass to the builder
 
     Returns
     -------
     set[str]
         A set of the full paths of the files in the experiment directory.
     """
+    builder_kwargs = builder_kwargs or {}
 
     print(f"{Fore.BLUE}Parsing experiment dir...{Style.RESET_ALL}")
 
-    builder_instance: Builder = builder(path=str(experiment_dir))
+    builder_instance: Builder = builder(path=str(experiment_dir), **builder_kwargs)
 
     return {Path(file).resolve() for file in builder_instance.get_assets().assets}

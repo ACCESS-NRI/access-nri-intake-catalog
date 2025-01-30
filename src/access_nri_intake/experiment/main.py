@@ -22,6 +22,7 @@ warnings.simplefilter("always")
 def use_datastore(
     builder: Builder,
     experiment_dir: Path,
+    builder_kwargs: dict | None = None,
     catalog_dir: Path | None = None,
     open_ds: bool = True,
     datastore_name: str = "experiment_datastore",
@@ -58,6 +59,8 @@ def use_datastore(
         directory.
     open_ds : bool
         Whether to open the datastore after building it.
+    builder_kwargs : dict, optional
+        Any additional keyword arguments to pass to the builder if needed.
 
     Returns
     -------
@@ -73,6 +76,7 @@ def use_datastore(
         description or f"esm_datastore for the model output in '{str(experiment_dir)}'"
     )
     catalog_dir = catalog_dir or experiment_dir
+    builder_kwargs = builder_kwargs or {}
 
     ds_info = find_esm_datastore(catalog_dir)
 
@@ -81,7 +85,9 @@ def use_datastore(
         print(
             f"{Fore.BLUE}Datastore found in {Style.BRIGHT}{experiment_dir}{Style.NORMAL}, verifying datastore integrity...{Style.RESET_ALL}"
         )
-        found_experiment_files = find_experiment_files(builder, experiment_dir)
+        found_experiment_files = find_experiment_files(
+            builder, experiment_dir, builder_kwargs
+        )
         ds_info.valid = verify_ds_current(ds_info, found_experiment_files)
     elif ds_info:
         # The datastore was found but was invalid. Rebuild it.
@@ -100,9 +106,9 @@ def use_datastore(
     ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
 
     if not ds_info.valid:
-        builder_instance: Builder = builder(path=str(experiment_dir))
+        builder_instance: Builder = builder(path=str(experiment_dir), **builder_kwargs)
         print(f"{Fore.BLUE}Building esm-datastore...{Style.RESET_ALL}")
-        builder_instance.build()
+        builder_instance.get_assets().build()
         print(f"{Fore.GREEN}Sucessfully built esm-datastore!{Style.RESET_ALL}")
         print(
             f"{Fore.BLUE}Saving esm-datastore to {Fore.CYAN}{Style.BRIGHT}{str(catalog_dir.absolute())}{Style.RESET_ALL}"
