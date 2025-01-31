@@ -451,13 +451,11 @@ def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
     with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
-        == (min_vers if min_vers is not None else VERSION)
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
+        min_vers if min_vers is not None else VERSION
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
-    assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
-        == (max_vers if max_vers is not None else VERSION)
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
+        max_vers if max_vers is not None else VERSION
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     # Default should always be the newly-built version
     assert (
@@ -515,13 +513,11 @@ def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp
     with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
-        == (min_vers if min_vers is not None else VERSION)
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
+        min_vers if min_vers is not None else VERSION
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
-    assert (
-        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
-        == (max_vers if max_vers is not None else VERSION)
+    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
+        max_vers if max_vers is not None else VERSION
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     # Default should always be the newly-built version
     assert (
@@ -1169,6 +1165,20 @@ def test_use_esm_datastore_valid(use_datastore):
     )
 
     assert ret == 0
+
+
+def test_use_esm_datastore_no_builder(tmp_path):
+    """
+    Test use_esm_datastore - no builder specified. This should look for a ESM-datastore
+    in the new temporary directory, and try to build a datastore since there won't be
+    one in there. Then it'll fail because there's no builder specified.
+    """
+    with pytest.raises(ValueError) as excinfo:
+        use_esm_datastore(["--expt-dir", str(tmp_path)])
+
+        assert "A builder must be provided if no valid datastore is found" in str(
+            excinfo.value
+        )
 
 
 def test_scaffold_catalog_entry():

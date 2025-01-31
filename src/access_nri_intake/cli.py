@@ -597,7 +597,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
             f" {', '.join(builders.__all__)}."
             " To build a datastore for a new model, please contact the ACCESS-NRI team."
         ),
-        required=True,
+        required=False,
         # If we can, it would be nice to eventually relax this and try to automatically
         # determine the builder if possible.
     )
@@ -642,8 +642,12 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         builder = getattr(builders, builder)
     except AttributeError:
         builder = object
+    except TypeError:
+        builder = None
     finally:
-        if not isinstance(builder, type) or not issubclass(builder, builders.Builder):
+        if builder is None:
+            pass
+        elif not isinstance(builder, type) or not issubclass(builder, builders.Builder):
             raise ValueError(
                 f"Builder {builder} is not a valid builder. Please choose from {builders.__all__}"
             )

@@ -23,7 +23,7 @@ warnings.simplefilter(
 
 def use_datastore(
     experiment_dir: Path,
-    builder: Builder,  # TODO: Make this optional
+    builder: Builder | None = None,
     catalog_dir: Path | None = None,
     builder_kwargs: dict | None = None,
     open_ds: bool = True,
@@ -97,7 +97,11 @@ def use_datastore(
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
     ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
 
-    if not ds_info.valid:
+    if not ds_info.valid and builder is None:
+        raise ValueError(
+            "A builder must be provided if no valid datastore is found in the experiment directory."
+        )
+    elif not ds_info.valid and builder is not None:
         builder_instance: Builder = builder(path=str(experiment_dir), **builder_kwargs)
         print(f"{f_info}Building esm-datastore...{f_reset}")
         builder_instance.get_assets().build()
@@ -151,10 +155,10 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
     DatastoreInfo object.
 
     To find an ESM datastore, we use the heuristic that an esm_datastore comprises
-    a json file and a csv.gz file with the same name. To find these, we are first
-    going to search experiment_dir and all its subdirectories for a json file, and
-    then look for a file in the same directory where '.csv' is a member of the file
-    objects suffixes property.
+    a json file and a csv.gz (or.csv) file with the same name. To find these, we are
+    first going to search experiment_dir and all its subdirectories for a json file,
+    and then look for a file in the same directory where '.csv' is a member of the
+    file objects suffixes property.
 
     Parameters
     ----------
