@@ -675,8 +675,9 @@ def scaffold_catalog_entry(argv: Sequence[str] | None = None) -> int:
     )
     parser.add_argument(
         "--interactive",
+        action="store_true",
         default=False,
-        type=bool,
+        required=False,
         help=(
             "Instead of dumping all the information at once, provide it in chunks"
             " and ask for confirmation after each chunk."
