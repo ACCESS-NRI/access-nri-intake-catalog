@@ -2,6 +2,7 @@ import json
 import re
 import warnings
 from dataclasses import dataclass, field
+from enum import Enum
 from inspect import signature
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,20 @@ class MultipleDataStoreError(DataStoreError):
     pass
 
 
+class DataStoreInvalidCause(Enum):
+    """
+    Enum to store the causes of invalid datastores.
+    """
+
+    NO_ISSUE = ""
+    UNKNOWN_ISSUE = "unknown issue"
+    MISMATCH_NAME = "mismatch between json and csv.gz file names"
+    JSON_CORRUPTED = "datastore JSON corrupted"
+    PATH_MISMATCH = "path in JSON does not match csv.gz"
+    CATALOG_MISMATCH = "catalog_filename in JSON does not match csv.gz filename"
+    COLUMN_MISMATCH = "columns specified in JSON do not match csv.gz file"
+
+
 @dataclass
 class DatastoreInfo:
     """
@@ -44,7 +59,7 @@ class DatastoreInfo:
     json_handle: Path | str
     csv_handle: Path | str
     valid: bool = field(default=True)
-    invalid_ds_cause: str = field(default="unknown issue")
+    invalid_ds_cause: str = field(default=DataStoreInvalidCause.NO_ISSUE.value)
 
     def __post_init__(self):
         """
@@ -68,7 +83,7 @@ class DatastoreInfo:
         ):  # This gnarly statement removes the whole suffix to compare stems
             # I think this might duplicate the check in find_esm_datastore
             self.valid = False
-            self.invalid_ds_cause = "mismatch between json and csv.gz file names"
+            self.invalid_ds_cause = DataStoreInvalidCause.MISMATCH_NAME.value
             return None
 
         with open(self.json_handle) as f:
@@ -76,7 +91,7 @@ class DatastoreInfo:
                 ds_json = json.load(f)
             except json.JSONDecodeError:
                 self.valid = False
-                self.invalid_ds_cause = "datastore JSON corrupted"
+                self.invalid_ds_cause = DataStoreInvalidCause.JSON_CORRUPTED.value
                 return None
 
         colnames = pd.read_csv(self.csv_handle, nrows=0).columns
@@ -86,7 +101,7 @@ class DatastoreInfo:
 
         if self.match_broken_internal_path(ds_json):
             self.valid = False
-            self.invalid_ds_cause = "path in JSON does not match csv.gz"
+            self.invalid_ds_cause = DataStoreInvalidCause.PATH_MISMATCH.value
             return None
 
         # If the previous check passes, then we need to check that the name in
@@ -95,16 +110,14 @@ class DatastoreInfo:
         # the name attribute.
         if Path(ds_json["catalog_file"]).name != self.csv_handle.name:
             self.valid = False
-            self.invalid_ds_cause = (
-                "catalog_filename in JSON does not match csv.gz filename"
-            )
+            self.invalid_ds_cause = DataStoreInvalidCause.CATALOG_MISMATCH.value
             return None
 
         if set(colnames) != set(
             [item["column_name"] for item in ds_json["attributes"]]
         ).union({"path"}):
             self.valid = False
-            self.invalid_ds_cause = "columns specified in JSON do not match csv.gz file"
+            self.invalid_ds_cause = DataStoreInvalidCause.COLUMN_MISMATCH.value
             return None
 
         # If all of these pass, then we can try to open the datastore

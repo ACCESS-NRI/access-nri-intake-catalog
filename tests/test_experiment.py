@@ -14,6 +14,7 @@ from intake_esm import esm_datastore
 from access_nri_intake.experiment.main import find_esm_datastore, use_datastore
 from access_nri_intake.experiment.utils import (
     DatastoreInfo,
+    DataStoreInvalidCause,
     DataStoreWarning,
     MultipleDataStoreError,
     hash_catalog,
@@ -32,43 +33,43 @@ from access_nri_intake.source.builders import Builder
             "malformed/missing_attribute.json",
             "malformed/missing_attribute.csv",
             False,
-            "columns specified in JSON do not match csv.gz file",
+            DataStoreInvalidCause.COLUMN_MISMATCH.value,
         ),
         (
             "malformed/missing_csv_col.json",
             "malformed/missing_attribute.csv",
             False,
-            "mismatch between json and csv.gz file names",
+            DataStoreInvalidCause.MISMATCH_NAME.value,
         ),
         (
             "malformed/missing_csv_col.json",
             "malformed/missing_csv_col.csv",
             False,
-            "columns specified in JSON do not match csv.gz file",
+            DataStoreInvalidCause.COLUMN_MISMATCH.value,
         ),
         (
             "malformed/corrupted.json",
             "malformed/corrupted.csv",
             False,
-            "datastore JSON corrupted",
+            DataStoreInvalidCause.JSON_CORRUPTED.value,
         ),
         (
             "malformed/wrong_fname.json",
             "malformed/wrong_fname.csv",
             False,
-            "catalog_filename in JSON does not match csv.gz filename",
+            DataStoreInvalidCause.CATALOG_MISMATCH.value,
         ),
         (
             "malformed/wrong_path.json",
             "malformed/wrong_path.csv",
             False,
-            "path in JSON does not match csv.gz",
+            DataStoreInvalidCause.PATH_MISMATCH.value,
         ),
         (
             "cmip6-oi10.json",
             "cmip6-oi10.csv",
             True,
-            "",
+            DataStoreInvalidCause.NO_ISSUE.value,
         ),
     ],
 )
@@ -178,7 +179,7 @@ def test_verify_ds_current_valid(mock_builder, test_data, tmpdir):
         .glob("*.nc")
     ]
 
-    # Mock the builder instance to haev a df.path.tolist() method that returns
+    # Mock the builder instance to have a df.path.tolist() method that returns
     # the experiment files.
     mock_builder.df.path.tolist.return_value = experiment_files
 
@@ -217,7 +218,7 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
 
     ds_dir = tmpdir / "local_paths"
 
-    # Mock the builder instance to haev a df.path.tolist() method that returns
+    # Mock the builder instance to have a df.path.tolist() method that returns
     # the experiment files.
     mock_builder.df.path.tolist.return_value = experiment_files
 
