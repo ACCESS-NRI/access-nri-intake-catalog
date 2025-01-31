@@ -3,10 +3,10 @@ import warnings
 from pathlib import Path
 
 import intake
-from colorama import Fore, Style
 from intake_esm import esm_datastore
 
 from ..source.builders import Builder
+from .colours import f_info, f_path, f_reset, f_success, f_suggestion, f_warn
 from .utils import (
     DatastoreInfo,
     DataStoreWarning,
@@ -16,12 +16,14 @@ from .utils import (
     verify_ds_current,
 )
 
-warnings.simplefilter("always")
+warnings.simplefilter(
+    "always"
+)  # This will emit warnings from the command line - this is intentional
 
 
 def use_datastore(
-    builder: Builder,
     experiment_dir: Path,
+    builder: Builder,  # TODO: Make this optional
     catalog_dir: Path | None = None,
     builder_kwargs: dict | None = None,
     open_ds: bool = True,
@@ -29,23 +31,11 @@ def use_datastore(
     description: str | None = None,
 ) -> esm_datastore | None:
     """
-    Handles building datastores for experiments for experiments contained in a
-    directory, as well as verifying that the datastores are valid and rebuilding
-    them if needs be. If `open_ds` is False, then we won't try to open the datastore
-    after building it - it'll just slow things down if we're using the console.
+    Specify a builder and an experiment directory in order to build and/or open
+    an esm-datastore in place for that experiment. Valid and up to date datastores
+    will not be overwritten.
 
-    Procedure:
-    1. Look for a catalog.json and a matching catalog.csv.gz file in the directory
-    provided. TBC: How robust can we make this? Does it need to be in the root of
-    the experiment dir? These things all need to be worked out.
-    2. If we find a catalog there, then we need to check that it is valid. First,
-    we need to just try to open the catalog. If that doesn't work, we need to rebuild
-    it, for sure. But we also need to check that the catalog has the right number of
-    entries, and that the entries are all valid. This is a bit more tricky, but we
-    use just enumerate the entries and check they're all in the directory, and then
-    enumerate the files in the directory and check they're all in the catalog. If
-    we find any discrepancies, we need to rebuild the catalog. This is kind of involved,
-    so we are going to try to use some hashing tricks to speed things up.
+    Further configuration can be done by passing additional keyword arguments
 
     Parameters
     ----------
@@ -58,9 +48,16 @@ def use_datastore(
         experiment directory. If None, the catalog will be written to the experiment
         directory.
     open_ds : bool
-        Whether to open the datastore after building it.
+        Whether to open the datastore after building it. Typically set to false
+        when called from a console script.
     builder_kwargs : dict, optional
-        Any additional keyword arguments to pass to the builder if needed.
+        Any additional keyword arguments to pass to the builder if needed - for
+        example, AccessEsm15Builder additionally takes an `ensemble` argument
+    datastore_name : str, optional
+        The name of the datastore to be written. Defaults to 'experiment_datastore'.
+        Datastores are written as `catalog_dir / datastore_name.json`.
+    description : str, optional
+        A description of the datastore. If None, a default description will be used.
 
     Returns
     -------
@@ -80,38 +77,33 @@ def use_datastore(
 
     ds_info = find_esm_datastore(catalog_dir)
 
-    if ds_info.valid:
-        # Nothing is obviously wrong with the datastore, so
+    if ds_info.valid:  # Nothing is obviously wrong with the datastore
         print(
-            f"{Fore.BLUE}Datastore found in {Style.BRIGHT}{experiment_dir}{Style.NORMAL}, verifying datastore integrity...{Style.RESET_ALL}"
+            f"{f_info}Datastore found in {f_path}{experiment_dir}{f_info}, verifying datastore integrity...{f_reset}"
         )
         found_experiment_files = find_experiment_files(
             builder, experiment_dir, builder_kwargs
         )
         ds_info.valid = verify_ds_current(ds_info, found_experiment_files)
-    elif ds_info:
-        # The datastore was found but was invalid. Rebuild it.
+    elif ds_info:  # The datastore was found but was invalid. Rebuild it.
         warnings.warn(
-            f"{Fore.YELLOW}esm-datastore broken due to {ds_info.invalid_ds_cause}. Regenerating datastore...{Style.RESET_ALL}",
+            f"{f_warn}esm-datastore broken due to {ds_info.invalid_ds_cause}. Regenerating datastore...{f_reset}",
             category=DataStoreWarning,
             stacklevel=2,
         )
-    else:
-        # No datastore found. Build one.
-        print(
-            f"{Fore.GREEN}Generating esm-datastore for {experiment_dir}{Style.RESET_ALL}"
-        )
+    else:  # No datastore found. Build one.
+        print(f"{f_success}Generating esm-datastore for {experiment_dir}{f_reset}")
 
     scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
     ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
 
     if not ds_info.valid:
         builder_instance: Builder = builder(path=str(experiment_dir), **builder_kwargs)
-        print(f"{Fore.BLUE}Building esm-datastore...{Style.RESET_ALL}")
+        print(f"{f_info}Building esm-datastore...{f_reset}")
         builder_instance.get_assets().build()
-        print(f"{Fore.GREEN}Sucessfully built esm-datastore!{Style.RESET_ALL}")
+        print(f"{f_success}Sucessfully built esm-datastore!{f_reset}")
         print(
-            f"{Fore.BLUE}Saving esm-datastore to {Fore.CYAN}{Style.BRIGHT}{str(catalog_dir.absolute())}{Style.RESET_ALL}"
+            f"{f_info}Saving esm-datastore to {f_path}{str(catalog_dir.absolute())}{f_reset}"
         )
         builder_instance.save(
             name=datastore_name,
@@ -121,21 +113,21 @@ def use_datastore(
         )
 
         print(
-            f"{Fore.BLUE}Hashing catalog to prevent unnecessary rebuilds.\nThis may take some time...{Style.RESET_ALL}"
+            f"{f_info}Hashing catalog to prevent unnecessary rebuilds.\nThis may take some time...{f_reset}"
         )
         hash_catalog(catalog_dir, datastore_name, builder_instance)
-        print(f"{Fore.GREEN}Catalog sucessfully hashed!{Style.RESET_ALL}")
+        print(f"{f_success}Catalog sucessfully hashed!{f_reset}")
 
         print(
-            f"{Fore.GREEN}Datastore sucessfully written to {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
-            f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
-            f"\nTo add to catalog, please run '{Fore.WHITE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
+            f"{f_success}Datastore sucessfully written to {f_path}{ds_full_path}{f_success}!"
+            f"\n{f_info}Please note that this has not added the datastore to the access-nri-intake catalog."
+            f"\nTo add to catalog, please run '{f_suggestion}{scaffold_cmd}{f_info}' for help on how to do so."
         )
     else:
         print(
-            f"{Fore.GREEN}Datastore found in {Fore.CYAN}{Style.BRIGHT}{ds_full_path}{Style.NORMAL}{Fore.GREEN}!"
-            f"\n{Fore.BLUE}Please note that this has not added the datastore to the access-nri-intake catalog."
-            f"\nTo add to catalog, please run '{Fore.WHITE}{Style.BRIGHT}{scaffold_cmd}{Fore.BLUE}{Style.NORMAL}' for help on how to do so."
+            f"{f_success}Datastore found in {f_path}{ds_full_path}{f_success}!"
+            f"\n{f_info}Please note that this has not added the datastore to the access-nri-intake catalog."
+            f"\nTo add to catalog, please run '{f_suggestion}{scaffold_cmd}{f_info}' for help on how to do so."
         )
 
     if open_ds:
@@ -145,11 +137,11 @@ def use_datastore(
         )
     else:
         print(
-            f"{Fore.BLUE}To open the datastore, run `{Fore.WHITE}{Style.BRIGHT}intake.open_esm_datastore('{ds_full_path}',"
-            f" columns_with_iterables=['variable']){Fore.BLUE}{Style.NORMAL}` in a Python session."
+            f"{f_info}To open the datastore, run `{f_suggestion}intake.open_esm_datastore('{ds_full_path}',"
+            f" columns_with_iterables=['variable']){f_info}` in a Python session."
         )
 
-    print(f"{Style.RESET_ALL}")
+    print(f"{f_reset}")
     return None
 
 
@@ -163,6 +155,17 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
     going to search experiment_dir and all its subdirectories for a json file, and
     then look for a file in the same directory where '.csv' is a member of the file
     objects suffixes property.
+
+    Parameters
+    ----------
+    experiment_dir : Path
+        The directory containing the experiment.
+
+    Returns
+    -------
+    DatastoreInfo
+        A DatastoreInfo object containing the json and csv files if found, or
+        a null DatastoreInfo object if not found.
     """
 
     json_files = experiment_dir.rglob("*.json")
@@ -177,7 +180,7 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
                 json_file.stem
                 == csv_file.name.replace(
                     "".join([suffix for suffix in csv_file.suffixes]), ""
-                )  # THis gnarly statement removes the whole suffix to compaer stems
+                )  # This gnarly statement removes the whole suffix to compare stems
                 and json_file.parent == csv_file.parent
             ):
                 matched_pairs.append((json_file, csv_file))
@@ -190,3 +193,21 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
         )
 
     return DatastoreInfo(*matched_pairs[0])
+
+
+def scaffold_catalog_entry(interactive: bool) -> None:
+    """
+    Provides the user information about how to add a datastore to the access-nri-intake
+    catalog. If interactive is set to True, the user will be prompted to confirm that they
+    are ready to continue with each step - else, all steps will be printed at once.
+
+    Parameters
+    ----------
+    interactive : bool
+        Whether to provide interactive help or not.
+    """
+
+    modestr = "interactive" if interactive else "non-interactive"
+    raise NotImplementedError(
+        f"This function is not yet implemented for {modestr} mode."
+    )

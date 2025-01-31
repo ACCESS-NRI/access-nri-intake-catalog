@@ -39,6 +39,9 @@ def test_entrypoint():
     exit_status = os.system("build-esm-datastore --help")
     assert exit_status == 0
 
+    exit_status = os.system("scaffold-catalog-entry --help")
+    assert exit_status == 0
+
 
 @pytest.mark.parametrize(
     "args, raises",
@@ -1009,7 +1012,6 @@ class NoInitCatalogManager(CatalogManager):
 
 @pytest.mark.parametrize("method", ["load", "build_esm"])
 def test_add_source_to_catalog_failure(method, tmpdir):
-
     with mock.patch.object(
         NoInitCatalogManager, method, side_effect=Exception("Dummy Exception injected")
     ):

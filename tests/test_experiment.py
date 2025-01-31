@@ -68,7 +68,7 @@ from access_nri_intake.source.builders import Builder
             "cmip6-oi10.json",
             "cmip6-oi10.csv",
             True,
-            "unknown issue",
+            "",
         ),
     ],
 )
@@ -284,7 +284,10 @@ def test_use_datastore(
 
     # This creates a bunch of datastoers that we don't actually want here.
     ret = use_datastore(
-        builder_type, Path(basedir[0]), open_ds=open_ds, builder_kwargs=kwargs
+        experiment_dir=Path(basedir[0]),
+        builder=builder_type,
+        open_ds=open_ds,
+        builder_kwargs=kwargs,
     )
     assert isinstance(ret, return_type)
 
@@ -326,10 +329,18 @@ def test_use_datastore_existing(
 
     # This creates a bunch of datastoers that we don't actually want here.
     ret = use_datastore(
-        builder_type, Path(basedir[0]), open_ds=False, builder_kwargs={}
+        experiment_dir=Path(basedir[0]),
+        builder=builder_type,
+        open_ds=False,
+        builder_kwargs={},
     )
     # Run it again so that we can test the case where the datastore already exists
-    ret = use_datastore(builder_type, Path(basedir[0]), open_ds=True, builder_kwargs={})
+    ret = use_datastore(
+        experiment_dir=Path(basedir[0]),
+        builder=builder_type,
+        open_ds=True,
+        builder_kwargs={},
+    )
     assert isinstance(ret, esm_datastore)
 
     captured = capsys.readouterr()
@@ -362,7 +373,10 @@ def test_use_datastore_broken_existing(
 
     # This creates a bunch of datastoers that we don't actually want here.
     ret = use_datastore(
-        builder_type, Path(basedir[0]), open_ds=False, builder_kwargs={}
+        experiment_dir=Path(basedir[0]),
+        builder=builder_type,
+        open_ds=False,
+        builder_kwargs={},
     )
 
     # Now break the catalog - we can just remove a column
@@ -377,7 +391,10 @@ def test_use_datastore_broken_existing(
     # Run it again so that we can test the case where the datastore already exists
     with pytest.warns(DataStoreWarning, match="columns specified in JSON do not match"):
         ret = use_datastore(
-            builder_type, Path(basedir[0]), open_ds=True, builder_kwargs={}
+            experiment_dir=Path(basedir[0]),
+            builder=builder_type,
+            open_ds=True,
+            builder_kwargs={},
         )
     assert isinstance(ret, esm_datastore)
 

@@ -19,6 +19,7 @@ from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
+from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
 from .experiment.utils import parse_kwargs, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
@@ -655,11 +656,37 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     validate_args(builder, builder_kwargs)
 
     use_datastore(
-        builder,
         experiment_dir,
+        builder,
         catalog_dir,
         builder_kwargs=builder_kwargs,
         open_ds=False,
     )
+
+    return 0
+
+
+def scaffold_catalog_entry(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Scaffold a catalog entry for an esm-datastore, by providing information"
+            " about how to integrate the datastore into the access-nri-intake catalog."
+        )
+    )
+    parser.add_argument(
+        "--interactive",
+        default=False,
+        type=bool,
+        help=(
+            "Instead of dumping all the information at once, provide it in chunks"
+            " and ask for confirmation after each chunk."
+        ),
+    )
+
+    args = parser.parse_args(argv)
+
+    interactive = args.interactive
+
+    _scaffold_catalog_entry(interactive)
 
     return 0

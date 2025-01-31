@@ -28,15 +28,17 @@ class MultipleDataStoreError(DataStoreError):
 @dataclass
 class DatastoreInfo:
     """
-    Datastores have a json file and a csv.gz file. This class is a simple way to
-    handle both of these files. It also contans a validity flag, which defaults to
-    True, and is flipped to False if any of the checks in __post_init__ fail.
+    Dataclass to group json & csv file handles for a datastore, along with it's
+    validity and any straightforwardly identifiable issues with the datastore.
 
-
-    It might be necessary to add a hash handle to this? I want to create a hash
-    of the experiment dir, and then check that if we hash the dir we get the same
-    hash.
     """
+
+    # Datastores have a json file and a csv.gz file. This class is a simple way to
+    # handle both of these files. It also contans a validity flag, which defaults to
+    # True, and is flipped to False if any of the checks in __post_init__ fail.
+
+    # It might be necessary to add a hash handle to this? I want to create a hash
+    # of the experiment dir, and then check that if we hash the dir we get the same
 
     json_handle: Path | str
     csv_handle: Path | str
@@ -79,28 +81,9 @@ class DatastoreInfo:
         colnames = pd.read_csv(self.csv_handle, nrows=0).columns
 
         # We need to check that the 'catalog_file' field of the json file matches the
-        # csv file, and that we hav all the right attributes in the csv file.
+        # csv file, and that we have all the right attributes in the csv file.
 
-        """
-        The internal reference (on Gadi) typically starts with file:///path/filename.csv.gz
-        What this means is that we might need to be careful if we are moving things about.
-        What intake_esm does is:
-        look at ds_json["catalog_file"] and check that this exists, using a fsspec
-        get_mapper. If it doesn't exist, then it prepends the dirname of fsspec.get_mapper().root
-        to the path, which winds up creating a horrendously bundled path, something
-        like '/home/189/ct1163/experiments_274/file:///home/189/ct1163/test_datastore_built_in_homedir.csv.gz
-
-        - The reason we need to be careful is that potentially the .name attribute of the Path object
-        might still match, even though the handles are invalid
-
-        We can match fo this pattern with the reget r'.+/file:///.+$
-        """
-        if (match := re.search(r"^file:///.+$", ds_json["catalog_file"])) and re.sub(
-            r"^file://", "", match.group()
-        ) != str(self.csv_handle.absolute()):
-            # If our internal reference starts with /file:///, then we need to
-            # ensure that the rest of this *perfectly* matches the csv file or the
-            # datastore will break when we try to open it.
+        if self.match_broken_internal_path(ds_json):
             self.valid = False
             self.invalid_ds_cause = "path in JSON does not match csv.gz"
             return None
@@ -124,8 +107,15 @@ class DatastoreInfo:
             return None
 
         # If all of these pass, then we can try to open the datastore
+        self.invalid_ds_cause = ""
 
     def __bool__(self):
+        """
+        Define the truthiness of the DatastoreInfo object. If any of the fields are
+        populated or the valid flag is True, then the object is considered True.
+
+        This allows us to define a bottom value for the DatastoreInfo object.
+        """
         return not all(
             [
                 self.json_handle == "",
@@ -135,18 +125,48 @@ class DatastoreInfo:
             ]
         )
 
+    def match_broken_internal_path(self, ds_json: dict) -> bool:
+        """
+        If our internal reference starts with file:///, then we need to
+        ensure that the rest of this *perfectly* matches the csv file or the
+        datastore will break when we try to open it.
+
+        The internal reference (on Gadi) typically starts with file:///path/filename.csv.gz
+        What this means is that we might need to be careful if a datastore is moved.
+        What intake_esm does is:
+        - look at ds_json["catalog_file"] and check that this exists, using a fsspec
+        get_mapper.
+        - If it doesn't exist, then it prepends the dirname of fsspec.get_mapper().root
+        to the path, which winds up creating a horrendously bundled path, something
+        like '/home/189/ct1163/experiments_274/file:///home/189/ct1163/test_datastore_built_in_homedir.csv.gz
+
+        - We need to be careful, because here the .name attribute of the Path object
+        might still match, even though the handles are invalid
+
+        Parameters
+        ----------
+        ds_json : dict
+            The json object of the datastore.
+
+        Returns
+        -------
+        bool
+            Whether the internal path is broken.
+        """
+        csv_handle = Path(self.csv_handle)
+        return (
+            (match := re.search(r"^file:///.+$", ds_json["catalog_file"]))
+            and re.sub(r"^file://", "", match.group()) != str(csv_handle.absolute())
+        ) or False
+
 
 def verify_ds_current(
     ds_info: DatastoreInfo,
     experiment_files: set[Path],
 ) -> bool:
     """
-    Check that the datastore is current - do we have assets in our directory that
-    are not in the datastore? Do we have assets in the datastore that are not in
-    our directory? Are the assets in the datastore the same as the assets in our
-    directory? If any of these are true, then we need to rebuild the datastore.
-
-
+    Verify if the datastore is current, testing for missing/extra files, and files
+    that appear to have changed since the datastore was built.
 
     Parameters
     ----------
@@ -169,7 +189,7 @@ def verify_ds_current(
 
     if not hashfile.exists():
         warnings.warn(
-            f"{Fore.YELLOW}No hash file found for datastore. Regenerating datastore...{Style.RESET_ALL}",
+            f"{Fore.YELLOW}No hash file found for datastore. Datastore regeneration required...{Style.RESET_ALL}",
             category=DataStoreWarning,
             stacklevel=2,
         )
@@ -188,7 +208,7 @@ def verify_ds_current(
             else "missing files from"
         )
         warnings.warn(
-            f"{Fore.YELLOW}Experiment directory and datastore do not match ({warn_str} datastore). Regenerating datastore...{Style.RESET_ALL}",
+            f"{Fore.YELLOW}Experiment directory and datastore do not match ({warn_str} datastore). Datastore regeneration required...{Style.RESET_ALL}",
             category=DataStoreWarning,
             stacklevel=2,
         )
@@ -199,7 +219,7 @@ def verify_ds_current(
 
     if not expdir_manifest.equals(mf):
         warnings.warn(
-            f"{Fore.YELLOW}Experiment directory and datastore do not match (differing hashes). Regenerating datastore...{Style.RESET_ALL}",
+            f"{Fore.YELLOW}Experiment directory and datastore do not match (differing hashes). Datastore regeneration required...{Style.RESET_ALL}",
             category=DataStoreWarning,
             stacklevel=2,
         )
@@ -282,6 +302,7 @@ def parse_kwargs(kwargs: str) -> dict:
 def validate_args(builder: Builder, builder_kwargs: dict[str, Any]) -> None:
     """
     Take a builder and validate the kwargs provided against the builder's signature.
+
     This is provided to smooth debugging when wrong kwargs are passed from the command
     line.
 
@@ -316,9 +337,8 @@ def validate_args(builder: Builder, builder_kwargs: dict[str, Any]) -> None:
         param = builder_params[key]
         expected_type = param.annotation if param.annotation is not param.empty else Any
         if expected_type is not Any and not isinstance(val, expected_type):  # type: ignore
-            # Mypy thinks we might be passing Any into isinstance.
-            # Might also be issues if we have a type like Union[str, int], etc - we
-            # might need to handle this differently.
+            # mypy does not like the isinstance check here. I've looked at the mypy
+            # repo & there are a bunch of open issues regarding this sort of behaviour
             raise TypeError(
                 f"Builder kwarg {key} must be of type {expected_type}, not {type(val)}."
             )
