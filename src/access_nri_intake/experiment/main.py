@@ -179,9 +179,11 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
         a null DatastoreInfo object if not found.
     """
 
-    json_files = experiment_dir.rglob("*.json")
-    csv_files = itertools.chain(
-        experiment_dir.rglob("*.csv"), experiment_dir.rglob("*.csv.gz")
+    # If we don't realise iterators into memory, they will be consumed by inner
+    # loops and we won't be able to iterate over them again - thus missing datastores.
+    json_files = list(experiment_dir.rglob("*.json"))
+    csv_files = list(
+        itertools.chain(experiment_dir.rglob("*.csv"), experiment_dir.rglob("*.csv.gz"))
     )
 
     matched_pairs: list[tuple[Path, Path]] = []

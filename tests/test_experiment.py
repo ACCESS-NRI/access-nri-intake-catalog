@@ -108,7 +108,12 @@ def test_DatastoreInfo_bool(test_data, args, expected):
 
 @pytest.mark.parametrize(
     "subdir, expected",
-    [("single_match", True), ("multi_matches", "err"), ("no_matches", False)],
+    [
+        ("single_match", True),
+        ("multi_matches", "err"),
+        ("no_matches", False),
+        ("multi_json_single_csv", True),
+    ],
 )
 def test_find_esm_datastore(test_data, subdir, expected):
     dir = test_data / "experiment_dirs" / subdir
