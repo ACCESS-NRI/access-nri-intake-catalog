@@ -7,10 +7,10 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from colorama import Fore, Style
 from yamanifest.manifest import Manifest
 
 from ..source.builders import Builder
+from .colours import f_info, f_reset, f_success, f_warn
 
 
 class DataStoreWarning(RuntimeWarning):
@@ -189,7 +189,7 @@ def verify_ds_current(
 
     if not hashfile.exists():
         warnings.warn(
-            f"{Fore.YELLOW}No hash file found for datastore. Datastore regeneration required...{Style.RESET_ALL}",
+            f"{f_warn}No hash file found for datastore. Datastore regeneration required...{f_reset}",
             category=DataStoreWarning,
             stacklevel=2,
         )
@@ -208,7 +208,7 @@ def verify_ds_current(
             else "missing files from"
         )
         warnings.warn(
-            f"{Fore.YELLOW}Experiment directory and datastore do not match ({warn_str} datastore). Datastore regeneration required...{Style.RESET_ALL}",
+            f"{f_warn}Experiment directory and datastore do not match ({warn_str} datastore). Datastore regeneration required...{f_reset}",
             category=DataStoreWarning,
             stacklevel=2,
         )
@@ -219,13 +219,13 @@ def verify_ds_current(
 
     if not expdir_manifest.equals(mf):
         warnings.warn(
-            f"{Fore.YELLOW}Experiment directory and datastore do not match (differing hashes). Datastore regeneration required...{Style.RESET_ALL}",
+            f"{f_warn}Experiment directory and datastore do not match (differing hashes). Datastore regeneration required...{f_reset}",
             category=DataStoreWarning,
             stacklevel=2,
         )
         return False
 
-    print(f"{Fore.GREEN}Datastore integrity verified!{Style.RESET_ALL}")
+    print(f"{f_success}Datastore integrity verified!{f_reset}")
     return True
 
 
@@ -271,7 +271,7 @@ def find_experiment_files(
     """
     builder_kwargs = builder_kwargs or {}
 
-    print(f"{Fore.BLUE}Parsing experiment dir...{Style.RESET_ALL}")
+    print(f"{f_info}Parsing experiment dir...{f_reset}")
 
     builder_instance: Builder = builder(path=str(experiment_dir), **builder_kwargs)
 
