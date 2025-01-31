@@ -75,11 +75,18 @@ def use_datastore(
     catalog_dir = catalog_dir or experiment_dir
     builder_kwargs = builder_kwargs or {}
 
+    catalog_dir_fmap = {
+        ".": "current directory",
+        "./": "current directory",
+    }
+
+    formatted_catdir_name = catalog_dir_fmap.get(str(catalog_dir), str(catalog_dir))
+
     ds_info = find_esm_datastore(catalog_dir)
 
     if ds_info.valid:  # Nothing is obviously wrong with the datastore
         print(
-            f"{f_info}Datastore found in {f_path}{experiment_dir}{f_info}, verifying datastore integrity...{f_reset}"
+            f"{f_info}Datastore found in {f_path}{formatted_catdir_name}{f_info}, verifying datastore integrity...{f_reset}"
         )
         found_experiment_files = find_experiment_files(
             builder, experiment_dir, builder_kwargs

@@ -37,8 +37,9 @@ class DatastoreInfo:
     # handle both of these files. It also contans a validity flag, which defaults to
     # True, and is flipped to False if any of the checks in __post_init__ fail.
 
-    # It might be necessary to add a hash handle to this? I want to create a hash
-    # of the experiment dir, and then check that if we hash the dir we get the same
+    # It might be necessary and/or helpful to add a hash handle to this? I want
+    # to create a hash of the experiment dir, and then check that if we hash the
+    # dir we get the same
 
     json_handle: Path | str
     csv_handle: Path | str
