@@ -26,7 +26,7 @@ class MultipleDataStoreError(DataStoreError):
     pass
 
 
-class DataStoreInvalidCause(Enum):
+class DataStoreInvalidCause(str, Enum):
     """
     Enum to store the causes of invalid datastores.
     """
