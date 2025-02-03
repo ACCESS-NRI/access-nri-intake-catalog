@@ -19,6 +19,8 @@ from access_nri_intake.cli import (
     build,
     metadata_template,
     metadata_validate,
+    scaffold_catalog_entry,
+    use_esm_datastore,
 )
 
 
@@ -33,6 +35,12 @@ def test_entrypoint():
     assert exit_status == 0
 
     exit_status = os.system("metadata-template --help")
+    assert exit_status == 0
+
+    exit_status = os.system("build-esm-datastore --help")
+    assert exit_status == 0
+
+    exit_status = os.system("scaffold-catalog-entry --help")
     assert exit_status == 0
 
 
@@ -1005,7 +1013,6 @@ class NoInitCatalogManager(CatalogManager):
 
 @pytest.mark.parametrize("method", ["load", "build_esm"])
 def test_add_source_to_catalog_failure(method, tmpdir):
-
     with mock.patch.object(
         NoInitCatalogManager, method, side_effect=Exception("Dummy Exception injected")
     ):
@@ -1096,3 +1103,91 @@ def test_metadata_template_default_loc():
         (Path.cwd() / "metadata.yaml").unlink()
     else:
         raise RuntimeError("Didn't write template into PWD")
+
+
+@pytest.mark.parametrize(
+    "builder",
+    [
+        "not_a_real_builder",  # Complete nonsense, not in the builders module
+        "PATTERNS_HELPERS",  # We can get this from the module with getattr but it's not a builder
+    ],
+)
+def test_use_esm_datastore_bad_builder(builder):
+    with pytest.raises(ValueError) as excinfo:
+        use_esm_datastore(
+            [
+                "--builder",
+                builder,
+                "--expt-dir",
+                ".",
+                "--cat-dir",
+                ".",
+            ]
+        )
+
+        assert f"Builder {builder} is not a valid builder." in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "expt_dir, cat_dir",
+    [
+        ("/not/a/real/dir", "."),
+        (".", "/not/a/real/dir"),
+    ],
+)
+def test_use_esm_datastore_nonexistent_dirs(expt_dir, cat_dir):
+    with pytest.raises(FileNotFoundError) as excinfo:
+        use_esm_datastore(
+            [
+                "--builder",
+                "AccessOm2Builder",
+                "--expt-dir",
+                expt_dir,
+                "--cat-dir",
+                cat_dir,
+            ]
+        )
+
+        assert "Directory /not/a/real/dir does not exist" in str(excinfo.value)
+
+
+@mock.patch("access_nri_intake.cli.use_datastore")
+def test_use_esm_datastore_valid(use_datastore):
+    """I'm not using any args here, so we should get defaults. This should return
+    zero. I'm going to mock the use_datastore function so it doesn't do anything,
+    just returns none"""
+    use_datastore.return_value = None
+    ret = use_esm_datastore(
+        [
+            "--builder",
+            "AccessOm2Builder",
+        ]
+    )
+
+    assert ret == 0
+
+
+def test_use_esm_datastore_no_builder(tmp_path):
+    """
+    Test use_esm_datastore - no builder specified. This should look for a ESM-datastore
+    in the new temporary directory, and try to build a datastore since there won't be
+    one in there. Then it'll fail because there's no builder specified.
+    """
+    with pytest.raises(ValueError) as excinfo:
+        use_esm_datastore(["--expt-dir", str(tmp_path)])
+
+        assert "A builder must be provided if no valid datastore is found" in str(
+            excinfo.value
+        )
+
+
+def test_scaffold_catalog_entry():
+    """Test scaffold_catalog_entry - as of right now, it should just raise"""
+    with pytest.raises(
+        NotImplementedError, match="not yet implemented for non-interactive mode"
+    ):
+        scaffold_catalog_entry([])
+    with pytest.raises(
+        NotImplementedError, match="not yet implemented for interactive mode"
+    ):
+        scaffold_catalog_entry(["--interactive"])
