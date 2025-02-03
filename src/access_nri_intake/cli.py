@@ -18,6 +18,9 @@ from intake import open_esm_datastore
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
+from .experiment import use_datastore
+from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
+from .experiment.utils import parse_kwargs, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
@@ -475,7 +478,6 @@ def build(argv: Sequence[str] | None = None):
         raise RuntimeError(f"Catalog save failed: {str(e)}")
 
     if update:
-
         yaml_dict = _compute_previous_versions(
             yaml_dict, catalog_base_path, build_base_path, version
         )
@@ -573,3 +575,123 @@ def metadata_template(loc: str | Path | None = None) -> None:
 
     with open((Path(loc) / "metadata.yaml"), "w") as outfile:
         yaml.dump(template, outfile, default_flow_style=False, sort_keys=False)
+
+
+def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
+    """
+    Either creates, verifies, or updates the intake-esm datastore
+    """
+    parser = argparse.ArgumentParser(
+        description=(
+            "Build an esm-datastore by inspecting a directory containing model outputs."
+            " If no datastore exists, a new one will be created. If a datastore exists,"
+            " it's integrity will be verified, and the datastore regenerated if necessary."
+        )
+    )
+    parser.add_argument(
+        "--builder",
+        type=str,
+        help=(
+            "Builder to use to create the esm-datastore."
+            " Builders are defined the source.builders module. Currently available options are:"
+            f" {', '.join(builders.__all__)}."
+            " To build a datastore for a new model, please contact the ACCESS-NRI team."
+        ),
+        required=False,
+        # If we can, it would be nice to eventually relax this and try to automatically
+        # determine the builder if possible.
+    )
+
+    parser.add_argument(
+        "--builder-kwargs",
+        type=parse_kwargs,
+        nargs="*",
+        help=(
+            "Additional keyword arguments to pass to the builder."
+            " Should be in the form of key=value."
+        ),
+    )
+
+    parser.add_argument(
+        "--expt-dir",
+        type=str,
+        default="./",
+        help=(
+            "Directory containing the model outputs to be added to the esm-datastore."
+            " Defaults to the current working directory. Although builders support adding"
+            " multiple directories, this tool only supports one directory at a time - at present."
+        ),
+    )
+
+    parser.add_argument(
+        "--cat-dir",
+        type=str,
+        help=(
+            "Directory in which to place the catalog.json file."
+            " Defaults to the value of --expt-dir if not set."
+        ),
+    )
+
+    args = parser.parse_args(argv)
+    builder = args.builder
+    experiment_dir = Path(args.expt_dir)
+    catalog_dir = Path(args.cat_dir) if args.cat_dir else experiment_dir
+    builder_kwargs = args.builder_kwargs or {}
+
+    try:
+        builder = getattr(builders, builder)
+    except AttributeError:
+        builder = object
+    except TypeError:
+        builder = None
+    finally:
+        if builder is None:
+            pass
+        elif not isinstance(builder, type) or not issubclass(builder, builders.Builder):
+            raise ValueError(
+                f"Builder {builder} is not a valid builder. Please choose from {builders.__all__}"
+            )
+
+    if not experiment_dir.exists():
+        raise FileNotFoundError(f"Directory {experiment_dir} does not exist.")
+    if not catalog_dir.exists():
+        raise FileNotFoundError(f"Directory {catalog_dir} does not exist.")
+
+    validate_args(builder, builder_kwargs)
+
+    use_datastore(
+        experiment_dir,
+        builder,
+        catalog_dir,
+        builder_kwargs=builder_kwargs,
+        open_ds=False,
+    )
+
+    return 0
+
+
+def scaffold_catalog_entry(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Scaffold a catalog entry for an esm-datastore, by providing information"
+            " about how to integrate the datastore into the access-nri-intake catalog."
+        )
+    )
+    parser.add_argument(
+        "--interactive",
+        action="store_true",
+        default=False,
+        required=False,
+        help=(
+            "Instead of dumping all the information at once, provide it in chunks"
+            " and ask for confirmation after each chunk."
+        ),
+    )
+
+    args = parser.parse_args(argv)
+
+    interactive = args.interactive
+
+    _scaffold_catalog_entry(interactive)
+
+    return 0
