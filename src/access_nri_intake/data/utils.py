@@ -63,17 +63,23 @@ def available_versions(pretty: bool = True) -> list[str] | None:
         raise RuntimeError(f"Catalog at {get_catalog_fp()} not correctly formatted")
 
     # Grab all the catalog names
-    cats = [
+    cats_all = [
         dir_path.name
         for dir_path in base_path.iterdir()
-        if re.search(CATALOG_NAME_FORMAT, dir_path.name)
-        and dir_path.is_dir()
-        and (
-            (dir_path.name >= vers_min and dir_path.name <= vers_max)
-            or dir_path.name == vers_def
-        )
+        if re.search(CATALOG_NAME_FORMAT, dir_path.name) and dir_path.is_dir()
+        # and (
+        #     (dir_path.name >= vers_min and dir_path.name <= vers_max)
+        #     or dir_path.name == vers_def
+        # )
     ]
-    cats.sort(reverse=True)
+    cats_all.sort(reverse=True)
+
+    # Extract the directory names for the 'live' catalog
+    cats = [
+        cat
+        for cat in cats_all
+        if (cat >= vers_min and cat <= vers_max) or cat == vers_def
+    ]
 
     # Find all the symlinked versions
     symlinks = [s for s in cats if (Path(base_path) / s).is_symlink()]
