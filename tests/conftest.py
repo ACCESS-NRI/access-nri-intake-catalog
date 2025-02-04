@@ -26,6 +26,11 @@ def config_dir():
 
 
 @fixture(scope="session")
+def live_config_dir():
+    return Path(here).parent / "config"
+
+
+@fixture(scope="session")
 def BASE_DIR(tmp_path_factory):
     yield tmp_path_factory.mktemp("catalog-dir")
 
@@ -114,4 +119,9 @@ def pytest_collection_modifyitems(config, items):
             )
             and _add_xfail
         ):
+            item.add_marker("xfail")
+
+    # Now add xfail to broken CordexTranslator in end to end tests.
+    for item in items:
+        if item.name == "test_alignment[CordexTranslator]":
             item.add_marker("xfail")

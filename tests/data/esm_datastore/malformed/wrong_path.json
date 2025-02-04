@@ -1,0 +1,78 @@
+{
+    "id": "cmip6-oi10",
+    "title": "cmip6-oi10",
+    "description": "Datasets on Gadi, both publised and replicated. All file versions present are in the listing\nMaintained By: NCI\nContact: help@nci.org.au",
+    "assets": {
+        "column_name": "path",
+        "format": "netcdf"
+    },
+    "aggregation_control": {
+        "variable_column_name": "variable_id",
+        "groupby_attrs": [
+            "file_type",
+            "project_id",
+            "institution_id",
+            "source_id",
+            "experiment_id",
+            "member_id",
+            "frequency",
+            "realm",
+            "table_id",
+            "variable_id",
+            "grid_label",
+            "version"
+        ],
+        "aggregations": [
+            {
+                "type": "join_existing",
+                "attribute_name": "time_range",
+                "options": {
+                    "dim": "time"
+                }
+            }
+        ]
+    },
+    "esmcat_version": "0.1.0",
+    "catalog_file": "file:///nonexistent/path/wrong_path.csv",
+    "attributes": [
+        {
+            "column_name": "file_type"
+        },
+        {
+            "column_name": "project_id"
+        },
+        {
+            "column_name": "institution_id"
+        },
+        {
+            "column_name": "source_id"
+        },
+        {
+            "column_name": "experiment_id"
+        },
+        {
+            "column_name": "member_id"
+        },
+        {
+            "column_name": "frequency"
+        },
+        {
+            "column_name": "realm"
+        },
+        {
+            "column_name": "table_id"
+        },
+        {
+            "column_name": "variable_id"
+        },
+        {
+            "column_name": "grid_label"
+        },
+        {
+            "column_name": "version"
+        },
+        {
+            "column_name": "time_range"
+        }
+    ]
+}

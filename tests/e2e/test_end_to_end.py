@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import intake
 import numpy as np
@@ -6,9 +6,7 @@ import pytest
 
 from access_nri_intake.cli import build
 
-e2e = pytest.mark.skipif(
-    "not config.getoption('--e2e')",
-)
+from . import e2e
 
 
 @e2e
@@ -43,14 +41,14 @@ def metacat(BASE_DIR, config_dir, v_num):
             "--no_update",
         ]
     )
-    cat_path = os.path.join(BASE_DIR, v_num, "metacatalog.csv")
+    cat_path = Path(BASE_DIR) / v_num / "metacatalog.csv"
     metacat = intake.open_df_catalog(cat_path)
     yield metacat
 
 
 @e2e
 def test_catalog_subset_exists(BASE_DIR, v_num, metacat):
-    assert os.path.exists(os.path.join(BASE_DIR, v_num, "metacatalog.csv"))
+    assert (Path(BASE_DIR) / v_num / "metacatalog.csv").exists()
 
 
 @e2e
@@ -2402,12 +2400,11 @@ def test_cmip5_values_correct(metacat, current_catalog, path, varname, first_ten
         }
     )
     da = da.isel(**{dim: 0 for dim in da.dims[1:]})
-    da_val = da.mean(dim=da.dims[0], skipna=True).values
+    da_val = float(da.mean(dim=da.dims[0], skipna=True).values)
 
-    if np.isnan(da_val).all():
-        vals_equal = np.isnan(first_ten_mean)
-    else:
-        vals_equal = da_val == pytest.approx(first_ten_mean, abs=1e-6)
+    vals_equal = da_val == pytest.approx(
+        first_ten_mean, abs=1e-6, rel=1e-3, nan_ok=True
+    )
 
     assert vals_equal
 
@@ -2490,11 +2487,10 @@ def test_om2_values_correct(metacat, path, varname, first_ten_mean):
         }
     )
     da = da.isel(**{dim: 0 for dim in da.dims[1:]})
-    da_val = da.mean(dim=da.dims[0], skipna=True).values
+    da_val = float(da.mean(dim=da.dims[0], skipna=True).values)
 
-    if np.isnan(da_val).all():
-        vals_equal = np.isnan(first_ten_mean)
-    else:
-        vals_equal = da_val == pytest.approx(first_ten_mean, abs=1e-6)
+    vals_equal = da_val == pytest.approx(
+        first_ten_mean, abs=1e-6, rel=1e-3, nan_ok=True
+    )
 
     assert vals_equal

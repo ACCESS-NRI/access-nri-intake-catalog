@@ -3,7 +3,7 @@
 
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
-import os
+from pathlib import Path
 
 import intake
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
@@ -32,7 +32,7 @@ class CatalogManager:
     Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
-    def __init__(self, path: str):
+    def __init__(self, path: Path | str):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog like the ACCESS-NRI catalog
@@ -42,10 +42,11 @@ class CatalogManager:
         path: str
             The path to the intake-dataframe-catalog
         """
+        path = Path(path)
 
-        self.path = path
+        self.path = str(path)
 
-        self.mode = "a" if os.path.exists(path) else "w"
+        self.mode = "a" if path.exists() else "w"
 
         try:
             self.dfcat = DfFileCatalog(
@@ -104,8 +105,8 @@ class CatalogManager:
         metadata = metadata or {}
         directory = directory or ""
 
-        json_file = os.path.abspath(f"{os.path.join(directory, name)}.json")
-        if os.path.isfile(json_file):
+        json_file = (Path(directory) / f"{name}.json").absolute()
+        if json_file.is_file():
             if not overwrite:
                 raise CatalogManagerError(
                     f"An Intake-ESM datastore already exists for {name}. To overwrite, "
