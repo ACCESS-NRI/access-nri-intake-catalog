@@ -44,6 +44,17 @@ def available_versions(pretty: bool = True) -> list[str] | None:
     pretty : bool, optional
         Defines whether to return a pretty print-out of the available versions
         (True, default), or to provide a list of version numbers only (False).
+
+    Returns
+    -------
+    none | list[str]
+        If `pretty==True`, the available catalogs are printed to output, and
+        the function returns None. If `pretty==False`, a list of available catalogs
+        is returned.
+
+        Additionally, if `pretty==True` only, expired catalogs are also printed to
+        output. These catalogs require the user to place the necessary catalog
+        file in their home directory.
     """
     # Work out where the catalogs are stored
     base_path = _get_catalog_root()
@@ -67,10 +78,6 @@ def available_versions(pretty: bool = True) -> list[str] | None:
         dir_path.name
         for dir_path in base_path.iterdir()
         if re.search(CATALOG_NAME_FORMAT, dir_path.name) and dir_path.is_dir()
-        # and (
-        #     (dir_path.name >= vers_min and dir_path.name <= vers_max)
-        #     or dir_path.name == vers_def
-        # )
     ]
     cats_all.sort(reverse=True)
 
@@ -87,6 +94,16 @@ def available_versions(pretty: bool = True) -> list[str] | None:
     symlink_targets = {s: (base_path / s).readlink().name for s in symlinks}
 
     if pretty:
+
+        # In pretty mode, we want to look for & return the catalogs that are referred to
+        # by outdated catalog files (catalog-YYYYMMDD-YYYYMMDD)
+        # Locate the outdated catalog files
+        catalog_loc = get_catalog_fp().parent()
+        old_cats = catalog_loc.glob("catalog-*-*.yaml")
+
+        for cat in old_cats:
+            pass
+
         for c in cats:
             if c in symlink_targets.keys():
                 c += f"(-->{symlink_targets[c]})"
