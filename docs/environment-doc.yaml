@@ -21,4 +21,5 @@ dependencies:
     - sphinxcontrib-napoleon
     - myst-nb
     - access-py-telemetry
+    - yamanifest
     - -e ..

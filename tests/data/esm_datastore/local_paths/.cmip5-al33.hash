@@ -1,0 +1,19 @@
+format: yamanifest
+version: 1.0
+---
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/cmip5-al33/hurs_Amon_CESM1-CAM5_rcp85_r1i1p1_200601-210012.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/cmip5-al33/hurs_Amon_CESM1-CAM5_rcp85_r1i1p1_200601-210012.nc
+  hashes:
+    binhash: ebf45b74f22b2f4f8875e271328c686a
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/cmip5-al33/pr_AFR-44_CCCma-CanESM2_historical_r1i1p1_UQAM-CRCM5_v1_day_19610101-19651231.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/cmip5-al33/pr_AFR-44_CCCma-CanESM2_historical_r1i1p1_UQAM-CRCM5_v1_day_19610101-19651231.nc
+  hashes:
+    binhash: 7b1ae5a885b95351855e10507272b4fb
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/cmip5-al33/strocny_OImon_CCSM4_decadal1986_r10i2p1_198601-199512.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/cmip5-al33/strocny_OImon_CCSM4_decadal1986_r10i2p1_198601-199512.nc
+  hashes:
+    binhash: ff640b4a5c2d7ab3cd9c36056c1cc8e6
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/cmip5-al33/tas_day_CESM1-BGC_historical_r1i1p1_19550101-19891231.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/cmip5-al33/tas_day_CESM1-BGC_historical_r1i1p1_19550101-19891231.nc
+  hashes:
+    binhash: d70fc070a4dcc2e67a76925554523e3e
