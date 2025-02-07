@@ -261,6 +261,7 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
 @pytest.mark.parametrize(
     "open_ds, return_type", [(True, esm_datastore), (False, type(None))]
 )
+@pytest.mark.parametrize("use_path", [True, False])
 def test_use_datastore(
     test_data: Path,
     basedir,
@@ -270,6 +271,7 @@ def test_use_datastore(
     tmp_path,
     open_ds,
     return_type,
+    use_path,
     capsys,
 ):
     """
@@ -288,9 +290,10 @@ def test_use_datastore(
     assert isinstance(builder.assets, list)
     assert len(builder.assets) == num_assets
 
+    exptdir = Path(basedir[0]) if use_path else basedir[0]
     # This creates a bunch of datastoers that we don't actually want here.
     ret = use_datastore(
-        experiment_dir=Path(basedir[0]),
+        experiment_dir=exptdir,
         builder=builder_type,
         open_ds=open_ds,
         builder_kwargs=kwargs,

@@ -585,7 +585,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         description=(
             "Build an esm-datastore by inspecting a directory containing model outputs."
             " If no datastore exists, a new one will be created. If a datastore exists,"
-            " it's integrity will be verified, and the datastore regenerated if necessary."
+            " its integrity will be verified, and the datastore regenerated if necessary."
         )
     )
     parser.add_argument(
