@@ -632,11 +632,33 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         ),
     )
 
+    parser.add_argument(
+        "--datastore-name",
+        type=str,
+        help=(
+            "Name of the datastore to use. If not provided, this will default to"
+            " 'experiment_datastore'."
+        ),
+        default="experiment_datastore",
+    )
+
+    parser.add_argument(
+        "--description",
+        type=str,
+        help=(
+            "Description of the datastore. If not provided, a default description will be used:"
+            " 'esm_datastore for the model output in {--expt-dir}'"
+        ),
+        default=None,
+    )
+
     args = parser.parse_args(argv)
     builder = args.builder
     experiment_dir = Path(args.expt_dir)
     catalog_dir = Path(args.cat_dir) if args.cat_dir else experiment_dir
     builder_kwargs = args.builder_kwargs or {}
+    datastore_name = args.datastore_name
+    description = args.description
 
     try:
         builder = getattr(builders, builder)
@@ -664,6 +686,8 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         builder,
         catalog_dir,
         builder_kwargs=builder_kwargs,
+        datastore_name=datastore_name,
+        description=description,
         open_ds=False,
     )
 

@@ -459,6 +459,11 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
             None,
         ),
         (
+            "ensemble=1",
+            True,
+            None,
+        ),
+        (
             "esnmebel=True",
             False,
             {},
