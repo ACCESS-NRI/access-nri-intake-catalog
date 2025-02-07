@@ -1,3 +1,4 @@
+import ast
 import json
 import re
 import warnings
@@ -305,10 +306,12 @@ def parse_kwargs(kwargs: str) -> dict:
     for item in kwargs.split():
         kw, arg = item.split("=")
         if kw == "ensemble":
-            if arg.lower() not in ["true", "false"]:
+            try:
+                ret[kw] = ast.literal_eval(arg.capitalize())
+                if not isinstance(ret[kw], bool):
+                    raise ValueError
+            except (ValueError, SyntaxError):
                 raise TypeError(f"Ensemble kwarg must be a boolean, not {arg}.")
-            else:
-                ret[kw] = True if arg.lower() == "true" else False
 
     return ret
 
