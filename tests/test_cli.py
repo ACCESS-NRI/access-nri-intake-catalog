@@ -4,13 +4,14 @@
 import glob
 import os
 import shutil
-from pathlib import Path
+from pathlib import Path, PosixPath
 from unittest import mock
 
 import intake
 import pytest
 import yaml
 
+import access_nri_intake
 from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
     MetadataCheckError,
@@ -1152,18 +1153,71 @@ def test_use_esm_datastore_nonexistent_dirs(expt_dir, cat_dir):
 
 
 @mock.patch("access_nri_intake.cli.use_datastore")
-def test_use_esm_datastore_valid(use_datastore):
+@pytest.mark.parametrize(
+    "argv, expected_call_args, expected_call_kwargs",
+    [
+        (
+            ["--builder", "AccessOm2Builder"],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessOm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {},
+                "datastore_name": "experiment_datastore",
+                "description": None,
+                "open_ds": False,
+            },
+        ),
+        (
+            ["--builder", "Mom6Builder", "--datastore-name", "VERY_BAD_NAME"],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.Mom6Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {},
+                "datastore_name": "VERY_BAD_NAME",
+                "description": None,
+                "open_ds": False,
+            },
+        ),
+        (
+            [
+                "--builder",
+                "AccessOm2Builder",
+                "--description",
+                "meaningless_description",
+            ],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessOm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {},
+                "datastore_name": "experiment_datastore",
+                "description": "meaningless_description",
+                "open_ds": False,
+            },
+        ),
+    ],
+)
+def test_use_esm_datastore_valid(
+    use_datastore, argv, expected_call_args, expected_call_kwargs
+):
     """I'm not using any args here, so we should get defaults. This should return
     zero. I'm going to mock the use_datastore function so it doesn't do anything,
     just returns none"""
     use_datastore.return_value = None
-    ret = use_esm_datastore(
-        [
-            "--builder",
-            "AccessOm2Builder",
-        ]
-    )
+    ret = use_esm_datastore(argv)
 
+    args, kwargs = use_datastore.call_args
+
+    assert args == expected_call_args
+    assert kwargs == expected_call_kwargs
     assert ret == 0
 
 
