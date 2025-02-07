@@ -22,9 +22,9 @@ warnings.simplefilter(
 
 
 def use_datastore(
-    experiment_dir: Path,
+    experiment_dir: Path | str,
     builder: Builder | None = None,
-    catalog_dir: Path | None = None,
+    catalog_dir: Path | str | None = None,
     builder_kwargs: dict | None = None,
     open_ds: bool = True,
     datastore_name: str = "experiment_datastore",
@@ -41,12 +41,13 @@ def use_datastore(
     ----------
     builder : Builder
         The builder object that will be used to build the datastore.
-    experiment_dir : Path
-        The directory containing the experiment.
-    catalog_dir : Path, optional
+    experiment_dir : Path | str
+        The directory containing the experiment. If a string is passed, it will be
+        converted to a Path object.
+    catalog_dir : Path | str, optional
         The directory containing/to write the catalog to, if it differs from the
         experiment directory. If None, the catalog will be written to the experiment
-        directory.
+        directory. If a string is passed, it will be converted to a Path object.
     open_ds : bool
         Whether to open the datastore after building it. Typically set to false
         when called from a console script.
