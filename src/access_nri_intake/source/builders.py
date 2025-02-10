@@ -24,6 +24,14 @@ from .utils import (
     _VarInfo,
 )
 
+__all__ = [
+    "AccessOm2Builder",
+    "AccessOm3Builder",
+    "Mom6Builder",
+    "AccessEsm15Builder",
+    "AccessCm2Builder",
+]
+
 # Frequency translations
 FREQUENCIES: dict[str, tuple[int, str]] = {
     # "1hr" : (1, "hr"),
@@ -584,7 +592,7 @@ class AccessEsm15Builder(BaseBuilder):
         rf"^.*\.p.-(?P<{TIMESTAMP_GROUP}>\d{{6}})_.*",  # ACCESS-ESM1.5 atmosphere
     ]
 
-    def __init__(self, path, ensemble):
+    def __init__(self, path, ensemble: bool):
         """
         Initialise a AccessEsm15Builder
 

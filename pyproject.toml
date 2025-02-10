@@ -22,6 +22,8 @@ dependencies = [
     "jsonschema",
     "pooch",
     "xarray",
+    "colorama",
+    "yamanifest",
 ]
 dynamic = ["version"]
 
@@ -39,6 +41,8 @@ e2e = [
 catalog-build = "access_nri_intake.cli:build"
 metadata-validate = "access_nri_intake.cli:metadata_validate"
 metadata-template = "access_nri_intake.cli:metadata_template"
+build-esm-datastore = "access_nri_intake.cli:use_esm_datastore"
+scaffold-catalog-entry = "access_nri_intake.cli:scaffold_catalog_entry"
 
 [project.entry-points."intake.catalogs"]
 access_nri = "access_nri_intake.data:data"

@@ -4,19 +4,24 @@
 import glob
 import os
 import shutil
-from pathlib import Path
+from pathlib import Path, PosixPath
 from unittest import mock
 
 import intake
 import pytest
 import yaml
 
+import access_nri_intake
+from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
     MetadataCheckError,
+    _add_source_to_catalog,
     _check_build_args,
     build,
     metadata_template,
     metadata_validate,
+    scaffold_catalog_entry,
+    use_esm_datastore,
 )
 
 
@@ -31,6 +36,12 @@ def test_entrypoint():
     assert exit_status == 0
 
     exit_status = os.system("metadata-template --help")
+    assert exit_status == 0
+
+    exit_status = os.system("build-esm-datastore --help")
+    assert exit_status == 0
+
+    exit_status = os.system("scaffold-catalog-entry --help")
     assert exit_status == 0
 
 
@@ -109,10 +120,10 @@ def test_check_build_args(args, raises):
         "2024-01-01",
     ],
 )
-def test_build(version, test_data, tmp_path):
+def test_build(version, test_data, tmpdir):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
-    build_base_path = str(tmp_path)
+    build_base_path = str(tmpdir)
 
     configs = [
         str(test_data / fname)
@@ -124,7 +135,7 @@ def test_build(version, test_data, tmp_path):
             *configs,
             "--catalog_file",
             "cat.csv",
-            "--no_update",
+            # "--no_update",  # commented out to test brand-new-catalog-versioning
             "--version",
             version,
             "--build_base_path",
@@ -145,6 +156,16 @@ def test_build(version, test_data, tmp_path):
     build_path = Path(build_base_path) / version / "cat.csv"
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
+
+    # Check that the metacatalog is correct
+    metacat = Path(build_base_path) / "catalog.yaml"
+    with metacat.open(mode="r") as fobj:
+        cat_info = yaml.safe_load(fobj)
+    assert (
+        cat_info["sources"]["access_nri"]["parameters"]["version"]["default"] == version
+    )
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
 
 
 @pytest.mark.parametrize(
@@ -348,6 +369,41 @@ def test_build_repeat_adddata(test_data, tmp_path):
         == "v2024-01-02"
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
     assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
+
+
+@mock.patch("access_nri_intake.cli._get_project", return_value=set())
+@mock.patch("access_nri_intake.cli._get_project_code", return_value="aa99")
+def test_build_project_base_code(
+    mock_get_project, mock_get_project_code, test_data, tmp_path
+):
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    # Build the first catalog
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
+
+    # Check that the metacatalog is correct
+    metacat = Path(build_base_path) / "catalog.yaml"
+    with metacat.open(mode="r") as fobj:
+        cat_info = yaml.safe_load(fobj)
+    assert "gdata/aa99" in cat_info["sources"]["access_nri"]["metadata"]["storage"]
 
 
 @pytest.mark.parametrize(
@@ -849,6 +905,154 @@ def test_build_repeat_altercatalogstruct_multivers(
     ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
 
 
+@mock.patch("access_nri_intake.cli._parse_build_directory")
+@pytest.mark.parametrize(
+    "failure",
+    [PermissionError, FileNotFoundError, OSError, RuntimeError, Exception],
+)
+def test_build_parse_builddir_failure(
+    mock_parse_build_directory, failure, test_data, tmp_path
+):
+    """Test build's response to a failure in _parse_build_directory"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_parse_build_directory.side_effect = failure
+
+    expected_failure = (
+        failure if failure in [PermissionError, FileNotFoundError] else Exception
+    )
+
+    with pytest.raises(expected_failure):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+@mock.patch("access_nri_intake.cli._get_project")
+def test_build_parse_get_project_code_failure(
+    mock_get_project_code, test_data, tmp_path
+):
+    """Test build's response to a failure in _get_project (should just carry on)"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_get_project_code.side_effect = KeyError("Simulated key error")
+
+    with pytest.warns(UserWarning, match="Unable to determine storage flags/projects"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+@mock.patch("access_nri_intake.cli.Path.mkdir")
+def test_build_mkdir_failure(mock_mkdir, test_data, tmp_path):
+    """Test build's response to a failure in _get_project (should just carry on)"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_mkdir.side_effect = PermissionError("Simulated permission error")
+
+    with pytest.raises(PermissionError, match="You lack the necessary permissions"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+class NoInitCatalogManager(CatalogManager):
+    def __init__(self):
+        pass
+
+
+@pytest.mark.parametrize("method", ["load", "build_esm"])
+def test_add_source_to_catalog_failure(method, tmpdir):
+    with mock.patch.object(
+        NoInitCatalogManager, method, side_effect=Exception("Dummy Exception injected")
+    ):
+        cm = NoInitCatalogManager()
+
+        with pytest.warns(UserWarning, match="Unable to add dummy_name"):
+            _add_source_to_catalog(cm, method, {"name": "dummy_name"}, "", None)
+
+
+@mock.patch("access_nri_intake.cli._write_catalog_yaml")
+def test_build_write_catalog_yaml_failure(mock_write_catalog_yaml, test_data, tmp_path):
+    """Test build's response to a failure in _write_catalog_yaml"""
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    mock_write_catalog_yaml.side_effect = Exception("Simulated Exception")
+
+    with pytest.raises(RuntimeError, match="Simulated Exception"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
 def test_metadata_validate(test_data):
     """Test metadata_validate"""
 
@@ -900,3 +1104,144 @@ def test_metadata_template_default_loc():
         (Path.cwd() / "metadata.yaml").unlink()
     else:
         raise RuntimeError("Didn't write template into PWD")
+
+
+@pytest.mark.parametrize(
+    "builder",
+    [
+        "not_a_real_builder",  # Complete nonsense, not in the builders module
+        "PATTERNS_HELPERS",  # We can get this from the module with getattr but it's not a builder
+    ],
+)
+def test_use_esm_datastore_bad_builder(builder):
+    with pytest.raises(ValueError) as excinfo:
+        use_esm_datastore(
+            [
+                "--builder",
+                builder,
+                "--expt-dir",
+                ".",
+                "--cat-dir",
+                ".",
+            ]
+        )
+
+        assert f"Builder {builder} is not a valid builder." in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "expt_dir, cat_dir",
+    [
+        ("/not/a/real/dir", "."),
+        (".", "/not/a/real/dir"),
+    ],
+)
+def test_use_esm_datastore_nonexistent_dirs(expt_dir, cat_dir):
+    with pytest.raises(FileNotFoundError) as excinfo:
+        use_esm_datastore(
+            [
+                "--builder",
+                "AccessOm2Builder",
+                "--expt-dir",
+                expt_dir,
+                "--cat-dir",
+                cat_dir,
+            ]
+        )
+
+        assert "Directory /not/a/real/dir does not exist" in str(excinfo.value)
+
+
+@mock.patch("access_nri_intake.cli.use_datastore")
+@pytest.mark.parametrize(
+    "argv, expected_call_args, expected_call_kwargs",
+    [
+        (
+            ["--builder", "AccessOm2Builder"],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessOm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {},
+                "datastore_name": "experiment_datastore",
+                "description": None,
+                "open_ds": False,
+            },
+        ),
+        (
+            ["--builder", "Mom6Builder", "--datastore-name", "VERY_BAD_NAME"],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.Mom6Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {},
+                "datastore_name": "VERY_BAD_NAME",
+                "description": None,
+                "open_ds": False,
+            },
+        ),
+        (
+            [
+                "--builder",
+                "AccessOm2Builder",
+                "--description",
+                "meaningless_description",
+            ],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessOm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {},
+                "datastore_name": "experiment_datastore",
+                "description": "meaningless_description",
+                "open_ds": False,
+            },
+        ),
+    ],
+)
+def test_use_esm_datastore_valid(
+    use_datastore, argv, expected_call_args, expected_call_kwargs
+):
+    """I'm not using any args here, so we should get defaults. This should return
+    zero. I'm going to mock the use_datastore function so it doesn't do anything,
+    just returns none"""
+    use_datastore.return_value = None
+    ret = use_esm_datastore(argv)
+
+    args, kwargs = use_datastore.call_args
+
+    assert args == expected_call_args
+    assert kwargs == expected_call_kwargs
+    assert ret == 0
+
+
+def test_use_esm_datastore_no_builder(tmp_path):
+    """
+    Test use_esm_datastore - no builder specified. This should look for a ESM-datastore
+    in the new temporary directory, and try to build a datastore since there won't be
+    one in there. Then it'll fail because there's no builder specified.
+    """
+    with pytest.raises(ValueError) as excinfo:
+        use_esm_datastore(["--expt-dir", str(tmp_path)])
+
+        assert "A builder must be provided if no valid datastore is found" in str(
+            excinfo.value
+        )
+
+
+def test_scaffold_catalog_entry():
+    """Test scaffold_catalog_entry - as of right now, it should just raise"""
+    with pytest.raises(
+        NotImplementedError, match="not yet implemented for non-interactive mode"
+    ):
+        scaffold_catalog_entry([])
+    with pytest.raises(
+        NotImplementedError, match="not yet implemented for interactive mode"
+    ):
+        scaffold_catalog_entry(["--interactive"])
