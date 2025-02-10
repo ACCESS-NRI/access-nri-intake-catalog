@@ -9,14 +9,17 @@ from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
     FREQUENCY_TRANSLATIONS,
     BarpaTranslator,
+    CcamTranslator,
     Cmip5Translator,
     Cmip6Translator,
     CordexTranslator,
     DefaultTranslator,
-    EraiTranslator,
+    Era5Translator,
+    NarclimTranslator,
     TranslatorError,
     _cmip_realm_translator,
     _to_tuple,
+    trace_failure,
     tuplify_series,
 )
 
@@ -139,7 +142,29 @@ def test_cmip_realm_translator(input, expected):
 def test_to_tuple(input):
     """Test the _to_tuple function"""
     series = pd.Series(input)
-    assert all(_to_tuple(series).map(type) == tuple)
+    assert all(_to_tuple(series).map(type) == tuple)  # noqa: E721
+
+
+@pytest.mark.parametrize(
+    "input_series, expected_output",
+    [
+        (pd.Series([1, 2, 3]), pd.Series([(1,), (2,), (3,)])),
+    ],
+)
+def test_tuplify_series(input_series, expected_output):
+    """Test the _tuplify_series function"""
+
+    @tuplify_series
+    def tuplify_func(series):
+        return series
+
+    class TestSeries:
+        @tuplify_series
+        def method(self, series):
+            return series
+
+    assert all(tuplify_func(input_series) == expected_output)
+    assert all(TestSeries().method(input_series) == expected_output)
 
 
 @pytest.mark.parametrize("name", ["name", None])
@@ -157,7 +182,7 @@ def test_DefaultTranslator(test_data, name, description, something):
     assert all(df["name"].to_numpy() == name)
     assert all(df["description"].to_numpy() == description)
     assert all(df["something"].to_numpy() == something)
-    assert all(df["variable"].map(type) == tuple)
+    assert all(df["variable"].map(type) == tuple)  # noqa: E721
     assert all(df["version"].str.startswith("v"))
 
     if name:
@@ -256,29 +281,6 @@ def test_Cmip6Translator(test_data, groupby, n_entries):
     "groupby, n_entries",
     [
         (None, 5),
-        (TRANSLATOR_GROUPBY_COLUMNS, 4),
-        (["variable"], 5),
-        (["realm"], 2),
-        (["frequency"], 3),
-        (["description"], 1),
-    ],
-)
-def test_EraiTranslator(test_data, groupby, n_entries):
-    """Test ERA-Interim datastore translator"""
-    model = ("ERA-Interim",)
-    esmds = intake.open_esm_datastore(test_data / "esm_datastore/erai.json")
-    esmds.name = "name"
-    esmds.description = "description"
-    esmds.metadata = dict(model=model)
-    df = EraiTranslator(esmds, CORE_COLUMNS).translate(groupby)
-    assert all(df["model"] == model)
-    assert len(df) == n_entries
-
-
-@pytest.mark.parametrize(
-    "groupby, n_entries",
-    [
-        (None, 5),
         (["realm"], 1),
         (["variable"], 4),
         (["frequency"], 1),
@@ -307,22 +309,88 @@ def test_CordexTranslator(test_data, groupby, n_entries):
 
 
 @pytest.mark.parametrize(
-    "input_series, expected_output",
+    "groupby, n_entries",
     [
-        (pd.Series([1, 2, 3]), pd.Series([(1,), (2,), (3,)])),
+        (None, 5),
+        (["variable"], 4),
+        (["frequency"], 3),
+        (["realm"], 1),
     ],
 )
-def test_tuplify_series(input_series, expected_output):
-    """Test the _tuplify_series function"""
+def test_Era5Translator(test_data, groupby, n_entries):
+    """Test ERA5 datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/era5-rt52.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = Era5Translator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
 
-    @tuplify_series
-    def tuplify_func(series):
-        return series
 
-    class TestSeries:
-        @tuplify_series
-        def method(self, series):
-            return series
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (["variable"], 4),
+        (["frequency"], 3),
+        (["model"], 2),
+        (["realm"], 1),
+    ],
+)
+def test_CcamTranslator(test_data, groupby, n_entries):
+    """Test ERA5 datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/ccam-hq89.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = CcamTranslator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
 
-    assert all(tuplify_func(input_series) == expected_output)
-    assert all(TestSeries().method(input_series) == expected_output)
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 5),
+        (["variable"], 4),
+        (["frequency"], 3),
+        (["model"], 2),
+        (["realm"], 1),
+    ],
+)
+def test_NarclimTranslator(test_data, groupby, n_entries):
+    """Test ERA5 datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/narclim2-zz63.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = NarclimTranslator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+def test_translator_failure(test_data):
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/narclim2-zz63.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    translator = NarclimTranslator(esmds, CORE_COLUMNS)
+
+    default = DefaultTranslator(esmds, CORE_COLUMNS)
+
+    translator.set_dispatch(
+        input_name="dud_name",
+        core_colname="model",
+        func=default._model_translator,
+    )
+
+    with pytest.raises(KeyError) as excinfo:
+        translator.translate()
+
+    assert (
+        "Unable to translate 'model' column with translator 'DefaultTranslator'"
+        in str(excinfo.value)
+    )
+
+    @trace_failure
+    def _(x: int) -> int:
+        return x
+
+    with pytest.raises(TypeError) as excinfo:
+        _(1)
+
+    assert "Decorator can only be applied to class methods" in str(excinfo.value)

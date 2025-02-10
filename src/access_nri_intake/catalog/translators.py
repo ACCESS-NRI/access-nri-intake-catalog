@@ -7,21 +7,28 @@ like the ACCESS-NRI catalog
 """
 
 from dataclasses import dataclass
-from functools import partial
-from typing import Callable, Optional
+from functools import partial, wraps
+from typing import Callable
 
 import pandas as pd
 import tlz
 from intake import DataSource
 
 from . import COLUMNS_WITH_ITERABLES
+from .utils import _to_tuple, tuplify_series
+
+# Note: important that when using @tuplify_series and @trace_failure decorators,
+# trace failure is the innermost decorator
 
 FREQUENCY_TRANSLATIONS = {
+    "monthly-averaged-by-hour": "1hr",
+    "monthly-averaged-by-day": "1hr",
     "3hrPt": "3hr",
     "6hrPt": "6hr",
     "daily": "1day",
     "day": "1day",
     "mon": "1mon",
+    "monthly-averaged": "1mon",
     "monC": "1mon",
     "monClim": "1mon",
     "monPt": "1mon",
@@ -32,32 +39,25 @@ FREQUENCY_TRANSLATIONS = {
 }
 
 
-def _to_tuple(series: pd.Series) -> pd.Series:
+def trace_failure(func: Callable) -> Callable:
     """
-    Make each entry in the provided series a tuple
-
-    Parameters
-    ----------
-    series: :py:class:`~pandas.Series`
-        A pandas Series or another object with an `apply` method
-    """
-    return series.apply(lambda x: (x,))
-
-
-def tuplify_series(func: Callable) -> Callable:
-    """
-    Decorator that wraps a function that returns a pandas Series and converts
-    each entry in the series to a tuple
+    Decorator that wraps a function and prints a message if it raises an exception
     """
 
+    @wraps(func)
     def wrapper(*args, **kwargs):
-        # Check if the first argument is 'self'
-        if len(args) > 0 and hasattr(args[0], "__class__"):
-            self = args[0]
-            series = func(self, *args[1:], **kwargs)
-        else:
-            series = func(*args, **kwargs)
-        return _to_tuple(series)
+        func_name = func.__name__
+        colname = func_name[1:].split("_")[0]
+        # Ensure the first argument is an instance of the class
+        if not isinstance(args[0], DefaultTranslator):
+            raise TypeError("Decorator can only be applied to class methods")
+
+        try:
+            return func(*args, **kwargs)
+        except KeyError as exc:
+            raise KeyError(
+                f"Unable to translate '{colname}' column with translator '{args[0].__class__.__name__}'"
+            ) from exc
 
     return wrapper
 
@@ -146,7 +146,7 @@ class DefaultTranslator:
 
         return pd.Series([val] * len_df)
 
-    def translate(self, groupby: Optional[list[str]] = None) -> pd.DataFrame:
+    def translate(self, groupby: list[str] | None = None) -> pd.DataFrame:
         """
         Return the translated :py:class:`~pandas.DataFrame` of metadata and merge into set of
         set of rows with unique values of the columns specified.
@@ -194,7 +194,7 @@ class DefaultTranslator:
         return df[self.columns]  # Preserve ordering
 
     def set_dispatch(
-        self, core_colname: str, func: Callable, input_name: Optional[str] = None
+        self, core_colname: str, func: Callable, input_name: str | None = None
     ):
         """
         Set a dispatch function for a column. Typically only required when either:
@@ -218,6 +218,7 @@ class DefaultTranslator:
         self._dispatch[core_colname] = func
         setattr(self._dispatch_keys, core_colname, input_name)
 
+    @trace_failure
     def _realm_translator(self) -> pd.Series:
         """
         Return realm, fixing a few issues
@@ -225,6 +226,7 @@ class DefaultTranslator:
         return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
 
     @tuplify_series
+    @trace_failure
     def _model_translator(self) -> pd.Series:
         """
         Return model from dispatch_keys.model
@@ -232,6 +234,7 @@ class DefaultTranslator:
         return self.source.df[self._dispatch_keys.model]
 
     @tuplify_series
+    @trace_failure
     def _frequency_translator(self) -> pd.Series:
         """
         Return frequency, fixing a few issues
@@ -241,6 +244,7 @@ class DefaultTranslator:
         )
 
     @tuplify_series
+    @trace_failure
     def _variable_translator(self) -> pd.Series:
         """
         Return variable as a tuple
@@ -320,32 +324,6 @@ class Cmip5Translator(DefaultTranslator):
         )
 
 
-class EraiTranslator(DefaultTranslator):
-    """
-    ERAI Translator for translating metadata from the NCI ERA-Interim intake datastore.
-    """
-
-    def __init__(self, source: DataSource, columns: list[str]):
-        """
-        Initialise a EraiTranslator
-
-        Parameters
-        ----------
-        source: :py:class:`~intake.DataSource`
-            The NCI ERA-Interim intake-esm datastore
-        columns: list of str
-            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
-        """
-
-        super().__init__(source, columns)
-
-        self.set_dispatch(
-            input_name="variable",
-            core_colname="variable",
-            func=super()._variable_translator,
-        )
-
-
 class BarpaTranslator(DefaultTranslator):
     """
     Barpa Translator for translating metadata from the NCI BARPA intake datastores.
@@ -407,7 +385,9 @@ class CordexTranslator(DefaultTranslator):
 
         super().__init__(source, columns)
         self.set_dispatch(
-            input_name="source_id", core_colname="model", func=super()._model_translator
+            input_name="project_id",
+            core_colname="model",
+            func=super()._model_translator,
         )
         self.set_dispatch(
             input_name="variable_id",
@@ -425,16 +405,188 @@ class CordexTranslator(DefaultTranslator):
         return self.source.df.apply(lambda x: ("none",), 1)
 
 
+class Era5Translator(DefaultTranslator):
+    """
+    Era5 Translator for translating metadata from the NCI ERA5 intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise a Era5Translator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI ERA5 intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="variable",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+        self.set_dispatch(
+            input_name="stream", core_colname="realm", func=self._realm_translator
+        )
+        self.set_dispatch(
+            input_name="path", core_colname="frequency", func=self._frequency_translator
+        )
+        self.set_dispatch(
+            input_name="path", core_colname="model", func=self._model_translator
+        )
+
+    @tuplify_series
+    @trace_failure
+    def _model_translator(self):
+        """
+        Get the model from the path. This is a slightly hacky approach, using the
+        following logic:
+        - Dir structure follows the form : `'/g/data/rt52/$MODEL/...`
+        where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1',
+        'era5-derived'.
+        """
+        return self.source.df["path"].str.split("/").str[4]
+
+    def _realm_translator(self):
+        """
+        Return realm. Not clear how we can extract this from the ERA5 data, so
+        we'll just return 'none' for now.
+        """
+        return self.source.df.apply(lambda x: ("none",), 1)
+
+    @tuplify_series
+    @trace_failure
+    def _frequency_translator(self):
+        """
+        Get the frequency from the path
+        """
+        config_str = self.source.df["path"].str.split("/").str[6].copy()
+        """
+        ERA5 contains some datasets where the frequency isn't readily identifiable:
+        - 'reanalysis' is at 1hour frequency
+        - 'v3-1' is at 1day frequency
+        - 'v4-0' is at 1day frequency
+        - 'v1-1' is at 1hour frequency
+
+        These are going to get preprocessed here so that we don't make the
+        FREQUENCIES dictionary large and confusing.
+        """
+        ERA5_FREQUENCY_TRANSLATIONS = {
+            "reanalysis": "1hr",
+            "v3-1": "1day",
+            "v4-0": "1day",
+            "v1-1": "1hr",
+        }
+
+        preproc_config_str = config_str.apply(
+            lambda x: ERA5_FREQUENCY_TRANSLATIONS.get(x, x)
+        )
+
+        return preproc_config_str.apply(lambda x: FREQUENCY_TRANSLATIONS.get(x, x))
+
+
+class CcamTranslator(DefaultTranslator):
+    """
+    Ccam Translator for translating metadata from the NCI CCAM intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise a CcamTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI CCAM intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="project_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+        self.set_dispatch(
+            input_name="realm",
+            core_colname="realm",
+            func=self._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+
+    def _realm_translator(self):
+        """
+        Realm is not available in the CCAM metadata, so we'll just return
+        ('none',) for now.
+        """
+        return self.source.df.apply(lambda x: ("none",), 1)
+
+
+class NarclimTranslator(DefaultTranslator):
+    def __init__(self, source, columns):
+        """
+        Initialise a BarpaTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI BARPA intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="source_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="realm",
+            core_colname="realm",
+            func=self._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+
+    def _realm_translator(self):
+        """
+        Return realm, fixing a few issues
+        """
+        return self.source.df.apply(lambda x: ("atmos",), 1)
+
+
 @dataclass
 class _DispatchKeys:
     """
     Data class to store the keys for the dispatch dictionary in the Translator classes
     """
 
-    model: Optional[str] = None
-    realm: Optional[str] = None
-    frequency: Optional[str] = None
-    variable: Optional[str] = None
+    model: str | None = None
+    realm: str | None = None
+    frequency: str | None = None
+    variable: str | None = None
 
 
 def _cmip_realm_translator(series) -> pd.Series:

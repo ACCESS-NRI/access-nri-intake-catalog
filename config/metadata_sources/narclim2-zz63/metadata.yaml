@@ -1,0 +1,211 @@
+name: narclim2_zz63
+experiment_uuid: e238a14d-d3df-43f3-b7ff-fd247b03816e
+description:  NARCliM2.0 climate pojections, downscaled from ACCESS-ESM1-5 over Australasia at ~18km resolution.
+long_description: >-
+  NARCliM2.0 climate projections dynamically downscaled from ACCESS-ESM1-5 r6i1p1f1
+  historical model using the WRF regional model version NARClIM2-0-WRF412R3. Domain
+  covers a region encompassing CORDEX Australasia (AUS-18) at approximately 18km
+  resolution in rotated grid format. The dataset includes 1-hour, 3-hour, daily
+  and monthly data for variables such as temperature, humidity, wind, radiation
+  and precipitation parameters. Data are provided at 1-hour steps for surface-level
+  variables, other data at atmospheric pressure levels or subsurface processes is
+  provided as 3-hour, daily and monthly data. Dataset includes all of CORDEX Core
+  variables, most of the CORDEX Tier 1 and just over half of CORDEX Tier 2 variables.
+model:
+- MPI-ESM1-2-HR
+- UKESM1-0-LL
+- ACCESS-ESM1-5
+- NorESM2-MM
+- EC-Earth3-Veg
+realm:
+- atmos
+frequency:
+- 1hr
+- 1mon
+- 1day
+- 3hr
+- fx
+variable:
+- evspsbl
+- rsus
+- va100
+- va250m
+- snc
+- hus600
+- CIN
+- zg850
+- hus70
+- va200
+- zg150
+- tasmax
+- hus850
+- ua200
+- ta70
+- va250
+- tas
+- ta925
+- wa250
+- wa300
+- lai
+- wa500
+- va150
+- va1000
+- ua1000
+- vegFrac
+- ua200m
+- mrfso
+- hus100
+- hus250
+- rlus
+- siconca
+- zg600
+- wa700
+- ta700
+- sfcWindmax
+- va400
+- hus1000
+- vas
+- snd
+- snm
+- ts
+- ua850
+- tasmin
+- wa600
+- wa400
+- ua750
+- hfss
+- va700
+- hus200
+- va150m
+- ua500
+- zg750
+- rsds
+- va600
+- va300
+- mrfsos
+- wa1000
+- ua100
+- ua700
+- rsdt
+- rsdscs
+- prw
+- ua250m
+- rsdsdir
+- ta300
+- CAPEmax
+- va925
+- zg500
+- ta50m
+- tsl
+- va100m
+- CINmax
+- tauu
+- ta750
+- ua100m
+- rsutcs
+- va70
+- hus150
+- zg70
+- wa100
+- ua50m
+- hus400
+- ua250
+- wa925
+- rlut
+- zg300
+- wa150
+- hus300m
+- va300m
+- ua150
+- zg400
+- rldscs
+- zg700
+- ua600
+- clt
+- va500
+- hus925
+- prhmax
+- zg100
+- ta200
+- wa70
+- ta600
+- wa850
+- clwvi
+- ua300m
+- zg1000
+- prsn
+- ta400
+- rlutcs
+- hus750
+- hus500
+- rlds
+- va200m
+- wa200
+- mrsos
+- ua300
+- ta1000
+- zg925
+- rsut
+- huss
+- mrros
+- ta850
+- mrso
+- clivi
+- ua400
+- ta100
+- hus700
+- zg200
+- psl
+- rluscs
+- ta500
+- zg250
+- CAPE
+- wa750
+- snw
+- rsuscs
+- va850
+- va750
+- hus300
+- hus50m
+- ua150m
+- ta250
+- hfls
+- zmla
+- sfcWind
+- tauv
+- ps
+- ta150
+- ua70
+- ua925
+- ta300m
+- hurs
+- uas
+- va50m
+- pr
+- mrro
+- prc
+- areacella
+- orog
+- sftlf
+nominal_resolution:
+- 18km
+version: 2.0
+contact: NCI
+email: help@nci.org.au
+created: 2024-07-09
+reference: >-
+  https://doi.org/10.1029/2021EF002625
+  https://doi.org/10.5194/gmd-2024-41
+  https://doi.org/10.5194/gmd-2024-87
+license: Creative Commons Attribution 4.0 International
+url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f7334_2646_2487_9846
+parent_experiment: CMIP6
+related_experiments:
+-
+notes:
+keywords:
+- CMIP6
+- CORDEX
+- NARCliM
+- GCM
+- RCM

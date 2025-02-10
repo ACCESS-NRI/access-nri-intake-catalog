@@ -1,0 +1,22 @@
+sources:
+  access_nri:
+    args:
+      columns_with_iterables:
+      - model
+      - realm
+      - frequency
+      - variable
+      mode: r
+      name_column: name
+      path: /g/data/xp65/public/apps/access-nri-intake-catalog/{{version}}/metacatalog.csv
+      yaml_column: yaml
+    description: ACCESS-NRI intake catalog
+    driver: intake_dataframe_catalog.core.DfFileCatalog
+    metadata:
+      storage: gdata/fs38+gdata/oi10+gdata/tm70+gdata/dc19
+      version: '{{version}}'
+    parameters:
+      version:
+        default: v0.1.3
+        description: Catalog version
+        type: str

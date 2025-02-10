@@ -4,6 +4,39 @@ Changelog
 This CHANGELOG documents only key changes between versions. For a full description 
 of all changes see https://github.com/ACCESS-NRI/access-nri-intake-catalog/releases
 
+v1.0.0
+------
+
+02/12/2024
+
+- Switch to stable release
+- Added MOM6 data support
+- Unit test fixes & upgrades
+- Documentation upgrades, obsolete data references removed
+
+v0.1.5
+------
+
+21/11/2024
+
+- Switch to a date-based catalog versioning schema
+- Add support for BARPA data
+- Allow for coordinate searching
+- Translators rationalisation
+- metadata-validate provides complete report
+- EraiTranslator and catalogs removed
+- Add support for ccam data
+- Support for Python 3.12
+
+v0.1.4
+------
+
+03/10/2024
+
+- Added archive/reference copies of existing catalog source metadata
+- Store experiment and metadata schemas internally
+- Restucture Builders
+
 v0.1.3
 ------
 

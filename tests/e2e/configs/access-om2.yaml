@@ -1,0 +1,9 @@
+builder: AccessOm2Builder
+
+translator: DefaultTranslator
+
+sources:
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2/1deg_jra55_ryf9091_gadi

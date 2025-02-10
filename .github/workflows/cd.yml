@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Setup conda environment
         uses: conda-incubator/setup-miniconda@v3
@@ -52,7 +52,7 @@ jobs:
           show-channel-urls: true
 
       - name: Build and upload the conda package
-        uses: uibcdf/action-build-and-upload-conda-packages@v1.3.0
+        uses: uibcdf/action-build-and-upload-conda-packages@v1.4.0
         with:
           meta_yaml_dir: .conda
           python-version: 3.11

@@ -2,13 +2,18 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from pathlib import Path
+from unittest import mock
 
 import intake
 import pandas as pd
 import pytest
+import xarray as xr
+from ecgtools.builder import INVALID_ASSET, TRACEBACK
+from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
+from intake_esm.utils import OPTIONS
 
 from access_nri_intake.source import CORE_COLUMNS, builders
-from access_nri_intake.source.utils import _AccessNCFileInfo
+from access_nri_intake.source.utils import _NCFileInfo
 
 
 @pytest.mark.parametrize(
@@ -25,6 +30,7 @@ from access_nri_intake.source.utils import _AccessNCFileInfo
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 11),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
+        (["mom6"], "Mom6Builder", {}, 27, 27, 15),
     ],
 )
 def test_builder_build(
@@ -129,6 +135,84 @@ def test_builder_build(
             None,
             "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
         ),
+        # MOM6
+        (
+            "mom6/output000/19000101.ice_daily.nc",
+            "Mom6Builder",
+            "seaIce",
+            None,
+            "XXXXXXXX_ice_daily",
+        ),
+        (
+            "mom6/output001/19010101.ice_month.nc",
+            "Mom6Builder",
+            "seaIce",
+            None,
+            "XXXXXXXX_ice_month",
+        ),
+        (
+            "mom6/output001/19010101.ocean_annual_rho2.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_annual_rho2",
+        ),
+        (
+            "mom6/output000/19000101.ocean_annual_z.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_annual_z",
+        ),
+        (
+            "mom6/output000/19000101.ocean_daily.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_daily",
+        ),
+        (
+            "mom6/output001/19010101.ocean_month_rho2.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_month_rho2",
+        ),
+        (
+            "mom6/output000/19000101.ocean_month_z.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_month_z",
+        ),
+        (
+            "mom6/output001/19010101.ocean_month.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_month",
+        ),
+        (
+            "mom6/output000/19000101.ocean_scalar_annual.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_scalar_annual",
+        ),
+        (
+            "mom6/output001/19010101.ocean_scalar_month.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_scalar_month",
+        ),
+        (
+            "mom6/output000/19000101.ocean_static.nc",
+            "Mom6Builder",
+            "ocean",
+            None,
+            "XXXXXXXX_ocean_static",
+        ),
     ],
 )
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
@@ -138,6 +222,55 @@ def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     if member:
         assert info["member"] == member
     assert info["file_id"] == file_id
+
+
+@mock.patch("access_nri_intake.source.utils._NCFileInfo.to_dict")
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "mom6/output000/19000101.ice_daily.nc",
+        "mom6/output001/19010101.ice_month.nc",
+        "mom6/output001/19010101.ocean_annual_rho2.nc",
+        "mom6/output000/19000101.ocean_annual_z.nc",
+        "mom6/output000/19000101.ocean_daily.nc",
+        "mom6/output001/19010101.ocean_month_rho2.nc",
+        "mom6/output000/19000101.ocean_month_z.nc",
+        "mom6/output001/19010101.ocean_month.nc",
+        "mom6/output000/19000101.ocean_scalar_annual.nc",
+        "mom6/output001/19010101.ocean_scalar_month.nc",
+        "mom6/output000/19000101.ocean_static.nc",
+    ],
+)
+def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
+    to_dict_mock.return_value = {
+        "filename": filename.replace("ice", "badrealm").replace("ocean", "badrealm")
+    }
+    info = builders.Mom6Builder.parser(str(test_data / filename))
+    assert INVALID_ASSET in info.keys()
+    assert TRACEBACK in info.keys()
+    assert "ParserError" in info[TRACEBACK]
+
+
+@pytest.mark.parametrize(
+    "filename",
+    ["rubbish_name.nc"],
+)
+@pytest.mark.parametrize(
+    "builder",
+    [
+        "AccessOm2Builder",
+        "AccessOm3Builder",
+        "Mom6Builder",
+        "AccessEsm15Builder",
+        "AccessCm2Builder",
+    ],
+)
+def test_builder_parser_exception(test_data, filename, builder):
+    Builder = getattr(builders, builder)
+    info = Builder.parser(str(test_data / filename))
+    assert INVALID_ASSET in info.keys()
+    assert info[INVALID_ASSET] == str(test_data / filename)
+    assert TRACEBACK in info.keys()
 
 
 def test_builder_columns_with_iterables(test_data):
@@ -301,71 +434,349 @@ def test_builder_columns_with_iterables(test_data):
         # Example ACCESS-OM3 filenames
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA_WD.ww3.hi.1958-01-02-00000",
+            "access-om3.ww3.hi.1958-01-02-00000",
             (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "access_om3_ww3_hi_XXXX_XX_XX_XXXXX",
                 "1958-01-02-00000",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.cice.h.1900-01-01",
+            "access-om3.cice.h.1900-01-01",
             (
-                "GMOM_JRA_cice_h_XXXX_XX_XX",
+                "access_om3_cice_h_XXXX_XX_XX",
                 "1900-01-01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.ocean_sfc_1900_01_01",
+            "access-om3.cice.h.1900-01",
             (
-                "GMOM_JRA_mom6_ocean_sfc_XXXX_XX_XX",
+                "access_om3_cice_h_XXXX_XX",
+                "1900-01",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.cice.h.1900-01-daily",
+            (
+                "access_om3_cice_h_XXXX_XX_daily",
+                "1900-01",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.ocean_sfc_1900_01_01",
+            (
+                "access_om3_mom6_ocean_sfc_XXXX_XX_XX",
                 "1900_01_01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.sfc_1900_01_01",
+            "access-om3.mom6.sfc_1900_01",
             (
-                "GMOM_JRA_mom6_sfc_XXXX_XX_XX",
-                "1900_01_01",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.sfc_1900_01",
-            (
-                "GMOM_JRA_mom6_sfc_XXXX_XX",
+                "access_om3_mom6_sfc_XXXX_XX",
                 "1900_01",
                 None,
             ),
         ),
         (
             builders.AccessOm3Builder,
-            "GMOM_JRA.mom6.static",
+            "access-om3.mom6.sfc_1900",
             (
-                "GMOM_JRA_mom6_static",
+                "access_om3_mom6_sfc_XXXX",
+                "1900",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.static",
+            (
+                "access_om3_mom6_static",
                 None,
                 None,
             ),
         ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.static",
+            (
+                "access_om3_mom6_static",
+                None,
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
+                "1900",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
+                "1900-01-01-00000",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
+                "1900-01",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "1900-01-03-00000",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX",
+                "1900",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
+                "1900-01",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
+                "1900",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
+                "1900-01-01-00000",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01",
+            (
+                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
+                "1900-01",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                "1900-01-03-00000",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX",
+                "1900",
+                None,
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01",
+            (
+                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
+                "1900-01",
+                None,
+            ),
+        ),
+        # MOM6
+        (
+            builders.Mom6Builder,
+            "19000101.ice_daily",
+            (
+                "XXXXXXXX_ice_daily",
+                "19000101",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ice_month",
+            (
+                "XXXXXXXX_ice_month",
+                "19010101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ocean_annual_rho2",
+            (
+                "XXXXXXXX_ocean_annual_rho2",
+                "19010101",
+                (1, "yr"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_annual_z",
+            (
+                "XXXXXXXX_ocean_annual_z",
+                "19000101",
+                (1, "yr"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_annual",
+            (
+                "XXXXXXXX_ocean_annual",
+                "19000101",
+                (1, "yr"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_daily",
+            (
+                "XXXXXXXX_ocean_daily",
+                "19000101",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ocean_month_rho2",
+            (
+                "XXXXXXXX_ocean_month_rho2",
+                "19010101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_month_z",
+            (
+                "XXXXXXXX_ocean_month_z",
+                "19000101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_month",
+            (
+                "XXXXXXXX_ocean_month",
+                "19000101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_scalar_annual",
+            (
+                "XXXXXXXX_ocean_scalar_annual",
+                "19000101",
+                (1, "yr"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ocean_scalar_month",
+            (
+                "XXXXXXXX_ocean_scalar_month",
+                "19010101",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ocean_static",
+            (
+                "XXXXXXXX_ocean_static",
+                "19010101",
+                None,
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "20000201.ocean_daily_2000_032",
+            (
+                "XXXXXXXX_ocean_daily_XXXX_XXX",
+                "20000201",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "20000201.ocean_daily_rho2_2000_056",
+            (
+                "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
+                "20000201",
+                (1, "day"),
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "20000201.ocean_daily_z_2000_119",
+            (
+                "XXXXXXXX_ocean_daily_z_XXXX_XXX",
+                "20000201",
+                (1, "day"),
+            ),
+        ),
     ],
 )
-def test_parse_access_filename(builder, filename, expected):
-    assert builder.parse_access_filename(filename) == expected
+def test_parse_filename(builder, filename, expected):
+    assert builder.parse_filename(filename) == expected
 
 
+@pytest.mark.parametrize(
+    "compare_files",
+    [
+        (True),
+        (False),
+    ],
+)
 @pytest.mark.parametrize(
     "builder, filename, expected",
     [
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_grid.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_grid.nc",
                 file_id="ocean_grid",
@@ -388,7 +799,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean.nc",
                 file_id="ocean",
@@ -438,7 +849,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_month.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month.nc",
                 file_id="ocean_month",
@@ -477,7 +888,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ocean/ocean_month_inst_nobounds.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month_inst_nobounds.nc",
                 file_id="ocean_month_inst_nobounds",
@@ -510,7 +921,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm2Builder,
             "access-om2/output000/ice/OUTPUT/iceh.1900-01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1900-01.nc",
                 file_id="iceh_XXXX_XX",
@@ -542,7 +953,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/atm/netCDF/by578a.pd201501_dai.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="by578a.pd201501_dai.nc",
                 file_id="by578a_pdXXXXXX_dai",
@@ -560,7 +971,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh_d.2015-01.nc",
                 file_id="iceh_d_XXXX_XX",
@@ -592,7 +1003,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ocn/ocean_daily.nc-20150630",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_daily.nc-20150630",
                 file_id="ocean_daily",
@@ -624,7 +1035,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessCm2Builder,
             "access-cm2/by578/history/ocn/ocean_scalar.nc-20150630",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_scalar.nc-20150630",
                 file_id="ocean_scalar",
@@ -666,7 +1077,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/atm/netCDF/HI-C-05-r1.pa-185001_mon.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="HI-C-05-r1.pa-185001_mon.nc",
                 file_id="HI_C_05_r1_pa_XXXXXX_mon",
@@ -684,7 +1095,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ice/iceh.1850-01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1850-01.nc",
                 file_id="iceh_XXXX_XX",
@@ -716,7 +1127,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ocn/ocean_bgc_ann.nc-18501231",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc_ann.nc-18501231",
                 file_id="ocean_bgc_ann",
@@ -755,7 +1166,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessEsm15Builder,
             "access-esm1-5/history/ocn/ocean_bgc.nc-18501231",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc.nc-18501231",
                 file_id="ocean_bgc",
@@ -797,7 +1208,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.native_1900_01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.native_1900_01.nc",
                 file_id="GMOM_JRA_WD_mom6_h_native_XXXX_XX",
@@ -870,7 +1281,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
                 file_id="GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
@@ -938,7 +1349,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.static.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.static.nc",
                 file_id="GMOM_JRA_WD_mom6_h_static",
@@ -966,7 +1377,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.mom6.h.z_1900_01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.z_1900_01.nc",
                 file_id="GMOM_JRA_WD_mom6_h_z_XXXX_XX",
@@ -1039,7 +1450,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.cice.h.1900-01-01.nc",
                 file_id="GMOM_JRA_WD_cice_h_XXXX_XX_XX",
@@ -1071,7 +1482,7 @@ def test_parse_access_filename(builder, filename, expected):
         (
             builders.AccessOm3Builder,
             "access-om3/output000/GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
-            _AccessNCFileInfo(
+            _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
                 file_id="GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
@@ -1086,12 +1497,992 @@ def test_parse_access_filename(builder, filename, expected):
                 variable_units=["m2 s", "unitless"],
             ),
         ),
+        (
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ice_daily.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ice_daily.nc",
+                file_id="XXXXXXXX_ice_daily",
+                filename_timestamp="19000101",
+                frequency="1day",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1901-01-01, 00:00:00",
+                variable=[
+                    "xT",
+                    "xTe",
+                    "yT",
+                    "yTe",
+                    "time",
+                    "nv",
+                    "siconc",
+                    "sithick",
+                    "average_T1",
+                    "average_T2",
+                    "average_DT",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "T point nominal longitude",
+                    "T-cell edge nominal longitude",
+                    "T point nominal latitude",
+                    "T-cell edge nominal latitude",
+                    "time",
+                    "vertex number",
+                    "ice concentration",
+                    "ice thickness",
+                    "Start time for average period",
+                    "End time for average period",
+                    "Length of average period",
+                    "time axis boundaries",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "time: mean",
+                    "time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "degrees_E",
+                    "degrees_E",
+                    "degrees_N",
+                    "degrees_N",
+                    "days since 1900-01-01 00:00:00",
+                    "",
+                    "0-1",
+                    "m-ice",
+                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01 00:00:00",
+                    "days",
+                    "days",
+                ],
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ocean_annual_z.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ocean_annual_z.nc",
+                file_id="XXXXXXXX_ocean_annual_z",
+                filename_timestamp="19000101",
+                frequency="1yr",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1901-01-01, 00:00:00",
+                variable=[
+                    "xh",
+                    "yh",
+                    "z_l",
+                    "z_i",
+                    "time",
+                    "nv",
+                    "xq",
+                    "yq",
+                    "volcello",
+                    "thetao",
+                    "thetao_xyave",
+                    "so",
+                    "so_xyave",
+                    "agessc",
+                    "uo",
+                    "vo",
+                    "umo",
+                    "vmo",
+                    "uh",
+                    "vh",
+                    "T_adx",
+                    "T_ady",
+                    "S_adx",
+                    "S_ady",
+                    "average_T1",
+                    "average_T2",
+                    "average_DT",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                    "Depth at cell center",
+                    "Depth at interface",
+                    "time",
+                    "vertex number",
+                    "q point nominal longitude",
+                    "q point nominal latitude",
+                    "Ocean grid-cell volume",
+                    "Sea Water Potential Temperature",
+                    "Sea Water Potential Temperature",
+                    "Sea Water Salinity",
+                    "Sea Water Salinity",
+                    "Ideal Age Tracer",
+                    "Sea Water X Velocity",
+                    "Sea Water Y Velocity",
+                    "Ocean Mass X Transport",
+                    "Ocean Mass Y Transport",
+                    "Zonal Thickness Flux",
+                    "Meridional Thickness Flux",
+                    "Advective (by residual mean) Zonal Flux of Heat",
+                    "Advective (by residual mean) Meridional Flux of Heat",
+                    "Advective (by residual mean) Zonal Flux of Salt",
+                    "Advective (by residual mean) Meridional Flux of Salt",
+                    "Start time for average period",
+                    "End time for average period",
+                    "Length of average period",
+                    "time axis boundaries",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "ocean_volume",
+                    "sea_water_potential_temperature",
+                    "sea_water_potential_temperature",
+                    "sea_water_salinity",
+                    "sea_water_salinity",
+                    "ideal_age_tracer",
+                    "sea_water_x_velocity",
+                    "sea_water_y_velocity",
+                    "ocean_mass_x_transport",
+                    "ocean_mass_y_transport",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:sum z_l:sum yh:sum xh:sum time: mean",
+                    "area:mean z_l:mean yh:mean xh:mean time: mean",
+                    "z_l:mean time: mean",
+                    "area:mean z_l:mean yh:mean xh:mean time: mean",
+                    "z_l:mean time: mean",
+                    "area:mean z_l:mean yh:mean xh:mean time: mean",
+                    "z_l:mean yh:mean xq:point time: mean",
+                    "z_l:mean yq:point xh:mean time: mean",
+                    "z_l:sum yh:sum xq:point time: mean",
+                    "z_l:sum yq:point xh:sum time: mean",
+                    "z_l:sum yh:sum xq:point time: mean",
+                    "z_l:sum yq:point xh:sum time: mean",
+                    "z_l:sum yh:sum xq:point time: mean",
+                    "z_l:sum yq:point xh:sum time: mean",
+                    "z_l:sum yh:sum xq:point time: mean",
+                    "z_l:sum yq:point xh:sum time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "degrees_east",
+                    "degrees_north",
+                    "meters",
+                    "meters",
+                    "days since 1900-01-01 00:00:00",
+                    "",
+                    "degrees_east",
+                    "degrees_north",
+                    "m3",
+                    "degC",
+                    "degC",
+                    "psu",
+                    "psu",
+                    "yr",
+                    "m s-1",
+                    "m s-1",
+                    "kg s-1",
+                    "kg s-1",
+                    "m3 s-1",
+                    "m3 s-1",
+                    "W",
+                    "W",
+                    "psu m3 s-1",
+                    "psu m3 s-1",
+                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01 00:00:00",
+                    "days",
+                    "days",
+                ],
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ocean_month_rho2.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ocean_month_rho2.nc",
+                file_id="XXXXXXXX_ocean_month_rho2",
+                filename_timestamp="19000101",
+                frequency="1mon",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1901-01-01, 00:00:00",
+                variable=[
+                    "xh",
+                    "yh",
+                    "rho2_l",
+                    "rho2_i",
+                    "time",
+                    "nv",
+                    "yq",
+                    "volcello",
+                    "thkcello",
+                    "vmo",
+                    "average_T1",
+                    "average_T2",
+                    "average_DT",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                    "Target Potential Density at cell center",
+                    "Target Potential Density at interface",
+                    "time",
+                    "vertex number",
+                    "q point nominal latitude",
+                    "Ocean grid-cell volume",
+                    "Cell Thickness",
+                    "Ocean Mass Y Transport",
+                    "Start time for average period",
+                    "End time for average period",
+                    "Length of average period",
+                    "time axis boundaries",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "ocean_volume",
+                    "cell_thickness",
+                    "ocean_mass_y_transport",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:sum rho2_l:sum yh:sum xh:sum time: mean",
+                    "area:mean rho2_l:sum yh:mean xh:mean time: mean",
+                    "rho2_l:sum yq:point xh:sum time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "degrees_east",
+                    "degrees_north",
+                    "kg m-3",
+                    "kg m-3",
+                    "days since 1900-01-01 00:00:00",
+                    "",
+                    "degrees_north",
+                    "m3",
+                    "m",
+                    "kg s-1",
+                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01 00:00:00",
+                    "days",
+                    "days",
+                ],
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ocean_scalar_annual.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ocean_scalar_annual.nc",
+                file_id="XXXXXXXX_ocean_scalar_annual",
+                filename_timestamp="19000101",
+                frequency="1yr",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1901-01-01, 00:00:00",
+                variable=[
+                    "scalar_axis",
+                    "time",
+                    "nv",
+                    "masso",
+                    "volo",
+                    "thetaoga",
+                    "soga",
+                    "sosga",
+                    "average_T1",
+                    "average_T2",
+                    "average_DT",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "none",
+                    "time",
+                    "vertex number",
+                    "Mass of liquid ocean",
+                    "Total volume of liquid ocean",
+                    "Global Mean Ocean Potential Temperature",
+                    "Global Mean Ocean Salinity",
+                    "Sea Surface Salinity",
+                    "Start time for average period",
+                    "End time for average period",
+                    "Length of average period",
+                    "time axis boundaries",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "sea_water_mass",
+                    "sea_water_volume",
+                    "sea_water_potential_temperature",
+                    "sea_water_salinity",
+                    "sea_surface_salinity",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "time: mean",
+                    "time: mean",
+                    "time: mean",
+                    "time: mean",
+                    "time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "",
+                    "days since 1900-01-01 00:00:00",
+                    "",
+                    "kg",
+                    "m3",
+                    "degC",
+                    "psu",
+                    "psu",
+                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01 00:00:00",
+                    "days",
+                    "days",
+                ],
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "mom6/output000/19000101.ocean_static.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="19000101.ocean_static.nc",
+                file_id="XXXXXXXX_ocean_static",
+                filename_timestamp="19000101",
+                frequency="fx",
+                start_date="1900-01-01, 00:00:00",
+                end_date="1900-01-01, 00:00:00",
+                variable=[
+                    "xh",
+                    "yh",
+                    "time",
+                    "xq",
+                    "yq",
+                    "areacello",
+                    "deptho",
+                    "hfgeou",
+                    "sftof",
+                    "Coriolis",
+                    "geolon",
+                    "geolat",
+                    "geolon_c",
+                    "geolat_c",
+                    "geolon_u",
+                    "geolat_u",
+                    "geolon_v",
+                    "geolat_v",
+                    "wet",
+                    "wet_c",
+                    "wet_u",
+                    "wet_v",
+                    "dxt",
+                    "dyt",
+                    "dxCu",
+                    "dyCu",
+                    "dxCv",
+                    "dyCv",
+                    "areacello_cu",
+                    "areacello_cv",
+                    "areacello_bu",
+                ],
+                variable_long_name=[
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                    "time",
+                    "q point nominal longitude",
+                    "q point nominal latitude",
+                    "Ocean Grid-Cell Area",
+                    "Sea Floor Depth",
+                    "Upward geothermal heat flux at sea floor",
+                    "Sea Area Fraction",
+                    "Coriolis parameter at corner (Bu) points",
+                    "Longitude of tracer (T) points",
+                    "Latitude of tracer (T) points",
+                    "Longitude of corner (Bu) points",
+                    "Latitude of corner (Bu) points",
+                    "Longitude of zonal velocity (Cu) points",
+                    "Latitude of zonal velocity (Cu) points",
+                    "Longitude of meridional velocity (Cv) points",
+                    "Latitude of meridional velocity (Cv) points",
+                    "0 if land, 1 if ocean at tracer points",
+                    "0 if land, 1 if ocean at corner (Bu) points",
+                    "0 if land, 1 if ocean at zonal velocity (Cu) points",
+                    "0 if land, 1 if ocean at meridional velocity (Cv) points",
+                    "Delta(x) at thickness/tracer points (meter)",
+                    "Delta(y) at thickness/tracer points (meter)",
+                    "Delta(x) at u points (meter)",
+                    "Delta(y) at u points (meter)",
+                    "Delta(x) at v points (meter)",
+                    "Delta(y) at v points (meter)",
+                    "Ocean Grid-Cell Area",
+                    "Ocean Grid-Cell Area",
+                    "Ocean Grid-Cell Area",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "cell_area",
+                    "sea_floor_depth_below_geoid",
+                    "upward_geothermal_heat_flux_at_sea_floor",
+                    "SeaAreaFraction",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "cell_area",
+                    "cell_area",
+                    "cell_area",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:sum yh:sum xh:sum time: point",
+                    "area:mean yh:mean xh:mean time: point",
+                    "area:mean yh:mean xh:mean time: point",
+                    "area:mean yh:mean xh:mean time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "time: point",
+                    "area:sum yh:sum xq:sum time: point",
+                    "area:sum yq:sum xh:sum time: point",
+                    "area:sum yq:sum xq:sum time: point",
+                ],
+                variable_units=[
+                    "degrees_east",
+                    "degrees_north",
+                    "days since 1900-01-01 00:00:00",
+                    "degrees_east",
+                    "degrees_north",
+                    "m2",
+                    "m",
+                    "W m-2",
+                    "%",
+                    "s-1",
+                    "degrees_east",
+                    "degrees_north",
+                    "degrees_east",
+                    "degrees_north",
+                    "degrees_east",
+                    "degrees_north",
+                    "degrees_east",
+                    "degrees_north",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "m",
+                    "m",
+                    "m",
+                    "m",
+                    "m",
+                    "m",
+                    "m2",
+                    "m2",
+                    "m2",
+                ],
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "mom6/output053/20051101.ocean_daily_2005_360.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="20051101.ocean_daily_2005_360.nc",
+                file_id="XXXXXXXX_ocean_daily_XXXX_XXX",
+                filename_timestamp="20051101",
+                frequency="1day",
+                start_date="2005-12-26, 00:00:00",
+                end_date="2005-12-27, 00:00:00",
+                variable=[
+                    "xh",
+                    "yh",
+                    "zl",
+                    "time",
+                    "nv",
+                    "xq",
+                    "yq",
+                    "volcello",
+                    "zos",
+                    "mlotst",
+                    "tauuo",
+                    "tauvo",
+                    "hfds",
+                    "wfo",
+                    "fsitherm",
+                    "salt_flux",
+                    "T_adx_2d",
+                    "T_ady_2d",
+                    "average_T1",
+                    "average_T2",
+                    "average_DT",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                    "Layer pseudo-depth, -z*",
+                    "time",
+                    "vertex number",
+                    "q point nominal longitude",
+                    "q point nominal latitude",
+                    "Ocean grid-cell volume",
+                    "Sea surface height above geoid",
+                    "Ocean Mixed Layer Thickness Defined by Sigma T",
+                    "Surface Downward X Stress",
+                    "Surface Downward Y Stress",
+                    "Surface ocean heat flux from SW+LW+latent+sensible+masstransfer+frazil+seaice_melt_heat",
+                    "Water Flux Into Sea Water",
+                    "water flux to ocean from sea ice melt(> 0) or form(< 0)",
+                    "Net salt flux into ocean at surface (restoring + sea-ice)",
+                    "Advective (by residual mean) Zonal Flux of Heat",
+                    "Advective (by residual mean) Meridional Flux of Heat",
+                    "Start time for average period",
+                    "End time for average period",
+                    "Length of average period",
+                    "time axis boundaries",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "ocean_volume",
+                    "sea_surface_height_above_geoid",
+                    "ocean_mixed_layer_thickness_defined_by_sigma_t",
+                    "surface_downward_x_stress",
+                    "surface_downward_y_stress",
+                    "surface_downward_heat_flux_in_sea_water",
+                    "water_flux_into_sea_water",
+                    "water_flux_into_sea_water_due_to_sea_ice_thermodynamics",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:sum zl:sum yh:sum xh:sum time: mean",
+                    "area:mean yh:mean xh:mean time: mean",
+                    "area:mean yh:mean xh:mean time: mean",
+                    "yh:mean xq:point time: mean",
+                    "yq:point xh:mean time: mean",
+                    "area:mean yh:mean xh:mean time: mean",
+                    "area:mean yh:mean xh:mean time: mean",
+                    "area:mean yh:mean xh:mean time: mean",
+                    "area:mean yh:mean xh:mean time: mean",
+                    "zl:sum yh:sum xq:point time: mean",
+                    "zl:sum yq:point xh:sum time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "degrees_east",
+                    "degrees_north",
+                    "meter",
+                    "days since 1991-01-01 00:00:00",
+                    "",
+                    "degrees_east",
+                    "degrees_north",
+                    "m3",
+                    "m",
+                    "m",
+                    "N m-2",
+                    "N m-2",
+                    "W m-2",
+                    "kg m-2 s-1",
+                    "kg m-2 s-1",
+                    "kg m-2 s-1",
+                    "W",
+                    "W",
+                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01 00:00:00",
+                    "days",
+                    "days",
+                ],
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "mom6/output053/20051101.ocean_daily_rho2_2005_360.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="20051101.ocean_daily_rho2_2005_360.nc",
+                file_id="XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
+                filename_timestamp="20051101",
+                frequency="1day",
+                start_date="2005-12-26, 00:00:00",
+                end_date="2005-12-27, 00:00:00",
+                variable=[
+                    "xh",
+                    "yh",
+                    "rho2_l",
+                    "rho2_i",
+                    "time",
+                    "nv",
+                    "xq",
+                    "yq",
+                    "volcello",
+                    "umo",
+                    "vmo",
+                    "average_T1",
+                    "average_T2",
+                    "average_DT",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                    "Target Potential Density at cell center",
+                    "Target Potential Density at interface",
+                    "time",
+                    "vertex number",
+                    "q point nominal longitude",
+                    "q point nominal latitude",
+                    "Ocean grid-cell volume",
+                    "Ocean Mass X Transport",
+                    "Ocean Mass Y Transport",
+                    "Start time for average period",
+                    "End time for average period",
+                    "Length of average period",
+                    "time axis boundaries",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "ocean_volume",
+                    "ocean_mass_x_transport",
+                    "ocean_mass_y_transport",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:sum rho2_l:sum yh:sum xh:sum time: mean",
+                    "rho2_l:sum yh:sum xq:point time: mean",
+                    "rho2_l:sum yq:point xh:sum time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "degrees_east",
+                    "degrees_north",
+                    "kg m-3",
+                    "kg m-3",
+                    "days since 1991-01-01 00:00:00",
+                    "",
+                    "degrees_east",
+                    "degrees_north",
+                    "m3",
+                    "kg s-1",
+                    "kg s-1",
+                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01 00:00:00",
+                    "days",
+                    "days",
+                ],
+            ),
+        ),
+        (
+            builders.Mom6Builder,
+            "mom6/output053/20051101.ocean_daily_z_2005_360.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="20051101.ocean_daily_z_2005_360.nc",
+                file_id="XXXXXXXX_ocean_daily_z_XXXX_XXX",
+                filename_timestamp="20051101",
+                frequency="1day",
+                start_date="2005-12-26, 00:00:00",
+                end_date="2005-12-27, 00:00:00",
+                variable=[
+                    "xh",
+                    "yh",
+                    "z_l",
+                    "z_i",
+                    "time",
+                    "nv",
+                    "xq",
+                    "z_l_sub01",
+                    "yq",
+                    "volcello",
+                    "uo",
+                    "vo",
+                    "thetao",
+                    "so",
+                    "average_T1",
+                    "average_T2",
+                    "average_DT",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "h point nominal longitude",
+                    "h point nominal latitude",
+                    "Depth at cell center",
+                    "Depth at interface",
+                    "time",
+                    "vertex number",
+                    "q point nominal longitude",
+                    "Depth at cell center",
+                    "q point nominal latitude",
+                    "Ocean grid-cell volume",
+                    "Sea Water X Velocity",
+                    "Sea Water Y Velocity",
+                    "Sea Water Potential Temperature",
+                    "Sea Water Salinity",
+                    "Start time for average period",
+                    "End time for average period",
+                    "Length of average period",
+                    "time axis boundaries",
+                ],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "ocean_volume",
+                    "sea_water_x_velocity",
+                    "sea_water_y_velocity",
+                    "sea_water_potential_temperature",
+                    "sea_water_salinity",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "area:sum z_l:sum yh:sum xh:sum time: mean",
+                    "z_l:mean yh:mean xq:point time: mean",
+                    "z_l:mean yq:point xh:mean time: mean",
+                    "area:mean z_l:mean yh:mean xh:mean time: mean",
+                    "area:mean z_l:mean yh:mean xh:mean time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "degrees_east",
+                    "degrees_north",
+                    "meters",
+                    "meters",
+                    "days since 1991-01-01 00:00:00",
+                    "",
+                    "degrees_east",
+                    "meters",
+                    "degrees_north",
+                    "m3",
+                    "m s-1",
+                    "m s-1",
+                    "degC",
+                    "psu",
+                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01 00:00:00",
+                    "days",
+                    "days",
+                ],
+            ),
+        ),
     ],
 )
-def test_parse_access_ncfile(test_data, builder, filename, expected):
+def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
+    """
+    Tests for correctness of parser. Note that if we are using intake-esm without
+    coordinate discovery enabled, the `conftest.py` fixture will dynamically set
+    the `xfails=True` on parametrisations of these tests where we compare files.
+    This is currently default behaviour as the latest release of intake-esm does
+    not support coordinate discovery. However, it is on main.
+    """
     file = str(test_data / Path(filename))
 
     # Set the path to the test data directory
     expected.path = file
 
-    assert builder.parse_access_ncfile(file) == expected
+    assert builder.parse_ncfile(file) == expected
+
+    if not compare_files:
+        return None
+
+    """
+    In the rest of this test, we refer to the dataset loaded using intake-esm
+    as ie_ds and the dataset loaded directly with xarray as xr_ds.
+
+    We also need to perform some additional logic that intake-esm does to avoid
+    xr.testing.assert_equal from failing due to preprocessing differences.
+    """
+    xarray_open_kwargs = _get_xarray_open_kwargs("netcdf")
+
+    ie_ds = _open_dataset(
+        urlpath=expected.path,
+        varname=expected.variable,
+        xarray_open_kwargs=xarray_open_kwargs,
+        requested_variables=expected.variable,
+    ).compute()
+    ie_ds.set_coords(set(ie_ds.variables) - set(ie_ds.attrs[OPTIONS["vars_key"]]))
+
+    xr_ds = xr.open_dataset(file, **xarray_open_kwargs)
+
+    scalar_variables = [v for v in xr_ds.data_vars if len(xr_ds[v].dims) == 0]
+    xr_ds = xr_ds.set_coords(scalar_variables)
+
+    xr_ds = xr_ds[expected.variable]
+
+    xr.testing.assert_equal(ie_ds, xr_ds)

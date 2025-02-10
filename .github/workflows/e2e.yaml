@@ -1,0 +1,19 @@
+name: Run end-to-end tests on Gadi
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run end-to-end tests
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: gadi.nci.org.au
+          username: ${{secrets.GADI_USER}}
+          key: ${{secrets.DEPLOY_KEY}}
+          script: |
+            cd ${{secrets.GADI_REPO_PATH}}
+            qsub bin/test_end_to_end.sh
+
+            

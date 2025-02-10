@@ -16,19 +16,33 @@ classifiers = [
 dependencies = [
     "cftime",
     "ecgtools>=2023.7.13",
-    "intake==0.7.0",
+    "intake>=0.7.0",
     "intake-dataframe-catalog>=0.2.4",
     "intake-esm>=2023.11.10",
     "jsonschema",
     "pooch",
     "xarray",
+    "colorama",
+    "yamanifest",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "tox",
+] 
+e2e = [
+    "pytest",
+    "pytest-ordering",
+]
 
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"
 metadata-validate = "access_nri_intake.cli:metadata_validate"
 metadata-template = "access_nri_intake.cli:metadata_template"
+build-esm-datastore = "access_nri_intake.cli:use_esm_datastore"
+scaffold-catalog-entry = "access_nri_intake.cli:scaffold_catalog_entry"
 
 [project.entry-points."intake.catalogs"]
 access_nri = "access_nri_intake.data:data"
@@ -58,13 +72,10 @@ versionfile_build = "access_nri_intake/_version.py"
 tag_prefix = "v"
 parentdir_prefix = "access-nri-intake-"
 
-[tool.pytest.ini_options]
-addopts = "--cov=./src --cov-report=xml"
-
 [tool.coverage.run]
 omit = [
-    "src/access_nri_intake/_version.py",
-    "src/access_nri_intake/data/__init__.py",
+    "*/_version.py",
+    "*/data/__init__.py",
 ]
 
 [tool.ruff]

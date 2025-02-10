@@ -7,7 +7,7 @@ dependencies:
   - python==3.11
   - cftime
   - ecgtools>=2023.7.13
-  - intake==0.7.0
+  - intake>=0.7.0
   - intake-dataframe-catalog>=0.2.4
   - intake-esm>=2023.11.10
   - jsonschema
@@ -19,3 +19,4 @@ dependencies:
   - pip:
     - codecov
     - pytest-cov
+    - yamanifest
