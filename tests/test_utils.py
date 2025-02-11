@@ -216,7 +216,7 @@ def test_bad_metadata_validation_raises(test_data, instance, no_errs, bad_kw):
         assert f"| {kw}" in err_msg, f"Can't see expected specific error for {kw}"
 
 
-@mock.patch("os.path.isfile")
+@mock.patch("pathlib.Path.is_file")
 @pytest.mark.parametrize("isfile_return", [True, False])
 @pytest.mark.parametrize(
     "basepath",
@@ -225,22 +225,22 @@ def test_bad_metadata_validation_raises(test_data, instance, no_errs, bad_kw):
         Path("/path/like/string"),
     ],
 )
-def test_get_catalog_fp_basepath(mock_isfile, isfile_return, basepath):
-    mock_isfile.return_value = isfile_return
+def test_get_catalog_fp_basepath(mock_is_file, isfile_return, basepath):
+    mock_is_file.return_value = isfile_return
     assert str(get_catalog_fp(basepath=basepath)) == "/path/like/string/catalog.yaml"
 
 
-@mock.patch("os.path.isfile", return_value=True)
-def test_get_catalog_fp_local(mock_isfile):
+@mock.patch("pathlib.Path.is_file", return_value=True)
+def test_get_catalog_fp_local(mock_is_file):
     """
     Check that we get pointed back to the user catalog
     """
-    assert get_catalog_fp() == USER_CATALOG_LOCATION
+    assert str(get_catalog_fp()) == USER_CATALOG_LOCATION
 
 
-@mock.patch("os.path.isfile", return_value=False)
-def test_get_catalog_fp_xp65(mock_isfile):
+@mock.patch("pathlib.Path.is_file", return_value=False)
+def test_get_catalog_fp_xp65(mock_is_file):
     """
     Check that we get pointed back to the user catalog
     """
-    assert get_catalog_fp() == CATALOG_LOCATION
+    assert str(get_catalog_fp()) == CATALOG_LOCATION

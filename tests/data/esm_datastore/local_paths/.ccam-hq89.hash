@@ -1,0 +1,27 @@
+format: yamanifest
+version: 1.0
+---
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/evspsblpot_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_198601-198612.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/evspsblpot_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_198601-198612.nc
+  hashes:
+    binhash: 2995a6facb1f6256deee6c03f80aeefe
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/sftlf_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/sftlf_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1.nc
+  hashes:
+    binhash: 386a811c06ecc5893236f18b868dc560
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/ua200m_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20510101-20511231.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/ua200m_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20510101-20511231.nc
+  hashes:
+    binhash: c7817fc40cba9d9aa54843bc1b5d31fb
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/va100m_AUS-10i_CESM2_ssp126_r11i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20730101-20731231.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/va100m_AUS-10i_CESM2_ssp126_r11i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20730101-20731231.nc
+  hashes:
+    binhash: 0980012500c8700890ae8498601762d7
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/va100m_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20540101-20541231.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/va100m_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20540101-20541231.nc
+  hashes:
+    binhash: 0ff61f01d219cf564bff554afb825d6d
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/zg700_AUS-10i_CESM2_ssp126_r11i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_6hr_20760101-20761231.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/zg700_AUS-10i_CESM2_ssp126_r11i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_6hr_20760101-20761231.nc
+  hashes:
+    binhash: e6a4b6379948563d983c2ff8d89d896d

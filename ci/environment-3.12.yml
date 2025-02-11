@@ -19,3 +19,4 @@ dependencies:
   - pip:
     - codecov
     - pytest-cov
+    - yamanifest

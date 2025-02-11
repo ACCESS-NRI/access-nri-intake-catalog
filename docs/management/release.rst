@@ -15,6 +15,13 @@ or may not include an update to the ACCESS-NRI catalog files on Gadi.
 
 #. Enter the new version (vX.X.X) as the tag and release title. Add a brief description of the release.
 
+   .. note::
+
+      It is recommended to attempt a beta release before committing to a major code update.
+      In this case, the version number requires an ordinal after the :code:`b`, e.g., :code:`vYYYY-MM-DDb0`. If the
+      ordinal isn't provided, the GitHub PyPI build action will append one, which breaks the linkage
+      between the PyPI and Conda build actions.
+
 #. Click on "Publish release". This should create the release on GitHub and trigger the workflow that builds and uploads 
    the new version to PyPI and conda
 
@@ -35,9 +42,27 @@ Generating a new catalog version
      $ cd bin
      $ qsub -v version=${RELEASE} build_all.sh
 
+   .. note::
+      Running the build script requires access to an up-to-date checkout of the :code:`access-nri-intake-catalog`
+      repository. The default location for this is :code:`/g/data/xp65/admin/access-nri-intake-catalog`. If you do 
+      not have the ability to update this checkout, you may use a local one; however, you will need to update
+      the :code:`CONFIG_DIR` variable in :code:`bin/build_all.sh` to point at your checkout location.
+
    .. note:: 
       If :code:`version` is not provided, the default used is the current date, in the format :code:`vYYYY-MM-DD`. This should 
       be acceptable in most cases.
     
 #. Updating :code:`access_nri_intake_catalog` is no longer necessary - the new catalog will be available immediately as 
    :code:`intake.cat.access_nri`.
+
+
+New release with new catalog
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In the case of a linked release of a new major :code:`access-nri-intake-catalog` and a new catalog 
+build, the recommened process is:
+
+#. Create a beta release of :code:`access-nri-intake-catalog`;
+#. Use the beta release to build a new catalog;
+#. Iterate over the above steps until the desired result is achieved;
+#. Make a definitive code release.

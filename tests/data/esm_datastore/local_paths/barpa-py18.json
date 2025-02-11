@@ -1,0 +1,92 @@
+{
+    "id": "barpa-py18",
+    "title": "barpa-py18",
+    "description": "Datasets on Gadi, both publised and replicated. All file versions present are in the listing\nMaintained By: NCI\nContact: help@nci.org.au",
+    "assets": {
+        "column_name": "path",
+        "format": "netcdf"
+    },
+    "aggregation_control": {
+        "variable_column_name": "variable",
+        "groupby_attrs": [
+            "file_type",
+            "project_id",
+            "MIP_era",
+            "activity_id",
+            "domain_id",
+            "RCM_institution_id",
+            "driving_source_id",
+            "driving_experiment_id",
+            "driving_variant_label",
+            "source_id",
+            "version_realisation",
+            "version",
+            "variable_id",
+            "freq"
+        ],
+        "aggregations": [
+            {
+                "type": "join_existing",
+                "attribute_name": "time_range",
+                "options": {
+                    "dim": "time"
+                }
+            }
+        ]
+    },
+    "esmcat_version": "0.1.0",
+    "catalog_file": "barpa-py18.csv",
+    "attributes": [
+        {
+            "column_name": "file_type"
+        },
+        {
+            "column_name": "project_id"
+        },
+        {
+            "column_name": "MIP_era"
+        },
+        {
+            "column_name": "activity_id"
+        },
+        {
+            "column_name": "domain_id"
+        },
+        {
+            "column_name": "RCM_institution_id"
+        },
+        {
+            "column_name": "driving_source_id"
+        },
+        {
+            "column_name": "driving_experiment_id"
+        },
+        {
+            "column_name": "driving_variant_label"
+        },
+        {
+            "column_name": "source_id"
+        },
+        {
+            "column_name": "version_realisation"
+        },
+        {
+            "column_name": "version"
+        },
+        {
+            "column_name": "variable_id"
+        },
+        {
+            "column_name": "freq"
+        },
+        {
+            "column_name": "start_time"
+        },
+        {
+            "column_name": "end_time"
+        },
+        {
+            "column_name": "time_range"
+        }
+    ]
+}

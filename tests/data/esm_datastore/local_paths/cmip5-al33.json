@@ -1,0 +1,74 @@
+{
+    "id": "cmip5-al33",
+    "title": "cmip5-al33",
+    "description": "Datasets on Gadi, both publised and replicated. All file versions present are in the listing\nMaintained By: NCI\nContact: help@nci.org.au",
+    "assets": {
+        "column_name": "path",
+        "format": "netcdf"
+    },
+    "aggregation_control": {
+        "variable_column_name": "variable",
+        "groupby_attrs": [
+            "file_type",
+            "project",
+            "institute",
+            "model",
+            "experiment",
+            "frequency",
+            "realm",
+            "table",
+            "ensemble",
+            "version",
+            "variable"
+        ],
+        "aggregations": [
+            {
+                "type": "join_existing",
+                "attribute_name": "time_range",
+                "options": {
+                    "dim": "time"
+                }
+            }
+        ]
+    },
+    "esmcat_version": "0.1.0",
+    "catalog_file": "cmip5-al33.csv",
+    "attributes": [
+        {
+            "column_name": "file_type"
+        },
+        {
+            "column_name": "project"
+        },
+        {
+            "column_name": "institute"
+        },
+        {
+            "column_name": "model"
+        },
+        {
+            "column_name": "experiment"
+        },
+        {
+            "column_name": "frequency"
+        },
+        {
+            "column_name": "realm"
+        },
+        {
+            "column_name": "table"
+        },
+        {
+            "column_name": "ensemble"
+        },
+        {
+            "column_name": "version"
+        },
+        {
+            "column_name": "variable"
+        },
+        {
+            "column_name": "time_range"
+        }
+    ]
+}

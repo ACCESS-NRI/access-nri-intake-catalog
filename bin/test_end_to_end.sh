@@ -1,14 +1,15 @@
 #!/bin/bash -l
 
 #PBS -P iq82
-#PBS -l storage=gdata/xp65+gdata/ik11+gdata/cj50+gdata/p73+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10
+#PBS -l storage=gdata/xp65+gdata/ik11+gdata/cj50+gdata/p73+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10+gdata/hq89+gdata/py18+gdata/ig45+gdata/zz63+gdata/rt52
 #PBS -q normal
 #PBS -W block=true
 #PBS -l walltime=00:30:00
-#PBS -l mem=32gb
+#PBS -l mem=64gb
 #PBS -l ncpus=12
 #PBS -l wd
 #PBS -j oe
+#PBS -W umask=0022
 
 ########################################################################################### 
 # Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
@@ -22,6 +23,7 @@
 set -e
 
 module use /g/data/xp65/public/modules
-module load conda/access-med-0.6
+module load conda/analysis3-24.12
+module load openmpi
 
-pytest -s --e2e tests
+pytest -s --e2e /g/data/xp65/admin/access-nri-intake-catalog/tests/e2e
