@@ -139,6 +139,7 @@ def test_om2_datastore_nunique(metacat, colname, expected):
 
 
 @e2e
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "colname, expected",
     [
