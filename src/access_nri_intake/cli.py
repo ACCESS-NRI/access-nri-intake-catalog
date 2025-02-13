@@ -7,6 +7,7 @@ import argparse
 import datetime
 import logging
 import re
+import traceback
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
@@ -75,11 +76,11 @@ def _parse_build_inputs(
                 metadata = load_metadata_yaml(
                     Path(data_base_path) / metadata_yaml, EXP_JSONSCHEMA
                 )
-            except jsonschema.exceptions.ValidationError as e:
+            except jsonschema.exceptions.ValidationError:
                 warnings.warn(
                     f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
                 )
-                warnings.warn(str(e.__traceback__))
+                print(traceback.format_exc())
                 # raise MetadataCheckError(
                 #     f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
                 # )
