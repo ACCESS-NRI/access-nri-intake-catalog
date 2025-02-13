@@ -75,10 +75,15 @@ def _parse_build_inputs(
                 metadata = load_metadata_yaml(
                     Path(data_base_path) / metadata_yaml, EXP_JSONSCHEMA
                 )
-            except jsonschema.exceptions.ValidationError:
-                raise MetadataCheckError(
+            except jsonschema.exceptions.ValidationError as e:
+                warnings.warn(
                     f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
                 )
+                warnings.warn(e.__traceback__)
+                # raise MetadataCheckError(
+                #     f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
+                # )
+                continue  # Skip the experiment w/ bad metadata
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
             source_args["metadata"] = metadata
