@@ -67,7 +67,9 @@ def _parse_build_inputs(
             try:
                 metadata_yaml = kwargs.pop("metadata_yaml")
             except KeyError:
-                raise KeyError(f"Could not find metadata_yaml kawrg for {config_yaml}")
+                raise KeyError(
+                    f"Could not find metadata_yaml kawrg for {config_yaml} - keys are {kwargs}"
+                )
 
             try:
                 metadata = load_metadata_yaml(
