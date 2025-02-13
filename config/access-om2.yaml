@@ -323,19 +323,19 @@ sources:
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_Control
 
-  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp/metadata.yaml
-    path:
-      - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp
-  # Metadata fails validation: yaml.scanner.ScannerError: mapping values are not allowed here in "metadata.yaml", line 25, column 18 - should be fixed
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp/metadata.yaml
+  #   path:
+  #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp
+  # Same UUID as qian_wthmp
 
   - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_ENFull/metadata.yaml
     path:
     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_ENFull
 
-  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp/metadata.yaml
-    path:
-    - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp
-  # Metadata fails validation: yaml.scanner.ScannerError: mapping values are not allowed here in "metadata.yaml", line 24, column 18 - should be fixed
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp/metadata.yaml
+  #   path:
+  #   - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp
+  # Same UUID as qian_wthmp
 
   - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_LNFull/metadata.yaml
     path:
