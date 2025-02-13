@@ -80,7 +80,7 @@ def _parse_build_inputs(
                 warnings.warn(
                     f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
                 )
-                print(traceback.format_exc())
+                warnings.warn(traceback.format_exc())
                 # raise MetadataCheckError(
                 #     f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
                 # )
