@@ -80,7 +80,6 @@ def _parse_build_inputs(
                 warnings.warn(
                     rf"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details:n\{traceback.format_exc()}"
                 )
-                warnings.warn(traceback.format_exc())
                 continue  # Skip the experiment w/ bad metadata
 
             source_args["name"] = metadata["name"]
