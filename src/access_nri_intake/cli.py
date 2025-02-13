@@ -69,7 +69,7 @@ def _parse_build_inputs(
                 metadata_yaml = kwargs.pop("metadata_yaml")
             except KeyError:
                 raise KeyError(
-                    f"Could not find metadata_yaml kawrg for {config_yaml} - keys are {kwargs}"
+                    f"Could not find metadata_yaml kwarg for {config_yaml} - keys are {kwargs}"
                 )
 
             try:
@@ -78,13 +78,10 @@ def _parse_build_inputs(
                 )
             except jsonschema.exceptions.ValidationError:
                 warnings.warn(
-                    f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
+                    rf"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details:n\{traceback.format_exc()}"
                 )
-                warnings.warn(traceback.format_exc())
-                # raise MetadataCheckError(
-                #     f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
-                # )
                 continue  # Skip the experiment w/ bad metadata
+
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
             source_args["metadata"] = metadata
@@ -427,7 +424,7 @@ def build(argv: Sequence[str] | None = None):
         version = f"v{version}"
     if not re.match(CATALOG_NAME_FORMAT, version):
         raise ValueError(
-            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD."
+            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD, minimum v2000-01-01."
         )
 
     # Create the build directories
