@@ -319,34 +319,34 @@ sources:
 # Added for issue #184
 # Commented out sources have issues to be solved (check comments)
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_Control/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_Control/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_Control
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp
   # Metadata fails validation: yaml.scanner.ScannerError: mapping values are not allowed here in "metadata.yaml", line 25, column 18 - should be fixed
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_ENFull/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_ENFull/metadata.yaml
     path:
     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_ENFull
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp/metadata.yaml
     path:
     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp
   # Metadata fails validation: yaml.scanner.ScannerError: mapping values are not allowed here in "metadata.yaml", line 24, column 18 - should be fixed
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_LNFull/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_LNFull/metadata.yaml
     path:
     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_LNFull
 
-  # - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245
   #   path:
   #   - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245
   # Metadata does not exist
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_0203_from9091/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_0203_from9091/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_0203_from9091
   # Metadata fails validation: 
@@ -358,12 +358,12 @@ sources:
 # On instance['schema_version']:
 #     None
 
-  # - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245_mw
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245_mw
   #   path: 
   #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245_mw
   # Metadata does not exist
  
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_1011_from9091/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_1011_from9091/metadata.yaml
     path: 
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_1011_from9091
   # Metadata fails validation
@@ -375,41 +375,41 @@ sources:
 # On instance['schema_version']:
 #     None
 
-  # - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp585
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp585
   #   path:
   #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp585
   # Metadata does not exist
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9192_from9091/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9192_from9091/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9192_from9091
   # Metadata fails validation (schema version issue) - should be fixed
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_down2/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_down2/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_down2
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9899_from9091/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9899_from9091/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9899_from9091
   # Metadata fails validation (schema issue) - should be fixed
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_up1/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_up1/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_up1
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_down10/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_down10/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_down10
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10_meridional/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10_meridional/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10_meridional
 
-  - metadata: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10_zonal/metadata.yaml
+  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10_zonal/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_easterlies_up10_zonal
