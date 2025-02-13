@@ -360,9 +360,9 @@ sources:
   #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245_mw
   # Metadata does not exist
  
-  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_1011_from9091/metadata.yaml
-    path: 
-      - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_1011_from9091
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_1011_from9091/metadata.yaml
+  #   path: 
+  #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_1011_from9091
   # Metadata fails validation
   # 01 | experiment_uuid : None is not of type 'string'
   # 02 | realm : None is not of type 'array'
