@@ -63,7 +63,12 @@ def _parse_build_inputs(
             source_args["path"] = [
                 str(Path(data_base_path) / _) for _ in kwargs.pop("path")
             ]
-            metadata_yaml = kwargs.pop("metadata_yaml")
+
+            try:
+                metadata_yaml = kwargs.pop("metadata_yaml")
+            except KeyError:
+                raise KeyError(f"Could not find metadata_yaml kawrg for {config_yaml}")
+
             try:
                 metadata = load_metadata_yaml(
                     Path(data_base_path) / metadata_yaml, EXP_JSONSCHEMA
