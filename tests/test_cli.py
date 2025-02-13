@@ -224,7 +224,37 @@ def test_build_bad_metadata(test_data, tmp_path):
     data_base_path = str(test_data)
     build_base_path = str(tmp_path)
 
-    with pytest.raises(MetadataCheckError):
+    with pytest.warns(UserWarning):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+                "--no_update",
+            ]
+        )
+
+
+def test_build_bad_metadata_no_metadata_yaml_value(test_data, tmp_path):
+    """
+    Test if bad metadata is detected
+    """
+
+    configs = [
+        str(test_data / "config/access-om2-bad-labels.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    with pytest.raises(KeyError, match="Could not find metadata_yaml kwarg"):
         build(
             [
                 *configs,
