@@ -7,6 +7,7 @@ import argparse
 import datetime
 import logging
 import re
+import traceback
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
@@ -63,15 +64,25 @@ def _parse_build_inputs(
             source_args["path"] = [
                 str(Path(data_base_path) / _) for _ in kwargs.pop("path")
             ]
-            metadata_yaml = kwargs.pop("metadata_yaml")
+
+            try:
+                metadata_yaml = kwargs.pop("metadata_yaml")
+            except KeyError:
+                raise KeyError(
+                    f"Could not find metadata_yaml kawrg for {config_yaml} - keys are {kwargs}"
+                )
+
             try:
                 metadata = load_metadata_yaml(
                     Path(data_base_path) / metadata_yaml, EXP_JSONSCHEMA
                 )
             except jsonschema.exceptions.ValidationError:
-                raise MetadataCheckError(
+                warnings.warn(
                     f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
                 )
+                warnings.warn(traceback.format_exc())
+                continue  # Skip the experiment w/ bad metadata
+
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
             source_args["metadata"] = metadata

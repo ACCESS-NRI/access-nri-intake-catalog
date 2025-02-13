@@ -224,7 +224,7 @@ def test_build_bad_metadata(test_data, tmp_path):
     data_base_path = str(test_data)
     build_base_path = str(tmp_path)
 
-    with pytest.raises(MetadataCheckError):
+    with pytest.warns(UserWarning):
         build(
             [
                 *configs,
