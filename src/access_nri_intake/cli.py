@@ -414,7 +414,7 @@ def build(argv: Sequence[str] | None = None):
         version = f"v{version}"
     if not re.match(CATALOG_NAME_FORMAT, version):
         raise ValueError(
-            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD."
+            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD, minimum v2000-01-01."
         )
 
     # Create the build directories
