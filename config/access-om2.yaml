@@ -326,7 +326,7 @@ sources:
   # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp/metadata.yaml
   #   path:
   #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp
-  # Same UUID as qian_wthmp
+  # Same UUID as /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp/metadata.yaml
 
   - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_ENFull/metadata.yaml
     path:
@@ -335,7 +335,7 @@ sources:
   # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp/metadata.yaml
   #   path:
   #   - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthp
-  # Same UUID as qian_wthmp
+  # Same UUID as /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_qian_wthmp/metadata.yaml
 
   - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_ryf_LNFull/metadata.yaml
     path:
@@ -346,17 +346,14 @@ sources:
   #   - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245
   # Metadata does not exist
 
-  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_0203_from9091/metadata.yaml
-    path:
-      - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_0203_from9091
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_0203_from9091/metadata.yaml
+  #   path:
+  #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_0203_from9091
   # Metadata fails validation: 
-#   jsonschema.exceptions.ValidationError: '1-0-2' was expected
-
-# Failed validating 'const' in schema['properties']['schema_version']:
-#     {'const': '1-0-2', 'description': 'The version of the schema (string)'}
-
-# On instance['schema_version']:
-#     None
+  # 01 | experiment_uuid : None is not of type 'string'
+  # 02 | realm : None is not of type 'array'
+  # 03 | frequency : 'monthly' is not of type 'array'
+  # 04 | (missing) : 'long_description' is a required property
 
   # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp245_mw
   #   path: 
@@ -367,32 +364,37 @@ sources:
     path: 
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_1011_from9091
   # Metadata fails validation
-#   jsonschema.exceptions.ValidationError: '1-0-2' was expected
-
-# Failed validating 'const' in schema['properties']['schema_version']:
-#     {'const': '1-0-2', 'description': 'The version of the schema (string)'}
-
-# On instance['schema_version']:
-#     None
+  # 01 | experiment_uuid : None is not of type 'string'
+  # 02 | realm : None is not of type 'array'
+  # 03 | frequency : 'monthly' is not of type 'array'
+  # 04 | (missing) : 'long_description' is a required property
 
   # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp585
   #   path:
   #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_ssp585
   # Metadata does not exist
 
-  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9192_from9091/metadata.yaml
-    path:
-      - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9192_from9091
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9192_from9091/metadata.yaml
+  #   path:
+  #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9192_from9091
   # Metadata fails validation (schema version issue) - should be fixed
+  # 01 | experiment_uuid : None is not of type 'string'
+  # 02 | realm : None is not of type 'array'
+  # 03 | frequency : 'monthly' is not of type 'array'
+  # 04 | (missing) : 'long_description' is a required property
 
   - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_down2/metadata.yaml
     path:
       - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_down2
 
-  - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9899_from9091/metadata.yaml
-    path:
-      - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9899_from9091
+  # - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9899_from9091/metadata.yaml
+  #   path:
+  #     - /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55_SAMextr_9899_from9091
   # Metadata fails validation (schema issue) - should be fixed
+  # 01 | experiment_uuid : None is not of type 'string'
+  # 02 | realm : None is not of type 'array'
+  # 03 | frequency : 'monthly' is not of type 'array'
+  # 04 | (missing) : 'long_description' is a required property
 
   - metadata_yaml: /g/data/cj50/access-om2/raw-output/access-om2-01/01deg_jra55v13_ryf9091_weddell_up1/metadata.yaml
     path:

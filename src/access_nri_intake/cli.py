@@ -78,7 +78,7 @@ def _parse_build_inputs(
                 )
             except jsonschema.exceptions.ValidationError:
                 warnings.warn(
-                    rf"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details:n\{traceback.format_exc()}"
+                    rf"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details: {traceback.format_exc()}"
                 )
                 continue  # Skip the experiment w/ bad metadata
 
