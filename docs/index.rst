@@ -18,43 +18,26 @@ This documentation aims to support a broad range of users, from people just want
 to developers wanting to help improve the tools that support it. Please click on the panel below that 
 best describes you:
 
-.. panels::
-    :card: + intro-card text-center
-    :column: col-lg-4 col-md-4 col-sm-4 col-xs-12 p-2
+.. grid:: 1 1 3 3
 
-    ---
-    :header: bg-info
-
-    **I'm a catalog user**
-    ^^^^^^^^^^^^^^^^^^^^^^
-
-    .. link-button:: usage
-            :type: ref
-            :text: I want to use the ACCESS-NRI Intake catalog to find and load some data.
-            :classes: btn-block stretched-link
+    .. grid-item-card:: **I'm a catalog user**
+        :link: usage
+        :link-type: ref
+        
+        I want to use the ACCESS-NRI Intake catalog to find and load some data.
 
 
-    ---
-    :header: bg-info
+    .. grid-item-card:: **I'm a catalog contributor**
+        :link: datastore_create
+        :link-type: ref
+        
+        I want to catalog my own data to make it easy to find and load.
 
-    **I'm a catalog contributor**
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    .. grid-item-card:: **I'm a catalog developer**
+        :link: management
+        :link-type: ref
 
-    .. link-button:: datastore_create
-            :type: ref
-            :text: I want to catalog my own data to make it easy to find and load.
-            :classes: btn-block stretched-link
-
-    ---
-    :header: bg-info
-
-    **I'm a catalog developer**
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    
-    .. link-button:: management
-            :type: ref
-            :text: I want to help develop the tools that ACCESS-NRI use to manage the Intake catalog.
-            :classes: btn-block stretched-link
+        I want to help develop the tools that ACCESS-NRI use to manage the Intake catalog.
 
 .. note::
    The ACCESS-NRI Intake catalog, and the tools that support it, are still a work in progress. We 
