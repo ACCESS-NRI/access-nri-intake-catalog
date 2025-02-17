@@ -86,7 +86,7 @@ to know more about a particular product. The contents of the :code:`metadata.yam
 is called to ensure that all required metadata is available prior to building the catalog. The 
 :code:`metadata.yaml` file should include the following:
 
-.. include:: ../../metadata.yaml
+.. include:: metadata.yaml
    :literal:
 
 Ideally this file will live in the base output directory of your model run so that it's easy for others to 
