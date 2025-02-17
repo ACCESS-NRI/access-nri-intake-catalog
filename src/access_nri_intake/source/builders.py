@@ -497,7 +497,12 @@ class Mom6Builder(BaseBuilder):
     ]
     TIME_PARSER = GfdlTimeParser
 
-    def __init__(self, path):
+    def __init__(
+        self,
+        path,
+        include_patterns: list[str] | None = None,
+        exclude_patterns: list[str] | None = None,
+    ):
         """
         Initialise a Mom6Builder
 
@@ -510,7 +515,8 @@ class Mom6Builder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=1,
-            exclude_patterns=[
+            exclude_patterns=exclude_patterns
+            or [
                 "*restart*",
                 "*MOM_IC.nc",
                 "*sea_ice_geometry.nc",
@@ -518,7 +524,7 @@ class Mom6Builder(BaseBuilder):
                 "*ocean.stats.nc",
                 "*Vertical_coordinate.nc",
             ],
-            include_patterns=["*.nc"],
+            include_patterns=include_patterns or ["*.nc"],
             data_format="netcdf",
             groupby_attrs=["file_id", "frequency"],
             aggregations=[
