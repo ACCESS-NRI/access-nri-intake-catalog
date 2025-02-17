@@ -23,7 +23,7 @@
 set -e
 
 module use /g/data/xp65/public/modules
-module load conda/analysis3-25.02 # THIS NEEDS TO BE UPDATED TO THE LATEST VERSION2
+module load conda/analysis3-25.02 # THIS NEEDS TO BE UPDATED TO THE LATEST VERSION
 module load openmpi
 
 pytest -s --e2e /g/data/xp65/admin/access-nri-intake-catalog/tests/e2e
