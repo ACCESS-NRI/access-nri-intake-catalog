@@ -28,6 +28,7 @@ requirements:
     - jsonschema
     - pooch
     - xarray
+    - yamanifest
 
 about:
   home: https://github.com/ACCESS-NRI/access-nri-intake-catalog
