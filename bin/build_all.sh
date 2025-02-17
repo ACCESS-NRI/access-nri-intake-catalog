@@ -26,7 +26,7 @@ if [ ! $# -eq 0 ]; then
 fi
 
 module use /g/data/xp65/public/modules
-module load conda/analysis3-24.12
+module load conda/analysis3-25.02 # THIS NEEDS TO BE UPDATED TO THE LATEST VERSION
 module load openmpi
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog

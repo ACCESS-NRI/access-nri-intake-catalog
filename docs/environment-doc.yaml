@@ -17,7 +17,7 @@ dependencies:
     - sphinx-autoapi
     - sphinx-book-theme
     - sphinx-copybutton
-    - sphinx-panels
+    - sphinx-design
     - sphinxcontrib-napoleon
     - myst-nb
     - yamanifest

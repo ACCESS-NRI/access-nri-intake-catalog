@@ -7,6 +7,7 @@ import argparse
 import datetime
 import logging
 import re
+import traceback
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
@@ -63,15 +64,24 @@ def _parse_build_inputs(
             source_args["path"] = [
                 str(Path(data_base_path) / _) for _ in kwargs.pop("path")
             ]
-            metadata_yaml = kwargs.pop("metadata_yaml")
+
+            try:
+                metadata_yaml = kwargs.pop("metadata_yaml")
+            except KeyError:
+                raise KeyError(
+                    f"Could not find metadata_yaml kwarg for {config_yaml} - keys are {kwargs}"
+                )
+
             try:
                 metadata = load_metadata_yaml(
                     Path(data_base_path) / metadata_yaml, EXP_JSONSCHEMA
                 )
             except jsonschema.exceptions.ValidationError:
-                raise MetadataCheckError(
-                    f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
+                warnings.warn(
+                    rf"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details: {traceback.format_exc()}"
                 )
+                continue  # Skip the experiment w/ bad metadata
+
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
             source_args["metadata"] = metadata
@@ -414,7 +424,7 @@ def build(argv: Sequence[str] | None = None):
         version = f"v{version}"
     if not re.match(CATALOG_NAME_FORMAT, version):
         raise ValueError(
-            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD."
+            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD, minimum v2000-01-01."
         )
 
     # Create the build directories
