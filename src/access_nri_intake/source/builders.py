@@ -549,7 +549,7 @@ class Mom6Builder(BaseBuilder):
 
             if "ocean" in ncinfo_dict["filename"]:
                 realm = "ocean"
-            elif "ice" in ncinfo_dict["filename"]:
+            elif "ice" in ncinfo_dict["filename"] or "roms" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
