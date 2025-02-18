@@ -120,15 +120,19 @@ def test_check_build_args(args, raises):
         "2024-01-01",
     ],
 )
-def test_build(version, test_data, tmpdir):
+@pytest.mark.parametrize(
+    "input_list",
+    [
+        ["config/access-om2.yaml", "config/cmip5.yaml"],
+        ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
+    ],
+)
+def test_build(version, input_list, test_data, tmpdir):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     build_base_path = str(tmpdir)
 
-    configs = [
-        str(test_data / fname)
-        for fname in ["config/access-om2.yaml", "config/cmip5.yaml"]
-    ]
+    configs = [str(test_data / fname) for fname in input_list]
 
     build(
         [
