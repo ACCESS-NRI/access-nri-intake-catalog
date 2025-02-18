@@ -270,6 +270,9 @@ def find_experiment_files(
     Find all the relevant files in the experiment directory and return them as a set, using
     the builder.get_assets() method.
 
+    This additionally will check for invalid assets in the experiment dierctory
+    and remove those.
+
     Parameters
     ----------
     builder : Builder
@@ -289,8 +292,12 @@ def find_experiment_files(
     print(f"{f_info}Parsing experiment dir...{f_reset}")
 
     builder_instance: Builder = builder(path=str(experiment_dir), **builder_kwargs)
+    builder_instance.build()
 
-    return {Path(file).resolve() for file in builder_instance.get_assets().assets}
+    assets = {Path(file).resolve() for file in builder_instance.assets}
+    invalid_assets = {Path(file).resolve() for file in builder_instance.invalid_assets}
+
+    return assets - invalid_assets
 
 
 def parse_kwargs(kwargs: str) -> dict:
