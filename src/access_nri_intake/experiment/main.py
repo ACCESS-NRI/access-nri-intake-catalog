@@ -8,9 +8,9 @@ from intake_esm import esm_datastore
 from ..source.builders import Builder
 from .colours import f_info, f_path, f_reset, f_success, f_suggestion, f_warn
 from .utils import (
+    AmbiguousDataStoreError,
     DatastoreInfo,
     DataStoreWarning,
-    MultipleDataStoreError,
     find_experiment_files,
     hash_catalog,
     verify_ds_current,
@@ -85,7 +85,7 @@ def use_datastore(
 
     formatted_catdir_name = catalog_dir_fmap.get(str(catalog_dir), str(catalog_dir))
 
-    ds_info = find_esm_datastore(catalog_dir)
+    ds_info = find_esm_datastore(catalog_dir, datastore_name)
 
     if ds_info.valid:  # Nothing is obviously wrong with the datastore
         print(
@@ -159,7 +159,7 @@ def use_datastore(
     return None
 
 
-def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
+def find_esm_datastore(experiment_dir: Path, datastore_name: str) -> DatastoreInfo:
     """
     Try to find an ESM datastore in the experiment directory. If not, return a dummy
     DatastoreInfo object.
@@ -174,6 +174,8 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
     ----------
     experiment_dir : Path
         The directory containing the experiment.
+    datastore_name : str
+        The name of the datastore to be found.
 
     Returns
     -------
@@ -192,20 +194,22 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
     matched_pairs: list[tuple[Path, Path]] = []
     for json_file in json_files:
         for csv_file in csv_files:
+            json_stem = json_file.stem
+            csv_stem = csv_file.name.replace(
+                "".join([suffix for suffix in csv_file.suffixes]), ""
+            )
             if (
-                json_file.stem
-                == csv_file.name.replace(
-                    "".join([suffix for suffix in csv_file.suffixes]), ""
-                )  # This gnarly statement removes the whole suffix to compare stems
-                and json_file.parent == csv_file.parent
-            ):
+                (json_stem == csv_stem)
+                and (json_stem == datastore_name)
+                and (json_file.parent == csv_file.parent)
+            ):  # We only want to match the datastore we're looking for
                 matched_pairs.append((json_file, csv_file))
 
     if len(matched_pairs) == 0:
         return DatastoreInfo("", "", False, "")
     elif len(matched_pairs) > 1:
-        raise MultipleDataStoreError(
-            f"Multiple datastores found in {experiment_dir}. Please remove duplicates."
+        raise AmbiguousDataStoreError(
+            f"Multiple ambiguous datastores found in {experiment_dir}. Please remove duplicates."
         )
 
     return DatastoreInfo(*matched_pairs[0])

@@ -23,7 +23,7 @@ class DataStoreError(RuntimeError):
     pass
 
 
-class MultipleDataStoreError(DataStoreError):
+class AmbiguousDataStoreError(DataStoreError):
     pass
 
 
