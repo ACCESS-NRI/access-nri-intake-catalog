@@ -121,13 +121,19 @@ def test_check_build_args(args, raises):
     ],
 )
 @pytest.mark.parametrize(
-    "input_list",
+    "input_list, expected_size",
     [
-        ["config/access-om2.yaml", "config/cmip5.yaml"],
-        ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
+        (
+            ["config/access-om2.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 12, "cmip5_al33": 5},
+        ),
+        (
+            ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 6, "cmip5_al33": 5},
+        ),
     ],
 )
-def test_build(version, input_list, test_data, tmpdir):
+def test_build(version, input_list, expected_size, test_data, tmpdir):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     build_base_path = str(tmpdir)
@@ -160,6 +166,10 @@ def test_build(version, input_list, test_data, tmpdir):
     build_path = Path(build_base_path) / version / "cat.csv"
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
+
+    # Check that the individual experiment sizes are as expected
+    for exp, size in expected_size.items():
+        assert len(cat[exp].df) == size, f"Catalog size mismatch for {exp}"
 
     # Check that the metacatalog is correct
     metacat = Path(build_base_path) / "catalog.yaml"
