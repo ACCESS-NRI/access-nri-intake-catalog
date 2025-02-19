@@ -1,0 +1,14 @@
+builder: AccessOm2Builder
+
+translator: DefaultTranslator
+
+sources:
+
+  - path:
+      - access-om2
+    metadata_yaml: access-om2/metadata.yaml
+    include_patterns:
+      - "*ocean*"
+    exclude_patterns:
+      - "*scalar*"
+      - "*grid*"
