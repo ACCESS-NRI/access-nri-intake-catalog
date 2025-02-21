@@ -666,7 +666,9 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     builder = args.builder
     experiment_dir = Path(args.expt_dir)
     catalog_dir = Path(args.cat_dir) if args.cat_dir else experiment_dir
-    builder_kwargs = args.builder_kwargs or {}
+    builder_kwargs = (
+        {k: v for k, v in args.builder_kwargs} if args.builder_kwargs else {}
+    )
     datastore_name = args.datastore_name
     description = args.description
 

@@ -496,11 +496,13 @@ def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
     with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
-        min_vers if min_vers is not None else VERSION
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == (min_vers if min_vers is not None else VERSION)
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
-        max_vers if max_vers is not None else VERSION
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == (max_vers if max_vers is not None else VERSION)
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     # Default should always be the newly-built version
     assert (
@@ -558,11 +560,13 @@ def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp
     with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
-        min_vers if min_vers is not None else VERSION
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == (min_vers if min_vers is not None else VERSION)
     ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
-    assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
-        max_vers if max_vers is not None else VERSION
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == (max_vers if max_vers is not None else VERSION)
     ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
     # Default should always be the newly-built version
     assert (
@@ -1245,6 +1249,42 @@ def test_use_esm_datastore_nonexistent_dirs(expt_dir, cat_dir):
                 "datastore_name": "experiment_datastore",
                 "description": "meaningless_description",
                 "open_ds": False,
+            },
+        ),
+        (
+            [
+                "--builder",
+                "AccessCm2Builder",
+                "--builder-kwargs",
+                "ensemble=True",
+            ],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessCm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {"ensemble": True},
+                "datastore_name": "experiment_datastore",
+                "description": None,
+                "open_ds": False,
+            },
+        ),
+        (
+            [
+                "--builder",
+                "AccessCm2Builder",
+            ],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessCm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "datastore_name": "experiment_datastore",
+                "description": None,
+                "open_ds": False,
+                "builder_kwargs": {},
             },
         ),
     ],
