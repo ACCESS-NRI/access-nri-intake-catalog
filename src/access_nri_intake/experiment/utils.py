@@ -293,7 +293,7 @@ def find_experiment_files(
     return {Path(file).resolve() for file in builder_instance.get_assets().assets}
 
 
-def parse_kwarg(kwargs: str) -> tuple[str, Any]:
+def parse_kwarg(kwarg: str) -> tuple[str, Any]:
     """
     Builder kwargs can be passed as `--builder-kwargs arg1=val1 arg2=val2` etc.
     The argparse.parse_args() function will return these as a list of strings -
@@ -304,15 +304,14 @@ def parse_kwarg(kwargs: str) -> tuple[str, Any]:
     The builders we use only take either a path, list of paths, or an `ensemble`
     kwarg. Ensemble is a boolean.
     """
-    for item in kwargs.split():
-        kw, arg = item.split("=")
-        if kw == "ensemble":
-            try:
-                arg = ast.literal_eval(arg.capitalize())
-                if not isinstance(arg, bool):
-                    raise ValueError
-            except (ValueError, SyntaxError):
-                raise TypeError(f"Ensemble kwarg must be a boolean, not {arg}.")
+    kw, arg = kwarg.split("=")
+    if kw == "ensemble":
+        try:
+            arg = ast.literal_eval(arg.capitalize())
+            if not isinstance(arg, bool):
+                raise ValueError
+        except (ValueError, SyntaxError):
+            raise TypeError(f"Ensemble kwarg must be a boolean, not {arg}.")
 
     # Do we use some sort of pattern matching in here to allow for passing through
     # other kwargs to the builder? This will have changed with #346
