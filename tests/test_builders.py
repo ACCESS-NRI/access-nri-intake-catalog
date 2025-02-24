@@ -2486,3 +2486,60 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
     xr_ds = xr_ds[expected.variable]
 
     xr.testing.assert_equal(ie_ds, xr_ds)
+
+
+@pytest.mark.parametrize(
+    "builder,default_include,default_exclude",
+    [
+        (builders.BaseBuilder, [], []),
+        (builders.AccessOm2Builder, ["*.nc"], ["*restart*", "*o2i.nc"]),
+        (
+            builders.AccessOm3Builder,
+            ["*.nc"],
+            [
+                "*restart*",
+                "*MOM_IC.nc",
+                "*ocean_geometry.nc",
+                "*ocean.stats.nc",
+                "*Vertical_coordinate.nc",
+            ],
+        ),
+        (
+            builders.Mom6Builder,
+            ["*.nc"],
+            [
+                "*restart*",
+                "*MOM_IC.nc",
+                "*sea_ice_geometry.nc",
+                "*ocean_geometry.nc",
+                "*ocean.stats.nc",
+                "*Vertical_coordinate.nc",
+            ],
+        ),
+        (builders.AccessEsm15Builder, ["*.nc*"], ["*restart*"]),
+        (builders.AccessCm2Builder, ["*.nc*"], ["*restart*"]),
+    ],
+)
+@pytest.mark.parametrize("include_patts", [None, ["include", "patterns"]])
+@pytest.mark.parametrize("exclude_patts", [None, ["exclude", "patterns"]])
+def test_builder_include_exclude_patterns(
+    builder, default_include, default_exclude, include_patts, exclude_patts, tmpdir
+):
+    if builder == builders.AccessEsm15Builder or builder == builders.AccessCm2Builder:
+        additional = [
+            False,
+        ]
+    else:
+        additional = []
+    bld = builder(
+        str(tmpdir),
+        *additional,
+        include_patterns=include_patts,
+        exclude_patterns=exclude_patts,
+    )  # ensemble needed for ESM builder
+    assert bld.include_patterns == (
+        include_patts if include_patts is not None else default_include
+    )
+    assert bld.exclude_patterns == (
+        exclude_patts if exclude_patts is not None else default_exclude
+    )
