@@ -76,7 +76,10 @@ def use_datastore(
     catalog_dir = catalog_dir or experiment_dir
     builder_kwargs = builder_kwargs or {}
 
-    catalog_dir, experiment_dir = Path(catalog_dir), Path(experiment_dir)
+    catalog_dir, experiment_dir = (
+        Path(catalog_dir).expanduser(),
+        Path(experiment_dir).expanduser(),
+    )
 
     catalog_dir_fmap = {
         ".": "current directory",
