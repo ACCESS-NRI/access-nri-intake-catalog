@@ -18,7 +18,7 @@ from access_nri_intake.experiment.utils import (
     DataStoreWarning,
     MultipleDataStoreError,
     hash_catalog,
-    parse_kwargs,
+    parse_kwarg,
     validate_args,
     verify_ds_current,
 )
@@ -472,7 +472,7 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
 )
 def test_parse_kwargs(kwargs, fails, expected):
     if not fails:
-        assert parse_kwargs(kwargs) == expected
+        assert parse_kwarg(kwargs) == expected
     else:
         with pytest.raises(TypeError):
-            parse_kwargs(kwargs)
+            parse_kwarg(kwargs)

@@ -293,11 +293,13 @@ def find_experiment_files(
     return {Path(file).resolve() for file in builder_instance.get_assets().assets}
 
 
-def parse_kwargs(kwargs: str) -> tuple[str, Any]:
+def parse_kwarg(kwargs: str) -> tuple[str, Any]:
     """
     Builder kwargs can be passed as `--builder-kwargs arg1=val1 arg2=val2` etc.
-    This function parses them into a tuple, which is later converted to a dictionary.
-    It will require some additional type coercion to pass on non string kwargs.
+    The argparse.parse_args() function will return these as a list of strings -
+    eg ['arg1=val1', 'arg2=val2'].  This function parses one of these strings into
+    a tuple, which is later converted to a dictionary.  It will require some
+    additional type coercion to pass on non string kwargs.
 
     The builders we use only take either a path, list of paths, or an `ensemble`
     kwarg. Ensemble is a boolean.
