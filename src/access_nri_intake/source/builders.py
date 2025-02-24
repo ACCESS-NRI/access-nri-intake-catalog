@@ -485,7 +485,6 @@ class AccessOm3Builder(BaseBuilder):
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 
-# FIXME refactor to be called Mom6Builder (TBC)
 class Mom6Builder(BaseBuilder):
     """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
 
@@ -641,5 +640,6 @@ class AccessCm2Builder(AccessEsm15Builder):
     PATTERNS = [
         rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
         rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
+        rf"^ocean_scalar-ym.*({PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ocean
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
     ]
