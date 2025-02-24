@@ -441,17 +441,17 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
         (
             "ensemble=True",
             False,
-            {"ensemble": True},
+            ("ensemble", True),
         ),
         (
             "ensemble=False",
             False,
-            {"ensemble": False},
+            ("ensemble", False),
         ),
         (
             "ensemble=false",
             False,
-            {"ensemble": False},
+            ("ensemble", False),
         ),
         (
             "ensemble=nonsense",
@@ -466,7 +466,7 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
         (
             "esnmebel=True",
             False,
-            {},
+            ("esnmebel", "True"),
         ),
     ],
 )

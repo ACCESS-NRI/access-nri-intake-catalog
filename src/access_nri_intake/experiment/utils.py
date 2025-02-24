@@ -312,6 +312,9 @@ def parse_kwargs(kwargs: str) -> tuple[str, Any]:
             except (ValueError, SyntaxError):
                 raise TypeError(f"Ensemble kwarg must be a boolean, not {arg}.")
 
+    # Do we use some sort of pattern matching in here to allow for passing through
+    # other kwargs to the builder? This will have changed with #346
+
     return kw, arg
 
 
