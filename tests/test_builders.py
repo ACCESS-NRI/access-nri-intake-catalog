@@ -757,6 +757,15 @@ def test_builder_columns_with_iterables(test_data):
                 (1, "day"),
             ),
         ),
+        (
+            builders.AccessCm2Builder,
+            "cz861a.pm0001feb",
+            (
+                "cz861a_pmXXXX_XX",
+                "0001_02",
+                (1, "mon"),
+            ),
+        ),
     ],
 )
 def test_parse_filename(builder, filename, expected):
