@@ -17,6 +17,7 @@ from .utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
+    ROMSTimeParser,
     _NCFileInfo,
     _VarInfo,
 )
@@ -655,6 +656,7 @@ class ROMSBuilder(BaseBuilder):
     PATTERNS = [
         rf"^roms_his_({PATTERNS_HELPERS['counter']}).*?$",
     ]
+    TIME_PARSER = ROMSTimeParser
 
     def __init__(self, path, **kwargs):
         """

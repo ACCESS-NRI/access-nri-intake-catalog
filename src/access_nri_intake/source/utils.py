@@ -97,6 +97,8 @@ class GenericTimeParser:
     Generic time parser
     """
 
+    TIMEINFO_TIME_FORMAT = "%Y-%m-%d, %H:%M:%S"
+
     def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
         """
         Parameters
@@ -201,7 +203,6 @@ class GenericTimeParser:
         def _todate(t):
             return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
 
-        time_format = "%Y-%m-%d, %H:%M:%S"
         ts = None
         te = None
         frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
@@ -263,12 +264,12 @@ class GenericTimeParser:
         if ts is None:
             start_date = "none"
         else:
-            start_date = ts.strftime(time_format)
+            start_date = ts.strftime(self.TIMEINFO_TIME_FORMAT)
 
         if te is None:
             end_date = "none"
         else:
-            end_date = te.strftime(time_format)
+            end_date = te.strftime(self.TIMEINFO_TIME_FORMAT)
 
         if frequency[0]:
             frequency = f"{str(frequency[0])}{frequency[1]}"
@@ -286,6 +287,9 @@ class AccessTimeParser(GenericTimeParser):
 
 
 class GfdlTimeParser(GenericTimeParser):
+
+    TIMEINFO_TIME_FORMAT = "%Y-%m-%d, %H:%M:%S"
+
     def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
         self.ds = ds
         self.filename_frequency = filename_frequency
@@ -328,7 +332,6 @@ class GfdlTimeParser(GenericTimeParser):
         def _todate(t):
             return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
 
-        time_format = "%Y-%m-%d, %H:%M:%S"
         ts = None
         te = None
         frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
@@ -380,12 +383,12 @@ class GfdlTimeParser(GenericTimeParser):
         if ts is None:
             start_date = "none"
         else:
-            start_date = ts.strftime(time_format)
+            start_date = ts.strftime(self.TIMEINFO_TIME_FORMAT)
 
         if te is None:
             end_date = "none"
         else:
-            end_date = te.strftime(time_format)
+            end_date = te.strftime(self.TIMEINFO_TIME_FORMAT)
 
         if frequency[0]:
             frequency = f"{str(frequency[0])}{frequency[1]}"
@@ -396,3 +399,8 @@ class GfdlTimeParser(GenericTimeParser):
 
     def __call__(self) -> tuple[str, str, str]:
         return self._get_timeinfo()
+
+
+class ROMSTimeParser(GenericTimeParser):
+
+    TIMEINFO_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
