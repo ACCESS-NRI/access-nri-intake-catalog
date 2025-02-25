@@ -690,7 +690,7 @@ class ROMSBuilder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
-            realm = ["seaIce", "ocean"]
+            realm = "seaIce"
 
             nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
