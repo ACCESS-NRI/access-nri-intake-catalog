@@ -108,23 +108,24 @@ def test_DatastoreInfo_bool(test_data, args, expected):
 
 
 @pytest.mark.parametrize(
-    "subdir, expected",
+    "subdir, datastore_name ,expected",
     [
-        ("single_match", True),
-        ("multi_matches", "err"),
-        ("no_matches", False),
-        ("multi_json_single_csv", True),
+        ("single_match", "ds", True),
+        ("single_match", "wrong_name", False),
+        ("multi_matches", "ds", "err"),
+        ("no_matches", "ds", False),
+        ("multi_json_single_csv", "experiment_datastore", True),
     ],
 )
-def test_find_esm_datastore(test_data, subdir, expected):
+def test_find_esm_datastore(test_data, subdir, datastore_name, expected):
     dir = test_data / "experiment_dirs" / subdir
 
     if expected != "err":
-        ds = find_esm_datastore(dir)
+        ds = find_esm_datastore(dir, datastore_name)
         assert bool(ds) == expected
     else:
         with pytest.raises(MultipleDataStoreError):
-            find_esm_datastore(dir)
+            find_esm_datastore(dir, datastore_name)
 
 
 @pytest.mark.parametrize(

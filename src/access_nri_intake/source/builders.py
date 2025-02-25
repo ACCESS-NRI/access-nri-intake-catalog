@@ -640,6 +640,51 @@ class AccessCm2Builder(AccessEsm15Builder):
     PATTERNS = [
         rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
         rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
-        rf"^ocean_scalar-ym.*({PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ocean
+        rf"^ocean-ym.*({PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ocean
+        rf"^ocean_month-ym.*({PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ocean
+        rf"^ocean_scalar-ym.*({PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ocean scalar
+        rf"^iceh_d.*({PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ice daily
+        rf"^cz861a.p[dm]({PATTERNS_HELPERS['y']})[a-z]{{3}}.*",  # Experiment Specific
+        rf"^cz861a.p[dm]({PATTERNS_HELPERS['ym']}).*",  # Experiment Specific
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
     ]
+
+    FREQUENCIES = {
+        **FREQUENCIES,
+        "pd": (1, "day"),
+        "pm": (1, "mon"),
+        "ym": (1, "mon"),
+        "iceh_d": (1, "day"),
+    }
+
+    _MONTH_PATT = rf"^cz861a.p[dm]({PATTERNS_HELPERS['y']})([a-z]{{3}}).*"
+
+    MONTH_PATTERNS = {
+        "jan": "_01",
+        "feb": "_02",
+        "mar": "_03",
+        "apr": "_04",
+        "may": "_05",
+        "jun": "_06",
+        "jul": "_07",
+        "aug": "_08",
+        "sep": "_09",
+        "oct": "_10",
+        "nov": "_11",
+        "dec": "_12",
+    }
+
+    @classmethod
+    def parse_filename(
+        cls,
+        filename: str,
+        patterns: list[str] | None = None,
+        frequencies: dict = FREQUENCIES,
+        redaction_fill: str = "X",
+    ) -> tuple[str, str | None, str | None]:
+        if match := re.match(cls._MONTH_PATT, filename):
+            month = match.groups()[1]
+            filename = re.sub(month, cls.MONTH_PATTERNS[month], filename)
+        return super().parse_filename(
+            filename, cls.PATTERNS, cls.FREQUENCIES, redaction_fill
+        )
