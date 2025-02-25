@@ -17,7 +17,6 @@ from .utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
-    ROMSTimeParser,
     _NCFileInfo,
     _VarInfo,
 )
@@ -656,7 +655,6 @@ class ROMSBuilder(BaseBuilder):
     PATTERNS = [
         rf"^roms_his_({PATTERNS_HELPERS['counter']}).*?$",
     ]
-    TIME_PARSER = ROMSTimeParser
 
     def __init__(self, path, **kwargs):
         """
@@ -694,7 +692,7 @@ class ROMSBuilder(BaseBuilder):
         try:
             realm = "seaIce"
 
-            nc_info = cls.parse_ncfile(file)
+            nc_info = cls.parse_ncfile(file, time_dim="ocean_time")
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm

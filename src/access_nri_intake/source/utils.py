@@ -399,8 +399,3 @@ class GfdlTimeParser(GenericTimeParser):
 
     def __call__(self) -> tuple[str, str, str]:
         return self._get_timeinfo()
-
-
-class ROMSTimeParser(GenericTimeParser):
-
-    TIMEINFO_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
