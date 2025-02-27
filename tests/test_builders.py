@@ -3064,16 +3064,18 @@ def test_builder_include_exclude_patterns(
 ):
     if builder == builders.AccessEsm15Builder or builder == builders.AccessCm2Builder:
         additional = [
-            False,
+            False,  # ensemble needed for ESM builder
         ]
     else:
         additional = []
-    bld = builder(
-        str(tmpdir),
-        *additional,
-        include_patterns=include_patts,
-        exclude_patterns=exclude_patts,
-    )  # ensemble needed for ESM builder
+
+    kwargs = {}
+    if include_patts is not None:
+        kwargs["include_patterns"] = include_patts
+    if exclude_patts is not None:
+        kwargs["exclude_patterns"] = exclude_patts
+
+    bld = builder(str(tmpdir), *additional, **kwargs)
     assert bld.include_patterns == (
         include_patts if include_patts is not None else default_include
     )

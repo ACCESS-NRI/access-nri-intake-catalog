@@ -288,8 +288,6 @@ class AccessTimeParser(GenericTimeParser):
 
 class GfdlTimeParser(GenericTimeParser):
 
-    TIMEINFO_TIME_FORMAT = "%Y-%m-%d, %H:%M:%S"
-
     def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
         self.ds = ds
         self.filename_frequency = filename_frequency

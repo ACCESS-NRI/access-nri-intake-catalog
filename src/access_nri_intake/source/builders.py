@@ -669,8 +669,8 @@ class ROMSBuilder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=1,
-            exclude_patterns=kwargs.get("exclude_patterns") or ["*avg*", "*rst*"],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=["file_id", "frequency"],
             aggregations=[
