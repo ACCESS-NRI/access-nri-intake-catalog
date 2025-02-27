@@ -28,7 +28,7 @@ for srcfn in srcfns:
         for name, variable in old.variables.items():
             x = new.createVariable(name, variable.datatype, variable.dimensions)
             new[name].setncatts(old[name].__dict__)
-            if name == "ocean_time":  # Need time-related data only
+            if name == "ocean_time" or name == "dstart":  # Need time-related data only
                 new[name][:] = old[name][:]
         print(">> Complete!")
         print("--")
