@@ -214,6 +214,13 @@ def test_builder_build(
             None,
             "XXXXXXXX_ocean_static",
         ),
+        (
+            "roms/roms_his_0016.nc",
+            "ROMSBuilder",
+            "seaIce",
+            None,
+            "roms_his_XXXX",
+        ),
     ],
 )
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
@@ -264,6 +271,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
         "Mom6Builder",
         "AccessEsm15Builder",
         "AccessCm2Builder",
+        "ROMSBuilder",
     ],
 )
 def test_builder_parser_exception(test_data, filename, builder):
@@ -756,6 +764,15 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_daily_z_XXXX_XXX",
                 "20000201",
                 (1, "day"),
+            ),
+        ),
+        (
+            builders.ROMSBuilder,
+            "roms_his_0016",
+            (
+                "roms_his_XXXX",
+                "0016",
+                None,
             ),
         ),
     ],
