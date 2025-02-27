@@ -1,0 +1,34 @@
+Generated using the following Python on ARE:
+
+import netCDF4
+import glob
+import os
+
+srcdir = "/g/data/jk72/deg581/shacom/mdl/shackleton_v4"
+destdir = "/home/120/mcw120/scratch/"
+
+target_glob = "roms_his_**1[6-9].nc"
+
+srcglob = os.path.join(srcdir, target_glob)
+srcfns = [os.path.basename(_) for _ in glob.glob(srcglob)]
+
+for srcfn in srcfns:
+    with netCDF4.Dataset(os.path.join(srcdir, srcfn), "r") as old, netCDF4.Dataset(os.path.join(destdir, srcfn), "w") as new:
+        print(old.filepath())
+        print(new.filepath())
+        new.setncattr("file_format", old.file_format)
+        new.setncatts(old.__dict__)
+        # new.set_fill_off()
+        for name, dimension in old.dimensions.items():
+            if not dimension.isunlimited():
+                dimn = 1
+            else:
+                dimn = dimension.size
+            new.createDimension(name, dimn)
+        for name, variable in old.variables.items():
+            x = new.createVariable(name, variable.datatype, variable.dimensions)
+            new[name].setncatts(old[name].__dict__)
+            if name == "ocean_time" or name == "dstart":  # Need time-related data only
+                new[name][:] = old[name][:]
+        print(">> Complete!")
+        print("--")

@@ -437,7 +437,7 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
 
 
 @pytest.mark.parametrize(
-    "kwargs, fails, expected",
+    "kwarg, fails, expected",
     [
         (
             "ensemble=True",
@@ -471,9 +471,9 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
         ),
     ],
 )
-def test_parse_kwargs(kwargs, fails, expected):
+def test_parse_kwarg(kwarg, fails, expected):
     if not fails:
-        assert parse_kwarg(kwargs) == expected
+        assert parse_kwarg(kwarg) == expected
     else:
         with pytest.raises(TypeError):
-            parse_kwarg(kwargs)
+            parse_kwarg(kwarg)
