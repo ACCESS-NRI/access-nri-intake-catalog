@@ -471,7 +471,7 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
         ),
     ],
 )
-def test_parse_kwargs(kwargs, fails, expected):
+def test_parse_kwarg(kwargs, fails, expected):
     if not fails:
         assert parse_kwarg(kwargs) == expected
     else:
