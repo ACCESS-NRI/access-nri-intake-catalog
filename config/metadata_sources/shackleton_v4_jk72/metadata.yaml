@@ -1,0 +1,140 @@
+schema_version: 1-0-3
+name: shackleton_v4_jk72
+experiment_uuid: 927b5c0e-d413-4783-9592-40b35ce88f16
+description: Shackleton/Denman Ice Shelf-ocean model application built with ROMSIceShelf
+long_description: >-
+   This ice shelf-ocean model is built using the ROMSIceShelf version of ROMS (Regional Ocean Modelling System; Shchepetkin et al., 2005), 
+   which has been principally developed following Galton-Fenzi et al. (2012) and Dinniman et al (2003) to simulate the thermodynamic 
+   and mechanical interaction of ice shelves and the ocean. Ice-ocean interaction is parameterised folloing Holland and Jenkins (1999). 
+   ROMS employs a s-coordinate, with layers stretched vertically between the surface (ice base or ocean) and the bathymetry. 
+   This application uses 31 vertical levels, allowing fine vertical spacing beneath ice shelves. It has been shown that vertical 
+   resolution is particularly important beneath ice in order to begin to resolve the ice-ocean boundary layer (e.g. Gwyther et al., 2020). 
+   The domain stretches from 2475 to 3065 km Eastings, and -750 to -130 Northings, with a nominal spatial resoltion of 2 km.  
+   Tides are included with a free-surface modulation at the boundaries at the ten-largest tidal frequencies. 
+   A frazil scheme is employed to quench supercooling and parameterise refreezing. 
+   Lateral boundary forcing is sourced from ECCO2 (Menemenlis et al., 2008) and consists of tmperature, salinity and inflow/outflow velocities; 
+   Surface boundary forcing is in the form of wind stress (from ERA-interim; Dee et al., 2011) and air-sea heat and salt fluxes 
+   (from Tamura et al., 2012). The form and choices of boundary forcing have been consistently demonstrated to provide appropriate 
+   conditions in the coastal seas of Antarctica (e.g. see Galton-Fenzi et al., 2012; Cougnon et al., 2013; Gwyther et al., 2014; 2018; 2023). 
+   A repeat year forcing is employed, with the specific forcing year (2007) chosen as it was shown to be a climate-normal year (Richter et al., 2022).>
+model:
+- ROMSIceShelf
+realm:
+- seaIce
+frequency:
+- 5day
+variable:
+- ntimes
+- ndtfast
+- dt
+- dtfast
+- dstart
+- nHIS
+- ndefHIS
+- nRST
+- ntsAVG
+- nAVG
+- ndefAVG
+- Falpha
+- Fbeta
+- Fgamma
+- nl_tnu2
+- nl_visc2
+- LuvSponge
+- LtracerSponge
+- Akt_bak
+- Akv_bak
+- rdrg
+- rdrg2
+- Zob
+- Zos
+- Znudg
+- M2nudg
+- M3nudg
+- Tnudg
+- FSobc_in
+- FSobc_out
+- M2obc_in
+- M2obc_out
+- Tobc_in
+- Tobc_out
+- M3obc_in
+- M3obc_out
+- rho0
+- gamma2
+- LuvSrc
+- LwSrc
+- LtracerSrc
+- LsshCLM
+- Lm2CLM
+- Lm3CLM
+- LtracerCLM
+- LnudgeM2CLM
+- LnudgeM3CLM
+- LnudgeTCLM
+- spherical
+- xl
+- el
+- Vtransform
+- Vstretching
+- theta_s
+- theta_b
+- Tcline
+- hc
+- s_rho
+- s_w
+- Cs_r
+- Cs_w
+- h
+- zice
+- f
+- pm
+- pn
+- lon_rho
+- lat_rho
+- lon_u
+- lat_u
+- lon_v
+- lat_v
+- lon_psi
+- lat_psi
+- angle
+- mask_rho
+- mask_u
+- mask_v
+- mask_psi
+- ocean_time
+- m
+- Tb
+- Sb
+- zeta
+- ubar
+- vbar
+- u
+- v
+- w
+- temp
+- salt
+- rho
+- Hsbl
+- AKv
+- AKt
+- shflux
+- ssflux
+- sustr
+- svstr
+nominal_resolution:
+- 2km spatial resolution, built on a polar stereographic projection.
+version: v1; repeat year, no subglacial, with tides and frazil, standard boundary forcing.
+contact: David Gwyther
+email: david.gwyther@gmail.com
+created: 12/02/2025
+reference: See below license information for how to reference/use this data.
+license: CC BY-NC-SA. PI Gwyther would like to be informed of studies resulting from the ROMS Shackleton data. Depending on level of interest and how much a paper depends on the model results, co-authorship might be requested.
+url: https://github.com/bkgf/ROMSIceShelf
+keywords:
+- ice-ocean interaction
+- basal melting
+- antarctica
+- shackleton
+- denman

@@ -52,6 +52,7 @@ PATTERNS_HELPERS = {
     "ymd-ns": "\\d{4}\\d{2}\\d{2}",
     "ym": "\\d{4}[_,\\-]\\d{2}",
     "y": "\\d{4}",
+    "counter": "\\d+",
 }
 
 
@@ -545,7 +546,7 @@ class Mom6Builder(BaseBuilder):
 
             if "ocean" in ncinfo_dict["filename"]:
                 realm = "ocean"
-            elif "ice" in ncinfo_dict["filename"]:
+            elif "ice" in ncinfo_dict["filename"] or "roms" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
@@ -643,3 +644,59 @@ class AccessCm2Builder(AccessEsm15Builder):
         rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
     ]
+
+
+class ROMSBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for ROMS datasets
+
+    See https://github.com/bkgf/ROMSIceShelf for details on the ROMSIceShelf model.
+    """
+
+    PATTERNS = [
+        rf"^roms_his_({PATTERNS_HELPERS['counter']}).*?$",
+    ]
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a AccessOm2Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=1,
+            exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "ocean_time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        try:
+            realm = "seaIce"
+
+            nc_info = cls.parse_ncfile(file, time_dim="ocean_time")
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["realm"] = realm
+
+            return ncinfo_dict
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
