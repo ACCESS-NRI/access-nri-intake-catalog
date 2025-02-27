@@ -1,0 +1,9 @@
+builder: ROMSBuilder
+
+translator: DefaultTranslator
+
+sources:
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/shackleton_v4_jk72/metadata.yaml
+    path:
+    - /g/data/jk72/deg581/shacom/mdl/shackleton_v4
