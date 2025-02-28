@@ -21,7 +21,7 @@ from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
 from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
-from .experiment.utils import parse_kwargs, validate_args
+from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
@@ -614,7 +614,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
 
     parser.add_argument(
         "--builder-kwargs",
-        type=parse_kwargs,
+        type=parse_kwarg,
         nargs="*",
         help=(
             "Additional keyword arguments to pass to the builder."
@@ -666,7 +666,9 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
     builder = args.builder
     experiment_dir = Path(args.expt_dir)
     catalog_dir = Path(args.cat_dir) if args.cat_dir else experiment_dir
-    builder_kwargs = args.builder_kwargs or {}
+    builder_kwargs = (
+        {k: v for k, v in args.builder_kwargs} if args.builder_kwargs else {}
+    )
     datastore_name = args.datastore_name
     description = args.description
 
