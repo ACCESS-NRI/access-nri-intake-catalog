@@ -1247,6 +1247,42 @@ def test_use_esm_datastore_nonexistent_dirs(expt_dir, cat_dir):
                 "open_ds": False,
             },
         ),
+        (
+            [
+                "--builder",
+                "AccessCm2Builder",
+                "--builder-kwargs",
+                "ensemble=True",
+            ],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessCm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {"ensemble": True},
+                "datastore_name": "experiment_datastore",
+                "description": None,
+                "open_ds": False,
+            },
+        ),
+        (
+            [
+                "--builder",
+                "AccessCm2Builder",
+            ],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessCm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "datastore_name": "experiment_datastore",
+                "description": None,
+                "open_ds": False,
+                "builder_kwargs": {},
+            },
+        ),
     ],
 )
 def test_use_esm_datastore_valid(

@@ -18,7 +18,7 @@ from access_nri_intake.experiment.utils import (
     DataStoreWarning,
     MultipleDataStoreError,
     hash_catalog,
-    parse_kwargs,
+    parse_kwarg,
     validate_args,
     verify_ds_current,
 )
@@ -108,23 +108,24 @@ def test_DatastoreInfo_bool(test_data, args, expected):
 
 
 @pytest.mark.parametrize(
-    "subdir, expected",
+    "subdir, datastore_name ,expected",
     [
-        ("single_match", True),
-        ("multi_matches", "err"),
-        ("no_matches", False),
-        ("multi_json_single_csv", True),
+        ("single_match", "ds", True),
+        ("single_match", "wrong_name", False),
+        ("multi_matches", "ds", "err"),
+        ("no_matches", "ds", False),
+        ("multi_json_single_csv", "experiment_datastore", True),
     ],
 )
-def test_find_esm_datastore(test_data, subdir, expected):
+def test_find_esm_datastore(test_data, subdir, datastore_name, expected):
     dir = test_data / "experiment_dirs" / subdir
 
     if expected != "err":
-        ds = find_esm_datastore(dir)
+        ds = find_esm_datastore(dir, datastore_name)
         assert bool(ds) == expected
     else:
         with pytest.raises(MultipleDataStoreError):
-            find_esm_datastore(dir)
+            find_esm_datastore(dir, datastore_name)
 
 
 @pytest.mark.parametrize(
@@ -436,22 +437,22 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
 
 
 @pytest.mark.parametrize(
-    "kwargs, fails, expected",
+    "kwarg, fails, expected",
     [
         (
             "ensemble=True",
             False,
-            {"ensemble": True},
+            ("ensemble", True),
         ),
         (
             "ensemble=False",
             False,
-            {"ensemble": False},
+            ("ensemble", False),
         ),
         (
             "ensemble=false",
             False,
-            {"ensemble": False},
+            ("ensemble", False),
         ),
         (
             "ensemble=nonsense",
@@ -466,13 +467,13 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
         (
             "esnmebel=True",
             False,
-            {},
+            ("esnmebel", "True"),
         ),
     ],
 )
-def test_parse_kwargs(kwargs, fails, expected):
+def test_parse_kwarg(kwarg, fails, expected):
     if not fails:
-        assert parse_kwargs(kwargs) == expected
+        assert parse_kwarg(kwarg) == expected
     else:
         with pytest.raises(TypeError):
-            parse_kwargs(kwargs)
+            parse_kwarg(kwarg)
