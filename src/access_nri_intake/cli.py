@@ -184,22 +184,25 @@ def _get_project(paths: list[str], method: str | None = None):
 
 
 # Confirm access to all necessary projects
-def _confirm_project_access(projects: set[str]):
+def _confirm_project_access(projects: set[str]) -> tuple[bool, str]:
     """
-    Raise a RuntimeException if the user can't access all projects' /g/data spaces.
+    Return False and the missing project if the user can't access all projects' /g/data spaces.
+
+    Returns:
+        tuple[bool, str]: Whether the user can access all projects, and a string of any missing projects
     """
     missing_projects = []
-    for proj in projects:
+    for proj in sorted(projects):
         p = Path("/g/data") / proj
         if not p.exists():
             missing_projects.append(proj)
 
-    if len(missing_projects) > 0:
-        raise RuntimeError(
-            f"Unable to access projects {','.join(missing_projects)} - check your group memberships"
-        )
+    if len(missing_projects) == 0:
+        return True, ""
 
-    return
+    return False, f"Unable to access projects {', '.join(missing_projects)} - check your group memberships"
+
+
 
 
 def _write_catalog_yaml(
@@ -487,7 +490,11 @@ def build(argv: Sequence[str] | None = None):
     storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project if proj]))
 
     # TODO add permissions check here, before any build directories are made
-    _confirm_project_access(project)
+    _valid_permissions, _err_msg = _confirm_project_access(project)
+    if not _valid_permissions:
+        raise RuntimeError(
+            _err_msg
+        )
 
     # Now that that's all passed, create the physical build location
     try:
