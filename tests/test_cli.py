@@ -296,6 +296,39 @@ def test_build_bad_metadata_no_metadata_yaml_value(
         )
 
 
+@mock.patch(
+    "access_nri_intake.cli._confirm_project_access",
+    return_value=(False, "Simulated access failure"),
+)
+def test_build_no_project_access(mock_confirm_project_access, test_data, tmp_path):
+    """
+    Test if the build dies because it can't access project storage area
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    with pytest.raises(RuntimeError, match="Simulated access failure"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
 @mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
 def test_build_repeat_nochange(mock_confirm_project_access, test_data, tmp_path):
     """
