@@ -24,13 +24,18 @@ from access_nri_intake.cli import (
     use_esm_datastore,
 )
 
-# def _mock_al33_exists(*args, **kwargs):
-#     # import pdb; pdb.set_trace()
-#     try:
-#         if args[0] == "al33":
-#             return True
-#     except IndexError: pass
-#     return mock.DEFAULT
+
+def _mock_al33_exists(*args, **kwargs):
+    # import pdb; pdb.set_trace()
+    try:
+        if "al33" in args:
+            import pdb
+
+            pdb.set_trace()
+            return True
+    except IndexError:
+        pass
+    return mock.DEFAULT
 
 
 def test_entrypoint():
@@ -141,31 +146,30 @@ def test_check_build_args(args, raises):
         ),
     ],
 )
-# @mock.patch("pathlib.Path.exists")
 def test_build(version, input_list, expected_size, test_data, tmpdir):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     build_base_path = str(tmpdir)
-    # mock_exists.side_effect = _mock_al33_exists
 
     configs = [str(test_data / fname) for fname in input_list]
 
-    build(
-        [
-            *configs,
-            "--catalog_file",
-            "cat.csv",
-            # "--no_update",  # commented out to test brand-new-catalog-versioning
-            "--version",
-            version,
-            "--build_base_path",
-            build_base_path,
-            "--catalog_base_path",
-            build_base_path,
-            "--data_base_path",
-            str(test_data),
-        ]
-    )
+    with mock.patch("pathlib.Path.exists", side_effect=_mock_al33_exists):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                # "--no_update",  # commented out to test brand-new-catalog-versioning
+                "--version",
+                version,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--data_base_path",
+                str(test_data),
+            ]
+        )
 
     # manually fix the version so we can correctly build the test path: build
     # will do this for us so we need to replicate it here

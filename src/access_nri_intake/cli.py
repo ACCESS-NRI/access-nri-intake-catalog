@@ -487,7 +487,7 @@ def build(argv: Sequence[str] | None = None):
     storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project if proj]))
 
     # TODO add permissions check here, before any build directories are made
-    # _confirm_project_access(project)
+    _confirm_project_access(project)
 
     # Now that that's all passed, create the physical build location
     try:
