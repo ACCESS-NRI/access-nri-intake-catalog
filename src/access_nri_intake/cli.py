@@ -200,9 +200,10 @@ def _confirm_project_access(projects: set[str]) -> tuple[bool, str]:
     if len(missing_projects) == 0:
         return True, ""
 
-    return False, f"Unable to access projects {', '.join(missing_projects)} - check your group memberships"
-
-
+    return (
+        False,
+        f"Unable to access projects {', '.join(missing_projects)} - check your group memberships",
+    )
 
 
 def _write_catalog_yaml(
@@ -492,9 +493,7 @@ def build(argv: Sequence[str] | None = None):
     # TODO add permissions check here, before any build directories are made
     _valid_permissions, _err_msg = _confirm_project_access(project)
     if not _valid_permissions:
-        raise RuntimeError(
-            _err_msg
-        )
+        raise RuntimeError(_err_msg)
 
     # Now that that's all passed, create the physical build location
     try:
