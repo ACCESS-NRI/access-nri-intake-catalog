@@ -490,7 +490,6 @@ def build(argv: Sequence[str] | None = None):
 
     storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project if proj]))
 
-    # TODO add permissions check here, before any build directories are made
     _valid_permissions, _err_msg = _confirm_project_access(project)
     if not _valid_permissions:
         raise RuntimeError(_err_msg)
