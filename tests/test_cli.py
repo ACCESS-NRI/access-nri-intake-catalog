@@ -28,10 +28,10 @@ from access_nri_intake.cli import (
 def _mock_al33_exists(*args, **kwargs):
     # import pdb; pdb.set_trace()
     try:
-        if "al33" in args:
-            import pdb
+        if "/g/data/al33" in args:
+            # import pdb
 
-            pdb.set_trace()
+            # pdb.set_trace()
             return True
     except IndexError:
         pass
