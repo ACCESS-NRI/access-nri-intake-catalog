@@ -183,10 +183,9 @@ def _get_project(paths: list[str], method: str | None = None):
     return project
 
 
-# Confirm access to all necessary projects
 def _confirm_project_access(projects: set[str]) -> tuple[bool, str]:
     """
-    Return False and the missing project if the user can't access all projects' /g/data spaces.
+    Return False and the missing project if the user can't access all necessary projects' /g/data spaces.
 
     Returns:
         tuple[bool, str]: Whether the user can access all projects, and a string of any missing projects
