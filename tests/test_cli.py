@@ -26,6 +26,14 @@ from access_nri_intake.cli import (
 )
 
 
+@pytest.fixture
+def fake_project_access():
+    with mock.patch(
+        "access_nri_intake.cli._confirm_project_access", return_value=(True, "")
+    ):
+        yield
+
+
 def test_entrypoint():
     """
     Check that entry point works
@@ -134,9 +142,8 @@ def test_check_build_args(args, raises):
         ),
     ],
 )
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
 def test_build(
-    mock_confirm_project_access, version, input_list, expected_size, test_data, tmpdir
+    version, input_list, expected_size, test_data, tmpdir, fake_project_access
 ):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
@@ -201,8 +208,7 @@ def test_build(
         "v0.1.2",  # Old-style version numbers
     ],
 )
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
-def test_build_bad_version(mock_confirm_project_access, bad_vers, test_data, tmp_path):
+def test_build_bad_version(bad_vers, test_data, tmp_path, fake_project_access):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     build_base_path = str(tmp_path)
@@ -231,8 +237,7 @@ def test_build_bad_version(mock_confirm_project_access, bad_vers, test_data, tmp
         )
 
 
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
-def test_build_bad_metadata(mock_confirm_project_access, test_data, tmp_path):
+def test_build_bad_metadata(test_data, tmp_path, fake_project_access):
     """
     Test if bad metadata is detected
     """
@@ -263,9 +268,8 @@ def test_build_bad_metadata(mock_confirm_project_access, test_data, tmp_path):
         )
 
 
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
 def test_build_bad_metadata_no_metadata_yaml_value(
-    mock_confirm_project_access, test_data, tmp_path
+    test_data, tmp_path, fake_project_access
 ):
     """
     Test if bad metadata is detected
@@ -329,8 +333,7 @@ def test_build_no_project_access(mock_confirm_project_access, test_data, tmp_pat
         )
 
 
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
-def test_build_repeat_nochange(mock_confirm_project_access, test_data, tmp_path):
+def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
     """
     Test if the intelligent versioning works correctly when there is
     no significant change to the underlying catalogue
@@ -395,8 +398,7 @@ def test_build_repeat_nochange(mock_confirm_project_access, test_data, tmp_path)
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
 
 
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
-def test_build_repeat_adddata(mock_confirm_project_access, test_data, tmp_path):
+def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
     configs = [
         str(test_data / "config/access-om2.yaml"),
     ]
@@ -461,13 +463,8 @@ def test_build_repeat_adddata(mock_confirm_project_access, test_data, tmp_path):
 
 @mock.patch("access_nri_intake.cli._get_project", return_value=set())
 @mock.patch("access_nri_intake.cli._get_project_code", return_value="aa99")
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
 def test_build_project_base_code(
-    mock_confirm_project_access,
-    mock_get_project,
-    mock_get_project_code,
-    test_data,
-    tmp_path,
+    mock_get_project, mock_get_project_code, test_data, tmp_path, fake_project_access
 ):
     configs = [
         str(test_data / "config/access-om2.yaml"),
@@ -507,9 +504,8 @@ def test_build_project_base_code(
         ("v2001-01-01", None),
     ],
 )
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
 def test_build_existing_data(
-    mock_confirm_project_access, test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
     """
     Test if the build process can handle min and max catalog
@@ -569,9 +565,8 @@ def test_build_existing_data(
         ("v2001-01-01", None),
     ],
 )
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
 def test_build_existing_data_existing_old_cat(
-    mock_confirm_project_access, test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
     """
     Test if the build process can handle min and max catalog
@@ -643,9 +638,8 @@ def test_build_existing_data_existing_old_cat(
         ("v2001-01-01", None),
     ],
 )
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
 def test_build_separation_between_catalog_and_buildbase(
-    mock_confirm_project_access, test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
     """
     Test if the intelligent versioning works correctly when there is
@@ -911,9 +905,8 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
         ("v2001-01-01", None),
     ],
 )
-@mock.patch("access_nri_intake.cli._confirm_project_access", return_value=(True, ""))
 def test_build_repeat_altercatalogstruct_multivers(
-    mock_confirm_project_access, test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
     configs = [
         str(test_data / "config/cmip5.yaml"),
