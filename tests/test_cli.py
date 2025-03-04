@@ -17,12 +17,21 @@ from access_nri_intake.cli import (
     MetadataCheckError,
     _add_source_to_catalog,
     _check_build_args,
+    _confirm_project_access,
     build,
     metadata_template,
     metadata_validate,
     scaffold_catalog_entry,
     use_esm_datastore,
 )
+
+
+@pytest.fixture
+def fake_project_access():
+    with mock.patch(
+        "access_nri_intake.cli._confirm_project_access", return_value=(True, "")
+    ):
+        yield
 
 
 def test_entrypoint():
@@ -133,7 +142,9 @@ def test_check_build_args(args, raises):
         ),
     ],
 )
-def test_build(version, input_list, expected_size, test_data, tmpdir):
+def test_build(
+    version, input_list, expected_size, test_data, tmpdir, fake_project_access
+):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     build_base_path = str(tmpdir)
@@ -197,7 +208,7 @@ def test_build(version, input_list, expected_size, test_data, tmpdir):
         "v0.1.2",  # Old-style version numbers
     ],
 )
-def test_build_bad_version(bad_vers, test_data, tmp_path):
+def test_build_bad_version(bad_vers, test_data, tmp_path, fake_project_access):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     build_base_path = str(tmp_path)
@@ -226,7 +237,7 @@ def test_build_bad_version(bad_vers, test_data, tmp_path):
         )
 
 
-def test_build_bad_metadata(test_data, tmp_path):
+def test_build_bad_metadata(test_data, tmp_path, fake_project_access):
     """
     Test if bad metadata is detected
     """
@@ -257,7 +268,9 @@ def test_build_bad_metadata(test_data, tmp_path):
         )
 
 
-def test_build_bad_metadata_no_metadata_yaml_value(test_data, tmp_path):
+def test_build_bad_metadata_no_metadata_yaml_value(
+    test_data, tmp_path, fake_project_access
+):
     """
     Test if bad metadata is detected
     """
@@ -287,7 +300,40 @@ def test_build_bad_metadata_no_metadata_yaml_value(test_data, tmp_path):
         )
 
 
-def test_build_repeat_nochange(test_data, tmp_path):
+@mock.patch(
+    "access_nri_intake.cli._confirm_project_access",
+    return_value=(False, "Simulated access failure"),
+)
+def test_build_no_project_access(mock_confirm_project_access, test_data, tmp_path):
+    """
+    Test if the build dies because it can't access project storage area
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    with pytest.raises(RuntimeError, match="Simulated access failure"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
     """
     Test if the intelligent versioning works correctly when there is
     no significant change to the underlying catalogue
@@ -352,7 +398,7 @@ def test_build_repeat_nochange(test_data, tmp_path):
     ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
 
 
-def test_build_repeat_adddata(test_data, tmp_path):
+def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
     configs = [
         str(test_data / "config/access-om2.yaml"),
     ]
@@ -418,7 +464,7 @@ def test_build_repeat_adddata(test_data, tmp_path):
 @mock.patch("access_nri_intake.cli._get_project", return_value=set())
 @mock.patch("access_nri_intake.cli._get_project_code", return_value="aa99")
 def test_build_project_base_code(
-    mock_get_project, mock_get_project_code, test_data, tmp_path
+    mock_get_project, mock_get_project_code, test_data, tmp_path, fake_project_access
 ):
     configs = [
         str(test_data / "config/access-om2.yaml"),
@@ -458,7 +504,9 @@ def test_build_project_base_code(
         ("v2001-01-01", None),
     ],
 )
-def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
+def test_build_existing_data(
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
+):
     """
     Test if the build process can handle min and max catalog
     versions when an original catalog.yaml does not exist
@@ -517,7 +565,9 @@ def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
         ("v2001-01-01", None),
     ],
 )
-def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp_path):
+def test_build_existing_data_existing_old_cat(
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
+):
     """
     Test if the build process can handle min and max catalog
     versions when a old-style catalog.yaml exists
@@ -589,7 +639,7 @@ def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp
     ],
 )
 def test_build_separation_between_catalog_and_buildbase(
-    test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
     """
     Test if the intelligent versioning works correctly when there is
@@ -856,7 +906,7 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
     ],
 )
 def test_build_repeat_altercatalogstruct_multivers(
-    test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
     configs = [
         str(test_data / "config/cmip5.yaml"),
@@ -1247,6 +1297,42 @@ def test_use_esm_datastore_nonexistent_dirs(expt_dir, cat_dir):
                 "open_ds": False,
             },
         ),
+        (
+            [
+                "--builder",
+                "AccessCm2Builder",
+                "--builder-kwargs",
+                "ensemble=True",
+            ],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessCm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "builder_kwargs": {"ensemble": True},
+                "datastore_name": "experiment_datastore",
+                "description": None,
+                "open_ds": False,
+            },
+        ),
+        (
+            [
+                "--builder",
+                "AccessCm2Builder",
+            ],
+            (
+                PosixPath("."),
+                access_nri_intake.source.builders.AccessCm2Builder,
+                PosixPath("."),
+            ),
+            {
+                "datastore_name": "experiment_datastore",
+                "description": None,
+                "open_ds": False,
+                "builder_kwargs": {},
+            },
+        ),
     ],
 )
 def test_use_esm_datastore_valid(
@@ -1289,3 +1375,46 @@ def test_scaffold_catalog_entry():
         NotImplementedError, match="not yet implemented for interactive mode"
     ):
         scaffold_catalog_entry(["--interactive"])
+
+
+@pytest.mark.parametrize(
+    "needed_projects, valid_projects, expected",
+    [
+        ({"aa99"}, {"aa99"}, (True, "")),
+        ({"aa99", "bb99"}, {"aa99", "bb99", "cc99"}, (True, "")),
+        (
+            {"aa99"},
+            {"bb99"},
+            (False, "Unable to access projects aa99 - check your group memberships"),
+        ),
+        (
+            {"aa99", "bb99", "cc99"},
+            {"aa99"},
+            (
+                False,
+                "Unable to access projects bb99, cc99 - check your group memberships",
+            ),
+        ),
+    ],
+)
+def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, expected):
+    """
+    Check that _confirm_project_access returns expected values.
+    """
+
+    # Create a patched version of Path.exists that checks against our accessible projects
+    def mock_exists(self):
+        if self.parent == Path("/g/data"):
+            return self.name in valid_projects
+        return original_exists(self)
+
+    # Save the original method - we need this for the above mock_exists function
+    # to work properly
+    original_exists = Path.exists
+
+    # Apply the monkeypatch
+    monkeypatch.setattr(Path, "exists", mock_exists)
+
+    # Run the function under test
+    result = _confirm_project_access(needed_projects)
+    assert result == expected
