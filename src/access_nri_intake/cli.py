@@ -178,7 +178,31 @@ def _get_project(paths: list[str], method: str | None = None):
     else:  # I know this isn't formally necessary, but I find it easier to read
         project |= {_get_project_code(path) for path in paths}
 
+    project = {p for p in project if p is not None}
+
     return project
+
+
+def _confirm_project_access(projects: set[str]) -> tuple[bool, str]:
+    """
+    Return False and the missing project if the user can't access all necessary projects' /g/data spaces.
+
+    Returns:
+        tuple[bool, str]: Whether the user can access all projects, and a string of any missing projects
+    """
+    missing_projects = []
+    for proj in sorted(projects):
+        p = Path("/g/data") / proj
+        if not p.exists():
+            missing_projects.append(proj)
+
+    if len(missing_projects) == 0:
+        return True, ""
+
+    return (
+        False,
+        f"Unable to access projects {', '.join(missing_projects)} - check your group memberships",
+    )
 
 
 def _write_catalog_yaml(
@@ -440,7 +464,7 @@ def build(argv: Sequence[str] | None = None):
         raise FileNotFoundError(f"Unable to locate {build_base_path}")
     except Exception as e:
         raise Exception(
-            "An unexpected error occurred while trying to create the build directories. Please contact ACCESS-NRI."
+            "An unexpected error occurred while trying to create the build directory Paths. Please contact ACCESS-NRI."
         ) from e
 
     # Parse inputs to pass to CatalogManager
@@ -463,7 +487,11 @@ def build(argv: Sequence[str] | None = None):
     else:
         warnings.warn(f"Unable to determine project for base path {build_base_path}")
 
-    storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project]))
+    storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project if proj]))
+
+    _valid_permissions, _err_msg = _confirm_project_access(project)
+    if not _valid_permissions:
+        raise RuntimeError(_err_msg)
 
     # Now that that's all passed, create the physical build location
     try:
