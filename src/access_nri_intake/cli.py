@@ -601,10 +601,13 @@ def metadata_template(loc: str | Path | None = None) -> None:
 
     template = {}
     for name, descr in EXP_JSONSCHEMA["properties"].items():
-        if name in EXP_JSONSCHEMA["required"]:
-            description = f"<REQUIRED {descr['description']}>"
+        if "const" in descr.keys():
+            description = descr["const"]
         else:
-            description = f"<{descr['description']}>"
+            if name in EXP_JSONSCHEMA["required"]:
+                description = f"<REQUIRED {descr['description']}>"
+            else:
+                description = f"<{descr['description']}>"
 
         if _can_be_array(descr):
             description = [description]  # type: ignore
