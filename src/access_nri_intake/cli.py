@@ -7,6 +7,7 @@ import argparse
 import datetime
 import logging
 import re
+import traceback
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
@@ -20,7 +21,7 @@ from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
 from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
-from .experiment.utils import parse_kwargs, validate_args
+from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
@@ -63,15 +64,24 @@ def _parse_build_inputs(
             source_args["path"] = [
                 str(Path(data_base_path) / _) for _ in kwargs.pop("path")
             ]
-            metadata_yaml = kwargs.pop("metadata_yaml")
+
+            try:
+                metadata_yaml = kwargs.pop("metadata_yaml")
+            except KeyError:
+                raise KeyError(
+                    f"Could not find metadata_yaml kwarg for {config_yaml} - keys are {kwargs}"
+                )
+
             try:
                 metadata = load_metadata_yaml(
                     Path(data_base_path) / metadata_yaml, EXP_JSONSCHEMA
                 )
             except jsonschema.exceptions.ValidationError:
-                raise MetadataCheckError(
-                    f"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details."
+                warnings.warn(
+                    rf"Failed to validate metadata.yaml @ {Path(metadata_yaml).parent}. See traceback for details: {traceback.format_exc()}"
                 )
+                continue  # Skip the experiment w/ bad metadata
+
             source_args["name"] = metadata["name"]
             source_args["description"] = metadata["description"]
             source_args["metadata"] = metadata
@@ -168,7 +178,31 @@ def _get_project(paths: list[str], method: str | None = None):
     else:  # I know this isn't formally necessary, but I find it easier to read
         project |= {_get_project_code(path) for path in paths}
 
+    project = {p for p in project if p is not None}
+
     return project
+
+
+def _confirm_project_access(projects: set[str]) -> tuple[bool, str]:
+    """
+    Return False and the missing project if the user can't access all necessary projects' /g/data spaces.
+
+    Returns:
+        tuple[bool, str]: Whether the user can access all projects, and a string of any missing projects
+    """
+    missing_projects = []
+    for proj in sorted(projects):
+        p = Path("/g/data") / proj
+        if not p.exists():
+            missing_projects.append(proj)
+
+    if len(missing_projects) == 0:
+        return True, ""
+
+    return (
+        False,
+        f"Unable to access projects {', '.join(missing_projects)} - check your group memberships",
+    )
 
 
 def _write_catalog_yaml(
@@ -414,7 +448,7 @@ def build(argv: Sequence[str] | None = None):
         version = f"v{version}"
     if not re.match(CATALOG_NAME_FORMAT, version):
         raise ValueError(
-            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD."
+            f"Version number/name {version} is invalid. Must be vYYYY-MM-DD, minimum v2000-01-01."
         )
 
     # Create the build directories
@@ -430,7 +464,7 @@ def build(argv: Sequence[str] | None = None):
         raise FileNotFoundError(f"Unable to locate {build_base_path}")
     except Exception as e:
         raise Exception(
-            "An unexpected error occurred while trying to create the build directories. Please contact ACCESS-NRI."
+            "An unexpected error occurred while trying to create the build directory Paths. Please contact ACCESS-NRI."
         ) from e
 
     # Parse inputs to pass to CatalogManager
@@ -453,7 +487,11 @@ def build(argv: Sequence[str] | None = None):
     else:
         warnings.warn(f"Unable to determine project for base path {build_base_path}")
 
-    storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project]))
+    storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project if proj]))
+
+    _valid_permissions, _err_msg = _confirm_project_access(project)
+    if not _valid_permissions:
+        raise RuntimeError(_err_msg)
 
     # Now that that's all passed, create the physical build location
     try:
@@ -585,7 +623,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         description=(
             "Build an esm-datastore by inspecting a directory containing model outputs."
             " If no datastore exists, a new one will be created. If a datastore exists,"
-            " it's integrity will be verified, and the datastore regenerated if necessary."
+            " its integrity will be verified, and the datastore regenerated if necessary."
         )
     )
     parser.add_argument(
@@ -604,7 +642,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
 
     parser.add_argument(
         "--builder-kwargs",
-        type=parse_kwargs,
+        type=parse_kwarg,
         nargs="*",
         help=(
             "Additional keyword arguments to pass to the builder."
@@ -632,11 +670,35 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         ),
     )
 
+    parser.add_argument(
+        "--datastore-name",
+        type=str,
+        help=(
+            "Name of the datastore to use. If not provided, this will default to"
+            " 'experiment_datastore'."
+        ),
+        default="experiment_datastore",
+    )
+
+    parser.add_argument(
+        "--description",
+        type=str,
+        help=(
+            "Description of the datastore. If not provided, a default description will be used:"
+            " 'esm_datastore for the model output in {--expt-dir}'"
+        ),
+        default=None,
+    )
+
     args = parser.parse_args(argv)
     builder = args.builder
     experiment_dir = Path(args.expt_dir)
     catalog_dir = Path(args.cat_dir) if args.cat_dir else experiment_dir
-    builder_kwargs = args.builder_kwargs or {}
+    builder_kwargs = (
+        {k: v for k, v in args.builder_kwargs} if args.builder_kwargs else {}
+    )
+    datastore_name = args.datastore_name
+    description = args.description
 
     try:
         builder = getattr(builders, builder)
@@ -664,6 +726,8 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         builder,
         catalog_dir,
         builder_kwargs=builder_kwargs,
+        datastore_name=datastore_name,
+        description=description,
         open_ds=False,
     )
 

@@ -5,7 +5,7 @@ authors = [
 ]
 description = "Intake catalog managed by ACCESS-NRI and associated tools"
 readme = "README.rst"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -16,9 +16,9 @@ classifiers = [
 dependencies = [
     "cftime",
     "ecgtools>=2023.7.13",
-    "intake>=0.7.0",
-    "intake-dataframe-catalog>=0.2.4",
-    "intake-esm>=2023.11.10",
+    "intake>=2.0.0",
+    "intake-dataframe-catalog>=0.3.1",
+    "intake-esm>=2025.2.3",
     "jsonschema",
     "pooch",
     "xarray",
