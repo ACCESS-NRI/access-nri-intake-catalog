@@ -94,7 +94,8 @@ is called to ensure that all required metadata is available prior to building th
 
 .. warning:: 
 
-   Your experiment UUID must be **unique** to the experiment. Even if you're adding multiple related experiments,
+   Your experiment `UUID <https://en.wikipedia.org/wiki/Universally_unique_identifier>`_ 
+   must be **unique** to the experiment. Even if you're adding multiple related experiments,
    each experiment must have a unique UUID.
 
    There's nothing special about the UUID value - they're simply meant to be randomly-generated values that 
