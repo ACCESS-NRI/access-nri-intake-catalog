@@ -18,7 +18,7 @@ from access_nri_intake.experiment.utils import (
     DataStoreWarning,
     MultipleDataStoreError,
     hash_catalog,
-    parse_kwargs,
+    parse_kwarg,
     validate_args,
     verify_ds_current,
 )
@@ -108,23 +108,24 @@ def test_DatastoreInfo_bool(test_data, args, expected):
 
 
 @pytest.mark.parametrize(
-    "subdir, expected",
+    "subdir, datastore_name ,expected",
     [
-        ("single_match", True),
-        ("multi_matches", "err"),
-        ("no_matches", False),
-        ("multi_json_single_csv", True),
+        ("single_match", "ds", True),
+        ("single_match", "wrong_name", False),
+        ("multi_matches", "ds", "err"),
+        ("no_matches", "ds", False),
+        ("multi_json_single_csv", "experiment_datastore", True),
     ],
 )
-def test_find_esm_datastore(test_data, subdir, expected):
+def test_find_esm_datastore(test_data, subdir, datastore_name, expected):
     dir = test_data / "experiment_dirs" / subdir
 
     if expected != "err":
-        ds = find_esm_datastore(dir)
+        ds = find_esm_datastore(dir, datastore_name)
         assert bool(ds) == expected
     else:
         with pytest.raises(MultipleDataStoreError):
-            find_esm_datastore(dir)
+            find_esm_datastore(dir, datastore_name)
 
 
 @pytest.mark.parametrize(
@@ -261,6 +262,7 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
 @pytest.mark.parametrize(
     "open_ds, return_type", [(True, esm_datastore), (False, type(None))]
 )
+@pytest.mark.parametrize("use_path", [True, False])
 def test_use_datastore(
     test_data: Path,
     basedir,
@@ -270,6 +272,7 @@ def test_use_datastore(
     tmp_path,
     open_ds,
     return_type,
+    use_path,
     capsys,
 ):
     """
@@ -288,9 +291,10 @@ def test_use_datastore(
     assert isinstance(builder.assets, list)
     assert len(builder.assets) == num_assets
 
+    exptdir = Path(basedir[0]) if use_path else basedir[0]
     # This creates a bunch of datastoers that we don't actually want here.
     ret = use_datastore(
-        experiment_dir=Path(basedir[0]),
+        experiment_dir=exptdir,
         builder=builder_type,
         open_ds=open_ds,
         builder_kwargs=kwargs,
@@ -433,22 +437,22 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
 
 
 @pytest.mark.parametrize(
-    "kwargs, fails, expected",
+    "kwarg, fails, expected",
     [
         (
             "ensemble=True",
             False,
-            {"ensemble": True},
+            ("ensemble", True),
         ),
         (
             "ensemble=False",
             False,
-            {"ensemble": False},
+            ("ensemble", False),
         ),
         (
             "ensemble=false",
             False,
-            {"ensemble": False},
+            ("ensemble", False),
         ),
         (
             "ensemble=nonsense",
@@ -456,15 +460,20 @@ def test_validate_args(builder: str, kwargs, fails, err_msg):
             None,
         ),
         (
+            "ensemble=1",
+            True,
+            None,
+        ),
+        (
             "esnmebel=True",
             False,
-            {},
+            ("esnmebel", "True"),
         ),
     ],
 )
-def test_parse_kwargs(kwargs, fails, expected):
+def test_parse_kwarg(kwarg, fails, expected):
     if not fails:
-        assert parse_kwargs(kwargs) == expected
+        assert parse_kwarg(kwarg) == expected
     else:
         with pytest.raises(TypeError):
-            parse_kwargs(kwargs)
+            parse_kwarg(kwarg)

@@ -16,7 +16,7 @@
         "experiment_uuid": {
             "type": "string",
             "format": "uuid",
-            "description": "Unique uuid for the experiment (string)"
+            "description": "*Unique* uuid for the experiment (string)"
         },
         "description": {
             "type": "string",

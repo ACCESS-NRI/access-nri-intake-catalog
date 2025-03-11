@@ -1,3 +1,4 @@
+import ast
 import json
 import re
 import warnings
@@ -292,25 +293,30 @@ def find_experiment_files(
     return {Path(file).resolve() for file in builder_instance.get_assets().assets}
 
 
-def parse_kwargs(kwargs: str) -> dict:
+def parse_kwarg(kwarg: str) -> tuple[str, Any]:
     """
     Builder kwargs can be passed as `--builder-kwargs arg1=val1 arg2=val2` etc.
-    This function parses them into a dictionary. It will require some additional
-    type coercion to pass on non string kwargs.
+    The argparse.parse_args() function will return these as a list of strings -
+    eg ['arg1=val1', 'arg2=val2'].  This function parses one of these strings into
+    a tuple, which is later converted to a dictionary.  It will require some
+    additional type coercion to pass on non string kwargs.
 
     The builders we use only take either a path, list of paths, or an `ensemble`
     kwarg. Ensemble is a boolean.
     """
-    ret = {}
-    for item in kwargs.split():
-        kw, arg = item.split("=")
-        if kw == "ensemble":
-            if arg.lower() not in ["true", "false"]:
-                raise TypeError(f"Ensemble kwarg must be a boolean, not {arg}.")
-            else:
-                ret[kw] = True if arg.lower() == "true" else False
+    kw, arg = kwarg.split("=")
+    if kw == "ensemble":
+        try:
+            arg = ast.literal_eval(arg.capitalize())
+            if not isinstance(arg, bool):
+                raise ValueError
+        except (ValueError, SyntaxError):
+            raise TypeError(f"Ensemble kwarg must be a boolean, not {arg}.")
 
-    return ret
+    # Do we use some sort of pattern matching in here to allow for passing through
+    # other kwargs to the builder? This will have changed with #346
+
+    return kw, arg
 
 
 def validate_args(builder: Builder, builder_kwargs: dict[str, Any]) -> None:
