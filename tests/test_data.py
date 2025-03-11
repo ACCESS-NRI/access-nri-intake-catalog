@@ -71,7 +71,7 @@ def test_available_versions_pretty(
     captured, _ = capfd.readouterr()
     assert (
         captured
-        == "v2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n\nDeprecated catalog /Users/mwhite/Documents/ACCESS-NRI/access-nri-intake-catalog/access-nri-intake-catalog/tests/data/catalog/catalog-versions-old.yaml:\nv2016-12-31*\nv2016-06-15\nv2016-01-01\n"
+        == "v2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n\nDeprecated catalog catalog-versions-old.yaml:\nv2016-12-31*\nv2016-06-15\nv2016-01-01\n"
     ), "Did not get expected catalog printout"
 
 

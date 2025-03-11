@@ -124,11 +124,13 @@ def available_versions(pretty: bool = True) -> list[str] | None:
                         "version"
                     ]["default"]
             except FileNotFoundError:
-                warnings.warn(f"Unable to find old catalog file {cat} - continuing")
+                warnings.warn(
+                    f"Unable to find old catalog file {cat.name} - continuing"
+                )
                 continue
             except KeyError:
                 warnings.warn(
-                    f"Old catalog file {cat} is improperly formatted - continuing"
+                    f"Old catalog file {cat.name} is improperly formatted - continuing"
                 )
                 continue
 
@@ -140,7 +142,7 @@ def available_versions(pretty: bool = True) -> list[str] | None:
             ]
 
             print("")
-            print(f"Deprecated catalog {cat}:")
+            print(f"Deprecated catalog {cat.name}:")
             for vers in cats_this_yaml:
                 if vers == vers_def:
                     print(f"{vers}*")
