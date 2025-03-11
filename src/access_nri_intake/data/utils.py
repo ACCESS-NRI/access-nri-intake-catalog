@@ -98,7 +98,7 @@ def available_versions(pretty: bool = True) -> list[str] | None:
         # In pretty mode, we want to look for & return the catalogs that are referred to
         # by outdated catalog files (catalog-YYYYMMDD-YYYYMMDD)
         # Locate the outdated catalog files
-        catalog_loc = Path(get_catalog_fp())
+        catalog_loc = Path(get_catalog_fp()).parent
         old_cats = catalog_loc.glob("catalog-*-*.yaml")
 
         for cat in old_cats:
