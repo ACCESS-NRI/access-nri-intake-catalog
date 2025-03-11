@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import re
+import warnings
 from pathlib import Path
 
 import yaml
@@ -89,20 +90,11 @@ def available_versions(pretty: bool = True) -> list[str] | None:
     ]
 
     # Find all the symlinked versions
-    symlinks = [s for s in cats if (Path(base_path) / s).is_symlink()]
+    symlinks = [s for s in cats_all if (Path(base_path) / s).is_symlink()]
 
     symlink_targets = {s: (base_path / s).readlink().name for s in symlinks}
 
     if pretty:
-
-        # In pretty mode, we want to look for & return the catalogs that are referred to
-        # by outdated catalog files (catalog-YYYYMMDD-YYYYMMDD)
-        # Locate the outdated catalog files
-        catalog_loc = Path(get_catalog_fp()).parent
-        old_cats = catalog_loc.glob("catalog-*-*.yaml")
-
-        for cat in old_cats:
-            pass
 
         for c in cats:
             if c in symlink_targets.keys():
@@ -110,6 +102,51 @@ def available_versions(pretty: bool = True) -> list[str] | None:
             if c == vers_def:
                 c += "*"
             print(c)
+
+        # In pretty mode, we want to look for & return the catalogs that are referred to
+        # by outdated catalog files (catalog-YYYYMMDD-YYYYMMDD)
+        # Locate the outdated catalog files
+        catalog_loc = Path(get_catalog_fp()).parent
+        # Recall globbing gives relative paths only
+        old_cats = catalog_loc.glob("catalog-*-*.yaml")
+
+        for cat in old_cats:
+            try:
+                with open(catalog_loc / cat) as old_cat_file:
+                    old_cat_yaml = yaml.safe_load(old_cat_file)
+                    vers_min = old_cat_yaml["sources"]["access_nri"]["parameters"][
+                        "version"
+                    ]["min"]
+                    vers_max = old_cat_yaml["sources"]["access_nri"]["parameters"][
+                        "version"
+                    ]["max"]
+                    vers_def = old_cat_yaml["sources"]["access_nri"]["parameters"][
+                        "version"
+                    ]["default"]
+            except FileNotFoundError:
+                warnings.warn(f"Unable to find old catalog file {cat} - continuing")
+                continue
+            except KeyError:
+                warnings.warn(
+                    f"Old catalog file {cat} is improperly formatted - continuing"
+                )
+                continue
+
+            # Work out which catalogs are related to this yaml
+            cats_this_yaml = [
+                cat
+                for cat in cats_all
+                if (cat >= vers_min and cat <= vers_max) or cat == vers_def
+            ]
+
+            print("")
+            print(f"Deprecated catalog {cat}:")
+            for vers in cats_this_yaml:
+                if vers == vers_def:
+                    print(f"{vers}*")
+                else:
+                    print(vers)
+
         return None
 
     return cats
