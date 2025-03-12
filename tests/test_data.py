@@ -78,7 +78,7 @@ def test_available_versions_pretty(
 @mock.patch("access_nri_intake.data.utils._get_catalog_root")
 @mock.patch("access_nri_intake.data.utils.get_catalog_fp")
 @mock.patch("pathlib.Path.glob")
-def test_available_versions_pretty_missing_files(
+def test_available_versions_pretty_missing_old_catalog_files(
     mock_glob, mock_get_catalog_fp, mock__get_catalog_root, test_data, capfd
 ):
     mock__get_catalog_root.return_value = test_data / "catalog/catalog-dirs"
