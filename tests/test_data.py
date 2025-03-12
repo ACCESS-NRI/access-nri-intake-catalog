@@ -75,6 +75,20 @@ def test_available_versions_pretty(
     ), "Did not get expected catalog printout"
 
 
+@mock.patch("access_nri_intake.data.utils._get_catalog_root")
+@mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+@mock.patch("pathlib.Path.glob")
+def test_available_versions_pretty_missing_files(
+    mock_glob, mock_get_catalog_fp, mock__get_catalog_root, test_data, capfd
+):
+    mock__get_catalog_root.return_value = test_data / "catalog/catalog-dirs"
+    mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
+    mock_glob.return_value = [Path("nope.yaml"), Path("nope2.yaml")]
+
+    with pytest.warns(UserWarning, match="Unable to find old catalog file"):
+        available_versions(pretty=True)
+
+
 @mock.patch(
     "access_nri_intake.data.utils.get_catalog_fp", return_value="/this/is/not/real.yaml"
 )

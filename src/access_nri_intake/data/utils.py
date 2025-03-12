@@ -95,7 +95,6 @@ def available_versions(pretty: bool = True) -> list[str] | None:
     symlink_targets = {s: (base_path / s).readlink().name for s in symlinks}
 
     if pretty:
-
         for c in cats:
             if c in symlink_targets.keys():
                 c += f"(-->{symlink_targets[c]})"
@@ -125,12 +124,14 @@ def available_versions(pretty: bool = True) -> list[str] | None:
                     ]["default"]
             except FileNotFoundError:
                 warnings.warn(
-                    f"Unable to find old catalog file {cat.name} - continuing"
+                    f"Unable to find old catalog file {cat.name} - continuing",
+                    category=UserWarning,
                 )
                 continue
             except KeyError:
                 warnings.warn(
-                    f"Old catalog file {cat.name} is improperly formatted - continuing"
+                    f"Old catalog file {cat.name} is improperly formatted - continuing",
+                    category=UserWarning,
                 )
                 continue
 
