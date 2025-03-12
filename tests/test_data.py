@@ -70,8 +70,23 @@ def test_available_versions_pretty(
     available_versions(pretty=True)
     captured, _ = capfd.readouterr()
     assert (
-        captured == "v2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n"
+        captured
+        == "v2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n\nDeprecated catalog catalog-versions-old.yaml:\nv2016-12-31*\nv2016-06-15\nv2016-01-01\n"
     ), "Did not get expected catalog printout"
+
+
+@mock.patch("access_nri_intake.data.utils._get_catalog_root")
+@mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+@mock.patch("pathlib.Path.glob")
+def test_available_versions_pretty_missing_old_catalog_files(
+    mock_glob, mock_get_catalog_fp, mock__get_catalog_root, test_data, capfd
+):
+    mock__get_catalog_root.return_value = test_data / "catalog/catalog-dirs"
+    mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
+    mock_glob.return_value = [Path("nope.yaml"), Path("nope2.yaml")]
+
+    with pytest.warns(UserWarning, match="Unable to find old catalog file"):
+        available_versions(pretty=True)
 
 
 @mock.patch(
