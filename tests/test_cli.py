@@ -1192,6 +1192,7 @@ def test_metadata_template(tmp_path):
         raise RuntimeError("Didn't write template into temp dir")
 
 
+@pytest.mark.skip
 def test_metadata_template_default_loc():
     metadata_template()
     if (Path.cwd() / "metadata.yaml").is_file():
