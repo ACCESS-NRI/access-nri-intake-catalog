@@ -11,5 +11,5 @@ CATALOG_LOCATION = "/g/data/xp65/public/apps/access-nri-intake-catalog/catalog.y
 USER_CATALOG_LOCATION = str(Path.home() / ".access_nri_intake_catalog/catalog.yaml")
 
 STORAGE_FLAG_PATTERN = "gdata/[a-z]{1,2}[0-9]{1,2}"
-STORAGE_LOCATION_REGEX = r"/g/data/([^/]*)/.*"
+STORAGE_LOCATION_REGEX = r"^/g/data/(?P<proj>[a-z]{1,2}[0-9]{1,2})/.*?$"
 STORAGE_ROOT = "/g/data"
