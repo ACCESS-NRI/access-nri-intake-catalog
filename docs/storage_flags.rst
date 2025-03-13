@@ -1,3 +1,3 @@
 .. code-block::
 
-   gdata/fs38+gdata/oi10+gdata/zz63+gdata/rr3+gdata/al33+gdata/hq89+gdata/cj50+gdata/ik11+gdata/py18+gdata/xp65+gdata/jk72+gdata/ig45+gdata/rt52+gdata/p73
+   gdata/al33+gdata/cj50+gdata/fs38+gdata/hq89+gdata/ig45+gdata/ik11+gdata/jk72+gdata/oi10+gdata/p73+gdata/py18+gdata/rr3+gdata/rt52+gdata/xp65+gdata/zz63
