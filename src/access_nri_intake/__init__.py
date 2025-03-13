@@ -12,3 +12,4 @@ USER_CATALOG_LOCATION = str(Path.home() / ".access_nri_intake_catalog/catalog.ya
 
 STORAGE_FLAG_PATTERN = "gdata/[a-z]{1,2}[0-9]{1,2}"
 STORAGE_LOCATION_REGEX = r"/g/data/([^/]*)/.*"
+STORAGE_ROOT = "/g/data"
