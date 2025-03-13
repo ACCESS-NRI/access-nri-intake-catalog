@@ -16,6 +16,7 @@ import jsonschema
 import yaml
 from intake import open_esm_datastore
 
+from . import STORAGE_FLAG_PATTERN
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
@@ -24,8 +25,6 @@ from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
 from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
-
-STORAGE_FLAG_PATTERN = "gdata/[a-z]{1,2}[0-9]{1,2}"
 
 
 class MetadataCheckError(Exception):
