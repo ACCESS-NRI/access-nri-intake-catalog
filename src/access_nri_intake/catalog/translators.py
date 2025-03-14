@@ -20,6 +20,16 @@ from .utils import _to_tuple, tuplify_series
 # Note: important that when using @tuplify_series and @trace_failure decorators,
 # trace failure is the innermost decorator
 
+__all__ = [
+    "Cmip6Translator",
+    "Cmip5Translator",
+    "BarpaTranslator",
+    "CordexTranslator",
+    "Era5Translator",
+    "CcamTranslator",
+    "NarclimTranslator",
+]
+
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
     "monthly-averaged-by-day": "1hr",
