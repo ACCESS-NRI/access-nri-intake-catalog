@@ -1,6 +1,6 @@
-schema_version: <The version of the schema (string)>
+schema_version: 1-0-3  # metadata-template automatically gives the correct value
 name: <REQUIRED The name of the experiment (string)>
-experiment_uuid: <REQUIRED Unique uuid for the experiment (string)>
+experiment_uuid: <REQUIRED *Unique* uuid for the experiment (string)>
 description: <REQUIRED Short description of the experiment (string, < 150 char)>
 long_description: <REQUIRED Long description of the experiment (string)>
 model:

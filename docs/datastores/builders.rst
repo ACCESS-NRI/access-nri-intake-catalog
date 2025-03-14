@@ -12,7 +12,7 @@ The access-nri-intake package is installed in the :code:`xp65` analysis environm
 users can install it into their own environment (see :ref:`installation` for details). The Builders can be 
 imported from the :code:`access_nri_intake.source.builders` submodule.
 
-There are currently four Builders available. Their core public APIs are given below (their full APIs can be
+There are currently six Builders available. Their core public APIs are given below (their full APIs can be
 found in :ref:`source_api`).
 
 .. note::
@@ -43,6 +43,20 @@ ACCESS-OM3 output: :code:`AccessOm3Builder`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: access_nri_intake.source.builders.AccessOm3Builder
+   :special-members: __init__, build, save
+   :noindex:
+
+MOM6 output: :code:`Mom6Builder`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: access_nri_intake.source.builders.Mom6Builder
+   :special-members: __init__, build, save
+   :noindex:
+
+ROMSIceShelf output: :code:`ROMSBuilder`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: access_nri_intake.source.builders.ROMSBuilder
    :special-members: __init__, build, save
    :noindex:
 
