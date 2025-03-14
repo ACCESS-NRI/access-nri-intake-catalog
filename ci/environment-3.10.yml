@@ -20,4 +20,4 @@ dependencies:
     - codecov
     - pytest-cov
     - yamanifest
-    
+    - access-py-telemetry
