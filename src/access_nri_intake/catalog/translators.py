@@ -7,7 +7,7 @@ like the ACCESS-NRI catalog
 """
 
 from dataclasses import dataclass
-from functools import partial, wraps
+from functools import partial
 from typing import Callable
 
 import pandas as pd
@@ -15,10 +15,7 @@ import tlz
 from intake import DataSource
 
 from . import COLUMNS_WITH_ITERABLES
-from .utils import _to_tuple, tuplify_series
-
-# Note: important that when using @tuplify_series and @trace_failure decorators,
-# trace failure is the innermost decorator
+from .utils import _to_tuple, trace_failure, tuplify_series
 
 __all__ = [
     "Cmip6Translator",
@@ -47,29 +44,6 @@ FREQUENCY_TRANSLATIONS = {
     "yr": "1yr",
     "yrPt": "1yr",
 }
-
-
-def trace_failure(func: Callable) -> Callable:
-    """
-    Decorator that wraps a function and prints a message if it raises an exception
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        func_name = func.__name__
-        colname = func_name[1:].split("_")[0]
-        # Ensure the first argument is an instance of the class
-        if not isinstance(args[0], DefaultTranslator):
-            raise TypeError("Decorator can only be applied to class methods")
-
-        try:
-            return func(*args, **kwargs)
-        except KeyError as exc:
-            raise KeyError(
-                f"Unable to translate '{colname}' column with translator '{args[0].__class__.__name__}'"
-            ) from exc
-
-    return wrapper
 
 
 class TranslatorError(Exception):
@@ -235,16 +209,16 @@ class DefaultTranslator:
         """
         return _cmip_realm_translator(self.source.df[self._dispatch_keys.realm])
 
-    @tuplify_series
     @trace_failure
+    @tuplify_series
     def _model_translator(self) -> pd.Series:
         """
         Return model from dispatch_keys.model
         """
         return self.source.df[self._dispatch_keys.model]
 
-    @tuplify_series
     @trace_failure
+    @tuplify_series
     def _frequency_translator(self) -> pd.Series:
         """
         Return frequency, fixing a few issues
@@ -253,8 +227,8 @@ class DefaultTranslator:
             lambda x: FREQUENCY_TRANSLATIONS.get(x, x)
         )
 
-    @tuplify_series
     @trace_failure
+    @tuplify_series
     def _variable_translator(self) -> pd.Series:
         """
         Return variable as a tuple
