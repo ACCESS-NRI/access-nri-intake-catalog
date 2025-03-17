@@ -38,7 +38,7 @@ def v_num():
     return datetime.now().strftime("v%Y-%m-%d")
 
 
-@pytest.fixture(autouse=True, scope="function")
+@pytest.fixture(scope="function")
 def check_metadata_cwd():
 
     # Run test
