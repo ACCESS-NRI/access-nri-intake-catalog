@@ -1200,6 +1200,11 @@ def test_metadata_template_default_loc():
         raise RuntimeError("Didn't write template into PWD")
 
 
+def test_metadata_template_bad_loc():
+    with pytest.raises(FileNotFoundError):
+        metadata_template(["--loc", "/path/does/not/exist"])
+
+
 @pytest.mark.parametrize(
     "builder",
     [
