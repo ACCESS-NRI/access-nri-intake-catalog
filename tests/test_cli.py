@@ -1187,14 +1187,13 @@ def test_metadata_validate_no_file():
 
 
 def test_metadata_template(tmp_path):
-    metadata_template(loc=tmp_path)
+    metadata_template(["--loc", str(tmp_path)])
     if not (tmp_path / "metadata.yaml").is_file():
         raise RuntimeError("Didn't write template into temp dir")
 
 
-@pytest.mark.skip
 def test_metadata_template_default_loc():
-    metadata_template()
+    metadata_template([])
     if (Path.cwd() / "metadata.yaml").is_file():
         (Path.cwd() / "metadata.yaml").unlink()
     else:
