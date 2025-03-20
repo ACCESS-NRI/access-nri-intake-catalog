@@ -17,6 +17,16 @@ from intake import DataSource
 from . import COLUMNS_WITH_ITERABLES
 from .utils import _to_tuple, trace_failure, tuplify_series
 
+__all__ = [
+    "Cmip6Translator",
+    "Cmip5Translator",
+    "BarpaTranslator",
+    "CordexTranslator",
+    "Era5Translator",
+    "CcamTranslator",
+    "NarclimTranslator",
+]
+
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
     "monthly-averaged-by-day": "1hr",
