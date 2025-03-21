@@ -27,6 +27,7 @@ __all__ = [
     "Mom6Builder",
     "AccessEsm15Builder",
     "AccessCm2Builder",
+    "ROMSBuilder",
 ]
 
 # Frequency translations
