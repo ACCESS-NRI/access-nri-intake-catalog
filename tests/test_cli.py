@@ -1179,25 +1179,30 @@ def test_metadata_validate_multi(test_data):
     metadata_validate(files)
 
 
-def test_metadata_validate_no_file():
+def test_metadata_validate_no_file(check_metadata_cwd):
     """Test metadata_validate"""
     with pytest.raises(FileNotFoundError) as excinfo:
         metadata_validate(["./does/not/exist.yaml"])
     assert "No such file(s)" in str(excinfo.value)
 
 
-def test_metadata_template(tmp_path):
-    metadata_template(loc=tmp_path)
+def test_metadata_template(check_metadata_cwd, tmp_path):
+    metadata_template(["--loc", str(tmp_path)])
     if not (tmp_path / "metadata.yaml").is_file():
         raise RuntimeError("Didn't write template into temp dir")
 
 
-def test_metadata_template_default_loc():
-    metadata_template()
+def test_metadata_template_default_loc(check_metadata_cwd):
+    metadata_template([])
     if (Path.cwd() / "metadata.yaml").is_file():
         (Path.cwd() / "metadata.yaml").unlink()
     else:
         raise RuntimeError("Didn't write template into PWD")
+
+
+def test_metadata_template_bad_loc():
+    with pytest.raises(FileNotFoundError):
+        metadata_template(["--loc", "/path/does/not/exist"])
 
 
 @pytest.mark.parametrize(

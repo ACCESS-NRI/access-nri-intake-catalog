@@ -578,7 +578,7 @@ def metadata_validate(argv: Sequence[str] | None = None):
             raise FileNotFoundError(f"No such file(s): {f}")
 
 
-def metadata_template(loc: str | Path | None = None) -> None:
+def metadata_template(argv: Sequence[str] | None = None) -> None:
     """
     Create an empty template for a metadata.yaml file using the experiment schema.
 
@@ -594,8 +594,15 @@ def metadata_template(loc: str | Path | None = None) -> None:
         None
     """
 
-    if loc is None:
-        loc = Path.cwd()
+    parser = argparse.ArgumentParser(description="Create a template metadata.yaml file")
+    parser.add_argument(
+        "--loc",
+        help="The directory in which to save the template. Defaults to the current working directory.",
+        default=str(Path.cwd()),
+    )
+
+    args = parser.parse_args(argv)
+    loc = Path(args.loc)
 
     argparse.ArgumentParser(description="Generate a template for metadata.yaml")
 
