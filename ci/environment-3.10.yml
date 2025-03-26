@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
   - python==3.10
+  - access-py-telemetry
   - cftime
   - ecgtools>=2023.7.13
   - intake>=2.0.0
@@ -20,4 +21,3 @@ dependencies:
     - codecov
     - pytest-cov
     - yamanifest
-    - access-py-telemetry

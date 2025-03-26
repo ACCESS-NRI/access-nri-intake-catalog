@@ -24,7 +24,7 @@ dependencies = [
     "xarray",
     "colorama",
     "yamanifest",
-    "access-py-telemetry>=0.1.0",
+    "access-py-telemetry>=0.1.2",
 ]
 dynamic = ["version"]
 
