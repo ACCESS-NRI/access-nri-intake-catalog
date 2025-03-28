@@ -20,6 +20,9 @@ CATALOG_NAME_FORMAT = (
 
 try:
     data = intake.open_catalog(get_catalog_fp()).access_nri
+    cat_version = data._captured_init_kwargs.get("metadata", {}).get(
+        "version", "latest"
+    )  # Get the catalog version number and set it to "latest" if it can't be found
 except FileNotFoundError:
     warnings.warn(
         "Unable to access a default catalog location. Calling intake.cat.access_nri will not work.",
@@ -27,9 +30,14 @@ except FileNotFoundError:
         stacklevel=2,
     )
     data = intake.catalog.Catalog()
+    cat_version = -999  # Failed to load a catalog - bad result flag
 finally:
-    cat_version = data._captured_init_kwargs.get("metadata", {}).get(
-        "version", "latest"
-    )  # Get the catalog version number and set it to "latest" if it can't be found
     configure_telemetry(["--enable", "--silent"])
     api_handler.add_extra_fields("intake_catalog", {"catalog_version": cat_version})
+
+    api_handler.send_api_request(
+        service_name="intake_catalog",
+        function_name="intake.cat.access_nri",
+        args=[],
+        kwargs={"version": cat_version},
+    )
