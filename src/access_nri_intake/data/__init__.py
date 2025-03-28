@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import warnings
+from pathlib import Path
 
 import intake
 import intake.catalog
@@ -10,8 +11,15 @@ from access_py_telemetry.cli import configure_telemetry
 
 from access_nri_intake.utils import get_catalog_fp
 
+token = (
+    Path("/g/data/xp65/admin/access-nri-intake-catalog/TELEMETRY_TOKEN")
+    .read_text(encoding="utf8")
+    .strip()
+)
+
 api_handler = ApiHandler()
 api_handler.server_url = "https://reporting-dev.access-nri-store.cloud.edu.au/api"
+api_handler.set_headers(None, {"Authorization": f"Token {token}"})
 
 CATALOG_NAME_FORMAT = (
     r"^v(?P<yr>2[0-9]{3})\-(?P<mon>1[0-2]|0[1-9])\-(?P<day>0[1-9]|[1-2][0-9]|3[0-1])$"
