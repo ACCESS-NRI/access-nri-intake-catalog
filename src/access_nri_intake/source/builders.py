@@ -30,6 +30,7 @@ __all__ = [
     "Mom6Builder",
     "AccessEsm15Builder",
     "AccessCm2Builder",
+    "ROMSBuilder",
 ]
 
 # Frequency translations
@@ -57,6 +58,7 @@ PATTERNS_HELPERS = {
     "ymd-ns": "\\d{4}\\d{2}\\d{2}",
     "ym": "\\d{4}[_,\\-]\\d{2}",
     "y": "\\d{4}",
+    "counter": "\\d+",
 }
 
 TIMESTAMP_GROUP = "ts"
@@ -391,7 +393,7 @@ class AccessOm2Builder(BaseBuilder):
         rf"^ocean.*([^\d])_(?P<{TIMESTAMP_GROUP}>\d{{2}})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
     ]
 
-    def __init__(self, path):
+    def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm2Builder
 
@@ -404,8 +406,8 @@ class AccessOm2Builder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=3,
-            exclude_patterns=["*restart*", "*o2i.nc"],
-            include_patterns=["*.nc"],
+            exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*", "*o2i.nc"],
+            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
             groupby_attrs=["file_id", "frequency"],
             aggregations=[
@@ -450,7 +452,7 @@ class AccessOm3Builder(BaseBuilder):
         rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
     ]
 
-    def __init__(self, path):
+    def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm3Builder
 
@@ -463,14 +465,15 @@ class AccessOm3Builder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=2,
-            exclude_patterns=[
+            exclude_patterns=kwargs.get("exclude_patterns")
+            or [
                 "*restart*",
                 "*MOM_IC.nc",
                 "*ocean_geometry.nc",
                 "*ocean.stats.nc",
                 "*Vertical_coordinate.nc",
             ],
-            include_patterns=["*.nc"],
+            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
             groupby_attrs=["file_id", "frequency"],
             aggregations=[
@@ -526,7 +529,7 @@ class Mom6Builder(BaseBuilder):
     ]
     TIME_PARSER = GfdlTimeParser
 
-    def __init__(self, path):
+    def __init__(self, path, **kwargs):
         """
         Initialise a Mom6Builder
 
@@ -539,7 +542,8 @@ class Mom6Builder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=1,
-            exclude_patterns=[
+            exclude_patterns=kwargs.get("exclude_patterns")
+            or [
                 "*restart*",
                 "*MOM_IC.nc",
                 "*sea_ice_geometry.nc",
@@ -547,7 +551,7 @@ class Mom6Builder(BaseBuilder):
                 "*ocean.stats.nc",
                 "*Vertical_coordinate.nc",
             ],
-            include_patterns=["*.nc"],
+            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
             groupby_attrs=["file_id", "frequency"],
             aggregations=[
@@ -572,7 +576,7 @@ class Mom6Builder(BaseBuilder):
 
             if "ocean" in ncinfo_dict["filename"]:
                 realm = "ocean"
-            elif "ice" in ncinfo_dict["filename"]:
+            elif "ice" in ncinfo_dict["filename"] or "roms" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
@@ -592,7 +596,7 @@ class AccessEsm15Builder(BaseBuilder):
         rf"^.*\.p.-(?P<{TIMESTAMP_GROUP}>\d{{6}})_.*",  # ACCESS-ESM1.5 atmosphere
     ]
 
-    def __init__(self, path, ensemble: bool):
+    def __init__(self, path, ensemble: bool, **kwargs):
         """
         Initialise a AccessEsm15Builder
 
@@ -608,8 +612,8 @@ class AccessEsm15Builder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=3,
-            exclude_patterns=["*restart*"],
-            include_patterns=["*.nc*"],
+            exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*"],
+            include_patterns=kwargs.get("include_patterns") or ["*.nc*"],
             data_format="netcdf",
             groupby_attrs=["file_id", "frequency"],
             aggregations=[
@@ -670,6 +674,62 @@ class AccessCm2Builder(AccessEsm15Builder):
         rf"^iceh.*\.(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
         rf"^.*\.p.(?P<{TIMESTAMP_GROUP}>\d{{6}})_.*",  # ACCESS-CM2 atmosphere
     ]
+
+
+class ROMSBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for ROMS datasets
+
+    See https://github.com/bkgf/ROMSIceShelf for details on the ROMSIceShelf model.
+    """
+
+    PATTERNS = [
+        rf"^roms_his_({PATTERNS_HELPERS['counter']}).*?$",
+    ]
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a AccessOm2Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=1,
+            exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
+            data_format="netcdf",
+            groupby_attrs=["file_id", "frequency"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "ocean_time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        try:
+            realm = "seaIce"
+
+            nc_info = cls.parse_ncfile(file, time_dim="ocean_time")
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["realm"] = realm
+
+            return ncinfo_dict
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 
 class MopperBuilder(BaseBuilder):

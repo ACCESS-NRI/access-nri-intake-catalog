@@ -18,7 +18,7 @@ or may not include an update to the ACCESS-NRI catalog files on Gadi.
    .. note::
 
       It is recommended to attempt a beta release before committing to a major code update.
-      In this case, the version number requires an ordinal after the :code:`b`, e.g., :code:`vYYYY-MM-DDb0`. If the
+      In this case, the version number requires an ordinal after the :code:`b`, e.g., :code:`v1.2.3b0`. If the
       ordinal isn't provided, the GitHub PyPI build action will append one, which breaks the linkage
       between the PyPI and Conda build actions.
 

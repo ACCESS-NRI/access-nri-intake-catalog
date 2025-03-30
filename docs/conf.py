@@ -26,12 +26,9 @@ extensions = [
     "sphinx.ext.autosummary",
     "autoapi.extension",
     "myst_nb",
-    "sphinx_panels",
+    "sphinx_design",
     "sphinx_copybutton",
 ]
-
-# Don't load the bootstrap 4 CSS classes relevant to panels
-panels_add_bootstrap_css = False
 
 autosummary_generate = False
 autodoc_typehints = "none"

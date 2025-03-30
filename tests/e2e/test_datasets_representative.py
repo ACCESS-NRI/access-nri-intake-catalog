@@ -10,11 +10,7 @@ from . import e2e
 @e2e
 @pytest.mark.parametrize(
     "translator_name",
-    [
-        t
-        for t in dir(translators)
-        if t.endswith("Translator") and not t.startswith("Default")
-    ],
+    [t for t in translators.__all__],
 )
 def test_alignment(translator_name, live_config_dir, BASE_DIR, v_num):
     # Now live test the translator. Honestly, might be overkill - it might be easier

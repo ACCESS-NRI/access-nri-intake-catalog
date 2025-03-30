@@ -393,4 +393,6 @@ def test_translator_failure(test_data):
     with pytest.raises(TypeError) as excinfo:
         _(1)
 
-    assert "Decorator can only be applied to class methods" in str(excinfo.value)
+    assert "Decorator can only be applied to translator class methods" in str(
+        excinfo.value
+    )

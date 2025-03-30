@@ -19,6 +19,15 @@ know which data products contain variables X, Y and Z at monthly frequency. The 
 enables users to find products that satisfy their query and to subsequently load their data without 
 having to know the location and structure of the underlying files.
 
+.. topic:: Hang on, I don't have access to Gadi!
+
+   Never fear, you may still have a use for :code:`access-nri-intake-catalog`! You can use the :ref:`builders` in 
+   the package to create Intake-ESM datastores for your own experiments. See the `Quickstart tutorial`_ 
+   on building your own Intake-ESM datastores for details.
+
+   .. _Quickstart tutorial: ../datastores/quickstart.html
+
+
 .. _what_detailed:
 
 The more detailed description

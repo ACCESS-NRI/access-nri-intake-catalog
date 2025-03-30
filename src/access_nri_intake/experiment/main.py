@@ -76,7 +76,10 @@ def use_datastore(
     catalog_dir = catalog_dir or experiment_dir
     builder_kwargs = builder_kwargs or {}
 
-    catalog_dir, experiment_dir = Path(catalog_dir), Path(experiment_dir)
+    catalog_dir, experiment_dir = (
+        Path(catalog_dir).expanduser(),
+        Path(experiment_dir).expanduser(),
+    )
 
     catalog_dir_fmap = {
         ".": "current directory",
@@ -85,7 +88,7 @@ def use_datastore(
 
     formatted_catdir_name = catalog_dir_fmap.get(str(catalog_dir), str(catalog_dir))
 
-    ds_info = find_esm_datastore(catalog_dir)
+    ds_info = find_esm_datastore(catalog_dir, datastore_name)
 
     if ds_info.valid:  # Nothing is obviously wrong with the datastore
         print(
@@ -159,10 +162,10 @@ def use_datastore(
     return None
 
 
-def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
+def find_esm_datastore(experiment_dir: Path, datastore_name: str) -> DatastoreInfo:
     """
-    Try to find an ESM datastore in the experiment directory. If not, return a dummy
-    DatastoreInfo object.
+    Try to find an ESM datastore in the experiment directory, with the same name
+    as the one we intend to build. If not, return a dummy DatastoreInfo object.
 
     To find an ESM datastore, we use the heuristic that an esm_datastore comprises
     a json file and a csv.gz (or.csv) file with the same name. To find these, we are
@@ -174,6 +177,8 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
     ----------
     experiment_dir : Path
         The directory containing the experiment.
+    datastore_name : str
+        The name of the datastore to be found.
 
     Returns
     -------
@@ -200,6 +205,9 @@ def find_esm_datastore(experiment_dir: Path) -> DatastoreInfo:
                 and json_file.parent == csv_file.parent
             ):
                 matched_pairs.append((json_file, csv_file))
+
+    # Remove any datastores that are not named the same as the one we are looking for
+    matched_pairs = [pair for pair in matched_pairs if pair[0].stem == datastore_name]
 
     if len(matched_pairs) == 0:
         return DatastoreInfo("", "", False, "")

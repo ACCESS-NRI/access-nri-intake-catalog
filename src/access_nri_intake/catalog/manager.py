@@ -116,7 +116,7 @@ class CatalogManager:
         builder.save(name=name, description=description, directory=directory)
 
         self.source, self.source_metadata = _open_and_translate(
-            json_file,
+            str(json_file),
             "esm_datastore",
             name,
             description,
