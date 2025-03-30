@@ -234,36 +234,67 @@ class BaseBuilder(Builder):
         raise NotImplementedError
 
     @classmethod
-    def generate_file_shape_info(
-        cls, filename: str | Path, time_dim: str = "time"
-    ) -> str:
+    def parse_filename(
+        cls,
+        filename: str,
+        patterns: list[str] | None = None,
+        frequencies: dict = FREQUENCIES,
+        redaction_fill: str = "X",
+    ) -> tuple[str, str | None, str | None]:
         """
-        Parse an ACCESS model file and return a file id constructed from shape information.
+        Parse an ACCESS model filename and return a file id and any time information
 
         Parameters
         ----------
-        filename: str or pathlib.Path
-            The filename of the file to parse
-        time_dim: str
-            The time dimension name for this file. Defaults to "time".
+        filename: str
+            The filename to parse with the extension removed
+        patterns: list of str, optional
+            A list of regex patterns to match against the filename. If None, use the class PATTERNS
+        frequencies: dict, optional
+            A dictionary of regex patterns to match against the filename to determine the frequency
+        redaction_fill: str, optional
+            The character to replace time information with. Defaults to "X"
 
         Returns
         -------
-        shape_info: str
-            The file id constructed by examining the sizes of the file, less
-            the time dimension.
+        file_id: str
+            The file id constructed by redacting time information and replacing non-python characters
+            with underscores
+        timestamp: str | None
+            A string of the redacted time information (e.g. "1990-01") if available, otherwise None
+        frequency: str | None
+            The frequency of the file if available in the filename, otherwise None
         """
+        if patterns is None:
+            patterns = cls.PATTERNS
 
-        # Open the file using xarray
-        with xr.open_dataset(
-            filename, mode="r", engine="netcdf4", decode_times=False
-        ) as xds:
-            file_id = ".".join(
-                sorted([f"{s}:{xds.sizes[s]}" for s in xds.sizes if s != time_dim])
-            )
-            # Sorting should ensure reproducibility
+        # Try to determine frequency
+        frequency = None
+        for pattern, freq in frequencies.items():
+            if re.search(pattern, filename):
+                frequency = freq
+                break
 
-        return file_id
+        # Parse file id
+        file_id = filename
+        timestamp = None
+        for pattern in patterns:
+            match = re.match(pattern, file_id)
+            if match:
+                # FIXME switch to using named group for timestamp
+                # Loop over all found groups and redact
+                timestamp = match.group(1)
+                for grp in match.groups():
+                    if grp is not None:
+                        redaction = re.sub(r"\d", redaction_fill, grp)
+                        file_id = re.sub(grp, redaction, file_id)
+                break
+
+        # Remove non-python characters from file ids
+        file_id = re.sub(r"[-.]", "_", file_id)
+        file_id = re.sub(r"_+", "_", file_id).strip("_")
+
+        return file_id, timestamp, frequency
 
     @classmethod
     def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
@@ -289,7 +320,9 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        # file_id, _, _ = cls.parse_filename(file_path.stem)
+        file_id, filename_timestamp, filename_frequency = cls.parse_filename(
+            file_path.stem
+        )
 
         with xr.open_dataset(
             file,
@@ -304,7 +337,9 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = cls.TIME_PARSER(ds, time_dim)()
+            start_date, end_date, frequency = cls.TIME_PARSER(
+                ds, filename_frequency, time_dim
+            )()
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
@@ -312,7 +347,8 @@ class BaseBuilder(Builder):
         output_ncfile = _NCFileInfo(
             filename=file_path.name,
             path=file,
-            file_id="",
+            file_id=file_id,
+            filename_timestamp=filename_timestamp,
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
@@ -348,9 +384,7 @@ class AccessOm2Builder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*", "*o2i.nc"],
             include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
-            groupby_attrs=[
-                "file_id",
-            ],
+            groupby_attrs=["file_id", "frequency"],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -379,14 +413,6 @@ class AccessOm2Builder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
-            ncinfo_dict["file_id"] = ".".join(
-                [
-                    str(ncinfo_dict["realm"]),
-                    str(ncinfo_dict["frequency"]),
-                    str(ncinfo_dict["file_id"]),
-                ]
-            )
 
             return ncinfo_dict
 
@@ -424,9 +450,7 @@ class AccessOm3Builder(BaseBuilder):
             ],
             include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
-            groupby_attrs=[
-                "file_id",
-            ],
+            groupby_attrs=["file_id", "frequency"],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -456,14 +480,6 @@ class AccessOm3Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
-            ncinfo_dict["file_id"] = ".".join(
-                [
-                    str(ncinfo_dict["realm"]),
-                    str(ncinfo_dict["frequency"]),
-                    str(ncinfo_dict["file_id"]),
-                ]
-            )
 
             return ncinfo_dict
 
@@ -508,9 +524,7 @@ class Mom6Builder(BaseBuilder):
             ],
             include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
-            groupby_attrs=[
-                "file_id",
-            ],
+            groupby_attrs=["file_id", "frequency"],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -538,10 +552,6 @@ class Mom6Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
-            ncinfo_dict["file_id"] = ".".join(
-                [ncinfo_dict["realm"], ncinfo_dict["frequency"], ncinfo_dict["file_id"]]
-            )
 
             return ncinfo_dict
 
@@ -576,9 +586,7 @@ class AccessEsm15Builder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*"],
             include_patterns=kwargs.get("include_patterns") or ["*.nc*"],
             data_format="netcdf",
-            groupby_attrs=[
-                "file_id",
-            ],
+            groupby_attrs=["file_id", "frequency"],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -613,12 +621,14 @@ class AccessEsm15Builder(BaseBuilder):
             nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
+            # Remove exp_id from file id so that members can be part of the same dataset
+            ncinfo_dict["file_id"] = re.sub(
+                exp_id,
+                "",
+                ncinfo_dict["file_id"],
+            ).strip("_")
             ncinfo_dict["realm"] = realm_mapping[realm]
             ncinfo_dict["member"] = exp_id
-            ncinfo_dict["file_id"] = ".".join(
-                [ncinfo_dict["realm"], ncinfo_dict["frequency"], ncinfo_dict["file_id"]]
-            )
 
             return ncinfo_dict
 
@@ -663,9 +673,7 @@ class ROMSBuilder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
-            groupby_attrs=[
-                "file_id",
-            ],
+            groupby_attrs=["file_id", "frequency"],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -684,22 +692,11 @@ class ROMSBuilder(BaseBuilder):
     def parser(cls, file) -> dict:
         try:
             realm = "seaIce"
-            time_dim = "ocean_time"
 
-            nc_info = cls.parse_ncfile(file, time_dim=time_dim)
+            nc_info = cls.parse_ncfile(file, time_dim="ocean_time")
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(
-                Path(file), time_dim=time_dim
-            )
-            ncinfo_dict["file_id"] = ".".join(
-                [
-                    str(ncinfo_dict["realm"]),
-                    str(ncinfo_dict["frequency"]),
-                    str(ncinfo_dict["file_id"]),
-                ]
-            )
 
             return ncinfo_dict
         except Exception:

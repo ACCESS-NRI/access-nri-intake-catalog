@@ -3,8 +3,6 @@
 
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
-import os
-import re
 import warnings
 from dataclasses import asdict, dataclass, field
 from datetime import timedelta
@@ -14,26 +12,6 @@ import cftime
 import xarray as xr
 
 FREQUENCY_STATIC = "fx"
-
-
-# Note the ordering of this dictionary - we are deliberately searching for
-# the 'rarer' frequency descriptors first, because, e.g., "mon" may appear as
-# part of a totally unrelated word in the filename
-FILENAME_TO_FREQ = {
-    "annual": "yr",
-    "yearly": "yr",
-    "hourly": "hr",
-    "hour": "hr",
-    "monthly": "mon",
-    "month": "mon",
-    "daily": "day",
-    "day": "day",
-    "year": "yr",
-    "yr": "yr",
-    "mth": "mon",
-    "mon": "mon",
-    "hr": "hr",
-}
 
 
 class EmptyFileError(Exception):
@@ -54,8 +32,9 @@ class _NCFileInfo:
     """
 
     filename: str | Path
-    path: str
     file_id: str
+    path: str
+    filename_timestamp: str | None
     frequency: str
     start_date: str
     end_date: str
@@ -120,7 +99,7 @@ class GenericTimeParser:
 
     TIMEINFO_TIME_FORMAT = "%Y-%m-%d, %H:%M:%S"
 
-    def __init__(self, ds: xr.Dataset, time_dim: str):
+    def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
         """
         Parameters
         ----------
@@ -132,6 +111,7 @@ class GenericTimeParser:
             The name of the time dimension
         """
         self.ds = ds
+        self.filename_frequency = filename_frequency
         self.time_dim = time_dim
 
     @staticmethod
@@ -186,49 +166,6 @@ class GenericTimeParser:
             warnings.warn("Cannot infer start and end times for subhourly frequencies.")
         return ts, te
 
-    def _guess_freq_from_fn(self) -> tuple[int, str] | str:
-        """
-        As a last resort, attempt to guess the file frequency from the filename.
-
-        WARNING: This should only be used in desperation for data which has failed to
-        include the time bounds, and only has one time datum!
-
-        This functions works by scanning the `self.ds` filename for any values that match
-        keys in the module FILENAME_TO_FREQ reference dictionary, optionally with a numerical
-        designator ahead of it. So, e.g.::
-
-            "3mon" --> (3, "mon")
-            "yr"   --> (1, "yr")
-            "6hr"  --> (6, "hr")
-
-
-        """
-
-        ds = self.ds
-
-        # Sequentially move through the possible frequency 'clues' in the filename until we
-        # find a match
-        for clue, freq in FILENAME_TO_FREQ.items():
-            try:
-                poss_match = re.match(
-                    f".*?(?P<num>[1-9]?[0-9]*)(?P<freq>{clue}).*",
-                    os.path.basename(ds.encoding["source"]),
-                )
-            except KeyError:  # No encoding["source"], so no filename to access
-                raise RuntimeError("Your dataset is not attached to a filepath")
-
-            if poss_match:
-                try:
-                    num = int(poss_match.group("num"))
-                except ValueError:
-                    # import pdb; pdb.set_trace()
-                    num = 1
-                return (num, freq)
-
-        # import pdb; pdb.set_trace()
-
-        return FREQUENCY_STATIC
-
     def _get_timeinfo(self) -> tuple[str, str, str]:
         """
         Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
@@ -260,6 +197,7 @@ class GenericTimeParser:
         """
 
         ds = self.ds
+        filename_frequency = self.filename_frequency
         time_dim = self.time_dim
 
         def _todate(t):
@@ -279,7 +217,6 @@ class GenericTimeParser:
                 )
 
             has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
-
             if has_bounds:
                 bounds_var = ds.variables[time_var.bounds]
                 ts = _todate(bounds_var[0, 0])
@@ -310,18 +247,14 @@ class GenericTimeParser:
                 else:
                     frequency = (None, "subhr")
 
-            if frequency == FREQUENCY_STATIC:
+        if filename_frequency:
+            if filename_frequency != frequency:
                 msg = (
-                    "Unable to determine the data frequency from the file contents. Will attempt "
-                    "to parse from the filename instead."
+                    f"The frequency '{filename_frequency}' determined from filename does not "
+                    f"match the frequency '{frequency}' determined from the file contents."
                 )
-                try:
-                    frequency = self._guess_freq_from_fn()
-                except RuntimeError:  # Unable to find filename attached to dataset
-                    msg = (
-                        "Unable to determine the data frequency from the file contents. "
-                        "No filename available to guess the frequency from."
-                    )
+                if frequency == FREQUENCY_STATIC:
+                    frequency = filename_frequency
                 warnings.warn(f"{msg} Using '{frequency}'.")
 
         if has_time & (frequency != FREQUENCY_STATIC):
@@ -355,8 +288,9 @@ class AccessTimeParser(GenericTimeParser):
 
 class GfdlTimeParser(GenericTimeParser):
 
-    def __init__(self, ds: xr.Dataset, time_dim: str):
+    def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
         self.ds = ds
+        self.filename_frequency = filename_frequency
         self.time_dim = time_dim
 
     def _get_timeinfo(self) -> tuple[str, str, str]:
@@ -390,6 +324,7 @@ class GfdlTimeParser(GenericTimeParser):
         """
 
         ds = self.ds
+        filename_frequency = self.filename_frequency
         time_dim = self.time_dim
 
         def _todate(t):
@@ -430,19 +365,15 @@ class GfdlTimeParser(GenericTimeParser):
                 else:
                     frequency = (None, "subhr")
 
-        if frequency == FREQUENCY_STATIC:
-            msg = (
-                "Unable to determine the data frequency from the file contents. Will attempt "
-                "to parse from the filename instead."
-            )
-            try:
-                frequency = self._guess_freq_from_fn()
-            except RuntimeError:  # Unable to find filename attached to dataset
+        if filename_frequency:
+            if filename_frequency != frequency:
                 msg = (
-                    "Unable to determine the data frequency from the file contents. "
-                    "No filename available to guess the frequency from."
+                    f"The frequency '{filename_frequency}' determined from filename does not "
+                    f"match the frequency '{frequency}' determined from the file contents."
                 )
-            warnings.warn(f"{msg} Using '{frequency}'.")
+                if frequency == FREQUENCY_STATIC:
+                    frequency = filename_frequency
+                warnings.warn(f"{msg} Using '{frequency}'.")
 
         if has_time & (frequency != FREQUENCY_STATIC):
             ts, te = GenericTimeParser._guess_start_end_dates(ts, te, frequency)
