@@ -1,0 +1,6 @@
+path,file_type,project_id,experiment_id,member_id,frequency,variable_id,version,time_range
+./tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/va100m_AUS-10i_CESM2_ssp126_r11i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20730101-20731231.nc,f,CESM2,ssp126,r11i1p1f1,day,va100m,v20231206,20730101-20731231
+./tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/ua200m_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20510101-20511231.nc,f,NorESM2-MM,ssp370,r1i1p1f1,day,ua200m,v20231206,20510101-20511231
+./tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/zg700_AUS-10i_CESM2_ssp126_r11i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_6hr_20760101-20761231.nc,f,CESM2,ssp126,r11i1p1f1,6hr,zg700,v20231206,20760101-20761231
+./tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/sftlf_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1.nc,f,NorESM2-MM,ssp370,r1i1p1f1,fx,sftlf,v20231206,na
+./tests/data/esm_datastore/local_paths/nc_files/ccam-hq89/va100m_AUS-10i_NorESM2-MM_ssp370_r1i1p1f1_CSIRO_CCAM-v2203-SN_v1-r1_day_20540101-20541231.nc,f,NorESM2-MM,ssp370,r1i1p1f1,day,va100m,v20231206,20540101-20541231

@@ -81,16 +81,72 @@ Each source in the catalog must have an associated :code:`metadata.yaml` file th
 metadata about the data product. This is to ensure that there is core metadata associated with all data 
 products in the catalog. Additionally, this core metadata is added to the corresponding Intake-ESM 
 datastore's :code:`metadata` attribute, meaning it is available to Translators and to catalog users wanting 
-to know more about a particular product. The contents of the :code:`metadata.yaml` files are validated against 
-:code:`access_nri_intake.catalog.EXP_JSONSCHEMA` (see :ref:`catalog`) when the script :code:`catalog-build` 
+to know more about a particular product. Ideally this file will live in the base output directory of your model run so that it's easy for others to 
+find, even if they aren't using the catalog (but it doesn't have to).
+
+The contents of the :code:`metadata.yaml` files are validated against 
+:any:`access_nri_intake.catalog.EXP_JSONSCHEMA` (see :ref:`catalog`) when the script :code:`catalog-build` 
 is called to ensure that all required metadata is available prior to building the catalog. The 
 :code:`metadata.yaml` file should include the following:
 
-.. include:: ../../metadata.yaml
-   :literal:
+.. literalinclude:: metadata.yaml
+   :language: yaml
 
-Ideally this file will live in the base output directory of your model run so that it's easy for others to 
-find, even if they aren't using the catalog (but it doesn't have to).
+.. warning:: 
+
+   Your experiment `UUID <https://en.wikipedia.org/wiki/Universally_unique_identifier>`_ 
+   must be **unique** to the experiment. Even if you're adding multiple related experiments,
+   each experiment must have a unique UUID.
+
+   There's nothing special about the UUID value - they're simply meant to be randomly-generated values that 
+   are almost guaranteed to be unique. You can get a UUID value easily from any Unix system by running the 
+   :code:`uuidgen` command:
+
+   .. code-block:: bash
+
+      > uuidgen
+      36C2010B-9D65-4066-AB91-CE9D1FAE30B4
+
+.. topic:: Quick notes on YAML structure
+
+   For those who haven't seen a YAML file before, the structure can be subtly confusing. Here's some tips
+   to help make your YAML editing time as pain-free as possible:
+
+   - :code:`<` and :code:`>` are being used here to denote where you should replace the existing text with your experiment's
+     metadata values. They should *not* be kept in your final :code:`metadata.yaml`.
+   - String values simply follow the colon after the key name, e.g.:
+
+     .. code-block:: yaml
+     
+         name: my_first_experiment
+     
+     Longer strings (in this case, the :code:`long_description`), can use a special syntax to give you room
+     to input a multi-line string:
+
+     .. code-block:: yaml
+   
+         long_description: >-
+            This is my multi-line description.
+            YAML will treat this as a text 'block', in effect.
+
+   - The attributes shown in the template metadata where the value is preceded with a ':code:`-`' are *lists*. Lists
+     are denoted by lines starting with the :code:`-` character. For example, if your experiment contains data from both
+     the :code:`ocean` and :code:`seaIce` realms, your :code:`realm` should look like this:
+
+     .. code-block:: yaml
+
+         realm:
+         - ocean
+         - seaIce
+
+     If a list is going to be left empty, it still needs to be a list. For example, if you have no 
+     :code:`related_experiments`, but you want to keep the key in the YAML file, you'll need to leave it like this:
+
+     .. code-block:: yaml
+
+         related_experiments:
+         - 
+
 
 .. note::
 

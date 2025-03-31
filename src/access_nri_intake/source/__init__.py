@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Tools for generating Intake-ESM catalogs """
+"""Tools for generating Intake-ESM catalogs"""
 
 
 from ..utils import get_jsonschema

@@ -1,0 +1,23 @@
+format: yamanifest
+version: 1.0
+---
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/evspsblpot_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_198601-198612.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/evspsblpot_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_198601-198612.nc
+  hashes:
+    binhash: a03af72069f046267ed4a49f1ad1b7f7
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/evspsblpot_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_199201-199212.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/evspsblpot_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_199201-199212.nc
+  hashes:
+    binhash: 11cd610683b4c3ff005f24015f4ae3cc
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/ta200m_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_199601-199612.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/ta200m_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_199601-199612.nc
+  hashes:
+    binhash: 455f63f38b9fc96736ef61f74b40e6fd
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/vasmax_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_199201-199212.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/vasmax_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_199201-199212.nc
+  hashes:
+    binhash: a63209ffdca89689f316204af654ab7c
+? /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/zmla_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_198701-198712.nc
+: fullpath: /Users/u1166368/catalog/access-nri-intake-catalog/tests/data/esm_datastore/local_paths/nc_files/barpa-py18/zmla_AUS-15_ERA5_evaluation_r1i1p1f1_BOM_BARPA-R_v1-r1_1hr_198701-198712.nc
+  hashes:
+    binhash: 19a2b835635d7d4120e25dc1ef8e6d55
