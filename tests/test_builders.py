@@ -855,6 +855,7 @@ def test_builder_columns_with_iterables(test_data):
                 "XXXXXXXX_ocean_daily_z_XXXX_XXX",
                 "20000201",
                 (1, "day"),
+                {"ts": "20000201", "mom6_added_timestamp": "2000_119"},
             ),
         ),
         (
@@ -864,6 +865,7 @@ def test_builder_columns_with_iterables(test_data):
                 "roms_his_XXXX",
                 "0016",
                 None,
+                {"ts": "0016"},
             ),
         ),
     ],

@@ -683,7 +683,7 @@ class ROMSBuilder(BaseBuilder):
     """
 
     PATTERNS = [
-        rf"^roms_his_({PATTERNS_HELPERS['counter']}).*?$",
+        rf"^roms_his_(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['counter']}).*?$",
     ]
 
     def __init__(self, path, **kwargs):
