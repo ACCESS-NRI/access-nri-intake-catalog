@@ -46,3 +46,9 @@ best describes you:
    `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/new/choose>`_ if you have any 
    questions after reading this documentation.
 
+.. note::
+    ACCESS-NRI collect usage statistics on the ACCESS-NRI Intake Catalog, in order to help us understand
+    how the catalog is being used on Gadi and how we can improve it. This information is collected in 
+    accordance with the privacy policy detailed 
+    `here <https://reporting.access-nri-store.cloud.edu.au/>`. 
+
