@@ -11,11 +11,14 @@ from access_py_telemetry.cli import configure_telemetry
 
 from access_nri_intake.utils import get_catalog_fp
 
-token = (
-    Path("/g/data/xp65/admin/access-nri-intake-catalog/TELEMETRY_TOKEN_PRODUCTION")
-    .read_text(encoding="utf8")
-    .strip()
-)
+try:
+    token = (
+        Path("/g/data/xp65/admin/access-nri-intake-catalog/TELEMETRY_TOKEN_PRODUCTION")
+        .read_text(encoding="utf8")
+        .strip()
+    )
+except FileNotFoundError:
+    token = "null"
 
 api_handler = ApiHandler()
 api_handler.set_headers(None, {"Authorization": f"Token {token}"})
