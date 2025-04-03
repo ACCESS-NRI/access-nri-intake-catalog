@@ -14,4 +14,5 @@ sections we give an overview of the catalog and demonstrate how to use it.
    how
    quickstart
    chunking
+   telemetry
    faq
