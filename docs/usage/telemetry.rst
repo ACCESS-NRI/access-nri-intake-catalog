@@ -7,7 +7,7 @@ In order to understand how our users interact with the ACCESS-NRI Intake catalog
 usage statistics, in accordance with the privacy policy detailed 
 `here <https://reporting.access-nri-store.cloud.edu.au/>`_.
 
-A typical telemetry datum is shown below:
+A typical telemetry record is shown below:
 
 .. code-block:: python
 
@@ -32,34 +32,34 @@ following signature:
 
 The other data collected are:
 
-- :code:`timestamp`: 
+- :code:`timestamp` 
    The time at which the telemetry was recorded.
 
-- :code:`name`: 
+- :code:`name` 
    A name identifier which may in future be used to connect usage to a particular user. 
    Presently, we do not collect any idendifying information about users, such as usernames, and so this
    field is always :code:`unknown`. In future, we may collect fully anonymised identifiers relating to 
    users, but this will be communicated to users in advance.
 
-- :code:`function`: 
+- :code:`function`
    The function that was called, in this case :code:`.search`. We collect this in 
    order to understand how our users interact with the catalog, and to help us improve it.
 
-- :code:`args`: 
+- :code:`args`
    The positional arguments that were passed to the function. In this case, there are none.
    This is used in order to eg. understand which experiments users are searching for.
 
-- :code:`kwargs`: 
+- :code:`kwargs`
    The keyword arguments that were passed to the function. This allows us to see, for 
    example, how users tend to select a dataset from within a datastore.
 
-- :code:`session_id`: 
+- :code:`session_id`
    A unique identifier for the Python session in which the telemetry was recorded. 
    This allows us to understand the series of interactions a user makes with the catalog in a single session.
    Restarting the notebook kernel will generate a new session ID - and so in combination with other data
    we collect, allows us to improve the stability of the catalog and related functionality.
 
-- :code:`catalog_version`: 
+- :code:`catalog_version`
    The version of the catalog that was used to generate the telemetry. This allows us to
    understand whether old versions of the catalog are still being used, for example.
 
@@ -75,7 +75,7 @@ Below is a list of frequently asked questions and accompanying answers:
 
    We collect data on the fields specified above. In addition, we do not record all function calls made 
    in a ARE Session, only a specific subset of those that are made on the ACCESS-NRI Intake Catalog 
-   functionaliy. An up to date list of these functions can be found 
+   functionality. An up to date list of these functions can be found 
    `here <https://github.com/ACCESS-NRI/access-py-telemetry/blob/main/src/access_py_telemetry/config.yaml>`_.
 
    No data that could identify a specific user is collected. In future, we may begin to collect fully anonymised
