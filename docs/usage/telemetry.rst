@@ -8,6 +8,7 @@ usage statistics, in accordance with the privacy policy detailed
 `here <https://reporting.access-nri-store.cloud.edu.au/>`_.
 
 A typical telemetry datum is shown below:
+
 .. code-block:: python
 
    {
@@ -24,37 +25,46 @@ A typical telemetry datum is shown below:
 
 In this example, the user has called the :code:`.search` function on an ESM-Datastore, with the 
 following signature:
+
 .. code-block:: python
 
-   esm_ds = catalog['some_experiment'] # Loading a particular experiment
    esm_ds.search(file_id='ocean_month') # Searching for a file with the ID 'ocean_month' - this is our recorded call
 
 The other data collected are:
-- :code:`timestamp`: The time at which the telemetry was recorded.
 
-- :code:`name`: A name identifier which may in future be used to connect usage to a particular user. 
+- :code:`timestamp`: 
+   The time at which the telemetry was recorded.
+
+- :code:`name`: 
+   A name identifier which may in future be used to connect usage to a particular user. 
    Presently, we do not collect any idendifying information about users, such as usernames, and so this
    field is always :code:`unknown`. In future, we may collect fully anonymised identifiers relating to 
    users, but this will be communicated to users in advance.
 
-- :code:`function`: The function that was called, in this case :code:`.search`. We collect this in 
+- :code:`function`: 
+   The function that was called, in this case :code:`.search`. We collect this in 
    order to understand how our users interact with the catalog, and to help us improve it.
 
-- :code:`args`: The positional arguments that were passed to the function. In this case, there are none.
+- :code:`args`: 
+   The positional arguments that were passed to the function. In this case, there are none.
    This is used in order to eg. understand which experiments users are searching for.
 
-- :code:`kwargs`: The keyword arguments that were passed to the function. This allows us to see, for 
+- :code:`kwargs`: 
+   The keyword arguments that were passed to the function. This allows us to see, for 
    example, how users tend to select a dataset from within a datastore.
 
-- :code:`session_id`: A unique identifier for the Python session in which the telemetry was recorded. 
+- :code:`session_id`: 
+   A unique identifier for the Python session in which the telemetry was recorded. 
    This allows us to understand the series of interactions a user makes with the catalog in a single session.
    Restarting the notebook kernel will generate a new session ID - and so in combination with other data
    we collect, allows us to improve the stability of the catalog and related functionality.
 
-- :code:`catalog_version`: The version of the catalog that was used to generate the telemetry. This
-   allows us to understand whether old versions of the catalog are still being used, for example.
+- :code:`catalog_version`: 
+   The version of the catalog that was used to generate the telemetry. This allows us to
+   understand whether old versions of the catalog are still being used, for example.
 
 Below is a list of frequently asked questions and accompanying answers:
+-----------------------------------------------------------------------
 
 .. topic:: Will telemetry slow down my JupyterLab session?
    
@@ -64,12 +74,13 @@ Below is a list of frequently asked questions and accompanying answers:
 .. topic:: Will telemetry affect my privacy?
 
    We collect data on the fields specified above. In addition, we do not record all function calls made 
-   in a ARE Session, only those that are made on the ACCESS-NRI Intake catalog. An up to date list of these functions
-   can be found `here <https://github.com/ACCESS-NRI/access-py-telemetry/blob/main/src/access_py_telemetry/config.yaml>`_.
+   in a ARE Session, only a specific subset of those that are made on the ACCESS-NRI Intake Catalog 
+   functionaliy. An up to date list of these functions can be found 
+   `here <https://github.com/ACCESS-NRI/access-py-telemetry/blob/main/src/access_py_telemetry/config.yaml>`_.
 
-   Data that could identify a specific user is collected. In future, we may begin to collect fully anonymised
+   No data that could identify a specific user is collected. In future, we may begin to collect fully anonymised
    identifiers relating to users, but this will be communicated to users in advance, and will use 
-   industry best practices to ensure that this data is and can not be used to identify users.
+   industry best practices to ensure that this data not, nor could be used to, identify users.
 
 .. topic:: Can I disable telemetry?
 
@@ -82,8 +93,8 @@ Below is a list of frequently asked questions and accompanying answers:
       from access_py_telemetry.api import ApiHandler
       ApiHandler().server_url = ""
 
-   This will disable telemetry until you restart your JupyterLab session, at which point you will need to 
-   run the above code again. 
+   This will disable telemetry until you restart your JupyterLab session, at which point you will need 
+   disable telemetry again.
    
 .. note::
    Any questions or concerns about telemetry on the ACCESS-NRI Intake catalog? Please open an issue
