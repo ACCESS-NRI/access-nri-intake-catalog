@@ -34,7 +34,6 @@ class _NCFileInfo:
     filename: str | Path
     file_id: str
     path: str
-    filename_timestamp: str | None
     frequency: str
     start_date: str
     end_date: str

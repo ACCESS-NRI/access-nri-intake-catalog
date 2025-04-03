@@ -320,9 +320,7 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        file_id, filename_timestamp, filename_frequency = cls.parse_filename(
-            file_path.stem
-        )
+        file_id, _, filename_frequency = cls.parse_filename(file_path.stem)
 
         with xr.open_dataset(
             file,
@@ -348,7 +346,6 @@ class BaseBuilder(Builder):
             filename=file_path.name,
             path=file,
             file_id=file_id,
-            filename_timestamp=filename_timestamp,
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
