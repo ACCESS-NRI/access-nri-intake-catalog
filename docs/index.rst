@@ -50,5 +50,8 @@ best describes you:
     ACCESS-NRI collect usage statistics on the ACCESS-NRI Intake Catalog, in order to help us understand
     how the catalog is being used on Gadi and how we can improve it. This information is collected in 
     accordance with the privacy policy detailed 
-    `here <https://reporting.access-nri-store.cloud.edu.au/>`. 
+    `here <https://reporting.access-nri-store.cloud.edu.au/>`_. 
+    We do note collect any information that could be used to identify a user, such usernames. For more 
+    information on telemetry, please see :ref:`telemetry`.
+
 
