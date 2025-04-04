@@ -37,7 +37,7 @@ The other data collected are:
 
 - :code:`name` 
    A name identifier which may in future be used to connect usage to a particular user. 
-   Presently, we do not collect any idendifying information about users, such as usernames, and so this
+   Presently, we do not collect any identifying information about users, such as usernames, and so this
    field is always :code:`unknown`. In future, we may collect fully anonymised identifiers relating to 
    users, but this will be communicated to users in advance.
 
@@ -47,7 +47,7 @@ The other data collected are:
 
 - :code:`args`
    The positional arguments that were passed to the function. In this case, there are none.
-   This is used in order to eg. understand which experiments users are searching for.
+   This is used in order to, for example, understand which experiments users are searching for.
 
 - :code:`kwargs`
    The keyword arguments that were passed to the function. This allows us to see, for 
@@ -74,12 +74,12 @@ Below is a list of frequently asked questions and accompanying answers:
 .. topic:: Will telemetry affect my privacy?
 
    We collect data on the fields specified above. In addition, we do not record all function calls made 
-   in a ARE Session, only a specific subset of those that are made on the ACCESS-NRI Intake Catalog 
+   in an ARE Session, only a specific subset of those that are made on the ACCESS-NRI Intake Catalog 
    functionality. An up to date list of these functions can be found 
    `here <https://github.com/ACCESS-NRI/access-py-telemetry/blob/main/src/access_py_telemetry/config.yaml>`_.
 
    No data that could identify a specific user is collected. In future, we may begin to collect fully anonymised
-   identifiers relating to users, but this will be communicated to users in advance, and will use 
+   identifiers relating to users, but this will be communicated to users in advance, and will follow 
    industry best practices to ensure that this data not, nor could be used to, identify users.
 
 .. topic:: Can I disable telemetry?
@@ -94,7 +94,7 @@ Below is a list of frequently asked questions and accompanying answers:
       ApiHandler().server_url = ""
 
    This will disable telemetry until you restart your JupyterLab session, at which point you will need 
-   disable telemetry again.
+   to disable telemetry again.
    
 .. note::
    Any questions or concerns about telemetry on the ACCESS-NRI Intake catalog? Please open an issue
