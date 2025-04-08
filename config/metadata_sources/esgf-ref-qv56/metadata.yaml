@@ -262,11 +262,10 @@ realm:
 - tos
 - rlut
 frequency:
-- mon
+- 1mon
 - yr
-- 3hrPt
-- day
 - 3hr
+- 1day
 - monC
 - yrC
 - fx
