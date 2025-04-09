@@ -22,6 +22,7 @@ requirements:
     - python >=3.10
     - access-py-telemetry>=0.1.6
     - cftime
+    - colorama
     - ecgtools>=2023.7.13
     - intake>=0.7.0
     - intake-dataframe-catalog>=0.3.1
