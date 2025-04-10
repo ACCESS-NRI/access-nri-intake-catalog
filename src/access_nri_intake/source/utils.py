@@ -370,8 +370,8 @@ class GfdlTimeParser(GenericTimeParser):
                     f"The frequency '{filename_frequency}' determined from filename does not "
                     f"match the frequency '{frequency}' determined from the file contents."
                 )
-                if frequency == FREQUENCY_STATIC:
-                    frequency = filename_frequency
+                # if frequency == FREQUENCY_STATIC:
+                #     frequency = filename_frequency
                 warnings.warn(f"{msg} Using '{frequency}'.")
 
         if has_time & (frequency != FREQUENCY_STATIC):
