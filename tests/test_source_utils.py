@@ -373,6 +373,27 @@ def test_generic__guess_freq_from_fn(parser, clue, freq, no, tmpdir):
 
 
 @pytest.mark.parametrize(
+    "parser",
+    [AccessTimeParser, GenericTimeParser, GfdlTimeParser],
+)
+def test_generic__guess_freq_from_fn_no_saved_ds(parser):
+    times = [1.5 / 24 / 60]
+
+    ds = xr.Dataset(
+        data_vars={"dummy": ("time", [0] * len(times))},
+        coords={"time": times},
+    )
+
+    ds["time"].attrs |= dict(
+        units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
+    )
+
+    p = parser(ds, filename_frequency=None, time_dim="time")
+    with pytest.raises(RuntimeError, match="not attached.*filepath"):
+        _ = p._guess_freq_from_fn()
+
+
+@pytest.mark.parametrize(
     "times, ffreq, expected",
     [
         # #378 - temporary deprecation while working out how to handle these cases
