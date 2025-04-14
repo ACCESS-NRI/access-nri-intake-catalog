@@ -561,6 +561,42 @@ class NarclimTranslator(DefaultTranslator):
         return self.source.df.apply(lambda x: ("atmos",), 1)
 
 
+class EsgfTranslator(DefaultTranslator):
+    def __init__(self, source, columns):
+        """
+        Initialise a BarpaTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI BARPA intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="source_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="realm",
+            core_colname="realm",
+            func=self._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+
+
 @dataclass
 class _DispatchKeys:
     """
