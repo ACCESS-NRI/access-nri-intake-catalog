@@ -1,10 +1,13 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+from pathlib import Path
+
 import pytest
 import xarray as xr
 
 from access_nri_intake.source.utils import (
+    FILENAME_TO_FREQ,
     AccessTimeParser,
     EmptyFileError,
     GenericTimeParser,
@@ -336,6 +339,37 @@ def test_generic_empty_file_error(parser):
 
     with pytest.raises(EmptyFileError):
         parser(ds, filename_frequency=ffreq, time_dim="time")()
+
+
+@pytest.mark.parametrize(
+    "parser",
+    [AccessTimeParser, GenericTimeParser, GfdlTimeParser],
+)
+@pytest.mark.parametrize("clue,freq", list(FILENAME_TO_FREQ.items()))
+@pytest.mark.parametrize("no", [1, 2, 4, 6, 12])
+def test_generic__guess_freq_from_fn(parser, clue, freq, no, tmpdir):
+    times = [1.5 / 24 / 60]
+
+    ds = xr.Dataset(
+        data_vars={"dummy": ("time", [0] * len(times))},
+        coords={"time": times},
+    )
+
+    ds["time"].attrs |= dict(
+        units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
+    )
+
+    fn = Path(tmpdir) / f"{no if no != 1 else ''}{clue}.nc"
+
+    ds.to_netcdf(path=fn)
+    # ds.close()
+    ds = xr.open_dataset(fn)
+
+    p = parser(ds, filename_frequency=None, time_dim="time")
+    assert p._guess_freq_from_fn() == (
+        no,
+        freq,
+    ), f"_guess_freq_from_fn ({p._guess_freq_from_fn()}) could not deduce '{no}, {freq}' from '{clue}' ({fn})"
 
 
 @pytest.mark.parametrize(
