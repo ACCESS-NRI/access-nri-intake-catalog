@@ -226,6 +226,8 @@ class GenericTimeParser:
                     num = 1
                 return (num, freq)
 
+        # import pdb; pdb.set_trace()
+
         return FREQUENCY_STATIC
 
     def _get_timeinfo(self) -> tuple[str, str, str]:
@@ -259,7 +261,6 @@ class GenericTimeParser:
         """
 
         ds = self.ds
-        filename_frequency = self.filename_frequency
         time_dim = self.time_dim
 
         def _todate(t):
@@ -279,6 +280,7 @@ class GenericTimeParser:
                 )
 
             has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
+
             if has_bounds:
                 bounds_var = ds.variables[time_var.bounds]
                 ts = _todate(bounds_var[0, 0])
@@ -309,14 +311,12 @@ class GenericTimeParser:
                 else:
                     frequency = (None, "subhr")
 
-        if filename_frequency:
-            if filename_frequency != frequency:
+            if frequency == FREQUENCY_STATIC:
                 msg = (
-                    f"The frequency '{filename_frequency}' determined from filename does not "
-                    f"match the frequency '{frequency}' determined from the file contents."
+                    "Unable to determine the data frequency from the file contents. Will attempt "
+                    "to parse from the filename instead."
                 )
-                # if frequency == FREQUENCY_STATIC:
-                #     frequency = filename_frequency
+                frequency = self._guess_freq_from_fn()
                 warnings.warn(f"{msg} Using '{frequency}'.")
 
         if has_time & (frequency != FREQUENCY_STATIC):
@@ -386,7 +386,6 @@ class GfdlTimeParser(GenericTimeParser):
         """
 
         ds = self.ds
-        filename_frequency = self.filename_frequency
         time_dim = self.time_dim
 
         def _todate(t):
@@ -427,15 +426,13 @@ class GfdlTimeParser(GenericTimeParser):
                 else:
                     frequency = (None, "subhr")
 
-        if filename_frequency:
-            if filename_frequency != frequency:
-                msg = (
-                    f"The frequency '{filename_frequency}' determined from filename does not "
-                    f"match the frequency '{frequency}' determined from the file contents."
-                )
-                # if frequency == FREQUENCY_STATIC:
-                #     frequency = filename_frequency
-                warnings.warn(f"{msg} Using '{frequency}'.")
+        if frequency == FREQUENCY_STATIC:
+            msg = (
+                "Unable to determine the data frequency from the file contents. Will attempt "
+                "to parse from the filename instead."
+            )
+            frequency = self._guess_freq_from_fn()
+            warnings.warn(f"{msg} Using '{frequency}'.")
 
         if has_time & (frequency != FREQUENCY_STATIC):
             ts, te = GenericTimeParser._guess_start_end_dates(ts, te, frequency)
