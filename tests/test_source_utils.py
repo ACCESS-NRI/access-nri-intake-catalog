@@ -1,7 +1,6 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-from pathlib import Path
 
 import pytest
 import xarray as xr
@@ -128,7 +127,7 @@ from access_nri_intake.source.utils import (
         ),
     ],
 )
-def test_genericparser_get_timeinfo(times, bounds, ffreq, expected, tmpdir):
+def test_genericparser_get_timeinfo(times, bounds, ffreq, expected, tmp_path):
     if bounds:
         time = (times[0] + times[1]) / 2
         ds = xr.Dataset(
@@ -152,8 +151,8 @@ def test_genericparser_get_timeinfo(times, bounds, ffreq, expected, tmpdir):
     # import pdb; pdb.set_trace()
 
     if ffreq is not None:
-        ds.to_netcdf(path=Path(tmpdir) / ffreq)
-        ds = xr.open_dataset(Path(tmpdir) / ffreq, decode_cf=False)
+        ds.to_netcdf(path=tmp_path / ffreq)
+        ds = xr.open_dataset(tmp_path / ffreq, decode_cf=False)
 
     assert (
         GenericTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected
@@ -166,19 +165,19 @@ def test_genericparser_get_timeinfo(times, bounds, ffreq, expected, tmpdir):
         (
             [365 / 2],
             False,
-            (1, "yr"),
+            "yearly",
             ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr"),
         ),
         (
             [31 / 2],
             False,
-            (1, "mon"),
+            "monthly",
             ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon"),
         ),
         (
             [1.5 / 24],
             False,
-            (3, "hr"),
+            "3hr",
             ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr"),
         ),
         (
@@ -277,7 +276,7 @@ def test_genericparser_get_timeinfo(times, bounds, ffreq, expected, tmpdir):
     "parser",
     [AccessTimeParser, GenericTimeParser],
 )
-def test_generic_time_parser(times, bounds, ffreq, expected, parser):
+def test_generic_time_parser(times, bounds, ffreq, expected, parser, tmp_path):
     if bounds:
         time = (times[0] + times[1]) / 2
         ds = xr.Dataset(
@@ -297,6 +296,10 @@ def test_generic_time_parser(times, bounds, ffreq, expected, parser):
     ds["time"].attrs |= dict(
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
+
+    if ffreq is not None:
+        ds.to_netcdf(path=tmp_path / ffreq)
+        ds = xr.open_dataset(tmp_path / ffreq, decode_cf=False)
 
     assert parser(ds, filename_frequency=ffreq, time_dim="time")() == expected
 
@@ -353,7 +356,7 @@ def test_generic_empty_file_error(parser):
 )
 @pytest.mark.parametrize("clue,freq", list(FILENAME_TO_FREQ.items()))
 @pytest.mark.parametrize("no", [1, 2, 4, 6, 12])
-def test_generic__guess_freq_from_fn(parser, clue, freq, no, tmpdir):
+def test_generic__guess_freq_from_fn(parser, clue, freq, no, tmp_path):
     times = [1.5 / 24 / 60]
 
     ds = xr.Dataset(
@@ -365,7 +368,7 @@ def test_generic__guess_freq_from_fn(parser, clue, freq, no, tmpdir):
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
 
-    fn = Path(tmpdir) / f"{no if no != 1 else ''}{clue}.nc"
+    fn = tmp_path / f"{no if no != 1 else ''}{clue}.nc"
 
     ds.to_netcdf(path=fn)
     # ds.close()
@@ -474,11 +477,14 @@ def test_gfdl_time_parser(times, ffreq, expected):
     assert GfdlTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected
 
 
-def test_gfdl_parser_notime():
+def test_gfdl_parser_notime(tmp_path):
     ds = xr.Dataset(
         data_vars={"dummy": ("latitude", [0])},
         coords={"latitude": [0]},
     )
+
+    ds.to_netcdf(path=tmp_path / "notime.nc")
+    ds = xr.open_dataset(tmp_path / "notime.nc", decode_cf=False)
 
     assert GfdlTimeParser(ds, filename_frequency=None, time_dim="time")() == (
         "none",
