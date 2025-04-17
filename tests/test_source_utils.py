@@ -21,19 +21,19 @@ from access_nri_intake.source.utils import (
         (
             [365 / 2],
             False,
-            (1, "yr"),
+            "1year",
             ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr"),
         ),
         (
             [31 / 2],
             False,
-            (1, "mon"),
+            "monthly",
             ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon"),
         ),
         (
             [1.5 / 24],
             False,
-            (3, "hr"),
+            "3hour",
             ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr"),
         ),
         (
@@ -128,7 +128,7 @@ from access_nri_intake.source.utils import (
         ),
     ],
 )
-def test_genericparser_get_timeinfo(times, bounds, ffreq, expected):
+def test_genericparser_get_timeinfo(times, bounds, ffreq, expected, tmpdir):
     if bounds:
         time = (times[0] + times[1]) / 2
         ds = xr.Dataset(
@@ -148,6 +148,12 @@ def test_genericparser_get_timeinfo(times, bounds, ffreq, expected):
     ds["time"].attrs |= dict(
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
+
+    # import pdb; pdb.set_trace()
+
+    if ffreq is not None:
+        ds.to_netcdf(path=Path(tmpdir) / ffreq)
+        ds = xr.open_dataset(Path(tmpdir) / ffreq, decode_cf=False)
 
     assert (
         GenericTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected
