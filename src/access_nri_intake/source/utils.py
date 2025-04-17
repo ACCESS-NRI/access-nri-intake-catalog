@@ -316,7 +316,13 @@ class GenericTimeParser:
                     "Unable to determine the data frequency from the file contents. Will attempt "
                     "to parse from the filename instead."
                 )
-                frequency = self._guess_freq_from_fn()
+                try:
+                    frequency = self._guess_freq_from_fn()
+                except RuntimeError:  # Unable to find filename attached to dataset
+                    msg = (
+                        "Unable to determine the data frequency from the file contents. "
+                        "No filename available to guess the frequency from."
+                    )
                 warnings.warn(f"{msg} Using '{frequency}'.")
 
         if has_time & (frequency != FREQUENCY_STATIC):
@@ -431,7 +437,13 @@ class GfdlTimeParser(GenericTimeParser):
                 "Unable to determine the data frequency from the file contents. Will attempt "
                 "to parse from the filename instead."
             )
-            frequency = self._guess_freq_from_fn()
+            try:
+                frequency = self._guess_freq_from_fn()
+            except RuntimeError:  # Unable to find filename attached to dataset
+                msg = (
+                    "Unable to determine the data frequency from the file contents. "
+                    "No filename available to guess the frequency from."
+                )
             warnings.warn(f"{msg} Using '{frequency}'.")
 
         if has_time & (frequency != FREQUENCY_STATIC):
