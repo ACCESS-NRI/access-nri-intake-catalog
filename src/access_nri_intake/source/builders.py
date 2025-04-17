@@ -628,7 +628,6 @@ class AccessEsm15Builder(BaseBuilder):
             ).strip("_")
             ncinfo_dict["realm"] = realm_mapping[realm]
             ncinfo_dict["member"] = exp_id
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
 
             return ncinfo_dict
 
