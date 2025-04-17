@@ -154,9 +154,7 @@ def test_genericparser_get_timeinfo(times, bounds, ffreq, expected, tmp_path):
         ds.to_netcdf(path=tmp_path / ffreq)
         ds = xr.open_dataset(tmp_path / ffreq, decode_cf=False)
 
-    assert (
-        GenericTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected
-    )
+    assert GenericTimeParser(ds, time_dim="time")() == expected
 
 
 @pytest.mark.parametrize(
@@ -301,7 +299,7 @@ def test_generic_time_parser(times, bounds, ffreq, expected, parser, tmp_path):
         ds.to_netcdf(path=tmp_path / ffreq)
         ds = xr.open_dataset(tmp_path / ffreq, decode_cf=False)
 
-    assert parser(ds, filename_frequency=ffreq, time_dim="time")() == expected
+    assert parser(ds, time_dim="time")() == expected
 
 
 @pytest.mark.parametrize(
@@ -310,7 +308,6 @@ def test_generic_time_parser(times, bounds, ffreq, expected, parser, tmp_path):
 )
 def test_generic_time_parser_warnings(parser):
     times = [1.5 / 24 / 60]
-    ffreq = (3, "s")
 
     ds = xr.Dataset(
         data_vars={"dummy": ("time", [0] * len(times))},
@@ -324,9 +321,7 @@ def test_generic_time_parser_warnings(parser):
     with pytest.warns(
         match="Cannot infer start and end times for subhourly frequencies."
     ):
-        parser(ds, filename_frequency=ffreq, time_dim="time")._guess_start_end_dates(
-            0, 1, (1, "s")
-        )
+        parser(ds, time_dim="time")._guess_start_end_dates(0, 1, (1, "s"))
 
 
 @pytest.mark.parametrize(
@@ -335,7 +330,6 @@ def test_generic_time_parser_warnings(parser):
 )
 def test_generic_empty_file_error(parser):
     times = []
-    ffreq = (3, "hr")
 
     ds = xr.Dataset(
         data_vars={"dummy": ("time", [])},
@@ -347,7 +341,7 @@ def test_generic_empty_file_error(parser):
     )
 
     with pytest.raises(EmptyFileError):
-        parser(ds, filename_frequency=ffreq, time_dim="time")()
+        parser(ds, time_dim="time")()
 
 
 @pytest.mark.parametrize(
@@ -374,7 +368,7 @@ def test_generic__guess_freq_from_fn(parser, clue, freq, no, tmp_path):
     # ds.close()
     ds = xr.open_dataset(fn)
 
-    p = parser(ds, filename_frequency=None, time_dim="time")
+    p = parser(ds, time_dim="time")
     assert p._guess_freq_from_fn() == (
         no,
         freq,
@@ -397,7 +391,7 @@ def test_generic__guess_freq_from_fn_no_saved_ds(parser):
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
 
-    p = parser(ds, filename_frequency=None, time_dim="time")
+    p = parser(ds, time_dim="time")
     with pytest.raises(RuntimeError, match="not attached.*filepath"):
         _ = p._guess_freq_from_fn()
 
@@ -474,7 +468,7 @@ def test_gfdl_time_parser(times, ffreq, expected):
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
 
-    assert GfdlTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected
+    assert GfdlTimeParser(ds, time_dim="time")() == expected
 
 
 def test_gfdl_parser_notime(tmp_path):
@@ -486,7 +480,7 @@ def test_gfdl_parser_notime(tmp_path):
     ds.to_netcdf(path=tmp_path / "notime.nc")
     ds = xr.open_dataset(tmp_path / "notime.nc", decode_cf=False)
 
-    assert GfdlTimeParser(ds, filename_frequency=None, time_dim="time")() == (
+    assert GfdlTimeParser(ds, time_dim="time")() == (
         "none",
         "none",
         "fx",

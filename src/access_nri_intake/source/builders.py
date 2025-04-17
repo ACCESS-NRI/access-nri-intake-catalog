@@ -335,7 +335,7 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = cls.TIME_PARSER(ds, None, time_dim)()
+            start_date, end_date, frequency = cls.TIME_PARSER(ds, time_dim)()
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")

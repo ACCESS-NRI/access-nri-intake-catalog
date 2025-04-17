@@ -120,7 +120,7 @@ class GenericTimeParser:
 
     TIMEINFO_TIME_FORMAT = "%Y-%m-%d, %H:%M:%S"
 
-    def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
+    def __init__(self, ds: xr.Dataset, time_dim: str):
         """
         Parameters
         ----------
@@ -132,7 +132,6 @@ class GenericTimeParser:
             The name of the time dimension
         """
         self.ds = ds
-        self.filename_frequency = filename_frequency
         self.time_dim = time_dim
 
     @staticmethod
@@ -356,9 +355,8 @@ class AccessTimeParser(GenericTimeParser):
 
 class GfdlTimeParser(GenericTimeParser):
 
-    def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
+    def __init__(self, ds: xr.Dataset, time_dim: str):
         self.ds = ds
-        self.filename_frequency = filename_frequency
         self.time_dim = time_dim
 
     def _get_timeinfo(self) -> tuple[str, str, str]:
