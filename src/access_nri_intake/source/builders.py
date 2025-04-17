@@ -320,7 +320,7 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        file_id, _, filename_frequency = cls.parse_filename(file_path.stem)
+        file_id, _, _ = cls.parse_filename(file_path.stem)
 
         with xr.open_dataset(
             file,
@@ -335,9 +335,7 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = cls.TIME_PARSER(
-                ds, filename_frequency, time_dim
-            )()
+            start_date, end_date, frequency = cls.TIME_PARSER(ds, None, time_dim)()
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
