@@ -797,7 +797,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_grid.nc",
-                file_id="ocean_grid",
+                file_id="",
                 frequency="fx",
                 start_date="none",
                 end_date="none",
@@ -819,7 +819,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean.nc",
-                file_id="ocean",
+                file_id="",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1910-01-01, 00:00:00",
@@ -868,7 +868,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month.nc",
-                file_id="ocean_month",
+                file_id="",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1910-01-01, 00:00:00",
@@ -906,7 +906,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month_inst_nobounds.nc",
-                file_id="ocean_month_inst_nobounds",
+                file_id="",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -938,7 +938,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1900-01.nc",
-                file_id="iceh_XXXX_XX",
+                file_id="",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -969,7 +969,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="by578a.pd201501_dai.nc",
-                file_id="by578a_pdXXXXXX_dai",
+                file_id="",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-02-01, 00:00:00",
@@ -986,7 +986,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh_d.2015-01.nc",
-                file_id="iceh_d_XXXX_XX",
+                file_id="",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-02-01, 00:00:00",
@@ -1017,7 +1017,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_daily.nc-20150630",
-                file_id="ocean_daily",
+                file_id="",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-07-01, 00:00:00",
@@ -1048,7 +1048,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_scalar.nc-20150630",
-                file_id="ocean_scalar",
+                file_id="",
                 frequency="1mon",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-07-01, 00:00:00",
@@ -1089,7 +1089,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="HI-C-05-r1.pa-185001_mon.nc",
-                file_id="HI_C_05_r1_pa_XXXXXX_mon",
+                file_id="",
                 frequency="1mon",
                 start_date="1850-01-01, 00:00:00",
                 end_date="1850-02-01, 00:00:00",
@@ -1106,7 +1106,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1850-01.nc",
-                file_id="iceh_XXXX_XX",
+                file_id="",
                 frequency="1mon",
                 start_date="1850-01-01, 00:00:00",
                 end_date="1850-02-01, 00:00:00",
@@ -1137,7 +1137,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc_ann.nc-18501231",
-                file_id="ocean_bgc_ann",
+                file_id="",
                 frequency="1yr",
                 start_date="1849-12-30, 00:00:00",
                 end_date="1850-12-30, 00:00:00",
@@ -1175,7 +1175,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc.nc-18501231",
-                file_id="ocean_bgc",
+                file_id="",
                 frequency="1mon",
                 start_date="1849-12-30, 00:00:00",
                 end_date="1850-12-30, 00:00:00",
@@ -1216,7 +1216,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.native_1900_01.nc",
-                file_id="GMOM_JRA_WD_mom6_h_native_XXXX_XX",
+                file_id="",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -1288,7 +1288,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
-                file_id="GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
+                file_id="",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1355,7 +1355,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.static.nc",
-                file_id="GMOM_JRA_WD_mom6_h_static",
+                file_id="",
                 frequency="fx",
                 start_date="none",
                 end_date="none",
@@ -1382,7 +1382,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.z_1900_01.nc",
-                file_id="GMOM_JRA_WD_mom6_h_z_XXXX_XX",
+                file_id="",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -1454,7 +1454,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.cice.h.1900-01-01.nc",
-                file_id="GMOM_JRA_WD_cice_h_XXXX_XX_XX",
+                file_id="",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1485,7 +1485,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
-                file_id="GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+                file_id="",
                 frequency="fx",  # WW3 provides no time bounds
                 start_date="1900-01-02, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1502,7 +1502,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ice_daily.nc",
-                file_id="XXXXXXXX_ice_daily",
+                file_id="",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1901-01-01, 00:00:00",
@@ -1584,7 +1584,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_annual_z.nc",
-                file_id="XXXXXXXX_ocean_annual_z",
+                file_id="",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1901-01-01, 00:00:00",
@@ -1746,7 +1746,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_month_rho2.nc",
-                file_id="XXXXXXXX_ocean_month_rho2",
+                file_id="",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1901-01-01, 00:00:00",
@@ -1838,7 +1838,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_scalar_annual.nc",
-                file_id="XXXXXXXX_ocean_scalar_annual",
+                file_id="",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1901-01-01, 00:00:00",
@@ -1920,7 +1920,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_static.nc",
-                file_id="XXXXXXXX_ocean_static",
+                file_id="",
                 frequency="fx",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-01, 00:00:00",
@@ -2097,7 +2097,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_2005_360.nc",
-                file_id="XXXXXXXX_ocean_daily_XXXX_XXX",
+                file_id="",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -2229,7 +2229,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_rho2_2005_360.nc",
-                file_id="XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
+                file_id="",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -2326,7 +2326,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_z_2005_360.nc",
-                file_id="XXXXXXXX_ocean_daily_z_XXXX_XXX",
+                file_id="",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -2437,7 +2437,7 @@ def test_parse_filename(builder, filename, expected):
             "roms/roms_his_0016.nc",
             _NCFileInfo(
                 filename="roms_his_0016.nc",
-                file_id="roms_his_XXXX",
+                file_id="",
                 path=None,  # type: ignore
                 frequency="fx",
                 start_date="none",
