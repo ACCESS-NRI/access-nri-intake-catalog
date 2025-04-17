@@ -320,7 +320,7 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        file_id, _, _ = cls.parse_filename(file_path.stem)
+        # file_id, _, _ = cls.parse_filename(file_path.stem)
 
         with xr.open_dataset(
             file,
@@ -343,7 +343,7 @@ class BaseBuilder(Builder):
         output_ncfile = _NCFileInfo(
             filename=file_path.name,
             path=file,
-            file_id=file_id,
+            file_id="",
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
@@ -408,6 +408,7 @@ class AccessOm2Builder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
 
             return ncinfo_dict
 
@@ -475,6 +476,7 @@ class AccessOm3Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
 
             return ncinfo_dict
 
@@ -547,6 +549,7 @@ class Mom6Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
 
             return ncinfo_dict
 
@@ -616,6 +619,7 @@ class AccessEsm15Builder(BaseBuilder):
             nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
             # Remove exp_id from file id so that members can be part of the same dataset
             ncinfo_dict["file_id"] = re.sub(
                 exp_id,
@@ -624,6 +628,7 @@ class AccessEsm15Builder(BaseBuilder):
             ).strip("_")
             ncinfo_dict["realm"] = realm_mapping[realm]
             ncinfo_dict["member"] = exp_id
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
 
             return ncinfo_dict
 
@@ -692,6 +697,7 @@ class ROMSBuilder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
 
             return ncinfo_dict
         except Exception:

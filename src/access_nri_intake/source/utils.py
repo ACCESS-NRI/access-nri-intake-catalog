@@ -54,8 +54,8 @@ class _NCFileInfo:
     """
 
     filename: str | Path
-    file_id: str
     path: str
+    file_id: str
     frequency: str
     start_date: str
     end_date: str
