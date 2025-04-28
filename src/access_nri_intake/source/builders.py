@@ -237,10 +237,8 @@ class BaseBuilder(Builder):
     def parse_filename(
         cls,
         filename: str,
-        patterns: list[str] | None = None,
-        frequencies: dict = FREQUENCIES,
         redaction_fill: str = "X",
-    ) -> tuple[str, str | None, str | None]:
+    ) -> str:
         """
         Parse an ACCESS model filename and return a file id and any time information
 
@@ -248,10 +246,6 @@ class BaseBuilder(Builder):
         ----------
         filename: str
             The filename to parse with the extension removed
-        patterns: list of str, optional
-            A list of regex patterns to match against the filename. If None, use the class PATTERNS
-        frequencies: dict, optional
-            A dictionary of regex patterns to match against the filename to determine the frequency
         redaction_fill: str, optional
             The character to replace time information with. Defaults to "X"
 
@@ -260,30 +254,17 @@ class BaseBuilder(Builder):
         file_id: str
             The file id constructed by redacting time information and replacing non-python characters
             with underscores
-        timestamp: str | None
-            A string of the redacted time information (e.g. "1990-01") if available, otherwise None
-        frequency: str | None
-            The frequency of the file if available in the filename, otherwise None
         """
-        if patterns is None:
-            patterns = cls.PATTERNS
-
-        # Try to determine frequency
-        frequency = None
-        for pattern, freq in frequencies.items():
-            if re.search(pattern, filename):
-                frequency = freq
-                break
+        # if patterns is None:
+        patterns = cls.PATTERNS
 
         # Parse file id
         file_id = filename
-        timestamp = None
         for pattern in patterns:
             match = re.match(pattern, file_id)
             if match:
                 # FIXME switch to using named group for timestamp
                 # Loop over all found groups and redact
-                timestamp = match.group(1)
                 for grp in match.groups():
                     if grp is not None:
                         redaction = re.sub(r"\d", redaction_fill, grp)
@@ -294,7 +275,7 @@ class BaseBuilder(Builder):
         file_id = re.sub(r"[-.]", "_", file_id)
         file_id = re.sub(r"_+", "_", file_id).strip("_")
 
-        return file_id, timestamp, frequency
+        return file_id
 
     @classmethod
     def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
@@ -408,7 +389,7 @@ class AccessOm2Builder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
 
             return ncinfo_dict
 
@@ -476,7 +457,7 @@ class AccessOm3Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
 
             return ncinfo_dict
 
@@ -549,7 +530,7 @@ class Mom6Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
 
             return ncinfo_dict
 
@@ -619,7 +600,7 @@ class AccessEsm15Builder(BaseBuilder):
             nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
             # Remove exp_id from file id so that members can be part of the same dataset
             ncinfo_dict["file_id"] = re.sub(
                 exp_id,
@@ -696,7 +677,7 @@ class ROMSBuilder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)[0]
+            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
 
             return ncinfo_dict
         except Exception:

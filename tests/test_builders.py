@@ -299,481 +299,297 @@ def test_builder_columns_with_iterables(test_data):
     "builder, filename, expected",
     [
         # Example ACCESS-CM2 filenames
-        (
-            builders.AccessCm2Builder,
-            "bz687a.pm107912_mon",
-            ("bz687a_pmXXXXXX_mon", "107912", (1, "mon")),
-        ),
-        (
-            builders.AccessCm2Builder,
-            "bz687a.p7107912_mon",
-            ("bz687a_p7XXXXXX_mon", "107912", (1, "mon")),
-        ),
-        (
-            builders.AccessCm2Builder,
-            "bz687a.p7107912_dai",
-            ("bz687a_p7XXXXXX_dai", "107912", (1, "day")),
-        ),
-        (
-            builders.AccessCm2Builder,
-            "iceh_m.2014-06",
-            ("iceh_m_XXXX_XX", "2014-06", None),
-        ),
+        (builders.AccessCm2Builder, "bz687a.pm107912_mon", "bz687a_pmXXXXXX_mon"),
+        (builders.AccessCm2Builder, "bz687a.p7107912_mon", "bz687a_p7XXXXXX_mon"),
+        (builders.AccessCm2Builder, "bz687a.p7107912_dai", "bz687a_p7XXXXXX_dai"),
+        (builders.AccessCm2Builder, "iceh_m.2014-06", "iceh_m_XXXX_XX"),
         (
             builders.AccessCm2Builder,
             "iceh.1917-05-daily",
-            ("iceh_XXXX_XX_daily", "1917-05", (1, "day")),
+            "iceh_XXXX_XX_daily",
         ),
         (
             builders.AccessCm2Builder,
             "iceh_03h.2016-01-3hourly",
-            ("iceh_03h_XXXX_XX_3hourly", "2016-01", None),
+            "iceh_03h_XXXX_XX_3hourly",
         ),
         (
             builders.AccessCm2Builder,
             "ocean_bgc_ann",
-            ("ocean_bgc_ann", None, (1, "yr")),
+            "ocean_bgc_ann",
         ),
-        (builders.AccessCm2Builder, "ocean_daily", ("ocean_daily", None, (1, "day"))),
+        (builders.AccessCm2Builder, "ocean_daily", "ocean_daily"),
         # Example ACCESS-ESM1.5 filenames
         (
             builders.AccessEsm15Builder,
             "PI-GWL-B2035.pe-109904_dai",
-            ("PI_GWL_B2035_pe_XXXXXX_dai", "109904", (1, "day")),
+            "PI_GWL_B2035_pe_XXXXXX_dai",
         ),
         (
             builders.AccessEsm15Builder,
             "PI-GWL-B2035.pa-109904_mon",
-            ("PI_GWL_B2035_pa_XXXXXX_mon", "109904", (1, "mon")),
+            "PI_GWL_B2035_pa_XXXXXX_mon",
         ),
         (
             builders.AccessEsm15Builder,
             "PI-1pct-02.pe-011802_dai.nc_dai",
-            ("PI_1pct_02_pe_XXXXXX_dai_nc_dai", "011802", (1, "day")),
+            "PI_1pct_02_pe_XXXXXX_dai_nc_dai",
         ),
         (
             builders.AccessEsm15Builder,
             "iceh.1917-05",
-            ("iceh_XXXX_XX", "1917-05", None),
+            "iceh_XXXX_XX",
         ),
         # Example ACCESS-OM2 filenames
         (
             builders.AccessOm2Builder,
             "iceh.057-daily",
-            ("iceh_XXX_daily", "057", (1, "day")),
+            "iceh_XXX_daily",
         ),
         (
             builders.AccessOm2Builder,
             "iceh.1985-08-31",
-            ("iceh_XXXX_XX_XX", "1985-08-31", None),
+            "iceh_XXXX_XX_XX",
         ),
-        (builders.AccessOm2Builder, "ocean", ("ocean", None, None)),
-        (builders.AccessOm2Builder, "ocean_month", ("ocean_month", None, (1, "mon"))),
-        (
-            builders.AccessOm2Builder,
-            "ocean-2d-area_t",
-            ("ocean_2d_area_t", None, None),
-        ),
+        (builders.AccessOm2Builder, "ocean", "ocean"),
+        (builders.AccessOm2Builder, "ocean_month", "ocean_month"),
+        (builders.AccessOm2Builder, "ocean-2d-area_t", "ocean_2d_area_t"),
         (
             builders.AccessOm2Builder,
             "ocean_daily_3d_pot_rho_1",
-            ("ocean_daily_3d_pot_rho_1", None, (1, "day")),
+            "ocean_daily_3d_pot_rho_1",
         ),
         (
             builders.AccessOm2Builder,
             "ocean_daily_3d_vhrho_nt_07",
-            ("ocean_daily_3d_vhrho_nt_XX", "07", (1, "day")),
+            "ocean_daily_3d_vhrho_nt_XX",
         ),
         (
             builders.AccessOm2Builder,
             "ocean-3d-v-1-monthly-pow02-ym_1958_04",
-            ("ocean_3d_v_1_monthly_pow02_ym_XXXX_XX", "1958_04", (1, "mon")),
+            "ocean_3d_v_1_monthly_pow02_ym_XXXX_XX",
         ),
         (
             builders.AccessOm2Builder,
             "ocean-2d-sfc_salt_flux_restore-1-monthly-mean-ym_1958_04",
-            (
-                "ocean_2d_sfc_salt_flux_restore_1_monthly_mean_ym_XXXX_XX",
-                "1958_04",
-                (1, "mon"),
-            ),
+            "ocean_2d_sfc_salt_flux_restore_1_monthly_mean_ym_XXXX_XX",
         ),
         (
             builders.AccessOm2Builder,
             "ocean-2d-sea_level-540-seconds-snap-ym_2022_04_01",
-            (
-                "ocean_2d_sea_level_540_seconds_snap_ym_XXXX_XX_XX",
-                "2022_04_01",
-                None,
-            ),
+            "ocean_2d_sea_level_540_seconds_snap_ym_XXXX_XX_XX",
         ),
         (
             builders.AccessOm2Builder,
             "ocean-3d-salt-1-daily-mean-ym_2018_10_jmax511_sigfig4",
-            (
-                "ocean_3d_salt_1_daily_mean_ym_XXXX_XX_jmax511_sigfig4",
-                "2018_10",
-                (1, "day"),
-            ),
+            "ocean_3d_salt_1_daily_mean_ym_XXXX_XX_jmax511_sigfig4",
         ),
         (
             builders.AccessOm2Builder,
             "oceanbgc-3d-caco3-1-yearly-mean-y_2015",
-            ("oceanbgc_3d_caco3_1_yearly_mean_y_XXXX", "2015", (1, "yr")),
+            "oceanbgc_3d_caco3_1_yearly_mean_y_XXXX",
         ),
         (
             builders.AccessOm2Builder,
             "oceanbgc-2d-wdet100-1-daily-mean-y_2015",
-            ("oceanbgc_2d_wdet100_1_daily_mean_y_XXXX", "2015", (1, "day")),
+            "oceanbgc_2d_wdet100_1_daily_mean_y_XXXX",
         ),
         (
             builders.AccessOm2Builder,
             "oceanbgc-3d-phy-1-daily-mean-3-sigfig-5-daily-ymd_2020_12_01",
-            (
-                "oceanbgc_3d_phy_1_daily_mean_3_sigfig_5_daily_ymd_XXXX_XX_XX",
-                "2020_12_01",
-                (1, "day"),
-            ),
+            "oceanbgc_3d_phy_1_daily_mean_3_sigfig_5_daily_ymd_XXXX_XX_XX",
         ),
         (
             builders.AccessOm2Builder,
             "rregionPrydz_temp_xflux_adv",
-            ("rregionPrydz_temp_xflux_adv", None, None),
+            "rregionPrydz_temp_xflux_adv",
         ),
         # Example ACCESS-OM3 filenames
         (
             builders.AccessOm3Builder,
             "access-om3.ww3.hi.1958-01-02-00000",
-            (
-                "access_om3_ww3_hi_XXXX_XX_XX_XXXXX",
-                "1958-01-02-00000",
-                None,
-            ),
+            "access_om3_ww3_hi_XXXX_XX_XX_XXXXX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.cice.h.1900-01-01",
-            (
-                "access_om3_cice_h_XXXX_XX_XX",
-                "1900-01-01",
-                None,
-            ),
+            "access_om3_cice_h_XXXX_XX_XX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.cice.h.1900-01",
-            (
-                "access_om3_cice_h_XXXX_XX",
-                "1900-01",
-                None,
-            ),
+            "access_om3_cice_h_XXXX_XX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.cice.h.1900-01-daily",
-            (
-                "access_om3_cice_h_XXXX_XX_daily",
-                "1900-01",
-                (1, "day"),
-            ),
+            "access_om3_cice_h_XXXX_XX_daily",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.ocean_sfc_1900_01_01",
-            (
-                "access_om3_mom6_ocean_sfc_XXXX_XX_XX",
-                "1900_01_01",
-                None,
-            ),
+            "access_om3_mom6_ocean_sfc_XXXX_XX_XX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.sfc_1900_01",
-            (
-                "access_om3_mom6_sfc_XXXX_XX",
-                "1900_01",
-                None,
-            ),
+            "access_om3_mom6_sfc_XXXX_XX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.sfc_1900",
-            (
-                "access_om3_mom6_sfc_XXXX",
-                "1900",
-                None,
-            ),
+            "access_om3_mom6_sfc_XXXX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.static",
-            (
-                "access_om3_mom6_static",
-                None,
-                None,
-            ),
+            "access_om3_mom6_static",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.static",
-            (
-                "access_om3_mom6_static",
-                None,
-                None,
-            ),
+            "access_om3_mom6_static",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
-                "1900",
-                (1, "mon"),
-            ),
+            "access_om3_mom6_3d_uh_1mon_mean_XXXX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
-                "1900-01-01-00000",
-                (1, "mon"),
-            ),
+            "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900-01",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
-                "1900-01",
-                (1, "mon"),
-            ),
+            "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
-                "1900-01-03-00000",
-                None,
-            ),
+            "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX",
-                "1900",
-                None,
-            ),
+            "GMOM_JRA_WD_ww3_hi_XXXX",
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900-01",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
-                "1900-01",
-                None,
-            ),
+            "GMOM_JRA_WD_ww3_hi_XXXX_XX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
-                "1900",
-                (1, "mon"),
-            ),
+            "access_om3_mom6_3d_uh_1mon_mean_XXXX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
-                "1900-01-01-00000",
-                (1, "mon"),
-            ),
+            "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900-01",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
-                "1900-01",
-                (1, "mon"),
-            ),
+            "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
-                "1900-01-03-00000",
-                None,
-            ),
+            "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX",
-                "1900",
-                None,
-            ),
+            "GMOM_JRA_WD_ww3_hi_XXXX",
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900-01",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
-                "1900-01",
-                None,
-            ),
+            "GMOM_JRA_WD_ww3_hi_XXXX_XX",
         ),
         # MOM6
         (
             builders.Mom6Builder,
             "19000101.ice_daily",
-            (
-                "XXXXXXXX_ice_daily",
-                "19000101",
-                (1, "day"),
-            ),
+            "XXXXXXXX_ice_daily",
         ),
         (
             builders.Mom6Builder,
             "19010101.ice_month",
-            (
-                "XXXXXXXX_ice_month",
-                "19010101",
-                (1, "mon"),
-            ),
+            "XXXXXXXX_ice_month",
         ),
         (
             builders.Mom6Builder,
             "19010101.ocean_annual_rho2",
-            (
-                "XXXXXXXX_ocean_annual_rho2",
-                "19010101",
-                (1, "yr"),
-            ),
+            "XXXXXXXX_ocean_annual_rho2",
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_annual_z",
-            (
-                "XXXXXXXX_ocean_annual_z",
-                "19000101",
-                (1, "yr"),
-            ),
+            "XXXXXXXX_ocean_annual_z",
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_annual",
-            (
-                "XXXXXXXX_ocean_annual",
-                "19000101",
-                (1, "yr"),
-            ),
+            "XXXXXXXX_ocean_annual",
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_daily",
-            (
-                "XXXXXXXX_ocean_daily",
-                "19000101",
-                (1, "day"),
-            ),
+            "XXXXXXXX_ocean_daily",
         ),
         (
             builders.Mom6Builder,
             "19010101.ocean_month_rho2",
-            (
-                "XXXXXXXX_ocean_month_rho2",
-                "19010101",
-                (1, "mon"),
-            ),
+            "XXXXXXXX_ocean_month_rho2",
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_month_z",
-            (
-                "XXXXXXXX_ocean_month_z",
-                "19000101",
-                (1, "mon"),
-            ),
+            "XXXXXXXX_ocean_month_z",
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_month",
-            (
-                "XXXXXXXX_ocean_month",
-                "19000101",
-                (1, "mon"),
-            ),
+            "XXXXXXXX_ocean_month",
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_scalar_annual",
-            (
-                "XXXXXXXX_ocean_scalar_annual",
-                "19000101",
-                (1, "yr"),
-            ),
+            "XXXXXXXX_ocean_scalar_annual",
         ),
         (
             builders.Mom6Builder,
             "19010101.ocean_scalar_month",
-            (
-                "XXXXXXXX_ocean_scalar_month",
-                "19010101",
-                (1, "mon"),
-            ),
+            "XXXXXXXX_ocean_scalar_month",
         ),
         (
             builders.Mom6Builder,
             "19010101.ocean_static",
-            (
-                "XXXXXXXX_ocean_static",
-                "19010101",
-                None,
-            ),
+            "XXXXXXXX_ocean_static",
         ),
         (
             builders.Mom6Builder,
             "20000201.ocean_daily_2000_032",
-            (
-                "XXXXXXXX_ocean_daily_XXXX_XXX",
-                "20000201",
-                (1, "day"),
-            ),
+            "XXXXXXXX_ocean_daily_XXXX_XXX",
         ),
         (
             builders.Mom6Builder,
             "20000201.ocean_daily_rho2_2000_056",
-            (
-                "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
-                "20000201",
-                (1, "day"),
-            ),
+            "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
         ),
         (
             builders.Mom6Builder,
             "20000201.ocean_daily_z_2000_119",
-            (
-                "XXXXXXXX_ocean_daily_z_XXXX_XXX",
-                "20000201",
-                (1, "day"),
-            ),
+            "XXXXXXXX_ocean_daily_z_XXXX_XXX",
         ),
         (
             builders.ROMSBuilder,
             "roms_his_0016",
-            (
-                "roms_his_XXXX",
-                "0016",
-                None,
-            ),
+            "roms_his_XXXX",
         ),
     ],
 )
