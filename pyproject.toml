@@ -13,30 +13,8 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
-dependencies = [
-    "cftime",
-    "ecgtools>=2023.7.13",
-    "intake>=2.0.0",
-    "intake-dataframe-catalog>=0.3.1",
-    "intake-esm>=2025.2.3",
-    "jsonschema",
-    "pooch",
-    "xarray",
-    "colorama",
-    "yamanifest",
-    "access-py-telemetry>=0.1.6",
-]
-dynamic = ["version"]
-
-[project.optional-dependencies]
-test = [
-    "pytest",
-    "tox",
-] 
-e2e = [
-    "pytest",
-    "pytest-ordering",
-]
+dynamic = ["dependencies", "version"]
+optional-dependencies = { test = ["pytest", "tox"], e2e = ["pytest", "pytest-ordering"] }
 
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"
@@ -54,6 +32,10 @@ requires = [
   "setuptools >= 61.0.0",
   "versioneer[toml]",
 ]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
 
 [tool.setuptools.packages.find]
 where = ["src"]

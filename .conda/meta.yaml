@@ -1,5 +1,6 @@
 {% set data = load_setup_py_data(setup_file='../setup.py', from_recipe_dir=True) %}
 {% set version = data.get('version') %}
+{% set requirements = load_file('../requirements.txt').splitlines() %}
 
 package:
   name: access-nri-intake
@@ -20,17 +21,9 @@ requirements:
     - versioneer
   run:
     - python >=3.10
-    - access-py-telemetry>=0.1.6
-    - cftime
-    - colorama
-    - ecgtools>=2023.7.13
-    - intake>=0.7.0
-    - intake-dataframe-catalog>=0.3.1
-    - intake-esm>=2023.11.10
-    - jsonschema
-    - pooch
-    - xarray
-    - yamanifest
+    {% for req in requirements %}
+    - {{ req }}
+    {% endfor %}
 
 about:
   home: https://github.com/ACCESS-NRI/access-nri-intake-catalog
