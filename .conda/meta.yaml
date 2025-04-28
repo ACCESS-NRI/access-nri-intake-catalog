@@ -1,6 +1,7 @@
 {% set data = load_setup_py_data(setup_file='../setup.py', from_recipe_dir=True) %}
 {% set version = data.get('version') %}
-{% set requirements = load_file('../requirements.txt').splitlines() %}
+{% set pyproj = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
+{% set deps = pyproj.get('project', {}).get('dependencies',[]) %}
 
 package:
   name: access-nri-intake
@@ -21,8 +22,8 @@ requirements:
     - versioneer
   run:
     - python >=3.10
-    {% for req in requirements %}
-    - {{ req }}
+    {% for dep in deps %}
+    - {{ dep }}
     {% endfor %}
 
 about:

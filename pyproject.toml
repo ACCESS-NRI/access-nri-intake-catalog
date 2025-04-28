@@ -13,7 +13,21 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
-dynamic = ["dependencies", "version"]
+
+dependencies = [
+    "cftime",
+    "ecgtools>=2023.7.13",
+    "intake>=2.0.0",
+    "intake-dataframe-catalog>=0.3.1",
+    "intake-esm>=2025.2.3",
+    "jsonschema",
+    "pooch",
+    "xarray",
+    "colorama",
+    "yamanifest",
+    "access-py-telemetry>=0.1.6",
+]
+dynamic = ["version"]
 
 [project.optional-dependencies]
 test = ["pytest", "tox"]
