@@ -50,10 +50,6 @@ requires = [
   "versioneer[toml]",
 ]
 
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
-
-
 [tool.setuptools.packages.find]
 where = ["src"]
 
