@@ -14,7 +14,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dynamic = ["dependencies", "version"]
-optional-dependencies = { test = ["pytest", "tox"], e2e = ["pytest", "pytest-ordering"] }
+
+[project.optional-dependencies]
+test = ["pytest", "tox"]
+e2e = ["pytest", "pytest-ordering"]
 
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"
