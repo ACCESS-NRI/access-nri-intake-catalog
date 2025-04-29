@@ -18,3 +18,4 @@ of access-nri-intake and how they can be used to build and manage a catalog like
    building
    schema
    release
+   external
