@@ -596,3 +596,50 @@ def _cmip_realm_translator(series) -> pd.Series:
         return tuple(realms)
 
     return series.apply(lambda string: _translate(string))
+
+
+class Aus2200Translator(DefaultTranslator):
+    """
+    AUS2200 Translator for translating metadata from the NCI AUS2200 intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise an Aus2200Translator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI CCAM intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="model_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+        self.set_dispatch(
+            input_name="realm",
+            core_colname="realm",
+            func=self._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+
+    def _realm_translator(self):
+        """
+        Realm is not available in the AUS2200 metadata, so we'll just return
+        ('none',) for now.
+        """
+        return self.source.df.apply(lambda x: ("none",), 1)

@@ -1,0 +1,6 @@
+,path,file_type,model_id,frequency,variable_id,version,time_range
+0,/g/data/bs94/AUS2200/coralsea-sstreduced/v1-0/1hr/clw/clw_AUS2200_flood22-reducedsst_1hrPt_202203040700-202203041200.nc,f,coralsea-sstreduced,1hr,clw,v1-0,202203040700-202203041200
+1,/g/data/bs94/AUS2200/mjo-lanina2018/v1-0/10min/vas/vas_AUS2200_mjo-lanina_subhrPt_20180109001000-20180110000000.nc,f,mjo-lanina2018,10min,vas,v1-0,20180109001000-20180110000000
+2,/g/data/bs94/AUS2200/mjo-lanina2018/v1-0/10min/cllow/cllow_AUS2200_mjo-lanina_subhrPt_20180109001000-20180110000000.nc,f,mjo-lanina2018,10min,cllow,v1-0,20180109001000-20180110000000
+3,/g/data/bs94/AUS2200/mjo-lanina2018/v1-0/10min/reflmax/reflmax_AUS2200_mjo-lanina_subhrPt_20180215001000-20180216000000.nc,f,mjo-lanina2018,10min,reflmax,v1-0,20180215001000-20180216000000
+4,/g/data/bs94/AUS2200/mjo-lanina2018/v1-0/1hrPlev/ta/ta_AUS2200_mjo-lanina_1hrPt_201801101300-201801110000.nc,f,mjo-lanina2018,1hrPlev,ta,v1-0,201801101300-201801110000
