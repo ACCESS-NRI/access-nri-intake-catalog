@@ -593,8 +593,8 @@ def test_builder_columns_with_iterables(test_data):
         ),
     ],
 )
-def test_parse_filename(builder, filename, expected):
-    assert builder.parse_filename(filename) == expected
+def test_generate_file_shape_info(builder, filename, expected):
+    assert builder.generate_file_shape_info(filename) == expected
 
 
 @pytest.mark.parametrize(

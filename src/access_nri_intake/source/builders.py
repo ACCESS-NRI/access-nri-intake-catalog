@@ -234,7 +234,7 @@ class BaseBuilder(Builder):
         raise NotImplementedError
 
     @classmethod
-    def parse_filename(
+    def generate_file_shape_info(
         cls,
         filename: str,
         redaction_fill: str = "X",
@@ -389,7 +389,7 @@ class AccessOm2Builder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
 
             return ncinfo_dict
 
@@ -457,7 +457,7 @@ class AccessOm3Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
 
             return ncinfo_dict
 
@@ -530,7 +530,7 @@ class Mom6Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
 
             return ncinfo_dict
 
@@ -600,7 +600,7 @@ class AccessEsm15Builder(BaseBuilder):
             nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
             # Remove exp_id from file id so that members can be part of the same dataset
             ncinfo_dict["file_id"] = re.sub(
                 exp_id,
@@ -677,7 +677,7 @@ class ROMSBuilder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.parse_filename(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
 
             return ncinfo_dict
         except Exception:
