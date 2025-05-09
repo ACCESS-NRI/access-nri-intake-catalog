@@ -235,45 +235,31 @@ class BaseBuilder(Builder):
 
     @classmethod
     def generate_file_shape_info(
-        cls,
-        filename: str,
-        redaction_fill: str = "X",
+        cls, filename: str | Path, time_dim: str = "time"
     ) -> str:
         """
-        Parse an ACCESS model filename and return a file id and any time information
+        Parse an ACCESS model file and return a file id constructed from shape information.
 
         Parameters
         ----------
-        filename: str
-            The filename to parse with the extension removed
-        redaction_fill: str, optional
-            The character to replace time information with. Defaults to "X"
+        filename: str or pathlib.Path
+            The filename of the file to parse
+        time_dim: str
+            The time dimension name for this file. Defaults to "time".
 
         Returns
         -------
-        file_id: str
-            The file id constructed by redacting time information and replacing non-python characters
-            with underscores
+        shape_info: str
+            The file id constructed by examining the sizes of the file, less
+            the time dimension.
         """
-        # if patterns is None:
-        patterns = cls.PATTERNS
 
-        # Parse file id
-        file_id = filename
-        for pattern in patterns:
-            match = re.match(pattern, file_id)
-            if match:
-                # FIXME switch to using named group for timestamp
-                # Loop over all found groups and redact
-                for grp in match.groups():
-                    if grp is not None:
-                        redaction = re.sub(r"\d", redaction_fill, grp)
-                        file_id = re.sub(grp, redaction, file_id)
-                break
-
-        # Remove non-python characters from file ids
-        file_id = re.sub(r"[-.]", "_", file_id)
-        file_id = re.sub(r"_+", "_", file_id).strip("_")
+        # Open the file using xarray
+        with xr.open_dataset(filename, mode="r", engine="netcdf4") as xds:
+            file_id = ".".join(
+                sorted([f"{s}:{xds.sizes[s]}" for s in xds.sizes if s != time_dim])
+            )
+            # Sorting should ensure reproducibility
 
         return file_id
 
@@ -389,7 +375,14 @@ class AccessOm2Builder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
 
             return ncinfo_dict
 
@@ -457,7 +450,14 @@ class AccessOm3Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
 
             return ncinfo_dict
 
@@ -530,7 +530,10 @@ class Mom6Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
+            ncinfo_dict["file_id"] = ".".join(
+                [ncinfo_dict["realm"], ncinfo_dict["frequency"], ncinfo_dict["file_id"]]
+            )
 
             return ncinfo_dict
 
@@ -600,15 +603,12 @@ class AccessEsm15Builder(BaseBuilder):
             nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
-            # Remove exp_id from file id so that members can be part of the same dataset
-            ncinfo_dict["file_id"] = re.sub(
-                exp_id,
-                "",
-                ncinfo_dict["file_id"],
-            ).strip("_")
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
             ncinfo_dict["realm"] = realm_mapping[realm]
             ncinfo_dict["member"] = exp_id
+            ncinfo_dict["file_id"] = ".".join(
+                [ncinfo_dict["realm"], ncinfo_dict["frequency"], ncinfo_dict["file_id"]]
+            )
 
             return ncinfo_dict
 
@@ -672,12 +672,22 @@ class ROMSBuilder(BaseBuilder):
     def parser(cls, file) -> dict:
         try:
             realm = "seaIce"
+            time_dim = "ocean_time"
 
-            nc_info = cls.parse_ncfile(file, time_dim="ocean_time")
+            nc_info = cls.parse_ncfile(file, time_dim=time_dim)
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file).stem)
+            ncinfo_dict["file_id"] = cls.generate_file_shape_info(
+                Path(file), time_dim=time_dim
+            )
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
 
             return ncinfo_dict
         except Exception:
