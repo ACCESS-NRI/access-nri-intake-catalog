@@ -583,7 +583,7 @@ class EsgfTranslator(DefaultTranslator):
         self.set_dispatch(
             input_name="realm",
             core_colname="realm",
-            func=self._realm_translator,
+            func=super()._realm_translator,
         )
         self.set_dispatch(
             input_name="frequency",

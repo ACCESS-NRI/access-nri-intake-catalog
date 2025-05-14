@@ -368,7 +368,7 @@ def test_NarclimTranslator(test_data, groupby, n_entries):
 @pytest.mark.parametrize(
     "groupby, n_entries",
     [
-        (None, 7),
+        (None, 6),
         (["variable"], 4),
         (
             ["frequency"],
