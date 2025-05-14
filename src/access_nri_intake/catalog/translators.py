@@ -564,12 +564,12 @@ class NarclimTranslator(DefaultTranslator):
 class EsgfTranslator(DefaultTranslator):
     def __init__(self, source, columns):
         """
-        Initialise a BarpaTranslator
+        Initialise an EsgfTranslator
 
         Parameters
         ----------
         source: :py:class:`~intake.DataSource`
-            The NCI BARPA intake-esm datastore
+            The NCI Earth System Grid intake-esm datastore
         columns: list of str
             The columns to translate to (these are the core columns in the intake-dataframe-catalog)
         """
