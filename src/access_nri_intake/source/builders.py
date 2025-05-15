@@ -255,7 +255,9 @@ class BaseBuilder(Builder):
         """
 
         # Open the file using xarray
-        with xr.open_dataset(filename, mode="r", engine="netcdf4") as xds:
+        with xr.open_dataset(
+            filename, mode="r", engine="netcdf4", decode_times=False
+        ) as xds:
             file_id = ".".join(
                 sorted([f"{s}:{xds.sizes[s]}" for s in xds.sizes if s != time_dim])
             )
