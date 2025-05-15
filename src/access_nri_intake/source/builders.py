@@ -348,7 +348,9 @@ class AccessOm2Builder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*", "*o2i.nc"],
             include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
-            groupby_attrs=["file_id", "frequency"],
+            groupby_attrs=[
+                "file_id",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -422,7 +424,9 @@ class AccessOm3Builder(BaseBuilder):
             ],
             include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
-            groupby_attrs=["file_id", "frequency"],
+            groupby_attrs=[
+                "file_id",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -504,7 +508,9 @@ class Mom6Builder(BaseBuilder):
             ],
             include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             data_format="netcdf",
-            groupby_attrs=["file_id", "frequency"],
+            groupby_attrs=[
+                "file_id",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -570,7 +576,9 @@ class AccessEsm15Builder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*"],
             include_patterns=kwargs.get("include_patterns") or ["*.nc*"],
             data_format="netcdf",
-            groupby_attrs=["file_id", "frequency"],
+            groupby_attrs=[
+                "file_id",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -655,7 +663,9 @@ class ROMSBuilder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
-            groupby_attrs=["file_id", "frequency"],
+            groupby_attrs=[
+                "file_id",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
