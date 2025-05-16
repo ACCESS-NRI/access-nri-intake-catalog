@@ -31,7 +31,7 @@ module load openmpi
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog
 CONFIG_DIR=/g/data/xp65/admin/access-nri-intake-catalog/config
-CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ccam.yaml barpa.yaml cordex.yaml mom6.yaml narclim2.yaml era5.yaml romsiceshelf.yaml )
+CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ccam.yaml barpa.yaml cordex.yaml mom6.yaml narclim2.yaml era5.yaml romsiceshelf.yaml esgf-ref.yaml )
 
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
 
