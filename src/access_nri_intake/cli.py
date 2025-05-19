@@ -145,7 +145,14 @@ def _parse_build_directory(
     build_base_path: str | Path, version: str, catalog_file: str
 ) -> tuple[Path, Path, Path]:
     """
-    Build the location for the new catalog
+    Build the location for the new catalog. We put everything in temporary directory
+    for now, which will basically be a map `$DIR/$FNAME` => `$DIR/.$FNAME` where
+    `$DIR` is the base directory and `$FNAME` is the catalog file name that the user
+    specified. We can't stick things in /scratch if we want our operations to be atomic.
+
+    At the end of the build process, `$DIR/.$FNAME` will be moved to
+    `$DIR/$FNAME` and all relevant filepaths contained within it altered to point
+    to the right location.
 
     Parameters
     ----------
@@ -156,7 +163,9 @@ def _parse_build_directory(
     catalog_file : str
         Catalog file name
     """
-    build_base_path = Path(build_base_path).absolute()
+    build_base_path = (
+        Path(build_base_path).absolute().parent / f".{Path(build_base_path).name}"
+    )
     build_path = Path(build_base_path) / version / "source"
     metacatalog_path = Path(build_base_path) / version / catalog_file
 
@@ -522,6 +531,24 @@ def build(argv: Sequence[str] | None = None):
 
         with Path(get_catalog_fp(basepath=catalog_base_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
+
+    _concretize_build(build_base_path, version)
+
+
+def _concretize_build(build_base_path: str | Path, version: str) -> None:
+    """
+    Take the build in it's temporary location, update all the paths within the
+    catalog.json files to point to the new location, and then move it out to the
+    final location.
+
+    Parameters
+    ----------
+    build_base_path : str | Path
+        The base path for the build.
+    version : str
+        The version of the build.
+    """
+    pass
 
 
 def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:
