@@ -35,7 +35,7 @@ try:
     cat_version = data._captured_init_kwargs.get("metadata", {}).get(
         "version", "latest"
     )  # Get the catalog version number and set it to "latest" if it can't be found
-except FileNotFoundError:
+except Exception:
     warnings.warn(
         "Unable to access a default catalog location. Calling intake.cat.access_nri will not work.",
         RuntimeWarning,
