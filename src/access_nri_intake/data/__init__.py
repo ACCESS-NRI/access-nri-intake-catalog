@@ -8,6 +8,7 @@ import intake
 import intake.catalog
 from access_py_telemetry.api import ApiHandler, ProductionToggle
 from access_py_telemetry.cli import configure_telemetry
+from pandas.errors import EmptyDataError
 
 from access_nri_intake.utils import get_catalog_fp
 
@@ -43,6 +44,28 @@ except FileNotFoundError:
     )
     data = intake.catalog.Catalog()
     cat_version = -999  # Failed to load a catalog - bad result flag
+except EmptyDataError:
+    warnings.warn(
+        (
+            "Catalog is empty, likely due to ongoing catalog rebuild. Please try again later."
+            " If the issue persists, please contact the ACCESS-NRI team."
+        ),
+        RuntimeWarning,
+        stacklevel=2,
+    )
+    data = intake.catalog.Catalog()
+    cat_version = -999
+except Exception as e:
+    warnings.warn(
+        (
+            f"An unexpected error occurred while loading the catalog: {e}"
+            " Please raise an issue at https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues"
+        ),
+        RuntimeWarning,
+        stacklevel=2,
+    )
+    data = intake.catalog.Catalog()
+    cat_version = -999
 finally:
     configure_telemetry(["--enable", "--silent"])
     api_handler.add_extra_fields("intake_catalog", {"catalog_version": cat_version})
