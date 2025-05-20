@@ -30,11 +30,15 @@ __all__ = [
 
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
-    "monthly-averaged-by-day": "1hr",
+    "monthly-averaged-by-day": "1day",
+    "1hrCM": "1hr",
     "3hrPt": "3hr",
     "6hrPt": "6hr",
     "daily": "1day",
     "day": "1day",
+    "night": "1day",
+    "mon_day_time": "1mon",
+    "mon_night_time": "1mon",
     "mon": "1mon",
     "monthly-averaged": "1mon",
     "monC": "1mon",
@@ -44,6 +48,8 @@ FREQUENCY_TRANSLATIONS = {
     "subhrPt": "subhr",
     "yr": "1yr",
     "yrPt": "1yr",
+    "yrC": "1yr",
+    "na": "fx",
 }
 
 
