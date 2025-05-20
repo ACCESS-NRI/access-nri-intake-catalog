@@ -163,11 +163,9 @@ def _parse_build_directory(
     catalog_file : str
         Catalog file name
     """
-    build_base_path = (
-        Path(build_base_path).absolute().parent / f".{Path(build_base_path).name}"
-    )
-    build_path = Path(build_base_path) / version / "source"
-    metacatalog_path = Path(build_base_path) / version / catalog_file
+    build_base_path = Path(build_base_path)
+    build_path = Path(build_base_path) / f".{version}" / "source"
+    metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
 
     return build_base_path, build_path, metacatalog_path
 
@@ -223,6 +221,9 @@ def _write_catalog_yaml(
 ) -> dict:
     """
     Write the catalog details out to YAML.
+
+    # TODO: Needs updating so that we only update this if the rest of our build
+    # was sucessful.
     """
     cat = cm.dfcat
     cat.name = "access_nri"
@@ -511,13 +512,14 @@ def build(argv: Sequence[str] | None = None):
         )
 
     # Build the catalog
-    cm = CatalogManager(path=metacatalog_path)
+    cm = CatalogManager(path=metacatalog_path, version=version)
     for method, src_args in parsed_sources:
         _add_source_to_catalog(cm, method, src_args, metacatalog_path, logger=logger)
 
     # Write catalog yaml file
     # Should fail LOUD
     try:
+        # This saves catalog.yaml once
         yaml_dict = _write_catalog_yaml(
             cm, build_base_path, storage_flags, catalog_file, version
         )
@@ -529,8 +531,13 @@ def build(argv: Sequence[str] | None = None):
             yaml_dict, catalog_base_path, build_base_path, version
         )
 
+        # This saves it again.
+        catalog_base_path = Path(catalog_base_path) / f".{version}"
         with Path(get_catalog_fp(basepath=catalog_base_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
+
+        # We need to ensure that we don't save the yaml twice, only once. Keep
+        # it in memory until then.
 
     _concretize_build(build_base_path, version)
 
