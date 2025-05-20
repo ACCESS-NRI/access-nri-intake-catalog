@@ -388,6 +388,11 @@ class CordexTranslator(DefaultTranslator):
         self.set_dispatch(
             input_name="realm", core_colname="realm", func=self._realm_translator
         )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
 
     def _realm_translator(self):
         """
