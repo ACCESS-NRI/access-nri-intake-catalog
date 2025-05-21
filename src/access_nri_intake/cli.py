@@ -7,6 +7,7 @@ import argparse
 import datetime
 import logging
 import re
+import shutil
 import traceback
 import warnings
 from collections.abc import Sequence
@@ -520,7 +521,6 @@ def build(argv: Sequence[str] | None = None):
     # Write catalog yaml file
     # Should fail LOUD
     try:
-        # This saves catalog.yaml once, I think
         yaml_dict = _write_catalog_yaml(
             cm, build_base_path, storage_flags, catalog_file, version
         )
@@ -532,13 +532,9 @@ def build(argv: Sequence[str] | None = None):
             yaml_dict, catalog_base_path, build_base_path, version
         )
 
-        # This saves it again.
-        catalog_base_path = Path(catalog_base_path) / f".{version}"
-        with Path(get_catalog_fp(basepath=catalog_base_path)).open(mode="w") as fobj:
+        catalog_tmp_path = Path(catalog_base_path) / f".{version}"
+        with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
-
-        # We need to ensure that we don't save the yaml twice, only once. Keep
-        # it in memory until then.
 
     _concretize_build(build_base_path, version)
 
@@ -546,8 +542,8 @@ def build(argv: Sequence[str] | None = None):
 def _concretize_build(build_base_path: str | Path, version: str) -> None:
     """
     Take the build in it's temporary location, update all the paths within the
-    catalog.json files to point to the new location, and then move it out to the
-    final location.
+    catalog.json files to point to the new location, and then finally move it out
+    to the final location.
 
     Parameters
     ----------
@@ -565,10 +561,20 @@ def _concretize_build(build_base_path: str | Path, version: str) -> None:
 
     source_files = (Path(build_base_path) / version / "source").glob("*.json")
 
+    # Then 'unhide' the paths in the catalog.json files
     for f in source_files:
         pl.read_json(f).with_columns(
             pl.col("catalog_file").str.replace(f".{version}", version, literal=True)
         ).write_json(f)
+
+    # Now unhide the directory containing the catalog
+    (Path(build_base_path) / f".{version}").rename(Path(build_base_path) / version)
+
+    # Move the catalog.yaml file to the new location
+    shutil.move(
+        Path(build_base_path) / version / "catalog.yaml",
+        Path(build_base_path) / "catalog.yaml",
+    )
 
 
 def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:
