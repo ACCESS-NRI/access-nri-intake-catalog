@@ -25,15 +25,20 @@ __all__ = [
     "Era5Translator",
     "CcamTranslator",
     "NarclimTranslator",
+    "EsgfTranslator",
 ]
 
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
-    "monthly-averaged-by-day": "1hr",
+    "monthly-averaged-by-day": "1day",
+    "1hrCM": "1hr",
     "3hrPt": "3hr",
     "6hrPt": "6hr",
     "daily": "1day",
     "day": "1day",
+    "night": "1day",
+    "mon_day_time": "1mon",
+    "mon_night_time": "1mon",
     "mon": "1mon",
     "monthly-averaged": "1mon",
     "monC": "1mon",
@@ -43,6 +48,8 @@ FREQUENCY_TRANSLATIONS = {
     "subhrPt": "subhr",
     "yr": "1yr",
     "yrPt": "1yr",
+    "yrC": "1yr",
+    "na": "fx",
 }
 
 
@@ -381,6 +388,11 @@ class CordexTranslator(DefaultTranslator):
         self.set_dispatch(
             input_name="realm", core_colname="realm", func=self._realm_translator
         )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
 
     def _realm_translator(self):
         """
@@ -559,6 +571,42 @@ class NarclimTranslator(DefaultTranslator):
         Return realm, fixing a few issues
         """
         return self.source.df.apply(lambda x: ("atmos",), 1)
+
+
+class EsgfTranslator(DefaultTranslator):
+    def __init__(self, source, columns):
+        """
+        Initialise an EsgfTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI Earth System Grid intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="source_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="realm",
+            core_colname="realm",
+            func=super()._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
 
 
 @dataclass
