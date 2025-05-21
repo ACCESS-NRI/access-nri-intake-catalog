@@ -55,6 +55,10 @@ Generating a new catalog version
 #. Updating :code:`access_nri_intake_catalog` is no longer necessary - the new catalog will be available immediately as 
    :code:`intake.cat.access_nri`.
 
+#. Run the Jupyter notebook ``bin/new-build-checks.ipynb``. This confirms the catalog versions that are available, and runs a 
+   comparison between the new catalog and a selected previous catalog for additions, deletions, etc. Verify that there are 
+   no unexpected changes in the catalog composition.
+
 
 New release with new catalog
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
