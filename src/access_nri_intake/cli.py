@@ -13,6 +13,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import jsonschema
+import polars as pl
 import yaml
 from intake import open_esm_datastore
 
@@ -555,7 +556,19 @@ def _concretize_build(build_base_path: str | Path, version: str) -> None:
     version : str
         The version of the build.
     """
-    pass
+
+    # First, 'unhide' paths in the metacatalog.csv file
+    metacatalog_path = Path(build_base_path) / f".{version}" / "metacatalog.csv"
+    pl.scan_csv(metacatalog_path).with_columns(
+        pl.col("yaml").str.replace(f".{version}", version, literal=True)
+    ).collect().write_csv(metacatalog_path)
+
+    source_files = (Path(build_base_path) / version / "source").glob("*.json")
+
+    for f in source_files:
+        pl.read_json(f).with_columns(
+            pl.col("catalog_file").str.replace(f".{version}", version, literal=True)
+        ).write_json(f)
 
 
 def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:
