@@ -512,14 +512,14 @@ def build(argv: Sequence[str] | None = None):
         )
 
     # Build the catalog
-    cm = CatalogManager(path=metacatalog_path, version=version)
+    cm = CatalogManager(path=metacatalog_path)
     for method, src_args in parsed_sources:
         _add_source_to_catalog(cm, method, src_args, metacatalog_path, logger=logger)
 
     # Write catalog yaml file
     # Should fail LOUD
     try:
-        # This saves catalog.yaml once
+        # This saves catalog.yaml once, I think
         yaml_dict = _write_catalog_yaml(
             cm, build_base_path, storage_flags, catalog_file, version
         )

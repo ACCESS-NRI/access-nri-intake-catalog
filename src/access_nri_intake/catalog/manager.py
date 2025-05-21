@@ -32,7 +32,7 @@ class CatalogManager:
     Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
-    def __init__(self, path: Path | str, version: str):
+    def __init__(self, path: Path | str):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog like the ACCESS-NRI catalog
@@ -42,7 +42,7 @@ class CatalogManager:
         path: str
             The path to the intake-dataframe-catalog
         """
-        path = Path(path) / f".{version}"
+        path = Path(path)
 
         self.path = str(path)
 
