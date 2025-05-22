@@ -680,6 +680,7 @@ def test_build_separation_between_catalog_and_buildbase(
             str(catdir),
             "--version",
             VERSION,
+            # "--no_update", maybe?
         ]
     )
 
@@ -701,7 +702,6 @@ def test_build_separation_between_catalog_and_buildbase(
     ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
 @pytest.mark.parametrize(
     "min_vers,max_vers",
     [
@@ -710,9 +710,7 @@ def test_build_separation_between_catalog_and_buildbase(
         ("v2001-01-01", None),
     ],
 )
-def test_build_repeat_renamecatalogyaml(
-    get_catalog_fp, test_data, min_vers, max_vers, tmp_path
-):
+def test_build_repeat_renamecatalogyaml(test_data, min_vers, max_vers, tmp_path):
     configs = [
         str(test_data / "config/access-om2.yaml"),
     ]
@@ -721,7 +719,7 @@ def test_build_repeat_renamecatalogyaml(
     VERSION = "v2024-01-01"
 
     # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = str(tmp_path / "catalog.yaml")
+    ##get_catalog_fp.return_value = str(tmp_path / f".{VERSION}" / "catalog.yaml")
 
     # Build the first catalog
     build(
@@ -740,9 +738,15 @@ def test_build_repeat_renamecatalogyaml(
         ]
     )
 
+    # Rename the catalog.yaml to metacatalog.yaml - as if someone had
+    # manually moved it
+    (Path(build_base_path) / "catalog.yaml").rename(
+        Path(build_base_path) / "metacatalog.yaml"
+    )
+
     # Update the version number, *and* the catalog name
     NEW_VERSION = "v2025-01-01"
-    get_catalog_fp.return_value = str(tmp_path / "metacatalog.yaml")
+    ## get_catalog_fp.return_value = str(tmp_path / f".{NEW_VERSION}" / "metacatalog.yaml")
     # Put dummy version folders into the tempdir
     # The new catalog will consider these, as the catalog.yaml
     # names are no longer consistent
@@ -769,9 +773,9 @@ def test_build_repeat_renamecatalogyaml(
     )
 
     # There should now be two catalogs - catalog.yaml and metacatalog.yaml
-    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
-        cat_first = yaml.safe_load(fobj)
     with (tmp_path / "metacatalog.yaml").open(mode="r") as fobj:
+        cat_first = yaml.safe_load(fobj)
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_second = yaml.safe_load(fobj)
 
     assert (

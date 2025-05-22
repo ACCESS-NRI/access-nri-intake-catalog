@@ -350,7 +350,7 @@ def _compute_previous_versions(
         # unless there are folders with the right names in the write
         # directory
         existing_vers = [
-            v.name
+            v.name.lstrip(".")
             for v in build_base_path.iterdir()
             if re.match(CATALOG_NAME_FORMAT, v.name)
         ]
@@ -528,8 +528,8 @@ def build(argv: Sequence[str] | None = None):
         yaml_dict = _compute_previous_versions(
             yaml_dict, catalog_base_path, build_base_path, version
         )
-
         catalog_tmp_path = Path(catalog_base_path) / f".{version}"
+
         with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
