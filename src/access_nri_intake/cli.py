@@ -148,6 +148,7 @@ def _parse_build_directory(
     """
     Build the location for the new catalog. We put everything in temporary directory
     for now, which will basically be a map `$DIR/$FNAME` => `$DIR/.$FNAME` where
+    oreakpoint()
     `$DIR` is the base directory and `$FNAME` is the catalog file name that the user
     specified. We can't stick things in /scratch if we want our operations to be atomic.
 
@@ -177,7 +178,7 @@ def _get_project_code(path: str | Path):
 
 
 # Get the project storage flags
-def _get_project(paths: list[str], method: str | None = None):
+def _get_project(paths: list[str], method: str | None = None) -> set[str]:
     project = set()
     if method == "load":
         # This is a hack but I don't know how else to get the storage from pre-built datastores
@@ -532,10 +533,12 @@ def build(argv: Sequence[str] | None = None):
         with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
-    _concretize_build(build_base_path, version)
+    _concretize_build(build_base_path, version, catalog_file)
 
 
-def _concretize_build(build_base_path: str | Path, version: str) -> None:
+def _concretize_build(
+    build_base_path: str | Path, version: str, catalog_file: str
+) -> None:
     """
     Take the build in it's temporary location, update all the paths within the
     catalog.json files to point to the new location, and then finally move it out
@@ -550,12 +553,12 @@ def _concretize_build(build_base_path: str | Path, version: str) -> None:
     """
 
     # First, 'unhide' paths in the metacatalog.csv file
-    metacatalog_path = Path(build_base_path) / f".{version}" / "metacatalog.csv"
+    metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
     pl.scan_csv(metacatalog_path).with_columns(
         pl.col("yaml").str.replace(f".{version}", version, literal=True)
     ).collect().write_csv(metacatalog_path)
 
-    source_files = (Path(build_base_path) / version / "source").glob("*.json")
+    source_files = (Path(build_base_path) / f".{version}" / "source").glob("*.json")
 
     # Then 'unhide' the paths in the catalog.json files
     for f in source_files:

@@ -387,15 +387,15 @@ def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2024-01-02"
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-02'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-02"
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
 
 
 def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
@@ -449,15 +449,15 @@ def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2024-01-02"
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-02'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-02"
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
     assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
 
 
@@ -546,15 +546,15 @@ def test_build_existing_data(
 
     assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
         min_vers if min_vers is not None else VERSION
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {min_vers if min_vers is not None else VERSION}"
     assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
         max_vers if max_vers is not None else VERSION
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {max_vers if max_vers is not None else VERSION}"
     # Default should always be the newly-built version
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == VERSION
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {VERSION}'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected {VERSION}"
 
 
 @pytest.mark.parametrize(
@@ -610,15 +610,15 @@ def test_build_existing_data_existing_old_cat(
 
     assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
         min_vers if min_vers is not None else VERSION
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {min_vers if min_vers is not None else VERSION}"
     assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
         max_vers if max_vers is not None else VERSION
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {max_vers if max_vers is not None else VERSION}"
     # Default should always be the newly-built version
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == VERSION
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {VERSION}'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected {VERSION}"
     # Make sure the catalog storage flags were correctly merged
     assert (
         cat_yaml["sources"]["access_nri"]["metadata"]["storage"]
@@ -691,14 +691,14 @@ def test_build_separation_between_catalog_and_buildbase(
 
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == VERSION
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == VERSION
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-01'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-01"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == VERSION
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
 
 @mock.patch("access_nri_intake.cli.get_catalog_fp")
@@ -777,32 +777,32 @@ def test_build_repeat_renamecatalogyaml(
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
-    ), f'Min version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_first['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2024-01-01"
-    ), f'Max version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-01'
+    ), f"Max version {cat_first['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-01"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-01"
-    ), f'Default version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+    ), f"Default version {cat_first['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")
         == min_vers
         if min_vers is not None
         else VERSION
-    ), f'Min version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
+    ), f"Min version {cat_second['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {min_vers if min_vers is not None else VERSION}"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")
         == max_vers
         if max_vers is not None
         else VERSION
-    ), f'Max version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
+    ), f"Max version {cat_second['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {max_vers if max_vers is not None else VERSION}"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2025-01-01"
-    ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
+    ), f"Default version {cat_second['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2025-01-01"
 
 
 @pytest.mark.parametrize(
@@ -873,28 +873,28 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
-    ), f'Min version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_first['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2024-01-01"
-    ), f'Max version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-01'
+    ), f"Max version {cat_first['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-01"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-01"
-    ), f'Default version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+    ), f"Default version {cat_first['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")
         == NEW_VERSION
-    ), f'Min version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {NEW_VERSION}'
+    ), f"Min version {cat_second['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {NEW_VERSION}"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")
         == NEW_VERSION
-    ), f'Max version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {NEW_VERSION}'
+    ), f"Max version {cat_second['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {NEW_VERSION}"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")
         == NEW_VERSION
-    ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {NEW_VERSION}'
+    ), f"Default version {cat_second['sources']['access_nri']['parameters']['version'].get('default')} does not match expected {NEW_VERSION}"
 
 
 @pytest.mark.parametrize(
@@ -973,30 +973,30 @@ def test_build_repeat_altercatalogstruct_multivers(
         == min_vers
         if min_vers is not None
         else "v2024-01-01"
-    ), f'Min version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else "v2024-01-01"}'
+    ), f"Min version {cat_first['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {min_vers if min_vers is not None else 'v2024-01-01'}"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")
         == max_vers
         if max_vers is not None
         else "v2024-01-01"
-    ), f'Max version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else "v2024-01-01"}'
+    ), f"Max version {cat_first['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {max_vers if max_vers is not None else 'v2024-01-01'}"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-01"
-    ), f'Default version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+    ), f"Default version {cat_first['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2025-01-01"
-    ), f'Min version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2025-01-01'
+    ), f"Min version {cat_second['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2025-01-01"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2025-01-01"
-    ), f'Max version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2025-01-01'
+    ), f"Max version {cat_second['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2025-01-01"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2025-01-01"
-    ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
+    ), f"Default version {cat_second['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2025-01-01"
 
 
 @mock.patch("access_nri_intake.cli._parse_build_directory")
