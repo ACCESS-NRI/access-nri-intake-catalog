@@ -7,7 +7,6 @@ import argparse
 import datetime
 import logging
 import re
-import shutil
 import traceback
 import warnings
 from collections.abc import Sequence
@@ -223,9 +222,6 @@ def _write_catalog_yaml(
 ) -> dict:
     """
     Write the catalog details out to YAML.
-
-    # TODO: Needs updating so that we only update this if the rest of our build
-    # was sucessful.
     """
     cat = cm.dfcat
     cat.name = "access_nri"
@@ -571,10 +567,10 @@ def _concretize_build(build_base_path: str | Path, version: str) -> None:
     (Path(build_base_path) / f".{version}").rename(Path(build_base_path) / version)
 
     # Move the catalog.yaml file to the new location
-    shutil.move(
-        Path(build_base_path) / version / "catalog.yaml",
-        Path(build_base_path) / "catalog.yaml",
-    )
+    catalog_src = Path(build_base_path) / version / "catalog.yaml"
+    catalog_dst = Path(build_base_path) / "catalog.yaml"
+
+    catalog_src.rename(catalog_dst)
 
 
 def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:
