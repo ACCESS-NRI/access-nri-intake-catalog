@@ -248,7 +248,7 @@ def _write_catalog_yaml(
 
 def _compute_previous_versions(
     yaml_dict: dict,
-    catalog_base_path: Path,
+    catalog_base_path: str | Path,
     build_base_path: Path,
     version: str,
 ) -> dict:
@@ -258,7 +258,7 @@ def _compute_previous_versions(
     ----------
     yaml_dict : dict
         The existing YAML dictionary describing the new catalog
-    catalog_base_path : Path
+    catalog_base_path : str | Path
         The catalog base path.
     build_base_path : Path
         The catalog build base path.
@@ -533,11 +533,11 @@ def build(argv: Sequence[str] | None = None):
         with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
-    _concretize_build(build_base_path, version, catalog_file)
+    _concretize_build(build_base_path, version, catalog_file, update)
 
 
 def _concretize_build(
-    build_base_path: str | Path, version: str, catalog_file: str
+    build_base_path: str | Path, version: str, catalog_file: str, update: bool = True
 ) -> None:
     """
     Take the build in it's temporary location, update all the paths within the
@@ -550,6 +550,9 @@ def _concretize_build(
         The base path for the build.
     version : str
         The version of the build.
+    update : bool
+        Whether to update the catalog.yaml file. Defaults to True. If False, the
+        catalog.yaml file will not be updated.
     """
 
     # First, 'unhide' paths in the metacatalog.csv file
@@ -569,11 +572,11 @@ def _concretize_build(
     # Now unhide the directory containing the catalog
     (Path(build_base_path) / f".{version}").rename(Path(build_base_path) / version)
 
-    # Move the catalog.yaml file to the new location
-    catalog_src = Path(build_base_path) / version / "catalog.yaml"
-    catalog_dst = Path(build_base_path) / "catalog.yaml"
-
-    catalog_src.rename(catalog_dst)
+    if update:
+        # Move the catalog.yaml file to the new location, if we're updating it
+        catalog_src = Path(build_base_path) / version / "catalog.yaml"
+        catalog_dst = Path(build_base_path) / "catalog.yaml"
+        catalog_src.rename(catalog_dst)
 
 
 def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:
