@@ -564,7 +564,7 @@ def _concretize_build(
     for f in source_files:
         pl.read_json(f).with_columns(
             pl.col("catalog_file").str.replace(f".{version}", version, literal=True)
-        ).write_json(f)
+        ).write_ndjson(f)
 
     # Now unhide the directory containing the catalog
     (Path(build_base_path) / f".{version}").rename(Path(build_base_path) / version)
