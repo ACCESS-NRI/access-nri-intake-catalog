@@ -528,16 +528,20 @@ def build(argv: Sequence[str] | None = None):
         yaml_dict = _compute_previous_versions(
             yaml_dict, catalog_base_path, build_base_path, version
         )
-        catalog_tmp_path = Path(catalog_base_path) / f".{version}"
+        catalog_tmp_path = Path(build_base_path) / f".{version}"
 
         with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
-    _concretize_build(build_base_path, version, catalog_file, update)
+    _concretize_build(build_base_path, version, catalog_file, catalog_base_path, update)
 
 
 def _concretize_build(
-    build_base_path: str | Path, version: str, catalog_file: str, update: bool = True
+    build_base_path: str | Path,
+    version: str,
+    catalog_file: str,
+    catalog_base_path: str | Path | None = None,
+    update: bool = True,
 ) -> None:
     """
     Take the build in it's temporary location, update all the paths within the
@@ -550,10 +554,18 @@ def _concretize_build(
         The base path for the build.
     version : str
         The version of the build.
+    catalog_file : str
+        The name of the catalog file.
+    catalog_base_path : str | Path, optional
+        The base path for the catalog. If None, the catalog_base_path will be
+        set to the build_base_path. Defaults to None.
     update : bool
         Whether to update the catalog.yaml file. Defaults to True. If False, the
         catalog.yaml file will not be updated.
     """
+    catalog_base_path = (
+        Path(build_base_path) if catalog_base_path is None else Path(catalog_base_path)
+    )
 
     # First, 'unhide' paths in the metacatalog.csv file
     metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
@@ -570,12 +582,12 @@ def _concretize_build(
         ).write_ndjson(f)
 
     # Now unhide the directory containing the catalog
-    (Path(build_base_path) / f".{version}").rename(Path(build_base_path) / version)
+    (Path(build_base_path) / f".{version}").rename(Path(catalog_base_path) / version)
 
     if update:
         # Move the catalog.yaml file to the new location, if we're updating it
-        catalog_src = Path(build_base_path) / version / "catalog.yaml"
-        catalog_dst = Path(build_base_path) / "catalog.yaml"
+        catalog_src = Path(catalog_base_path) / version / "catalog.yaml"
+        catalog_dst = Path(catalog_base_path) / "catalog.yaml"
         catalog_src.rename(catalog_dst)
 
 

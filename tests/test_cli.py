@@ -651,7 +651,7 @@ def test_build_separation_between_catalog_and_buildbase(
         str(test_data / "config/cmip5.yaml"),
     ]
     data_base_path = str(test_data)
-    build_base_path = str(tmp_path)
+    # build_base_path = str(tmp_path) Now unused
     VERSION = "v2024-01-01"
 
     bbp, catdir = tmp_path / "bbp", tmp_path / "catdir"
@@ -675,7 +675,7 @@ def test_build_separation_between_catalog_and_buildbase(
             "--data_base_path",
             data_base_path,
             "--build_base_path",
-            build_base_path,
+            str(bbp),
             "--catalog_base_path",
             str(catdir),
             "--version",
