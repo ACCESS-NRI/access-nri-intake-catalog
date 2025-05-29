@@ -148,7 +148,6 @@ def _parse_build_directory(
     """
     Build the location for the new catalog. We put everything in temporary directory
     for now, which will basically be a map `$DIR/$FNAME` => `$DIR/.$FNAME` where
-    oreakpoint()
     `$DIR` is the base directory and `$FNAME` is the catalog file name that the user
     specified. We can't stick things in /scratch if we want our operations to be atomic.
 
@@ -165,7 +164,7 @@ def _parse_build_directory(
     catalog_file : str
         Catalog file name
     """
-    build_base_path = Path(build_base_path)
+    build_base_path = Path(build_base_path).absolute()
     build_path = Path(build_base_path) / f".{version}" / "source"
     metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
 
