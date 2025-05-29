@@ -13,6 +13,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import jsonschema
+import polars as pl
 import yaml
 from intake import open_esm_datastore
 
@@ -145,7 +146,14 @@ def _parse_build_directory(
     build_base_path: str | Path, version: str, catalog_file: str
 ) -> tuple[Path, Path, Path]:
     """
-    Build the location for the new catalog
+    Build the location for the new catalog. We put everything in temporary directory
+    for now, which will basically be a map `$DIR/$FNAME` => `$DIR/.$FNAME` where
+    `$DIR` is the base directory and `$FNAME` is the catalog file name that the user
+    specified. We can't stick things in /scratch if we want our operations to be atomic.
+
+    At the end of the build process, `$DIR/.$FNAME` will be moved to
+    `$DIR/$FNAME` and all relevant filepaths contained within it altered to point
+    to the right location.
 
     Parameters
     ----------
@@ -157,8 +165,8 @@ def _parse_build_directory(
         Catalog file name
     """
     build_base_path = Path(build_base_path).absolute()
-    build_path = Path(build_base_path) / version / "source"
-    metacatalog_path = Path(build_base_path) / version / catalog_file
+    build_path = Path(build_base_path) / f".{version}" / "source"
+    metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
 
     return build_base_path, build_path, metacatalog_path
 
@@ -169,7 +177,7 @@ def _get_project_code(path: str | Path):
 
 
 # Get the project storage flags
-def _get_project(paths: list[str], method: str | None = None):
+def _get_project(paths: list[str], method: str | None = None) -> set[str]:
     project = set()
     if method == "load":
         # This is a hack but I don't know how else to get the storage from pre-built datastores
@@ -239,7 +247,7 @@ def _write_catalog_yaml(
 
 def _compute_previous_versions(
     yaml_dict: dict,
-    catalog_base_path: Path,
+    catalog_base_path: str | Path,
     build_base_path: Path,
     version: str,
 ) -> dict:
@@ -249,7 +257,7 @@ def _compute_previous_versions(
     ----------
     yaml_dict : dict
         The existing YAML dictionary describing the new catalog
-    catalog_base_path : Path
+    catalog_base_path : str | Path
         The catalog base path.
     build_base_path : Path
         The catalog build base path.
@@ -341,7 +349,7 @@ def _compute_previous_versions(
         # unless there are folders with the right names in the write
         # directory
         existing_vers = [
-            v.name
+            v.name.lstrip(".")
             for v in build_base_path.iterdir()
             if re.match(CATALOG_NAME_FORMAT, v.name)
         ]
@@ -519,9 +527,67 @@ def build(argv: Sequence[str] | None = None):
         yaml_dict = _compute_previous_versions(
             yaml_dict, catalog_base_path, build_base_path, version
         )
+        catalog_tmp_path = Path(build_base_path) / f".{version}"
 
-        with Path(get_catalog_fp(basepath=catalog_base_path)).open(mode="w") as fobj:
+        with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
+
+    _concretize_build(build_base_path, version, catalog_file, catalog_base_path, update)
+
+
+def _concretize_build(
+    build_base_path: str | Path,
+    version: str,
+    catalog_file: str,
+    catalog_base_path: str | Path | None = None,
+    update: bool = True,
+) -> None:
+    """
+    Take the build in it's temporary location, update all the paths within the
+    catalog.json files to point to the new location, and then finally move it out
+    to the final location.
+
+    Parameters
+    ----------
+    build_base_path : str | Path
+        The base path for the build.
+    version : str
+        The version of the build.
+    catalog_file : str
+        The name of the catalog file.
+    catalog_base_path : str | Path, optional
+        The base path for the catalog. If None, the catalog_base_path will be
+        set to the build_base_path. Defaults to None.
+    update : bool
+        Whether to update the catalog.yaml file. Defaults to True. If False, the
+        catalog.yaml file will not be updated.
+    """
+    catalog_base_path = (
+        Path(build_base_path) if catalog_base_path is None else Path(catalog_base_path)
+    )
+
+    # First, 'unhide' paths in the metacatalog.csv file
+    metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
+    pl.scan_csv(metacatalog_path).with_columns(
+        pl.col("yaml").str.replace(f".{version}", version, literal=True)
+    ).collect().write_csv(metacatalog_path)
+
+    source_files = (Path(build_base_path) / f".{version}" / "source").glob("*.json")
+
+    # Then 'unhide' the paths in the catalog.json files
+    for f in source_files:
+        pl.read_json(f).with_columns(
+            pl.col("catalog_file").str.replace(f".{version}", version, literal=True)
+        ).write_ndjson(f)
+
+    # Now unhide the directory containing the catalog
+    (Path(build_base_path) / f".{version}").rename(Path(catalog_base_path) / version)
+
+    if update:
+        # Move the catalog.yaml file to the new location, if we're updating it
+        catalog_src = Path(catalog_base_path) / version / "catalog.yaml"
+        catalog_dst = Path(catalog_base_path) / "catalog.yaml"
+        catalog_src.rename(catalog_dst)
 
 
 def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:
