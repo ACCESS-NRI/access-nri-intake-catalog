@@ -28,7 +28,9 @@ realm:
 - seaIce
 - aerosol
 frequency:
-- 
+- 1day
+- 1mon
+- fx
 variable:
 - tdps
 - rsds
