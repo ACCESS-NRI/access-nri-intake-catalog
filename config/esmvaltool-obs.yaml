@@ -1,6 +1,6 @@
 builder: null
 
-translator: DefaultTranslator
+translator: EsmValToolTranslator
 
 sources:
 
