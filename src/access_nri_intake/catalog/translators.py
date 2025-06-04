@@ -23,6 +23,7 @@ __all__ = [
     "BarpaTranslator",
     "CordexTranslator",
     "Era5Translator",
+    "EsmValToolTranslator",
     "CcamTranslator",
     "NarclimTranslator",
     "EsgfTranslator",
@@ -606,6 +607,98 @@ class EsgfTranslator(DefaultTranslator):
             input_name="variable_id",
             core_colname="variable",
             func=super()._variable_translator,
+        )
+
+
+class EsmValToolTranslator(DefaultTranslator):
+    """
+    EsmValTool Translator for translating metadata from the NCI EsmValTool intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise an EsgfTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI Earth System Grid intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="source_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="table_id",
+            core_colname="realm",
+            func=self._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="table_id",
+            core_colname="frequency",
+            func=self._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+
+    @tuplify_series
+    @trace_failure
+    def _realm_translator(self):
+        """
+        Return realm, fixing a few issues
+        """
+        CT11_TABLEID_REALM_TRANSLATIONS = {
+            "Ofx": "ocean",
+            "OImon": "ocean",
+            "Oyr": "ocean",
+            "Lmon": "land",
+            "aero": "aerosol",
+            "LImon": "landIce",
+            "Amon": "atmos",
+            "Omon": "ocean",
+        }
+
+        return self.source.df["table_id"].apply(
+            lambda x: CT11_TABLEID_REALM_TRANSLATIONS.get(x, x)
+        )
+
+    @tuplify_series
+    @trace_failure
+    def _frequency_translator(self):
+        """
+        Return frequency, fixing a few issues
+        """
+
+        CT11_TABLEID_FREQ_TRANSLATIONS = {
+            "1.1": "fx",
+            "Ofx": "fx",
+            "OImon": "1mon",
+            "Oyr": "1yr",
+            "day": "1day",
+            "fx": "fx",
+            "Lmon": "1mon",
+            "aero": "fx",
+            "LImon": "1mon",
+            "Amon": "1mon",
+            "mon": "1mon",
+            "Omon": "1mon",
+            "cfMon": "1mon",
+            "Emon": "1mon",
+            "unknown": "fx",
+            "CFday": "1day",
+            "Eday": "1day",
+        }
+
+        return self.source.df["table_id"].apply(
+            lambda x: CT11_TABLEID_FREQ_TRANSLATIONS.get(x, x)
         )
 
 
