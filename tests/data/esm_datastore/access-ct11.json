@@ -1,0 +1,63 @@
+{
+   "esmcat_version": "0.1.0",
+   "attributes": [
+   	  {
+   	      "column_name": "project_id"
+   	  },
+   	  {
+   	      "column_name": "source_id"
+   	  },
+   	  {
+   	      "column_name": "experiment_id"
+   	  },
+   	  {
+   	      "column_name": "version"
+   	  },
+   	  {
+   	      "column_name": "table_id"
+   	  },
+   	  {
+   	      "column_name": "variable_id"
+   	  },
+   	  {
+   	      "column_name": "time_range"
+   	  },
+   	  {
+   	      "column_name": "tier"
+   	  },
+   	  {
+   	      "column_name": "institution_id"
+   	  }
+   ],
+   "assets": {
+  	"column_name": "path",
+   	"format": "netcdf"
+   }, 
+   "aggregation_control": {
+  	"variable_column_name": "variable_id",
+   	"groupby_attrs": [
+   		"project_id",
+   		"source_id",
+   		"experiment_id",
+   		"version",
+   		"table_id",
+   		"variable_id",
+		"time_range",
+   		"tier",
+   		"institution_id"
+	], 
+   	"aggregations": [
+   	       {
+   	           "type": "join_existing",
+   		    "attribute_name": "time_range",
+   		    "options": {
+			"dim": "time"
+		   }
+   	       }
+   	]
+   }, 
+   "id": "access-nri-ct11",
+   "title": "access-nri-ct11",
+   "description": "ACCESS-NRI Replica datasets for model evaluation. Includes ESMValTool data pool",
+  "catalog_file": "access-ct11.csv"
+  }

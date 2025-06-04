@@ -1,0 +1,8 @@
+path,project_id,source_id,experiment_id,version,table_id,variable_id,time_range,tier,institution_id
+/g/data/ct11/access-nri/replicas/esmvaltool/obsdata-v2/Tier2/NOAA-CIRES-20CR/OBS6_NOAA-CIRES-20CR_reanaly_v2_Amon_hus_187101-201212.nc,OBS6,NOAA-CIRES-20CR,reanaly,v2,Amon,hus,187101-201212,Tier2,unknown
+/g/data/ct11/access-nri/replicas/esmvaltool/obsdata-v2/Tier2/JRA-55/OBS6_JRA-55_reanaly_1_Amon_tas_195801-202212.nc,OBS6,JRA-55,reanaly,1,Amon,hus,195801-202212,Tier2,unknown
+/g/data/ct11/access-nri/replicas/esmvaltool/obsdata-v2/Tier2/Scripps-CO2-KUM/OBS6_Scripps-CO2-KUM_ground_15-Nov-2019_Amon_co2s_197901-202012.nc,OBS6,Scripps-CO2-KUM,ground,15-Nov-2019,Amon,co2s,197901-202012,Tier2,unknown
+/g/data/ct11/access-nri/replicas/esmvaltool/obsdata-v2/Tier2/ISCCP-FH/OBS_ISCCP-FH_sat_v0_Amon_rlut_198401-201612.nc,OBS,ISCCP-FH,sat,v0,Amon,rlut,198401-201612,Tier2,unknown
+/g/data/ct11/access-nri/replicas/esmvaltool/obsdata-v2/Tier2/ESACCI-LST/OBS_ESACCI-LST_sat_1.00_Amon_ts_201501-201512.nc,OBS,ESACCI-LST,sat,1.00,Amon,ts,201501-201512,Tier2,unknown
+/g/data/ct11/access-nri/replicas/esmvaltool/obsdata-v2/Tier3/ERA-Interim/OBS6_ERA-Interim_reanaly_1_Amon_zg_199701-199712.nc,OBS6,ERA-Interim,reanaly,1,Amon,zg,199701-199712,Tier3,unknown
+/g/data/ct11/access-nri/replicas/esmvaltool/obsdata-v2/Tier2/JRA-55/OBS6_JRA-55_reanaly_1_Amon_cli_195801-202212.nc,OBS6,JRA-55,reanaly,1,Amon,cli,195801-202212,Tier2,unknown
