@@ -443,6 +443,15 @@ def build(argv: Sequence[str] | None = None):
         ),
     )
 
+    parser.add_argument(
+        "--no_concretize",
+        default=False,
+        action="store_true",
+        help=(
+            "Set this if you don't want to update the access_nri_intake.data (e.g. if running a test)"
+        ),
+    )
+
     args = parser.parse_args(argv)
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
@@ -451,6 +460,7 @@ def build(argv: Sequence[str] | None = None):
     catalog_file = args.catalog_file
     version = args.version
     update = not args.no_update
+    concretize = not args.no_concretize
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -532,7 +542,10 @@ def build(argv: Sequence[str] | None = None):
         with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
-    _concretize_build(build_base_path, version, catalog_file, catalog_base_path, update)
+    if concretize:
+        _concretize_build(
+            build_base_path, version, catalog_file, catalog_base_path, update
+        )
 
 
 def _concretize_build(
