@@ -448,7 +448,7 @@ def build(argv: Sequence[str] | None = None):
         default=False,
         action="store_true",
         help=(
-            "Set this if you don't want to concretize the build, ie. keep it .version & not update catalog.yaml"
+            "Set this if you don't want to concretize the build, ie. keep the new catalog in .$VERSION & don't update catalog.yaml"
         ),
     )
 
