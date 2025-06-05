@@ -16,6 +16,7 @@ dependencies:
   - pooch
   - pre-commit
   - pytest
+  - pytest-xdist
   - xarray
   - pip
   - pip:
