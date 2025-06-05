@@ -36,7 +36,7 @@ Alternatively (though discouraged), one can trigger the new release from the com
 Generating a new catalog version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-#. Create a new version of the catalog on Gadi (this will take about 1 hour)::
+#. Create a new version of the catalog on Gadi (this will take about 2 hours)::
 
      $ export RELEASE=vYYYY-MM-DD
      $ cd bin
@@ -51,6 +51,12 @@ Generating a new catalog version
    .. note:: 
       If :code:`version` is not provided, the default used is the current date, in the format :code:`vYYYY-MM-DD`. This should 
       be acceptable in most cases.
+   
+   .. note::
+      If you wish to perform a new catalog build without updating the default catalog version, you can use the :code:`--no-concrete` 
+      flag. This will create and save a new catalog version, but leave it in a folder named :code:`.$VERSION` in the specified catalog
+      build location. To subsequently concretize this build, you can use the :code:`catalog-concretize` command. Instructions for how
+      to concretize the build will be available in the output of the build script.
     
 #. Updating :code:`access_nri_intake_catalog` is no longer necessary - the new catalog will be available immediately as 
    :code:`intake.cat.access_nri`.
