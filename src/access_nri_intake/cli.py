@@ -534,6 +534,10 @@ def build(argv: Sequence[str] | None = None):
 
     _concretize_build(build_base_path, version, catalog_file, catalog_base_path, update)
 
+    print(
+        "*** Build Complete! *** \n If you are happy with the build, please remember to update the forum topic: https://forum.access-hive.org.au/t/access-nri-intake-catalog-a-way-to-find-load-and-share-data-on-gadi/1659/"
+    )
+
 
 def _concretize_build(
     build_base_path: str | Path,
