@@ -4,14 +4,16 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import sys
+from datetime import datetime
 
 print(sys.executable)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 project = "ACCESS-NRI Intake catalog"
-copyright = "2023, ACCESS-NRI"
 author = "ACCESS-NRI"
+copyright = f"{datetime.now().year}, {author}"
+
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
