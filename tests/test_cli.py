@@ -19,6 +19,7 @@ from access_nri_intake.cli import (
     _check_build_args,
     _confirm_project_access,
     build,
+    concretize,
     metadata_template,
     metadata_validate,
     scaffold_catalog_entry,
@@ -1549,8 +1550,7 @@ def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_acce
         ]
     )
 
-    # There is no change between catalogs, so we should be able to
-    # see just a version number change in the yaml
+    # Concretization should not have been run, so the catalog should be unchanged.
     with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml = yaml.safe_load(fobj)
 
@@ -1565,4 +1565,35 @@ def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_acce
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-01"
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
+
+    concretize(
+        [
+            "--catalog_file",
+            "cat.csv",
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+        ]
+    )
+
+    # Now the catalog should have been updated, and the version numbers should be
+    # updated to the new version
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2024-01-02"
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2024-01-02"
     ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
