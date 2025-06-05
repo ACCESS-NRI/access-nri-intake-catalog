@@ -12,7 +12,7 @@ print(sys.executable)
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 project = "ACCESS-NRI Intake catalog"
 author = "ACCESS-NRI"
-copyright = f'{datetime.now().year}, {author}'
+copyright = f"{datetime.now().year}, {author}"
 
 
 # -- General configuration ---------------------------------------------------
