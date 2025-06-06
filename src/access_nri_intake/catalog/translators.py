@@ -46,6 +46,7 @@ FREQUENCY_TRANSLATIONS = {
     "monClim": "1mon",
     "monPt": "1mon",
     "sem": "3mon",
+    "20min": "subhr",
     "subhrPt": "subhr",
     "yr": "1yr",
     "yrPt": "1yr",
@@ -698,7 +699,7 @@ class EsmValToolTranslator(DefaultTranslator):
         }
 
         return self.source.df["table_id"].apply(
-            lambda x: CT11_TABLEID_FREQ_TRANSLATIONS.get(x, x)
+            lambda x: CT11_TABLEID_FREQ_TRANSLATIONS.get(x, "none")
         )
 
 
