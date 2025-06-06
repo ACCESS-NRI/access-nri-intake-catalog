@@ -1,0 +1,24 @@
+contact: Adele Morrison
+email: adele.morrison@anu.edu.au
+name: panant-01-zstar-ACCESSyr2
+experiment_uuid: c7e82794-59e8-4923-91c0-337fbdb3ce41
+created: 2023-07-01
+model:
+  - MOM6
+  - SIS2
+nominal_resolution: 
+  - 0.1 degrees
+description: >-
+  0.1 degree (MOM6+SIS2) Pan-Antarctic regional model configuration under 1990-1991 JRA55-do repeat year forcing.
+long_description: >-
+  Simulation of the Pan-Antarctic config (MOM6+SIS2) for a regional domain south of 37S. Forcing at the boundary and initial conditions come from the year 2 of the ACCESS-OM2-01 RYF config (01deg_jra55v13_ryf9091), so that conditions are close to observed.
+url: https://github.com/COSIMA/mom6-panan
+reference: null 
+notes: >-
+keywords:
+  - tenth
+  - cosima
+  - mom6
+  - ryf
+  - panant
+  - sis2

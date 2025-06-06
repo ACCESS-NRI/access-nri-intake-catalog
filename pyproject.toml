@@ -36,6 +36,7 @@ e2e = ["pytest", "pytest-ordering"]
 
 [project.scripts]
 catalog-build = "access_nri_intake.cli:build"
+catalog-concretize = "access_nri_intake.cli:concretize"
 metadata-validate = "access_nri_intake.cli:metadata_validate"
 metadata-template = "access_nri_intake.cli:metadata_template"
 build-esm-datastore = "access_nri_intake.cli:use_esm_datastore"

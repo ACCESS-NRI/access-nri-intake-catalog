@@ -443,6 +443,15 @@ def build(argv: Sequence[str] | None = None):
         ),
     )
 
+    parser.add_argument(
+        "--no_concretize",
+        default=False,
+        action="store_true",
+        help=(
+            "Set this if you don't want to concretize the build, ie. keep the new catalog in .$VERSION & don't update catalog.yaml"
+        ),
+    )
+
     args = parser.parse_args(argv)
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
@@ -451,6 +460,7 @@ def build(argv: Sequence[str] | None = None):
     catalog_file = args.catalog_file
     version = args.version
     update = not args.no_update
+    concretize = not args.no_concretize
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -532,7 +542,72 @@ def build(argv: Sequence[str] | None = None):
         with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
 
-    _concretize_build(build_base_path, version, catalog_file, catalog_base_path, update)
+    if concretize:
+        _concretize_build(
+            build_base_path, version, catalog_file, catalog_base_path, update
+        )
+    else:
+        # Dump out a string telling a user how to concretize the build
+        print("*** Build Complete! ***")
+        print(
+            f"To concretize the build, run:\n"
+            f"\t $ catalog-concretize --build-base-path {build_base_path} --version {version} --catalog_file {catalog_file} --catalog_base_path {catalog_base_path} \n"
+        )
+
+    print(
+        "*** Build Complete! *** \n If you are happy with the build, please remember to update the forum topic: https://forum.access-hive.org.au/t/access-nri-intake-catalog-a-way-to-find-load-and-share-data-on-gadi/1659/"
+    )
+
+
+def concretize(argv: Sequence[str] | None = None):
+    """
+    Concretize a build by moving it to the final location and updating the paths in the catalog.json files.
+    """
+    parser = argparse.ArgumentParser(
+        description="Concretize a build by moving it to the final location and updating the paths in the catalog.json files."
+    )
+    parser.add_argument(
+        "--build_base_path",
+        type=str,
+        help="The base path for the build.",
+    )
+    parser.add_argument(
+        "--version",
+        type=str,
+        help="The version of the build.",
+    )
+    parser.add_argument(
+        "--catalog_file",
+        type=str,
+        help="The name of the catalog file.",
+    )
+    parser.add_argument(
+        "--catalog_base_path",
+        type=str,
+        default=None,
+        help=(
+            "The base path for the catalog. If None, the catalog_base_path will be set to the build_base_path."
+            " Defaults to None."
+        ),
+    )
+    parser.add_argument(
+        "--no_update",
+        action="store_true",
+        default=False,
+        help=(
+            "Set this if you don't want to update the catalog.yaml file. Defaults to False."
+            " If False, the catalog.yaml file will be updated."
+        ),
+    )
+
+    args = parser.parse_args(argv)
+    _concretize_build(
+        args.build_base_path,
+        args.version,
+        args.catalog_file,
+        args.catalog_base_path,
+        not args.no_update,
+    )
 
 
 def _concretize_build(
