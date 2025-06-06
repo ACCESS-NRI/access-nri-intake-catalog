@@ -668,7 +668,7 @@ class EsmValToolTranslator(DefaultTranslator):
         }
 
         return self.source.df["table_id"].apply(
-            lambda x: CT11_TABLEID_REALM_TRANSLATIONS.get(x, x)
+            lambda x: CT11_TABLEID_REALM_TRANSLATIONS.get(x, "none")
         )
 
     @tuplify_series
