@@ -24,7 +24,9 @@ Please note any issues this fixes using [closing keywords]( https://help.github.
 - [ ] The new translator has been added to `__all__` in `src/access_nri_intake/catalog/translators.py`
 -  [ ] The new datastore has been added to the list of configs in `bin/build_all.sh` and `bin/test_end_to_end.sh`, and the storage flags in both scripts updated, if necessary.
 - [ ] You have generated a valid `metadata.yaml` for the datastore & placed it in the correct location: eg. `config/metadata_sources/esgf-ref-qv56/metadata.yaml` for the `esgf-ref-qv56` datastore.
+    - `<<REPLACE THIS TEXT WITH YOUR METADATA FILE IN THIS PACKAGE>>`
 - [ ] The `metadata.yaml` has been copied to the correct location in `/g/data/xp65/admin/intake` -  for example, `/g/data/xp65/admin/intake/metadata/esgf-ref-qv56/metadata.yaml` for the `esgf-ref-qv56` datastore
+    - `<<REPLACE THIS TEXT WITH THE PATH TO METADATA FILE IN ITS FINAL LOCATION ON DISK>>` 
 
 ## Notes
 
