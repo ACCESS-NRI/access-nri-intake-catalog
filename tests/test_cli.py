@@ -18,7 +18,6 @@ from access_nri_intake.cli import (
     MetadataCheckError,
     _add_source_to_catalog,
     _check_build_args,
-    _concretize_build,
     _confirm_project_access,
     build,
     concretize,
@@ -1794,20 +1793,24 @@ def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
 
     with pytest.raises(
         DirectoryExistsError,
-        match=r"Catalog version v2024-01-01 already exists",
+        match=r"Unable to concretize catalog build: Catalog version v2024-01-01 already exists",
     ):
         # This is equivalent to the CMD_noforce in the previous test.
         # exc_msg = str(excinfo.value)
         # CMD = exc_msg.split("`")[1]
         # CMD_noforce = " ".join(CMD.split(" ")[:-1])  # Remove the --force flag
         # exit_status_noforce = os.system(CMD_noforce)
-        _concretize_build(
-            build_base_path=build_base_path,
-            version=VERSION,
-            catalog_file="cat.csv",
-            catalog_base_path=build_base_path,
-            update=True,
-            force=False,
+        concretize(
+            [
+                "--build_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+                "--catalog_file",
+                "cat.csv",
+                "--catalog_base_path",
+                build_base_path,
+            ]
         )
 
     # Check that we have an extant `$BUILD_BASE_PATH/.v2024-01-01` directory
@@ -1819,13 +1822,18 @@ def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
 
     # Equivalent to this in the previous test:
     # exit_status = os.system(CMD)
-    _concretize_build(
-        build_base_path=build_base_path,
-        version=VERSION,
-        catalog_file="cat.csv",
-        catalog_base_path=build_base_path,
-        update=True,
-        force=True,
+    concretize(
+        [
+            "--build_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+            "--catalog_file",
+            "cat.csv",
+            "--catalog_base_path",
+            build_base_path,
+            "--force",
+        ]
     )
 
     # Now check that the `$BUILD_BASE_PATH/.v2024-01-01` directory has been removed

@@ -637,8 +637,8 @@ def concretize(argv: Sequence[str] | None = None):
     except DirectoryExistsError as e:
         raise DirectoryExistsError(
             f"Unable to concretize catalog build: Catalog version {args.version} "
-            f" already exists in {args.catalog_base_path}. Use "
-            f" `catalog-concretize --catalog_file {args.catalog_file} --build_base_path {args.build_base_path} --version {args.version} --catalog_base_path {args.catalog_base_path} --force` to overwrite it."
+            f"already exists in {args.catalog_base_path}. Use "
+            f"`catalog-concretize --catalog_file {args.catalog_file} --build_base_path {args.build_base_path} --version {args.version} --catalog_base_path {args.catalog_base_path} --force` to overwrite it."
         ) from e
 
 
