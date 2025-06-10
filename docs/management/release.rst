@@ -94,8 +94,8 @@ options:
                         number already exists in the catalog_base_path. Defaults to False.
 
 Running :code:`catalog-build` with the :code:`--no_concretize` flag will return a specification of how to concretize the build in 
-the PBS logs. Similarly, whilst attempting to concretize a build with a previously existing version number will fail, the error 
-message will contain the necessary information to concretize the build. 
+its output. Similarly, whilst attempting to concretize a build with a previously existing version number will fail (unless 
+:code:`--force` is set), the error message will contain the correct command to concretize the build.
 
 This will require the :code:`--force` flag to be set.
 
