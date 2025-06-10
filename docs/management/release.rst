@@ -97,7 +97,6 @@ Running :code:`catalog-build` with the :code:`--no_concretize` flag will return 
 its output. Similarly, whilst attempting to concretize a build with a previously existing version number will fail (unless 
 :code:`--force` is set), the error message will contain the correct command to concretize the build.
 
-This will require the :code:`--force` flag to be set.
 
 New release with new catalog
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
