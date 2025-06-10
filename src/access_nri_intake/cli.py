@@ -634,7 +634,7 @@ def concretize(argv: Sequence[str] | None = None):
             not args.no_update,
             args.force,
         )
-    except OSError as e:
+    except DirectoryExistsError as e:
         raise DirectoryExistsError(
             f"Unable to concretize catalog build: Catalog version {args.version} "
             f" already exists in {args.catalog_base_path}. Use "
