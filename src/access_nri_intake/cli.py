@@ -672,6 +672,13 @@ def _concretize_build(
     force : bool
         Whether to concretize the build even if a catalog with the same version
         number already exists in the catalog_base_path.
+
+    Raises
+    ------
+    DirectoryExistsError
+        If the catalog version already exists in the catalog_base_path and force is False.
+        If the build_base_path does not exist or is not a directory.
+        If the catalog_base_path does not exist or is not a directory.
     """
     catalog_base_path = (
         Path(build_base_path) if catalog_base_path is None else Path(catalog_base_path)
