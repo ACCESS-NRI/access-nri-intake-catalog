@@ -69,7 +69,7 @@ Generating a new catalog version
 Concretizing new catalog builds
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If you have built a new catalog without concretizing it (either by using the :code:`--no-concrete` flag or due to
-a releasing two new catalog builds with the same version number), you can concretize the new catalog build by 
+releasing two new catalog builds with the same version number), you can concretize the new catalog build by 
 running the :code:`catalog-concretize` command. This will concretize the specified catalog verison:
 
    $ catalog-concretize --help 
