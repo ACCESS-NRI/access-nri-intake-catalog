@@ -66,6 +66,38 @@ Generating a new catalog version
    no unexpected changes in the catalog composition.
 
 
+Concretizing new catalog builds
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If you have built a new catalog without concretizing it (either by using the :code:`--no-concrete` flag or due to
+releasing two new catalog builds with the same version number), you can concretize the new catalog build by 
+running the :code:`catalog-concretize` command. This will concretize the specified catalog verison:
+
+   $ catalog-concretize --help 
+   usage: catalog-concretize [-h] [--build_base_path BUILD_BASE_PATH] [--version VERSION] [--catalog_file CATALOG_FILE]
+                          [--catalog_base_path CATALOG_BASE_PATH] [--no_update] [--force]
+
+Concretize a build by moving it to the final location and updating the paths in the catalog.json files.
+
+options:
+  -h, --help            show this help message and exit
+  --build_base_path BUILD_BASE_PATH
+                        The base path for the build.
+  --version VERSION     The version of the build.
+  --catalog_file CATALOG_FILE
+                        The name of the catalog file.
+  --catalog_base_path CATALOG_BASE_PATH
+                        The base path for the catalog. If None, the catalog_base_path will be set to the build_base_path.
+                        Defaults to None.
+  --no_update           Set this if you don't want to update the catalog.yaml file. Defaults to False. If False, the
+                        catalog.yaml file will be updated.
+  --force               Force the concretization of the build, even if a version of the catalog with the specified version
+                        number already exists in the catalog_base_path. Defaults to False.
+
+Running :code:`catalog-build` with the :code:`--no_concretize` flag will return a specification of how to concretize the build in 
+its output. Similarly, whilst attempting to concretize a build with a previously existing version number will fail (unless 
+:code:`--force` is set), the error message will contain the correct command to concretize the build.
+
+
 New release with new catalog
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
