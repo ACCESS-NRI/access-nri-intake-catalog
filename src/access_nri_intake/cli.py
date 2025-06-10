@@ -619,7 +619,7 @@ def concretize(argv: Sequence[str] | None = None):
         action="store_true",
         default=False,
         help=(
-            "Force the concretization of the build, even a version of the catalog with the specified "
+            "Force the concretization of the build, even if a version of the catalog with the specified "
             "version number already exists in the catalog_base_path. Defaults to False."
         ),
     )
