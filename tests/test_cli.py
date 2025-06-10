@@ -1708,6 +1708,12 @@ def test_build_repeat_overwrite_version_then_concretize(
     exc_msg = str(excinfo.value)
     CMD = exc_msg.split("`")[1]
 
+    CMD_noforce = " ".join(CMD.split(" ")[:-1])  # Remove the --force flag
+    exit_status_noforce = os.system(CMD_noforce)
+    assert (
+        exit_status_noforce
+    ), f"Expected command `{CMD_noforce}` to fail, but it did not."
+
     # Check that we have an extant `$BUILD_BASE_PATH/.v2024-01-01` directory
     assert (
         tmp_path / f".{VERSION}"
