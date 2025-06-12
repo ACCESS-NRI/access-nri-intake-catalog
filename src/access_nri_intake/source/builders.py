@@ -28,6 +28,7 @@ __all__ = [
     "AccessEsm15Builder",
     "AccessCm2Builder",
     "ROMSBuilder",
+    "WoaBuilder",
 ]
 
 # Frequency translations
@@ -52,6 +53,7 @@ PATTERNS_HELPERS = {
     "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
     "ymd-ns": "\\d{4}\\d{2}\\d{2}",
     "ym": "\\d{4}[_,\\-]\\d{2}",
+    "yymm": "\\d{2}[_,\\-]\\d{2}",
     "y": "\\d{4}",
     "counter": "\\d+",
 }
@@ -694,6 +696,62 @@ class ROMSBuilder(BaseBuilder):
             realm = "seaIce"
 
             nc_info = cls.parse_ncfile(file, time_dim="ocean_time")
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["realm"] = realm
+
+            return ncinfo_dict
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
+class WoaBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for WOA datasets"""
+
+    PATTERNS = [
+        rf"^woa13_ts_({PATTERNS_HELPERS['counter']}).*?$",
+        rf"^woa13_decav_ts_({PATTERNS_HELPERS['yymm']})_v2.*?$",
+        r"surface.nc",
+        r"ocean_etmp_salt.res.nc",
+    ]
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a AccessOm2Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=2,
+            exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
+            data_format="netcdf",
+            groupby_attrs=["file_id"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "ocean_time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        try:
+            realm = "ocean"
+
+            nc_info = cls.parse_ncfile(file, time_dim="time")
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
