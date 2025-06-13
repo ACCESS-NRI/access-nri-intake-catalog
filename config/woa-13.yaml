@@ -1,0 +1,9 @@
+builder: WoaBuilder
+
+translator: DefaultTranslator
+
+sources:
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/woa13_ik11/metadata.yaml
+    path:
+    - /g/data/ik11/observations/woa13
