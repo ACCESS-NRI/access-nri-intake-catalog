@@ -824,4 +824,3 @@ class WoaBuilder(BaseBuilder):
         file_id = re.sub(r"_+", "_", file_id).strip("_")
 
         return file_id, timestamp, frequency
-
