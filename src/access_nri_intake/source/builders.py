@@ -17,6 +17,7 @@ from .utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
+    WoaTimeParser,
     _NCFileInfo,
     _VarInfo,
 )
@@ -710,10 +711,11 @@ class WoaBuilder(BaseBuilder):
 
     PATTERNS = [
         rf"^woa13_ts_({PATTERNS_HELPERS['counter']}).*?$",
-        rf"^woa13_decav_ts_({PATTERNS_HELPERS['yymm']})_v2.*?$",
+        rf"^woa13_decav_ts_({PATTERNS_HELPERS['yymm']})v2.*?$",
         r"surface.nc",
         r"ocean_etmp_salt.res.nc",
     ]
+    TIME_PARSER = WoaTimeParser
 
     def __init__(self, path, **kwargs):
         """
