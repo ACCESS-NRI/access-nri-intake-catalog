@@ -1,0 +1,9 @@
+builder: null
+
+translator: EsgfTranslator
+
+sources:
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/esgf-ref-qv56/metadata.yaml
+    path:
+      - /g/data/qv56/catalog/v2/esm/catalog.json
