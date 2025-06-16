@@ -647,6 +647,10 @@ class AccessCm2Builder(AccessEsm15Builder):
     ]
 
 
+class AccessEsm16Builder(AccessEsm15Builder):
+    """Intake-ESM datastore builder for ACCESS-ESM1.6 datasets"""
+
+
 class ROMSBuilder(BaseBuilder):
     """Intake-ESM datastore builder for ROMS datasets
 
