@@ -62,7 +62,7 @@ Install method                               Code
 
 From source                                  .. code-block:: bash
 
-                                                $ git clone git@github.com:ACCESS-NRI/access-nri-intake.git
+                                                $ git clone git@github.com:ACCESS-NRI/access-nri-intake-catalog.git
                                                 $ cd access-nri-intake
                                                 $ python -m pip install -e .
 
