@@ -387,7 +387,7 @@ class AccessOm2Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM2 COSIMA datasets"""
 
     PATTERNS = [
-        rf"^iceh.*\.(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
+        rf"^iceh.*\.(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}).*$",  # ACCESS-ESM1.5/OM2/CM2 ice
         rf"^iceh.*\.(?P<{TIMESTAMP_GROUP}>\d{{3}})-({PATTERNS_HELPERS['not_multi_digit']}).*",  # ACCESS-OM2 ice
         rf"^ocean.*[_,-](?:ymd|ym|y)_(?P<{TIMESTAMP_GROUP}>{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
         rf"^ocean.*([^\d])_(?P<{TIMESTAMP_GROUP}>\d{{2}})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091

@@ -7,12 +7,14 @@ import argparse
 import datetime
 import logging
 import re
+import shutil
 import traceback
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
 
 import jsonschema
+import polars as pl
 import yaml
 from intake import open_esm_datastore
 
@@ -29,6 +31,15 @@ STORAGE_FLAG_PATTERN = "gdata/[a-z]{1,2}[0-9]{1,2}"
 
 
 class MetadataCheckError(Exception):
+    pass
+
+
+class DirectoryExistsError(Exception):
+    """
+    Raised when a directory already exists and the user has not specified
+    the --force flag to overwrite it.
+    """
+
     pass
 
 
@@ -137,7 +148,7 @@ def _add_source_to_catalog(
         getattr(cm, method)(**src_args)
     except Exception as e:  # actually valid for once - it may raise naked Exceptions
         warnings.warn(
-            f"Unable to add {src_args['name']} to catalog - continuing", source=e
+            f"Unable to add {src_args['name']} to catalog - continuing. Error: {str(e)}\n{traceback.format_exc()}"
         )
 
 
@@ -145,7 +156,14 @@ def _parse_build_directory(
     build_base_path: str | Path, version: str, catalog_file: str
 ) -> tuple[Path, Path, Path]:
     """
-    Build the location for the new catalog
+    Build the location for the new catalog. We put everything in temporary directory
+    for now, which will basically be a map `$DIR/$FNAME` => `$DIR/.$FNAME` where
+    `$DIR` is the base directory and `$FNAME` is the catalog file name that the user
+    specified. We can't stick things in /scratch if we want our operations to be atomic.
+
+    At the end of the build process, `$DIR/.$FNAME` will be moved to
+    `$DIR/$FNAME` and all relevant filepaths contained within it altered to point
+    to the right location.
 
     Parameters
     ----------
@@ -157,8 +175,8 @@ def _parse_build_directory(
         Catalog file name
     """
     build_base_path = Path(build_base_path).absolute()
-    build_path = Path(build_base_path) / version / "source"
-    metacatalog_path = Path(build_base_path) / version / catalog_file
+    build_path = Path(build_base_path) / f".{version}" / "source"
+    metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
 
     return build_base_path, build_path, metacatalog_path
 
@@ -169,7 +187,7 @@ def _get_project_code(path: str | Path):
 
 
 # Get the project storage flags
-def _get_project(paths: list[str], method: str | None = None):
+def _get_project(paths: list[str], method: str | None = None) -> set[str]:
     project = set()
     if method == "load":
         # This is a hack but I don't know how else to get the storage from pre-built datastores
@@ -239,7 +257,7 @@ def _write_catalog_yaml(
 
 def _compute_previous_versions(
     yaml_dict: dict,
-    catalog_base_path: Path,
+    catalog_base_path: str | Path,
     build_base_path: Path,
     version: str,
 ) -> dict:
@@ -249,7 +267,7 @@ def _compute_previous_versions(
     ----------
     yaml_dict : dict
         The existing YAML dictionary describing the new catalog
-    catalog_base_path : Path
+    catalog_base_path : str | Path
         The catalog base path.
     build_base_path : Path
         The catalog build base path.
@@ -341,7 +359,7 @@ def _compute_previous_versions(
         # unless there are folders with the right names in the write
         # directory
         existing_vers = [
-            v.name
+            v.name.lstrip(".")
             for v in build_base_path.iterdir()
             if re.match(CATALOG_NAME_FORMAT, v.name)
         ]
@@ -435,6 +453,15 @@ def build(argv: Sequence[str] | None = None):
         ),
     )
 
+    parser.add_argument(
+        "--no_concretize",
+        default=False,
+        action="store_true",
+        help=(
+            "Set this if you don't want to concretize the build, ie. keep the new catalog in .$VERSION & don't update catalog.yaml"
+        ),
+    )
+
     args = parser.parse_args(argv)
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
@@ -443,6 +470,7 @@ def build(argv: Sequence[str] | None = None):
     catalog_file = args.catalog_file
     version = args.version
     update = not args.no_update
+    concretize = not args.no_concretize
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -520,9 +548,179 @@ def build(argv: Sequence[str] | None = None):
         yaml_dict = _compute_previous_versions(
             yaml_dict, catalog_base_path, build_base_path, version
         )
+        catalog_tmp_path = Path(build_base_path) / f".{version}"
 
-        with Path(get_catalog_fp(basepath=catalog_base_path)).open(mode="w") as fobj:
+        with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
             yaml.dump(yaml_dict, fobj)
+
+    if concretize:
+        _concretize_build(
+            build_base_path,
+            version,
+            catalog_file,
+            catalog_base_path,
+            update,
+            force=False,
+        )
+    else:
+        # Dump out a string telling a user how to concretize the build
+        print("*** Build Complete! ***")
+        print(
+            f"To concretize the build, run:\n"
+            f"\t $ catalog-concretize --build-base-path {build_base_path} --version {version} --catalog_file {catalog_file} --catalog_base_path {catalog_base_path} \n"
+        )
+
+    print(
+        "*** Build Complete! *** \n If you are happy with the build, please remember to update the forum topic: https://forum.access-hive.org.au/t/access-nri-intake-catalog-a-way-to-find-load-and-share-data-on-gadi/1659/"
+    )
+
+
+def concretize(argv: Sequence[str] | None = None):
+    """
+    Concretize a build by moving it to the final location and updating the paths in the catalog.json files.
+    """
+    parser = argparse.ArgumentParser(
+        description="Concretize a build by moving it to the final location and updating the paths in the catalog.json files."
+    )
+    parser.add_argument(
+        "--build_base_path",
+        type=str,
+        help="The base path for the build.",
+    )
+    parser.add_argument(
+        "--version",
+        type=str,
+        help="The version of the build.",
+    )
+    parser.add_argument(
+        "--catalog_file",
+        type=str,
+        help="The name of the catalog file.",
+    )
+    parser.add_argument(
+        "--catalog_base_path",
+        type=str,
+        default=None,
+        help=(
+            "The base path for the catalog. If None, the catalog_base_path will be set to the build_base_path."
+            " Defaults to None."
+        ),
+    )
+    parser.add_argument(
+        "--no_update",
+        action="store_true",
+        default=False,
+        help=(
+            "Set this if you don't want to update the catalog.yaml file. Defaults to False."
+            " If False, the catalog.yaml file will be updated."
+        ),
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help=(
+            "Force the concretization of the build, even if a version of the catalog with the specified "
+            "version number already exists in the catalog_base_path. Defaults to False."
+        ),
+    )
+
+    args = parser.parse_args(argv)
+    try:
+        _concretize_build(
+            args.build_base_path,
+            args.version,
+            args.catalog_file,
+            args.catalog_base_path,
+            not args.no_update,
+            args.force,
+        )
+    except DirectoryExistsError as e:
+        raise DirectoryExistsError(
+            f"Unable to concretize catalog build: Catalog version {args.version} "
+            f"already exists in {args.catalog_base_path}. Use "
+            f"`catalog-concretize --catalog_file {args.catalog_file} --build_base_path {args.build_base_path} --version {args.version} --catalog_base_path {args.catalog_base_path} --force` to overwrite it."
+        ) from e
+
+
+def _concretize_build(
+    build_base_path: str | Path,
+    version: str,
+    catalog_file: str,
+    catalog_base_path: str | Path | None = None,
+    update: bool = True,
+    force: bool = False,
+) -> None:
+    """
+    Take the build in it's temporary location, update all the paths within the
+    catalog.json files to point to the new location, and then finally move it out
+    to the final location.
+
+    Parameters
+    ----------
+    build_base_path : str | Path
+        The base path for the build.
+    version : str
+        The version of the build.
+    catalog_file : str
+        The name of the catalog file.
+    catalog_base_path : str | Path, optional
+        The base path for the catalog. If None, the catalog_base_path will be
+        set to the build_base_path. Defaults to None.
+    update : bool
+        Whether to update the catalog.yaml file. Defaults to True. If False, the
+        catalog.yaml file will not be updated.
+    force : bool
+        Whether to concretize the build even if a catalog with the same version
+        number already exists in the catalog_base_path.
+
+    Raises
+    ------
+    DirectoryExistsError
+        If the catalog version already exists in the catalog_base_path and force is False.
+        If the build_base_path does not exist or is not a directory.
+        If the catalog_base_path does not exist or is not a directory.
+    """
+    catalog_base_path = (
+        Path(build_base_path) if catalog_base_path is None else Path(catalog_base_path)
+    )
+
+    # First, 'unhide' paths in the metacatalog.csv file
+    metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
+    pl.scan_csv(metacatalog_path).with_columns(
+        pl.col("yaml").str.replace(f".{version}", version, literal=True)
+    ).collect().write_csv(metacatalog_path)
+
+    source_files = (Path(build_base_path) / f".{version}" / "source").glob("*.json")
+
+    # Then 'unhide' the paths in the catalog.json files
+    for f in source_files:
+        pl.read_json(f).with_columns(
+            pl.col("catalog_file").str.replace(f".{version}", version, literal=True)
+        ).write_ndjson(f)
+
+    # Now unhide the directory containing the catalog
+    src = Path(build_base_path) / f".{version}"
+    dst = Path(catalog_base_path) / version
+    try:
+        src.rename(dst)
+    except OSError as e:
+        if not force:
+            raise DirectoryExistsError(
+                f"Catalog version {version} already exists in {catalog_base_path}. Use "
+                f"`catalog-concretize --catalog_file {catalog_file} --build_base_path {build_base_path} --version {version} --catalog_base_path {catalog_base_path} --force` to overwrite it."
+            ) from e
+
+        tmp = Path(catalog_base_path) / f".tmp-old-{version}"
+        dst.rename(tmp)  # Move the existing version out of the way
+        src.rename(dst)  # Move the new version to the final location
+        shutil.rmtree(tmp)
+
+    if update:
+        # Move the catalog.yaml file to the new location, if we're updating it
+        catalog_src = Path(catalog_base_path) / version / "catalog.yaml"
+        catalog_dst = Path(catalog_base_path) / "catalog.yaml"
+        catalog_src.rename(catalog_dst)
 
 
 def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:

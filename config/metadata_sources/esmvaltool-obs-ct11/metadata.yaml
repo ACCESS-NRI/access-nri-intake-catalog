@@ -1,0 +1,186 @@
+schema_version: 1-0-3
+name: esmvaltool-obs-ct11
+experiment_uuid: 402A5C9F-187A-43D9-BCA9-B4FAE77D5EDF
+description: Replicated observational datasets for ESMValTool CT11
+long_description: >-
+  The Earth System Model Evaluation Tool (ESMValTool) is a tool developed for 
+  evaluation of Earth System Models in CMIP (Climate Model Intercomparison Projects). 
+  It allows for routine comparison of single or multiple models, either against predecessor versions or against observations. 
+  ESMValTool is a community-developed climate model diagnostics and evaluation software package, 
+  driven both by computational performance and scientific accuracy and reproducibility. 
+  It is open to both users and developers, encouraging open exchange of diagnostic source code and 
+  evaluation results from the Coupled Model Intercomparison Project CMIP ensemble.
+
+  ACCESS-NRI is releasing an NCI configuration of ESMValTool under the name ESMValTool-workflow.
+
+  ESMValTool-workflow is the ACCESS-NRI software and data infrastructure that enables the ESMValTool evaluation framework on NCI Gadi. 
+  It includes the ESMValTool/ESMValCore Python packages, the ESMValTool collection of recipes and diagnostics and some 
+  observational datasets. ESMValTool-workflow is configured to use the existing NCI supported CMIP data collections.
+model:
+- OBS6
+- OBS4MIPs
+realm:
+- ocnBgchem
+- land
+- ocean
+- atmos
+- landIce
+- seaIce
+- aerosol
+frequency:
+- 1day
+- 1mon
+- fx
+variable:
+- tdps
+- rsds
+- hur
+- rsutcs
+- vas
+- rsut
+- tauu
+- ua
+- ts
+- ta
+- tsn
+- va
+- rlds
+- rsdt
+- prw
+- lwp
+- clwvi
+- prsn
+- clt
+- tauv
+- zg
+- psl
+- rlutcs
+- hfds
+- tas
+- uas
+- ps
+- tasmin
+- rlut
+- pr
+- clw
+- hus
+- rss
+- wap
+- clivi
+- tos
+- tasmax
+- evspsbl
+- cl
+- cli
+- orog
+- sftlf
+- sm
+- Omon
+- n2o
+- chl
+- ch4
+- ph
+- dissic
+- talk
+- co2s
+- spco2
+- phos
+- areacello
+- talkos
+- co3os
+- dissicos
+- fgco2
+- evspsblpot
+- sfcWind
+- hurs
+- no3
+- si
+- so
+- po4
+- sos
+- o2
+- thetao
+- rsus
+- rsuscs
+- rlus
+- cllcalipso
+- clhcalipso
+- clmcalipso
+- clccalipso
+- cltcalipso
+- clcalipso
+- clrcalipso
+- cltcloudsat
+- pctisccp
+- cttisccp
+- clisccp
+- albisccp
+- cltisccp
+- sic
+- rsdscs
+- rldscs
+- smStderr
+- dosStderr
+- dos
+- cropFrac
+- grassFrac
+- baresoilFrac
+- shrubFrac
+- treeFrac
+- od550aer
+- abs550aer
+- od870aerStderr
+- od550lt1aer
+- od550aerStderr
+- od870aer
+- tsStderr
+- cltStderr
+- burntArea
+- tro3profStderr
+- tozStderr
+- toz
+- tro3prof
+- sithick
+- alb
+- hurNobs
+- taStderr
+- taNobs
+- husNobs
+- hurStderr
+- husStderr
+- prStderr
+- intpp
+- cltStddev
+- od550aerStdv
+- lai
+- fpar
+- od550aerNobs
+- cltNobs
+- tasa
+- tasConf5
+- tasConf95
+- tosAnom
+- prwFlag
+- prwStddev
+- prwErr
+- xco2
+- xch4
+- nbp
+- dpco2
+- tro3
+- albDiffiTr13
+nominal_resolution:
+- 
+version: v1.0.1
+contact: Charles Turner
+email: charles.turner@anu.edu.au
+created: 03/06/2025
+reference: https://github.com/ACCESS-NRI/ESMValTool-workflow
+license: Apache License 2.0
+url: https://github.com/ACCESS-NRI/ESMValTool-workflow
+parent_experiment: <experiment_uuid for parent experiment if appropriate (string)>
+related_experiments:
+- <experiment_uuids for any related experiment(s) (string)>
+notes: <Additional notes (string)>
+keywords:
+- <Keywords to associated with experiment (string)>

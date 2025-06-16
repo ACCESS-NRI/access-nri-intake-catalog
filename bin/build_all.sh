@@ -1,10 +1,10 @@
 #!/bin/bash -l
 
 #PBS -P iq82
-#PBS -l storage=gdata/xp65+gdata/ik11+gdata/cj50+gdata/p73+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10+gdata/hq89+gdata/py18+gdata/ig45+gdata/zz63+gdata/rt52+gdata/jk72
+#PBS -l storage=gdata/xp65+gdata/ik11+gdata/cj50+gdata/p73+gdata/dk92+gdata/al33+gdata/rr3+gdata/fs38+gdata/oi10+gdata/hq89+gdata/py18+gdata/ig45+gdata/zz63+gdata/rt52+gdata/jk72+gdata/qv56+gdata/ct11+gdata/ol01
 #PBS -q normal
-#PBS -W block=true
-#PBS -l walltime=03:00:00
+#PBS -W block=false
+#PBS -l walltime=06:00:00
 #PBS -l mem=192gb
 #PBS -l ncpus=48
 #PBS -l wd
@@ -26,12 +26,14 @@ if [ ! $# -eq 0 ]; then
 fi
 
 module use /g/data/xp65/public/modules
-module load conda/analysis3-25.02 # THIS NEEDS TO BE UPDATED TO THE LATEST VERSION
+module load conda/analysis3-25.05 # THIS NEEDS TO BE UPDATED TO THE LATEST VERSION
 module load openmpi
+
+export PYTHONTRACEMALLOC=1
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog
 CONFIG_DIR=/g/data/xp65/admin/access-nri-intake-catalog/config
-CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ccam.yaml barpa.yaml cordex.yaml mom6.yaml narclim2.yaml era5.yaml romsiceshelf.yaml )
+CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.yaml ccam.yaml barpa.yaml cordex.yaml mom6.yaml narclim2.yaml era5.yaml romsiceshelf.yaml esgf-ref.yaml esmvaltool-obs.yaml)
 
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
 

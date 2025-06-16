@@ -1,0 +1,7 @@
+path,file_type,project_id,institue_id,source_id,realm,frequency,table_id,mip_era,target_mip,variable_id,version,time_range
+/g/data/qv56/replicas/CREATE-IP/reanalysis/NOAA-ESRLandCIRES/ensda-v351/20CRv2c/atmos/mon/v20200611/ua_Amon_reanalysis_20CRv2c_185101-201212.nc,f,CREATE-IP,na,ensda-v351,atmos,mon,Amon,na,na,ua,v20200611,185101-201212
+/g/data/qv56/replicas/input4MIPs/CMIP6/OMIP/MRI/MRI-JRA55-do-1-3/atmos/3hrPt/vas/gn/v20180412/vas_input4MIPs_atmosphericState_OMIP_MRI-JRA55-do-1-3_gn_196201010000-196212312230.nc,f,input4MIPs,na,MRI-JRA55-do-1-3,atmos,3hrPt,gn,CMIP6,OMIP,vas,v20180412,196201010000-196212312230
+/g/data/qv56/replicas/CREATE-IP/reanalysis/NOAA-ESRLandCIRES/ensda-v351/20CRv2c/atmos/mon/v20200611/pr_Amon_reanalysis_20CRv2c_185101-201212.nc,f,CREATE-IP,na,ensda-v351,atmos,mon,Amon,na,na,pr,v20200611,185101-201212
+/g/data/qv56/replicas/CREATE-IP/reanalysis/NOAA-ESRLandCIRES/ensda-v351/20CRv2c/atmos/mon/v20200611/vas_Amon_reanalysis_20CRv2c_185101-201212.nc,f,CREATE-IP,na,ensda-v351,atmos,mon,Amon,na,na,vas,v20200611,185101-201212
+/g/data/qv56/replicas/CREATE-IP/reanalysis/NOAA-ESRLandCIRES/ensda-v351/20CRv2c/atmos/mon/v20200611/rlds_Amon_reanalysis_20CRv2c_185101-201212.nc,f,CREATE-IP,na,ensda-v351,atmos,mon,Amon,na,na,rlds,v20200611,185101-201212
+/g/data/qv56/replicas/input4MIPs/CMIP6/OMIP/MRI/MRI-JRA55-do-1-3/atmos/3hr/rlds/gn/v20180412/rlds_input4MIPs_atmosphericState_OMIP_MRI-JRA55-do-1-3_gn_200701010130-200801010000.nc,f,input4MIPs,na,MRI-JRA55-do-1-3,atmos,3hr,gn,CMIP6,OMIP,rlds,v20180412,200701010130-200801010000
