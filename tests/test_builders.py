@@ -398,7 +398,7 @@ def test_builder_columns_with_iterables(test_data):
         (
             builders.AccessOm2Builder,
             "iceh.1958-02-daily",
-            ("iceh_XXXX_XX_daily", "1958-02", (1, "day")),
+            ("iceh_XXXX_XX_daily", "1958-02", (1, "day"), {"ts": "1958-02"}),
         ),
         (
             builders.AccessOm2Builder,
