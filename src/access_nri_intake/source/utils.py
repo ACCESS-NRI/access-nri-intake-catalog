@@ -221,11 +221,8 @@ class GenericTimeParser:
                 try:
                     num = int(poss_match.group("num"))
                 except ValueError:
-                    # import pdb; pdb.set_trace()
                     num = 1
                 return (num, freq)
-
-        # import pdb; pdb.set_trace()
 
         return FREQUENCY_STATIC
 
