@@ -51,7 +51,7 @@ PATTERNS_HELPERS = {
     "ymds": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}[_,\\-]\\d{5}",
     "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
     "ymd-ns": "\\d{4}\\d{2}\\d{2}",
-    "ym": "\\d{4}[_,\\-]\\d{2}",
+    "ym": "\\d{4}[_,\\-]?\\d{2}",
     "y": "\\d{4}",
     "counter": "\\d+",
 }
@@ -649,6 +649,35 @@ class AccessCm2Builder(AccessEsm15Builder):
 
 class AccessEsm16Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-ESM1.6 datasets"""
+    PATTERNS = [
+        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
+        rf"^aiihca\.pea\\d([a-z]{{3}}).nc",  # ACCESS-ESM1.6 atmosphere
+        rf"^aiihca\.pe-({PATTERNS_HELPERS['ym']})_dai.nc"
+        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
+    ]
+
+    @classmethod
+    def parser(cls, file):
+        """ Get the realm and member/experiment id from the file name"""
+        try:
+            match_groups = re.match(r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc", file).groups()
+            realm = match_groups[0]
+
+            realm_mapping = {
+                "atmosphere": "atmos",
+                "ocean": "ocean",
+                "ice": "seaIce",
+                }
+
+            nc_info = cls.parse_ncfile(file)
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["realm"] = realm_mapping[realm]
+
+            return ncinfo_dict
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 
 class ROMSBuilder(BaseBuilder):
