@@ -342,20 +342,11 @@ class WoaTimeParser(GenericTimeParser):
                 if not time_var.attrs.get("calendar", False):
                     time_var.attrs[attr] = "360_day"
 
-            has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
-            if has_bounds:
-                bounds_var = ds.variables[time_var.bounds]
-                ts = _todate(bounds_var[0, 0])
-                te = _todate(bounds_var[-1, 1])
-            else:
-                ts = _todate(time_var[0])
-                te = _todate(time_var[-1])
+            ts = _todate(time_var[0])
+            te = _todate(time_var[-1])
 
-            if len(time_var) > 1 or has_bounds:
-                if has_bounds:
-                    t1 = _todate(bounds_var[0, 1])
-                else:
-                    t1 = _todate(time_var[1])
+            if len(time_var) > 1:
+                t1 = _todate(time_var[1])
 
                 dt = t1 - ts
                 # TODO: This is not a very good way to get the frequency
@@ -384,8 +375,7 @@ class WoaTimeParser(GenericTimeParser):
                 warnings.warn(f"{msg} Using '{frequency}'.")
 
         if has_time & (frequency != FREQUENCY_STATIC):
-            if not has_bounds:
-                ts, te = GenericTimeParser._guess_start_end_dates(ts, te, frequency)
+            ts, te = GenericTimeParser._guess_start_end_dates(ts, te, frequency)
 
         if ts is None:
             start_date = "none"
