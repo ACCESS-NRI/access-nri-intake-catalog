@@ -26,6 +26,7 @@ __all__ = [
     "AccessOm3Builder",
     "Mom6Builder",
     "AccessEsm15Builder",
+    "AccessEsm16Builder",
     "AccessCm2Builder",
     "ROMSBuilder",
 ]
