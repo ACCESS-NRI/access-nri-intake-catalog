@@ -12,7 +12,7 @@ The access-nri-intake package is installed in the :code:`xp65` analysis environm
 users can install it into their own environment (see :ref:`installation` for details). The Builders can be 
 imported from the :code:`access_nri_intake.source.builders` submodule.
 
-There are currently six Builders available. Their core public APIs are given below (their full APIs can be
+There are currently seven Builders available. Their core public APIs are given below (their full APIs can be
 found in :ref:`source_api`).
 
 .. note::
@@ -57,6 +57,13 @@ ROMSIceShelf output: :code:`ROMSBuilder`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: access_nri_intake.source.builders.ROMSBuilder
+   :special-members: __init__, build, save
+   :noindex:
+
+World Ocean Atlas output: :code:`WoaBuilder`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: access_nri_intake.source.builders.WoaBuilder
    :special-members: __init__, build, save
    :noindex:
 
