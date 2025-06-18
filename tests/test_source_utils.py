@@ -9,6 +9,7 @@ from access_nri_intake.source.utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
+    WoaTimeParser,
 )
 
 
@@ -319,7 +320,7 @@ def test_generic_time_parser_warnings(parser):
 
 @pytest.mark.parametrize(
     "parser",
-    [AccessTimeParser, GenericTimeParser, GfdlTimeParser],
+    [AccessTimeParser, GenericTimeParser, GfdlTimeParser, WoaTimeParser],
 )
 def test_generic_empty_file_error(parser):
     times = []
