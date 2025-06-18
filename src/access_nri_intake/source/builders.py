@@ -797,12 +797,10 @@ class WoaBuilder(BaseBuilder):
         if patterns is None:
             patterns = cls.PATTERNS
 
-        # Try to determine frequency
+        # Nornmally, we would try to determine frequency. In the case of the WOA
+        # data, there were no files with frequency information in the filename.
+        # See other builders if this changes & it needs adding in.
         frequency = None
-        for pattern, freq in frequencies.items():
-            if re.search(pattern, filename):
-                frequency = freq
-                break
 
         # Parse file id
         file_id = filename
