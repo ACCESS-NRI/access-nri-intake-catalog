@@ -711,9 +711,9 @@ class WoaBuilder(BaseBuilder):
 
     PATTERNS = [
         rf"^woa13_ts_({PATTERNS_HELPERS['counter']})_mom{PATTERNS_HELPERS['counter']}.*?$",
-        rf"^woa13_decav_ts_({PATTERNS_HELPERS['yymm']})v2.*?$",
+        rf"^woa13_decav_ts_({PATTERNS_HELPERS['counter']})_{PATTERNS_HELPERS['counter']}v2.*?$",
         r"surface.nc",
-        r"ocean_etmp_salt.res.nc",
+        r"ocean_temp_salt.res.nc",
     ]
     TIME_PARSER = WoaTimeParser
 
@@ -813,10 +813,10 @@ class WoaBuilder(BaseBuilder):
                 # FIXME switch to using named group for timestamp
                 # Loop over *the first* found group and redact
                 timestamp = match.group(1)
-                for grp in match.groups()[:1]:
+                for grp in match.groups():
                     if grp is not None:
                         redaction = re.sub(r"\d", redaction_fill, grp)
-                        file_id = re.sub(grp, redaction, file_id)
+                        file_id = re.sub(grp, redaction, file_id, count=1)
                 break
 
         # Remove non-python characters from file ids
