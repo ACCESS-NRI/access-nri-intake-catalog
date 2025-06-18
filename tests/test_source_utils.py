@@ -399,7 +399,11 @@ def test_generic_empty_file_error(parser):
         ),
     ],
 )
-def test_gfdl_time_parser(times, ffreq, expected):
+@pytest.mark.parametrize(
+    "parser",
+    [GfdlTimeParser, WoaTimeParser],
+)
+def test_gfdl_time_parser(parser, times, ffreq, expected):
     ds = xr.Dataset(
         data_vars={"dummy": ("time", [0] * len(times))},
         coords={"time": times},
@@ -409,16 +413,20 @@ def test_gfdl_time_parser(times, ffreq, expected):
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
 
-    assert GfdlTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected
+    assert parser(ds, filename_frequency=ffreq, time_dim="time")() == expected
 
 
-def test_gfdl_parser_notime():
+@pytest.mark.parametrize(
+    "parser",
+    [GfdlTimeParser, WoaTimeParser],
+)
+def test_gfdl_parser_notime(parser):
     ds = xr.Dataset(
         data_vars={"dummy": ("latitude", [0])},
         coords={"latitude": [0]},
     )
 
-    assert GfdlTimeParser(ds, filename_frequency=None, time_dim="time")() == (
+    assert parser(ds, filename_frequency=None, time_dim="time")() == (
         "none",
         "none",
         "fx",

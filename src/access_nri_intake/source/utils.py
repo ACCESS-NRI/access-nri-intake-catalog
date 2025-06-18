@@ -516,6 +516,3 @@ class GfdlTimeParser(GenericTimeParser):
             frequency = frequency[1]
 
         return start_date, end_date, frequency
-
-    def __call__(self) -> tuple[str, str, str]:
-        return self._get_timeinfo()
