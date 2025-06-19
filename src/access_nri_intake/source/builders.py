@@ -653,9 +653,9 @@ class AccessEsm16Builder(AccessEsm15Builder):
 
     PATTERNS = [
         rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        r"^aiihca\.pea\\d([a-z]{3}).nc",  # ACCESS-ESM1.6 atmosphere
-        rf"^aiihca\.pe-({PATTERNS_HELPERS['ym']})_dai.nc"
-        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
+        rf"^aiihca\.pea\\d([a-z]{3}).nc",  # ACCESS-ESM1.6 atmosphere
+        rf"^aiihca\.pe-({PATTERNS_HELPERS['ym']})_dai.nc",
+        rf"^{PATTERNS_HELPERS['mom6_components']}.*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
     ]
 
     @classmethod
@@ -682,6 +682,45 @@ class AccessEsm16Builder(AccessEsm15Builder):
 
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+    @classmethod
+    def parse_filename(
+        cls,
+        filename: str,
+        patterns: list[str] | None = None,
+        frequencies: dict = FREQUENCIES,
+        redaction_fill: str = "X",
+    ) -> tuple[str, str | None, str | None]:
+        """
+        Parse the filename for ACCESS-ESM1.6 datasets. This wrapper just redacts
+        month names
+        """
+        MONTHS = {
+            "jan": "XXX",
+            "feb": "XXX",
+            "mar": "XXX",
+            "apr": "XXX",
+            "may": "XXX",
+            "jun": "XXX",
+            "jul": "XXX",
+            "aug": "XXX",
+            "sep": "XXX",
+            "oct": "XXX",
+            "nov": "XXX",
+            "dec": "XXX",
+        }
+
+        match = re.match(r"^aiihca\.pea\d([a-z]{3})", filename)
+
+        if match:
+            month_str = match.group(1)
+            if month_str in MONTHS:
+                # Redact the month manually here
+                filename = re.sub(month_str, MONTHS[month_str], filename)
+
+        return BaseBuilder.parse_filename(
+            filename, cls.PATTERNS, frequencies, redaction_fill
+        )
 
 
 class ROMSBuilder(BaseBuilder):
