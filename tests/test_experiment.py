@@ -229,7 +229,7 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
     manifest = yamanifest.Manifest(str(ds_dir / ".cmip6-oi10.hash")).load()
 
     for bh in manifest.data.values():
-        bh["hashes"]["binhash"] = "0" * len(bh["hashes"]["binhash"])
+        bh["hashes"]["binhash-xxh"] = "0" * len(bh["hashes"]["binhash-xxh"])
 
     manifest.dump()
 

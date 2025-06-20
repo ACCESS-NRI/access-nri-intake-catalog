@@ -25,7 +25,7 @@ dependencies = [
     "pooch",
     "xarray",
     "colorama",
-    "yamanifest",
+    "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
 ]
 dynamic = ["version"]
