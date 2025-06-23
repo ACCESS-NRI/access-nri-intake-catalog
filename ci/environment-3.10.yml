@@ -17,8 +17,8 @@ dependencies:
   - pre-commit
   - pytest
   - xarray
+  - accessnri::yamanifest>=0.3.12
   - pip
   - pip:
     - codecov
     - pytest-cov
-    - yamanifest
