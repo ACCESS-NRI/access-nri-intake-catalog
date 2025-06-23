@@ -719,7 +719,7 @@ class WoaBuilder(BaseBuilder):
 
     def __init__(self, path, **kwargs):
         """
-        Initialise a AccessOm2Builder
+        Initialise a WoaBuilder
 
         Parameters
         ----------
