@@ -17,6 +17,7 @@ from .utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
+    WoaTimeParser,
     _NCFileInfo,
     _VarInfo,
 )
@@ -29,6 +30,7 @@ __all__ = [
     "AccessEsm16Builder",
     "AccessCm2Builder",
     "ROMSBuilder",
+    "WoaBuilder",
 ]
 
 # Frequency translations
@@ -53,6 +55,7 @@ PATTERNS_HELPERS = {
     "ymd": "\\d{4}[_,\\-]\\d{2}[_,\\-]\\d{2}",
     "ymd-ns": "\\d{4}\\d{2}\\d{2}",
     "ym": "\\d{4}[_,\\-]?\\d{2}",
+    "yymm": "\\d{2}[_,\\-]\\d{2}",
     "y": "\\d{4}",
     "counter": "\\d+",
 }
@@ -777,3 +780,121 @@ class ROMSBuilder(BaseBuilder):
             return ncinfo_dict
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
+class WoaBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for WOA datasets"""
+
+    PATTERNS = [
+        rf"^woa13_ts_({PATTERNS_HELPERS['counter']})_mom{PATTERNS_HELPERS['counter']}.*?$",
+        rf"^woa13_decav_ts_({PATTERNS_HELPERS['counter']})_{PATTERNS_HELPERS['counter']}v2.*?$",
+        r"surface.nc",
+        r"ocean_temp_salt.res.nc",
+    ]
+    TIME_PARSER = WoaTimeParser
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a WoaBuilder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=2,
+            exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
+            data_format="netcdf",
+            groupby_attrs=["file_id"],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "ocean_time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        try:
+            realm = "ocean"
+
+            nc_info = cls.parse_ncfile(file, time_dim="time")
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["realm"] = realm
+
+            return ncinfo_dict
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+    @classmethod
+    def parse_filename(
+        cls,
+        filename: str,
+        patterns: list[str] | None = None,
+        frequencies: dict = FREQUENCIES,
+        redaction_fill: str = "X",
+    ) -> tuple[str, str | None, str | None]:
+        """
+        Parse an ACCESS model filename and return a file id and any time information
+
+        Parameters
+        ----------
+        filename: str
+            The filename to parse with the extension removed
+        patterns: list of str, optional
+            A list of regex patterns to match against the filename. If None, use the class PATTERNS
+        frequencies: dict, optional
+            A dictionary of regex patterns to match against the filename to determine the frequency
+        redaction_fill: str, optional
+            The character to replace time information with. Defaults to "X"
+
+        Returns
+        -------
+        file_id: str
+            The file id constructed by redacting time information and replacing non-python characters
+            with underscores
+        timestamp: str | None
+            A string of the redacted time information (e.g. "1990-01") if available, otherwise None
+        frequency: str | None
+            The frequency of the file if available in the filename, otherwise None
+        """
+        if patterns is None:
+            patterns = cls.PATTERNS
+
+        # Nornmally, we would try to determine frequency. In the case of the WOA
+        # data, there were no files with frequency information in the filename.
+        # See other builders if this changes & it needs adding in.
+        frequency = None
+
+        # Parse file id
+        file_id = filename
+        timestamp = None
+        for pattern in patterns:
+            match = re.match(pattern, file_id)
+            if match:
+                # FIXME switch to using named group for timestamp
+                # Loop over *the first* found group and redact
+                timestamp = match.group(1)
+                for grp in match.groups():
+                    if grp is not None:
+                        redaction = re.sub(r"\d", redaction_fill, grp)
+                        file_id = re.sub(grp, redaction, file_id, count=1)
+                break
+
+        # Remove non-python characters from file ids
+        file_id = re.sub(r"[-.]", "_", file_id)
+        file_id = re.sub(r"_+", "_", file_id).strip("_")
+
+        return file_id, timestamp, frequency

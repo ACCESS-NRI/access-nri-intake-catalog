@@ -33,6 +33,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 85, 85, 84),
+        (["woa"], "WoaBuilder", {}, 2, 2, 1),
     ],
 )
 def test_builder_build(
@@ -236,6 +237,13 @@ def test_builder_build(
             None,
             "ocean_2d_fprec_melt_heat_1monthly_mean_ym_XXXX_XX",
         ),
+        (
+            "woa/woa13_ts_01_mom01.nc",
+            "WoaBuilder",
+            "ocean",
+            None,
+            "woa13_ts_XX_mom01",
+        ),
     ],
 )
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
@@ -288,6 +296,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
         "AccessEsm16Builder",
         "AccessCm2Builder",
         "ROMSBuilder",
+        "WoaBuilder",
     ],
 )
 def test_builder_parser_exception(test_data, filename, builder):
@@ -793,6 +802,15 @@ def test_builder_columns_with_iterables(test_data):
             (
                 "roms_his_XXXX",
                 "0016",
+                None,
+            ),
+        ),
+        (
+            builders.WoaBuilder,
+            "woa13_ts_01_mom01",
+            (
+                "woa13_ts_XX_mom01",
+                "01",
                 None,
             ),
         ),
