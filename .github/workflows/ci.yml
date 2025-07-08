@@ -14,40 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup conda environment
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
         with:
-          miniconda-version: "latest"
-          python-version: ${{ matrix.python-version }}
-          environment-file: ci/environment-${{ matrix.python-version }}.yml
-          activate-environment: access-nri-intake-test
-          auto-activate-base: false
+          pixi-version: latest
 
-      - name: Install source
-        shell: bash -l {0}
-        run: python -m pip install .
+      - name: Test Python 3.10
+        run: pixi run -e test-py310 test
 
-      - name: List installed packages
-        shell: bash -l {0}
-        run: conda list
+      - name: Test Python 3.11
+        run: pixi run -e test-py311 test
 
-      - name: Run tests
-        shell: bash -l {0}
-        run: coverage run -m --source=access_nri_intake pytest tests
-      
-      - name: Generate coverage report
-        shell: bash -l {0}
-        run: coverage xml
+      - name: Test Python 3.12
+        run: pixi run -e test-py312 test
 
-      - name: Upload code coverage
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.codecov_token }}
-          files: ./coverage.xml
+      - name: Test Python 3.13
+        run: pixi run -e test-py313 test

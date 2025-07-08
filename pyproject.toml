@@ -140,7 +140,6 @@ test-py313 = { features = ["py313", "test"] }
 
 [tool.pixi.feature.test.dependencies]
 pytest = ">=8.4.1,<9"
-tox = ">=4.27.0,<5"
 
 [tool.pixi.feature.test.tasks]
 test = "pytest"
