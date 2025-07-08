@@ -118,7 +118,6 @@ access_nri_intake = { path = ".", editable = true }
 
 [tool.pixi.dependencies]
 yamanifest = { version = ">=0.3.12", channel = "accessnri" }
-python = ">=3.13.5,<3.14"
 cftime = "*"
 ecgtools= "==2023.7.13"
 intake= ">=2.0.0"
@@ -134,15 +133,29 @@ colorama = "*"
 [tool.pixi.environments]
 default = { solve-group = "default" }
 e2e = { features = ["e2e"], solve-group = "default" }
-test = { features = ["test"], solve-group = "default" }
+test-py310 = { features = ["py310", "test"] }
+test-py311 = { features = ["py311", "test"] }
+test-py312 = { features = ["py312", "test"] }
+test-py313 = { features = ["py313", "test"] }
 
 [tool.pixi.feature.test.dependencies]
 pytest = ">=8.4.1,<9"
 tox = ">=4.27.0,<5"
 
+[tool.pixi.feature.test.tasks]
+test = "pytest"
+
 [tool.pixi.feature.e2e.dependencies]
 pytest = ">=8.4.1,<9"
 pytest-ordering = ">=0.6,<0.7"
 
-[tool.pixi.feature.test.tasks]
-test = {cmd = "pytest tests", description = "Run the test suite"}
+[tool.pixi.feature.py310.dependencies]
+python = "3.10.*"
+
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+
+[tool.pixi.feature.py312.dependencies]
+python = "3.12.*"
+[tool.pixi.feature.py313.dependencies]
+python = "3.13.*"
