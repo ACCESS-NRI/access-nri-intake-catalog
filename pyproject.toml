@@ -111,7 +111,7 @@ known-first-party = ["access_nri_intake"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge","accessnri"]
-platforms = ["osx-arm64"]
+platforms = ["osx-arm64", "linux-64"]
 
 [tool.pixi.pypi-dependencies]
 access_nri_intake = { path = ".", editable = true }
