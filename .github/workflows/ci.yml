@@ -23,5 +23,12 @@ jobs:
         frozen: true
 
 
-    - run: |
+    - name: Run tests and generate coverage report
+      run: |
         pixi clean && pixi run -e ${{ matrix.environment }} test-cov
+
+    - name: Upload code coverage
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.codecov_token }}
+        files: ./coverage.xml
