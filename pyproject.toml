@@ -25,7 +25,6 @@ dependencies = [
     "pooch",
     "xarray",
     "colorama",
-    "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
 ]
 dynamic = ["version"]
@@ -122,3 +121,20 @@ max-complexity = 18
 
 [tool.ruff.isort]
 known-first-party = ["access_nri_intake"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge","accessnri"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+access_nri_intake = { path = ".", editable = true }
+
+[tool.pixi.dependencies]
+yamanifest = { version = ">=0.3.12", channel = "accessnri" }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+e2e = { features = ["e2e"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+
+[tool.pixi.tasks]
