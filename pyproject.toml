@@ -14,19 +14,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-dependencies = [
-    "cftime",
-    "ecgtools>=2023.7.13",
-    "intake>=2.0.0",
-    "intake-dataframe-catalog>=0.3.1",
-    "intake-esm>=2025.2.3",
-    "jsonschema",
-    "polars>=1.24.0",
-    "pooch",
-    "xarray",
-    "colorama",
-    "access-py-telemetry>=0.1.6",
-]
 dynamic = ["version"]
 
 [project.optional-dependencies]
@@ -131,10 +118,31 @@ access_nri_intake = { path = ".", editable = true }
 
 [tool.pixi.dependencies]
 yamanifest = { version = ">=0.3.12", channel = "accessnri" }
+python = ">=3.13.5,<3.14"
+cftime = "*"
+ecgtools= "==2023.7.13"
+intake= ">=2.0.0"
+intake-dataframe-catalog= ">=0.3.1"
+intake-esm= ">=2025.2.3"
+polars = ">=1.24.0"
+access-py-telemetry = ">=0.1.6"
+jsonschema = "*"
+pooch = "*"
+xarray = "*"
+colorama = "*"
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
 e2e = { features = ["e2e"], solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
 
-[tool.pixi.tasks]
+[tool.pixi.feature.test.dependencies]
+pytest = ">=8.4.1,<9"
+tox = ">=4.27.0,<5"
+
+[tool.pixi.feature.e2e.dependencies]
+pytest = ">=8.4.1,<9"
+pytest-ordering = ">=0.6,<0.7"
+
+[tool.pixi.feature.test.tasks]
+test = {cmd = "pytest tests", description = "Run the test suite"}
