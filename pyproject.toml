@@ -113,9 +113,6 @@ known-first-party = ["access_nri_intake"]
 channels = ["conda-forge","accessnri"]
 platforms = ["osx-arm64", "linux-64", "win-64"]
 
-# [tool.pixi.pypi-dependencies]
-# access_nri_intake = { path = ".", editable = true }
-
 [tool.pixi.dependencies]
 yamanifest = { version = ">=0.3.12", channel = "accessnri" }
 cftime = "*"
@@ -141,6 +138,17 @@ test-py313 = { features = ["py313", "test"] }
 [tool.pixi.feature.dev.pypi-dependencies]
 access_nri_intake = { path = ".", editable = true }
 
+[tool.pixi.feature.dev.dependencies]
+pre-commit = ">=4.2.0,<5"
+
+[tool.pixi.feature.dev.tasks]
+ruff = { cmd = "ruff check src", description = "Run ruff checks" }
+black = { cmd = "black src", description = "Format code with black" }
+mypy = { cmd = "mypy src", description = "Run mypy type checks" }
+mypy-setup = { cmd = "mypy --install-types", description = "Install mypy type stubs" }
+pre-commit-install = { cmd = "pre-commit install", description = "Run pre-commit hooks" }
+pre-commit = { cmd = "pre-commit run --all-files && pixi lock", description = "Run pre-commit hooks" }
+
 [tool.pixi.feature.test.pypi-dependencies]
 access_nri_intake = { path = ".", editable = false } 
 
@@ -151,6 +159,9 @@ coverage = "*"
 [tool.pixi.feature.test.tasks]
 test = {cmd = "pytest tests", description = "Run tests"}
 test-cov = {cmd = "coverage run -m --source=access_nri_intake pytest tests && coverage xml", description = "Run tests with coverage and generate xml report"}
+
+[tool.pixi.feature.e2e.tasks]
+test-e2e = {cmd = "pytest --e2e tests", description = "Run tests including e2e tests"}
 
 [tool.pixi.feature.e2e.dependencies]
 pytest = ">=8.4.1,<9"

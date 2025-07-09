@@ -20,7 +20,7 @@ jobs:
     - uses: prefix-dev/setup-pixi@v0.8.3
       with:
         environments: ${{ matrix.environment }}
-        frozen: true
+        frozen: true # This seems hacky?
 
 
     - name: Run tests and generate coverage report
