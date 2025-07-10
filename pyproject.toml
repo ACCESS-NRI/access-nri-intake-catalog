@@ -23,7 +23,7 @@ dependencies = [
     "jsonschema",
     "polars>=1.24.0",
     "pooch",
-    "xarray<2025.07.1",
+    "xarray<2025.07.0",
     "colorama",
     "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
