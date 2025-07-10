@@ -150,7 +150,7 @@ class BaseBuilder(Builder):
             description=description,
             directory=directory,
             catalog_type="file",
-            to_csv_kwargs={"compression": "gzip"},
+            to_csv_kwargs={"compression": None},
         )
 
     def save(self, name: str, description: str, directory: str | None = None) -> None:
