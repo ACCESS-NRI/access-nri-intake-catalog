@@ -11,6 +11,7 @@ import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
 from intake_esm.utils import OPTIONS
+import polars as pl
 
 from access_nri_intake.source import CORE_COLUMNS, builders
 from access_nri_intake.source.utils import _NCFileInfo
@@ -3014,8 +3015,13 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
 
     # Set the path to the test data directory
     expected.path = file
+    
 
-    assert builder.parse_ncfile(file) == expected
+    parsed_file = builder.parse_ncfile(file)
+
+    exptd_dict = expected.to_dict()
+    parsed_dict  = parsed_file.to_dict()
+    assert exptd_dict == parsed_dict
 
     if not compare_files:
         return None
