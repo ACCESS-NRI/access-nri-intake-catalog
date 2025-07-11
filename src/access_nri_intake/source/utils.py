@@ -9,6 +9,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import cftime
+import polars as pl
 import xarray as xr
 
 FREQUENCY_STATIC = "fx"
@@ -48,7 +49,27 @@ class _NCFileInfo:
         """
         Return a dictionary representation of the NcFileInfo object
         """
-        return asdict(self)
+        d = asdict(self)
+
+        d_sortable = {
+            key: val
+            for key, val in d.items()
+            if key
+            in [
+                "variable",
+                "variable_long_name",
+                "variable_standard_name",
+                "variable_cell_methods",
+                "variable_units",
+            ]
+        }
+
+        d_sorted = (pl.DataFrame(d_sortable).sort("variable")).to_dict(as_series=False)
+
+        for key, val in d_sorted.items():
+            d[key] = val
+
+        return d
 
 
 @dataclass
