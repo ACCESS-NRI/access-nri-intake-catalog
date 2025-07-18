@@ -770,6 +770,7 @@ class WoaBuilder(BaseBuilder):
         for part in pathparts:
             if "kds" in part.lower():
                 file_id = f"{file_id}_{part}"
+                break
 
         ncinfo_dict["file_id"] = file_id
         ncinfo_dict["realm"] = "ocean"
