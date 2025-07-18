@@ -1,6 +1,8 @@
 [project]
 name = "access_nri_intake"
-authors = [{ name = "ACCESS-NRI" }]
+authors = [
+    { name = "ACCESS-NRI" },
+]
 description = "Intake catalog managed by ACCESS-NRI and associated tools"
 readme = "README.rst"
 requires-python = ">=3.10"
@@ -45,7 +47,10 @@ access_nri = "access_nri_intake.data:data"
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools >= 61.0.0", "versioneer[toml]"]
+requires = [
+  "setuptools >= 61.0.0",
+  "versioneer[toml]",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -66,7 +71,10 @@ tag_prefix = "v"
 parentdir_prefix = "access-nri-intake-"
 
 [tool.coverage.run]
-omit = ["*/_version.py", "*/data/__init__.py"]
+omit = [
+    "*/_version.py",
+    "*/data/__init__.py",
+]
 
 [tool.ruff]
 target-version = "py39"
@@ -93,7 +101,10 @@ exclude = [
 ]
 # E402: module level import not at top of file
 # E501: line too long - let black worry about that
-ignore = ["E402", "E501"]
+ignore = [
+    "E402",
+    "E501",
+]
 select = [
     # Pyflakes
     "F",
