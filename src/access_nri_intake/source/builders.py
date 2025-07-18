@@ -150,7 +150,7 @@ class BaseBuilder(Builder):
             description=description,
             directory=directory,
             catalog_type="file",
-            to_csv_kwargs={"compression": "gzip"},
+            to_csv_kwargs={"compression": None},
         )
 
     def save(self, name: str, description: str, directory: str | None = None) -> None:
@@ -751,16 +751,29 @@ class WoaBuilder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
-            realm = "ocean"
-
             nc_info = cls.parse_ncfile(file, time_dim="time")
             ncinfo_dict = nc_info.to_dict()
 
-            ncinfo_dict["realm"] = realm
+            ncinfo_dict = cls.post_proc_ncinfo(ncinfo_dict)
 
             return ncinfo_dict
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+    @staticmethod
+    def post_proc_ncinfo(ncinfo_dict: dict) -> dict:
+        """
+        Post process the ncinfo_dict to add anything that looks like `KDS` to the file id
+        """
+        file_id = ncinfo_dict["file_id"]
+        pathparts = Path(ncinfo_dict["path"]).parts
+        for part in pathparts:
+            if "kds" in part.lower():
+                file_id += f"_{part}"
+
+        ncinfo_dict["file_id"] = file_id
+        ncinfo_dict["realm"] = "ocean"
+        return ncinfo_dict
 
     @classmethod
     def parse_filename(

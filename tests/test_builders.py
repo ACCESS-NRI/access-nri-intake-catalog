@@ -32,7 +32,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["woa"], "WoaBuilder", {}, 2, 2, 1),
+        (["woa"], "WoaBuilder", {}, 4, 4, 2),
     ],
 )
 def test_builder_build(
@@ -3109,3 +3109,24 @@ def test_builder_include_exclude_patterns(
     assert bld.exclude_patterns == (
         exclude_patts if exclude_patts is not None else default_exclude
     )
+
+
+def test_parser_woa(test_data, tmpdir):
+    """
+    Test the parser for WOA files separates out kds/non kds files correctly.
+
+    This kind of duplicates test_builder_build, but hopefully having it separate
+    keeps the intent clear. When we move to grid based file ids this can be deleted.
+    """
+    srcdir = test_data / "woa"
+
+    builders.WoaBuilder(str(srcdir)).build().save(
+        name="woa_ds", description="test_woa", directory=str(tmpdir)
+    )
+
+    esm_ds = intake.open_esm_datastore(
+        str(tmpdir / "woa_ds.json"),
+    )
+
+    # SHould be two datastores.
+    assert len(esm_ds) == 2

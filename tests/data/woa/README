@@ -1,6 +1,9 @@
 # Generated using the following Python on ARE:
+# We split up on whether the path contains `?(i)kds` - so
+# I've later copied *the exact same files* additionally into a subdir called 'KDS50'
 
 from pathlib import Path
+
 import xarray as xr
 
 srcdir = Path("/g/data/ik11/observations/woa13/01")
@@ -13,14 +16,12 @@ srcfiles = [
 ]
 
 for file in srcfiles:
-    ds = xr.open_dataset(
-    srcdir / file
-    )
+    ds = xr.open_dataset(srcdir / file)
 
     for coord in ds.coords:
         try:
-            ds = ds.isel(**{coord : [0,1], "drop" : False})
+            ds = ds.isel(**{coord: [0, 1], "drop": False})
         except IndexError:
-            ds = ds.isel(**{coord : [0], "drop" : False})
+            ds = ds.isel(**{coord: [0], "drop": False})
 
     ds.to_netcdf(destdir / file)
