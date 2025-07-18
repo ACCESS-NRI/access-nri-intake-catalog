@@ -391,10 +391,10 @@ def test_use_datastore_broken_existing(
 
     # Now break the catalog - we can just remove a column
     pd.read_csv(
-        destdir / "experiment_datastore.csv.gz",
+        destdir / "experiment_datastore.csv",
         index_col=0,
     ).to_csv(
-        destdir / "experiment_datastore.csv.gz",
+        destdir / "experiment_datastore.csv",
         index=False,
     )
 
