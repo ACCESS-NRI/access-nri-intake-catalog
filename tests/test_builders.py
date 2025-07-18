@@ -3128,5 +3128,5 @@ def test_parser_woa(test_data, tmpdir):
         str(tmpdir / "woa_ds.json"),
     )
 
-    # SHould be two datastores.
+    # Should be two datastores.
     assert len(esm_ds) == 2
