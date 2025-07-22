@@ -473,7 +473,7 @@ def test_custom_time_parser(parser, times, ffreq, expected):
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
 
-    assert parser(ds, filename_frequency=ffreq, time_dim="time")() == expected
+    assert parser(ds, time_dim="time")() == expected
 
 
 @pytest.mark.parametrize(
@@ -486,7 +486,7 @@ def test_custom_parser_notime(parser):
         coords={"latitude": [0]},
     )
 
-    assert parser(ds, filename_frequency=None, time_dim="time")() == (
+    assert parser(ds, time_dim="time")() == (
         "none",
         "none",
         "fx",
@@ -496,21 +496,6 @@ def test_custom_parser_notime(parser):
 @pytest.mark.parametrize(
     "times, ffreq, expected",
     [
-        (
-            [365 / 2],
-            (1, "yr"),
-            ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr"),
-        ),
-        (
-            [31 / 2],
-            (1, "mon"),
-            ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon"),
-        ),
-        (
-            [1.5 / 24],
-            (3, "hr"),
-            ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr"),
-        ),
         (
             [1.5 / 24, 4.5 / 24],
             None,
@@ -561,4 +546,4 @@ def test_woa_time_parser_nocalendar(times, ffreq, expected):
 
     ds["time"].attrs |= dict(units="days since 1900-01-01 00:00:00")
 
-    assert WoaTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected
+    assert WoaTimeParser(ds, time_dim="time")() == expected
