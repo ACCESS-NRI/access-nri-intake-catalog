@@ -754,88 +754,18 @@ class WoaBuilder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         try:
+            realm: str = "ocean"
+
             nc_info = cls.parse_ncfile(file, time_dim="time")
+            nc_info.file_id = cls.generate_file_shape_info(Path(file))
+
             ncinfo_dict = nc_info.to_dict()
+            ncinfo_dict["realm"] = realm
 
-            ncinfo_dict = cls.post_proc_ncinfo(ncinfo_dict)
-
+            ncinfo_dict["file_id"] = ".".join(
+                [realm, nc_info.frequency, nc_info.file_id]
+            )
             return ncinfo_dict
+
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
-
-    @staticmethod
-    def post_proc_ncinfo(ncinfo_dict: dict) -> dict:
-        """
-        Post process the ncinfo_dict to add anything that looks like `KDS` to the file id
-        """
-        file_id = ncinfo_dict["file_id"]
-        pathparts = Path(ncinfo_dict["path"]).parts
-        for part in pathparts:
-            if "kds" in part.lower():
-                file_id = f"{file_id}_{part}"
-                break
-
-        ncinfo_dict["file_id"] = file_id
-        ncinfo_dict["realm"] = "ocean"
-        return ncinfo_dict
-
-    @classmethod
-    def parse_filename(
-        cls,
-        filename: str,
-        patterns: list[str] | None = None,
-        frequencies: dict = FREQUENCIES,
-        redaction_fill: str = "X",
-    ) -> tuple[str, str | None, str | None]:
-        """
-        Parse an ACCESS model filename and return a file id and any time information
-
-        Parameters
-        ----------
-        filename: str
-            The filename to parse with the extension removed
-        patterns: list of str, optional
-            A list of regex patterns to match against the filename. If None, use the class PATTERNS
-        frequencies: dict, optional
-            A dictionary of regex patterns to match against the filename to determine the frequency
-        redaction_fill: str, optional
-            The character to replace time information with. Defaults to "X"
-
-        Returns
-        -------
-        file_id: str
-            The file id constructed by redacting time information and replacing non-python characters
-            with underscores
-        timestamp: str | None
-            A string of the redacted time information (e.g. "1990-01") if available, otherwise None
-        frequency: str | None
-            The frequency of the file if available in the filename, otherwise None
-        """
-        if patterns is None:
-            patterns = cls.PATTERNS
-
-        # Nornmally, we would try to determine frequency. In the case of the WOA
-        # data, there were no files with frequency information in the filename.
-        # See other builders if this changes & it needs adding in.
-        frequency = None
-
-        # Parse file id
-        file_id = filename
-        timestamp = None
-        for pattern in patterns:
-            match = re.match(pattern, file_id)
-            if match:
-                # FIXME switch to using named group for timestamp
-                # Loop over *the first* found group and redact
-                timestamp = match.group(1)
-                for grp in match.groups():
-                    if grp is not None:
-                        redaction = re.sub(r"\d", redaction_fill, grp)
-                        file_id = re.sub(grp, redaction, file_id, count=1)
-                break
-
-        # Remove non-python characters from file ids
-        file_id = re.sub(r"[-.]", "_", file_id)
-        file_id = re.sub(r"_+", "_", file_id).strip("_")
-
-        return file_id, timestamp, frequency
