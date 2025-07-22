@@ -1,0 +1,46 @@
+schema_version: 1-0-3
+name: WOA-13
+experiment_uuid: 4b8b6377-69f4-4c75-8049-e70ee334f4e0
+description: 2013 World Ocean Atlas (WOA-13), regridded to various model grids.
+long_description: >-
+  The World Ocean Atlas (WOA) is a collection of objectively analyzed, quality 
+  controlled temperature, salinity, oxygen, phosphate, silicate, and nitrate means 
+  based on profile data from the World Ocean Database (WOD). It can be used to 
+  create boundary and/or initial conditions for a variety of ocean models, verify 
+  numerical simulations of the ocean, and corroborate satellite data.
+model:
+- World Ocean Atlas 2013
+realm:
+- ocean
+frequency:
+- fx
+- 1mon
+variable:
+- GRID_X_T
+- GRID_Y_T
+- ZT
+- time
+- temp
+- salt
+- lat
+- lon
+- practical_salinity
+- potential_temperature
+nominal_resolution:
+- 1˚
+- 0.25˚
+- 0.1˚
+version: 2013
+contact: Andy Hogg
+email: Andy.Hogg@anu.edu.au
+created: April 13th, 2021
+license: >-
+ No license information was provided. If this work was prepared by an officer or 
+ employee of the United States government as part of that person's official duties 
+ it is considered a U.S. Government Work.
+url: https://www.ncei.noaa.gov/products/world-ocean-atlas
+keywords:
+- World Ocean Atlas
+- WOA
+- WOA13
+

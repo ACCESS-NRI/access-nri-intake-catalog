@@ -210,7 +210,7 @@ def verify_ds_current(
         )
         return False
 
-    mf = Manifest(str(hashfile)).load()
+    mf = Manifest(str(hashfile), hashes="binhash-xxh").load()
     manifest_files = {v.get("fullpath") for v in mf.data.values()}
 
     # Convert experiment files to strings for compatibility with yamanifest
@@ -229,8 +229,8 @@ def verify_ds_current(
         )
         return False
 
-    expdir_manifest = Manifest("_")
-    expdir_manifest.add(experiment_files_str, hashfn="binhash")
+    expdir_manifest = Manifest("_", hashes="binhash-xxh")
+    expdir_manifest.add(experiment_files_str, hashfn="binhash-xxh")
 
     if not expdir_manifest.equals(mf):
         warnings.warn(
@@ -255,9 +255,9 @@ def hash_catalog(
     cat_files = builder_instance.df.path.tolist()
     cat_fullfiles = [str(Path(file).resolve()) for file in cat_files]
 
-    mf = Manifest(str(catalog_dir / f".{datastore_name}.hash"))
+    mf = Manifest(str(catalog_dir / f".{datastore_name}.hash"), hashes="binhash-xxh")
 
-    mf.add(cat_fullfiles, hashfn="binhash")
+    mf.add(cat_fullfiles, hashfn="binhash-xxh")
 
     mf.dump()
     return None

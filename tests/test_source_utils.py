@@ -11,6 +11,7 @@ from access_nri_intake.source.utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
+    WoaTimeParser,
 )
 
 
@@ -326,7 +327,7 @@ def test_generic_time_parser_warnings(parser):
 
 @pytest.mark.parametrize(
     "parser",
-    [AccessTimeParser, GenericTimeParser, GfdlTimeParser],
+    [AccessTimeParser, GenericTimeParser, GfdlTimeParser, WoaTimeParser],
 )
 def test_generic_empty_file_error(parser):
     times = []
@@ -458,7 +459,11 @@ def test_generic__guess_freq_from_fn_no_saved_ds(parser):
         ),
     ],
 )
-def test_gfdl_time_parser(times, ffreq, expected):
+@pytest.mark.parametrize(
+    "parser",
+    [GfdlTimeParser, WoaTimeParser],
+)
+def test_custom_time_parser(parser, times, ffreq, expected):
     ds = xr.Dataset(
         data_vars={"dummy": ("time", [0] * len(times))},
         coords={"time": times},
@@ -468,20 +473,92 @@ def test_gfdl_time_parser(times, ffreq, expected):
         units="days since 1900-01-01 00:00:00", calendar="GREGORIAN"
     )
 
-    assert GfdlTimeParser(ds, time_dim="time")() == expected
+    assert parser(ds, filename_frequency=ffreq, time_dim="time")() == expected
 
 
-def test_gfdl_parser_notime(tmp_path):
+@pytest.mark.parametrize(
+    "parser",
+    [GfdlTimeParser, WoaTimeParser],
+)
+def test_custom_parser_notime(parser):
     ds = xr.Dataset(
         data_vars={"dummy": ("latitude", [0])},
         coords={"latitude": [0]},
     )
 
-    ds.to_netcdf(path=tmp_path / "notime.nc")
-    ds = xr.open_dataset(tmp_path / "notime.nc", decode_cf=False)
-
-    assert GfdlTimeParser(ds, time_dim="time")() == (
+    assert parser(ds, filename_frequency=None, time_dim="time")() == (
         "none",
         "none",
         "fx",
     )
+
+
+@pytest.mark.parametrize(
+    "times, ffreq, expected",
+    [
+        (
+            [365 / 2],
+            (1, "yr"),
+            ("1900-01-01, 00:00:00", "1901-01-01, 00:00:00", "1yr"),
+        ),
+        (
+            [31 / 2],
+            (1, "mon"),
+            ("1900-01-01, 00:00:00", "1900-02-01, 00:00:00", "1mon"),
+        ),
+        (
+            [1.5 / 24],
+            (3, "hr"),
+            ("1900-01-01, 00:00:00", "1900-01-01, 03:00:00", "3hr"),
+        ),
+        (
+            [1.5 / 24, 4.5 / 24],
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 06:00:00", "3hr"),
+        ),
+        (
+            [3 / 24, 9 / 24],
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 12:00:00", "6hr"),
+        ),
+        (
+            [0.5, 1.5],
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-03, 00:00:00", "1day"),
+        ),
+        (
+            [31 / 2, 45],
+            None,
+            ("1900-01-01, 00:00:00", "1900-03-01, 00:00:00", "1mon"),
+        ),
+        (
+            [45, 135.5],
+            None,
+            ("1900-01-01, 00:00:00", "1900-07-01, 00:00:00", "3mon"),
+        ),
+        (
+            [365 / 2, 365 + 365 / 2],
+            None,
+            ("1900-01-01, 00:00:00", "1902-01-01, 00:00:00", "1yr"),
+        ),
+        (
+            [365, 3 * 365],
+            None,
+            ("1900-01-01, 00:00:00", "1904-01-01, 00:00:00", "2yr"),
+        ),
+        (
+            [365 / 86400 / 720, 365 / 86400 / 360],  # 1/2 second, 1 second
+            None,
+            ("1900-01-01, 00:00:00", "1900-01-01, 00:00:01", "subhr"),
+        ),
+    ],
+)
+def test_woa_time_parser_nocalendar(times, ffreq, expected):
+    ds = xr.Dataset(
+        data_vars={"dummy": ("time", [0] * len(times))},
+        coords={"time": times},
+    )
+
+    ds["time"].attrs |= dict(units="days since 1900-01-01 00:00:00")
+
+    assert WoaTimeParser(ds, filename_frequency=ffreq, time_dim="time")() == expected

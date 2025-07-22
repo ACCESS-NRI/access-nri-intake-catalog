@@ -32,6 +32,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
+        (["woa"], "WoaBuilder", {}, 4, 4, 2),
     ],
 )
 def test_builder_build(
@@ -221,6 +222,13 @@ def test_builder_build(
             None,
             "seaIce.5day.boundary:1.eta_psi:1.eta_rho:1.eta_u:1.eta_v:1.s_rho:1.s_w:1.tracer:1.xi_psi:1.xi_rho:1.xi_u:1.xi_v:1",
         ),
+        (
+            "woa/woa13_ts_01_mom01.nc",
+            "WoaBuilder",
+            "ocean",
+            None,
+            "woa13_ts_XX_mom01",
+        ),
     ],
 )
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
@@ -272,6 +280,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
         "AccessEsm15Builder",
         "AccessCm2Builder",
         "ROMSBuilder",
+        "WoaBuilder",
     ],
 )
 def test_builder_parser_exception(test_data, filename, builder):
@@ -453,6 +462,15 @@ def test_builder_columns_with_iterables(test_data):
             "roms_his_0016.nc",
             "ocean_time",
             "boundary:4.eta_psi:309.eta_rho:310.eta_u:310.eta_v:309.s_rho:31.s_w:32.tracer:2.xi_psi:294.xi_rho:295.xi_u:294.xi_v:295",
+        ),
+        (
+            builders.WoaBuilder,
+            "woa13_ts_01_mom01",
+            (
+                "woa13_ts_XX_mom01",
+                "01",
+                None,
+            ),
         ),
     ],
 )
@@ -1185,7 +1203,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 file_id="",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1901-01-01, 00:00:00",
+                end_date="1900-01-02, 00:00:00",
                 variable=[
                     "xT",
                     "xTe",
@@ -1247,12 +1265,12 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                     "degrees_N",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "0-1",
                     "m-ice",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1393,7 +1411,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_north",
                     "meters",
                     "meters",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
@@ -1413,8 +1431,8 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "W",
                     "psu m3 s-1",
                     "psu m3 s-1",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1429,7 +1447,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 file_id="",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1901-01-01, 00:00:00",
+                end_date="1900-02-01, 00:00:00",
                 variable=[
                     "xh",
                     "yh",
@@ -1499,14 +1517,14 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_north",
                     "kg m-3",
                     "kg m-3",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "degrees_north",
                     "m3",
                     "m",
                     "kg s-1",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1580,15 +1598,15 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 ],
                 variable_units=[
                     "",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "kg",
                     "m3",
                     "degC",
                     "psu",
                     "psu",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1739,7 +1757,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_units=[
                     "degrees_east",
                     "degrees_north",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "degrees_east",
                     "degrees_north",
                     "m2",
@@ -1881,7 +1899,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_east",
                     "degrees_north",
                     "meter",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
@@ -1896,8 +1914,8 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "kg m-2 s-1",
                     "W",
                     "W",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -1986,15 +2004,15 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_north",
                     "kg m-3",
                     "kg m-3",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
                     "m3",
                     "kg s-1",
                     "kg s-1",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -2095,7 +2113,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_north",
                     "meters",
                     "meters",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "meters",
@@ -2105,8 +2123,8 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "m s-1",
                     "degC",
                     "psu",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -2644,7 +2662,11 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
     # Set the path to the test data directory
     expected.path = file
 
-    assert builder.parse_ncfile(file) == expected
+    parsed_file = builder.parse_ncfile(file)
+
+    exptd_dict = expected.to_dict()
+    parsed_dict = parsed_file.to_dict()
+    assert exptd_dict == parsed_dict
 
     if not compare_files:
         return None
@@ -2734,3 +2756,24 @@ def test_builder_include_exclude_patterns(
     assert bld.exclude_patterns == (
         exclude_patts if exclude_patts is not None else default_exclude
     )
+
+
+def test_parser_woa(test_data, tmpdir):
+    """
+    Test the parser for WOA files separates out kds/non kds files correctly.
+
+    This kind of duplicates test_builder_build, but hopefully having it separate
+    keeps the intent clear. When we move to grid based file ids this can be deleted.
+    """
+    srcdir = test_data / "woa"
+
+    builders.WoaBuilder(str(srcdir)).build().save(
+        name="woa_ds", description="test_woa", directory=str(tmpdir)
+    )
+
+    esm_ds = intake.open_esm_datastore(
+        str(tmpdir / "woa_ds.json"),
+    )
+
+    # Should be two datastores.
+    assert len(esm_ds) == 2

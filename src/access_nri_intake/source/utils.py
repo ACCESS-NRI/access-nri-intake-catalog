@@ -11,6 +11,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import cftime
+import polars as pl
 import xarray as xr
 
 FREQUENCY_STATIC = "fx"
@@ -69,7 +70,27 @@ class _NCFileInfo:
         """
         Return a dictionary representation of the NcFileInfo object
         """
-        return asdict(self)
+        d = asdict(self)
+
+        d_sortable = {
+            key: val
+            for key, val in d.items()
+            if key
+            in [
+                "variable",
+                "variable_long_name",
+                "variable_standard_name",
+                "variable_cell_methods",
+                "variable_units",
+            ]
+        }
+
+        d_sorted = (pl.DataFrame(d_sortable).sort("variable")).to_dict(as_series=False)
+
+        for key, val in d_sorted.items():
+            d[key] = val
+
+        return d
 
 
 @dataclass
@@ -346,6 +367,122 @@ class GenericTimeParser:
         return self._get_timeinfo()
 
 
+class WoaTimeParser(GenericTimeParser):
+    """
+    The WOA datasets don't necessarily contain a calendar, so we have to override
+    the _get_timeinfo method to fix this.
+    """
+
+    def _get_timeinfo(self) -> tuple[str, str, str]:
+        """
+        Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
+        cosima cookbook, see
+        https://github.com/COSIMA/cosima-cookbook/blob/master/cosima_cookbook/database.py#L565
+
+        Parameters
+        ----------
+        ds: :py:class:`xarray.Dataset`
+            The dataset to parse the time info from
+        filename_frequency: str
+            Frequency as determined from the filename
+        time_dim: str
+            The name of the time dimension
+
+        Returns
+        -------
+        start_date: str
+            The start date of the dataset
+        end_date: str
+            The end date of the dataset
+        frequency: str
+            The frequency of the dataset
+
+        Raises
+        ------
+        EmptyFileError
+            If the dataset has a valid unlimited dimension, but no data
+        """
+
+        ds = self.ds
+        time_dim = self.time_dim
+
+        def _todate(t):
+            return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
+
+        ts = None
+        te = None
+        frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
+        has_time = time_dim in ds
+
+        if has_time:
+            time_var = ds[time_dim]
+
+            if len(time_var) == 0:
+                raise EmptyFileError(
+                    "This file has a valid unlimited dimension, but no data"
+                )
+
+            for attr in ["calendar", "calendar_type"]:
+                if not time_var.attrs.get("calendar", False):
+                    time_var.attrs[attr] = "360_day"
+
+            ts = _todate(time_var[0])
+            te = _todate(time_var[-1])
+
+            if len(time_var) > 1:
+                t1 = _todate(time_var[1])
+
+                dt = t1 - ts
+                # TODO: This is not a very good way to get the frequency
+                if dt.days >= 365:
+                    years = round(dt.days / 365)
+                    frequency = (years, "yr")
+                elif dt.days >= 28:
+                    months = round(dt.days / 30)
+                    frequency = (months, "mon")
+                elif dt.days >= 1:
+                    frequency = (dt.days, "day")
+                elif dt.seconds >= 3600:
+                    hours = round(dt.seconds / 3600)
+                    frequency = (hours, "hr")
+                else:
+                    frequency = (None, "subhr")
+
+        if frequency == FREQUENCY_STATIC:
+            msg = (
+                "Unable to determine the data frequency from the file contents. Will attempt "
+                "to parse from the filename instead."
+            )
+            try:
+                frequency = self._guess_freq_from_fn()
+            except RuntimeError:  # Unable to find filename attached to dataset
+                msg = (
+                    "Unable to determine the data frequency from the file contents. "
+                    "No filename available to guess the frequency from."
+                )
+            warnings.warn(f"{msg} Using '{frequency}'.")
+
+        if has_time & (frequency != FREQUENCY_STATIC):
+            ts, te = GenericTimeParser._guess_start_end_dates(ts, te, frequency)
+
+        if ts is None:
+            start_date = "none"
+        else:
+            start_date = ts.strftime(self.TIMEINFO_TIME_FORMAT)
+
+        if te is None:
+            end_date = "none"
+        else:
+            end_date = te.strftime(self.TIMEINFO_TIME_FORMAT)
+
+        if frequency[0]:
+            frequency = f"{str(frequency[0])}{frequency[1]}"
+        else:
+            frequency = frequency[1]
+
+        return start_date, end_date, frequency
+
+
 class AccessTimeParser(GenericTimeParser):
     pass
 
@@ -460,6 +597,3 @@ class GfdlTimeParser(GenericTimeParser):
             frequency = frequency[1]
 
         return start_date, end_date, frequency
-
-    def __call__(self) -> tuple[str, str, str]:
-        return self._get_timeinfo()
