@@ -269,6 +269,12 @@ def test_genericparser_get_timeinfo(times, bounds, ffreq, expected, tmp_path):
             None,
             ("1900-01-01, 00:00:00", "1904-01-01, 00:00:00", "2yr"),
         ),
+        (
+            [365],
+            False,
+            None,
+            ("1901-01-01, 00:00:00", "1901-01-01, 00:00:00", "fx"),
+        ),
     ],
 )
 @pytest.mark.parametrize(
@@ -300,7 +306,11 @@ def test_generic_time_parser(times, bounds, ffreq, expected, parser, tmp_path):
         ds.to_netcdf(path=tmp_path / ffreq)
         ds = xr.open_dataset(tmp_path / ffreq, decode_cf=False)
 
-    assert parser(ds, time_dim="time")() == expected
+    if ffreq is None and len(times) == 1:
+        with pytest.warns(match="No filename available"):
+            assert parser(ds, time_dim="time")() == expected
+    else:
+        assert parser(ds, time_dim="time")() == expected
 
 
 @pytest.mark.parametrize(
