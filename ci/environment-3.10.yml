@@ -18,8 +18,8 @@ dependencies:
   - pytest
   - pytest-xdist
   - xarray
+  - accessnri::yamanifest>=0.3.12
   - pip
   - pip:
     - codecov
     - pytest-cov
-    - yamanifest

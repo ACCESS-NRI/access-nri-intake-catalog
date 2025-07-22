@@ -229,7 +229,7 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
     manifest = yamanifest.Manifest(str(ds_dir / ".cmip6-oi10.hash")).load()
 
     for bh in manifest.data.values():
-        bh["hashes"]["binhash"] = "0" * len(bh["hashes"]["binhash"])
+        bh["hashes"]["binhash-xxh"] = "0" * len(bh["hashes"]["binhash-xxh"])
 
     manifest.dump()
 
@@ -391,10 +391,10 @@ def test_use_datastore_broken_existing(
 
     # Now break the catalog - we can just remove a column
     pd.read_csv(
-        destdir / "experiment_datastore.csv.gz",
+        destdir / "experiment_datastore.csv",
         index_col=0,
     ).to_csv(
-        destdir / "experiment_datastore.csv.gz",
+        destdir / "experiment_datastore.csv",
         index=False,
     )
 

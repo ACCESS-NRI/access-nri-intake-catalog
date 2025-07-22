@@ -36,7 +36,7 @@ Alternatively (though discouraged), one can trigger the new release from the com
 Generating a new catalog version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-#. Create a new version of the catalog on Gadi (this will take about 1 hour)::
+#. Create a new version of the catalog on Gadi (this will take about 2 hours)::
 
      $ export RELEASE=vYYYY-MM-DD
      $ cd bin
@@ -51,6 +51,12 @@ Generating a new catalog version
    .. note:: 
       If :code:`version` is not provided, the default used is the current date, in the format :code:`vYYYY-MM-DD`. This should 
       be acceptable in most cases.
+   
+   .. note::
+      If you wish to perform a new catalog build without updating the default catalog version, you can use the :code:`--no-concrete` 
+      flag. This will create and save a new catalog version, but leave it in a folder named :code:`.$VERSION` in the specified catalog
+      build location. To subsequently concretize this build, you can use the :code:`catalog-concretize` command. Instructions for how
+      to concretize the build will be available in the output of the build script.
     
 #. Updating :code:`access_nri_intake_catalog` is no longer necessary - the new catalog will be available immediately as 
    :code:`intake.cat.access_nri`.
@@ -58,6 +64,38 @@ Generating a new catalog version
 #. Run the Jupyter notebook ``bin/new-build-checks.ipynb``. This confirms the catalog versions that are available, and runs a 
    comparison between the new catalog and a selected previous catalog for additions, deletions, etc. Verify that there are 
    no unexpected changes in the catalog composition.
+
+
+Concretizing new catalog builds
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If you have built a new catalog without concretizing it (either by using the :code:`--no-concrete` flag or due to
+releasing two new catalog builds with the same version number), you can concretize the new catalog build by 
+running the :code:`catalog-concretize` command. This will concretize the specified catalog verison:
+
+   $ catalog-concretize --help 
+   usage: catalog-concretize [-h] [--build_base_path BUILD_BASE_PATH] [--version VERSION] [--catalog_file CATALOG_FILE]
+                          [--catalog_base_path CATALOG_BASE_PATH] [--no_update] [--force]
+
+Concretize a build by moving it to the final location and updating the paths in the catalog.json files.
+
+options:
+  -h, --help            show this help message and exit
+  --build_base_path BUILD_BASE_PATH
+                        The base path for the build.
+  --version VERSION     The version of the build.
+  --catalog_file CATALOG_FILE
+                        The name of the catalog file.
+  --catalog_base_path CATALOG_BASE_PATH
+                        The base path for the catalog. If None, the catalog_base_path will be set to the build_base_path.
+                        Defaults to None.
+  --no_update           Set this if you don't want to update the catalog.yaml file. Defaults to False. If False, the
+                        catalog.yaml file will be updated.
+  --force               Force the concretization of the build, even if a version of the catalog with the specified version
+                        number already exists in the catalog_base_path. Defaults to False.
+
+Running :code:`catalog-build` with the :code:`--no_concretize` flag will return a specification of how to concretize the build in 
+its output. Similarly, whilst attempting to concretize a build with a previously existing version number will fail (unless 
+:code:`--force` is set), the error message will contain the correct command to concretize the build.
 
 
 New release with new catalog

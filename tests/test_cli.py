@@ -14,11 +14,13 @@ import yaml
 import access_nri_intake
 from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
+    DirectoryExistsError,
     MetadataCheckError,
     _add_source_to_catalog,
     _check_build_args,
     _confirm_project_access,
     build,
+    concretize,
     metadata_template,
     metadata_validate,
     scaffold_catalog_entry,
@@ -396,6 +398,58 @@ def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-02"
     ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
+
+
+def test_build_repeat_overwrite_version(test_data, tmp_path, fake_project_access):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    VERSION = "v2024-01-01"
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    with pytest.raises(
+        DirectoryExistsError,
+        match="Catalog version v2024-01-01 already exists",
+    ):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+            ]
+        )
 
 
 def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
@@ -1427,3 +1481,370 @@ def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, ex
     # Run the function under test
     result = _confirm_project_access(needed_projects)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "v2024-01-01",
+        "2024-01-01",
+    ],
+)
+@pytest.mark.parametrize(
+    "input_list, expected_size",
+    [
+        (
+            ["config/access-om2.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 12, "cmip5_al33": 5},
+        ),
+        (
+            ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 6, "cmip5_al33": 5},
+        ),
+    ],
+)
+def test_build_no_concrete(
+    version, input_list, expected_size, test_data, tmpdir, fake_project_access
+):
+    """Test full catalog build process from config files. We turn off concretization,
+    so the catalog should just stick in `.../.{version}/cat.csv`"""
+    # Update the config_yaml paths
+    build_base_path = str(tmpdir)
+
+    configs = [str(test_data / fname) for fname in input_list]
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            # "--no_update",  # commented out to test brand-new-catalog-versioning
+            "--version",
+            version,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--data_base_path",
+            str(test_data),
+            "--no_concretize",
+        ]
+    )
+
+    # manually fix the version so we can correctly build the test path: build
+    # will do this for us so we need to replicate it here
+    if not version.startswith("v"):
+        version = f"v{version}"
+
+    # Try to open the catalog
+    build_path = Path(build_base_path) / f".{version}" / "cat.csv"
+    cat = intake.open_df_catalog(build_path)
+    assert len(cat) == 2
+
+    # Check that the individual experiment sizes are as expected
+    for exp, size in expected_size.items():
+        assert len(cat[exp].df) == size, f"Catalog size mismatch for {exp}"
+
+    # Check that the metacatalog is correct
+    metacat = Path(build_base_path) / f".{version}" / "catalog.yaml"
+    with metacat.open(mode="r") as fobj:
+        cat_info = yaml.safe_load(fobj)
+    assert (
+        cat_info["sources"]["access_nri"]["parameters"]["version"]["default"] == version
+    )
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
+
+
+def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_access):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    NEW_VERSION = "v2024-01-02"
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+            "--no_concretize",
+        ]
+    )
+
+    # Concretization should not have been run, so the catalog should be unchanged.
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2024-01-01"
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2024-01-01"
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
+
+    concretize(
+        [
+            "--catalog_file",
+            "cat.csv",
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+        ]
+    )
+
+    # Now the catalog should have been updated, and the version numbers should be
+    # updated to the new version
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2024-01-02"
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2024-01-02"
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
+
+
+def test_build_repeat_overwrite_version_then_concretize_entrypoints(
+    test_data, tmp_path, fake_project_access
+):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    VERSION = "v2024-01-01"
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    with pytest.raises(
+        DirectoryExistsError,
+        match=r"Catalog version v2024-01-01 already exists",
+    ) as excinfo:
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+            ]
+        )
+
+    exc_msg = str(excinfo.value)
+    CMD = exc_msg.split("`")[1]
+
+    CMD_noforce = " ".join(CMD.split(" ")[:-1])  # Remove the --force flag
+    exit_status_noforce = os.system(CMD_noforce)
+    assert (
+        exit_status_noforce
+    ), f"Expected command `{CMD_noforce}` to fail, but it did not."
+
+    # Check that we have an extant `$BUILD_BASE_PATH/.v2024-01-01` directory
+    assert (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to exist, but it does not."
+    )
+
+    exit_status = os.system(CMD)
+    assert exit_status == 0
+
+    # Now check that the `$BUILD_BASE_PATH/.v2024-01-01` directory has been removed
+    assert not (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to not exist, but it does."
+    )
+
+    # And that the `$BUILD_BASE_PATH/.tmp-old-v2024-01-01` directory has been removed
+
+    assert not (
+        tmp_path / f".tmp-old-{VERSION}"
+    ).is_dir(), f"Expected directory {tmp_path / f'.tmp-old-{VERSION}'} to not exist, but it does."
+
+
+def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
+    test_data, tmp_path, fake_project_access
+):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    VERSION = "v2024-01-01"
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    with pytest.raises(
+        DirectoryExistsError,
+        match=r"Catalog version v2024-01-01 already exists",
+    ):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+            ]
+        )
+
+    with pytest.raises(
+        DirectoryExistsError,
+        match=r"Unable to concretize catalog build: Catalog version v2024-01-01 already exists",
+    ):
+        # This is equivalent to the CMD_noforce in the previous test.
+        # exc_msg = str(excinfo.value)
+        # CMD = exc_msg.split("`")[1]
+        # CMD_noforce = " ".join(CMD.split(" ")[:-1])  # Remove the --force flag
+        # exit_status_noforce = os.system(CMD_noforce)
+        concretize(
+            [
+                "--build_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+                "--catalog_file",
+                "cat.csv",
+                "--catalog_base_path",
+                build_base_path,
+            ]
+        )
+
+    # Check that we have an extant `$BUILD_BASE_PATH/.v2024-01-01` directory
+    assert (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to exist, but it does not."
+    )
+
+    # Equivalent to this in the previous test:
+    # exit_status = os.system(CMD)
+    concretize(
+        [
+            "--build_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+            "--catalog_file",
+            "cat.csv",
+            "--catalog_base_path",
+            build_base_path,
+            "--force",
+        ]
+    )
+
+    # Now check that the `$BUILD_BASE_PATH/.v2024-01-01` directory has been removed
+    assert not (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to not exist, but it does."
+    )
+
+    # And that the `$BUILD_BASE_PATH/.tmp-old-v2024-01-01` directory has been removed
+
+    assert not (
+        tmp_path / f".tmp-old-{VERSION}"
+    ).is_dir(), f"Expected directory {tmp_path / f'.tmp-old-{VERSION}'} to not exist, but it does."
