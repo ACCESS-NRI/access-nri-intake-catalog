@@ -13,28 +13,33 @@ paths to sources and which Builders and Translators to use. It can be used as fo
 
    Build an intake-dataframe-catalog from YAML configuration file(s).
 
-   positional arguments:
-   config_yaml           Configuration YAML file(s) specifying the Intake source(s) to add.
+positional arguments:
+  config_yaml           Configuration YAML file(s) specifying the Intake source(s) to add.
 
-   options:
-      -h, --help            show this help message and exit
-      --build_base_path BUILD_BASE_PATH
-                              Directory in which to build the catalog and source(s). A directory 
-                              with name equal to the version (see the `--version` argument) of 
-                              the catalog being built will be created here. The catalog file 
-                              (see the `--catalog_file` argument) will be written into this version 
-                              directory, and any new intake source(s) will be written into a 
-                              'source' directory within the version directory. 
-                              Defaults to the current work directory.
-      --catalog_base_path CATALOG_BASE_PATH
-                              Directory in which to place the catalog.yaml file. This file is the 
-                              descriptor of the catalog, and provides references to the data locations 
-                              where the catalog data itself is stored (build_base_path). 
-                              Defaults to the current work directory.
-      --catalog_file CATALOG_FILE
-                              The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'
-      --version VERSION     The version of the catalog to build/add to. Defaults to the current date.
-      --no_update           Set this if you don't want to update the access_nri_intake.data (e.g. if running a test)
+options:
+  -h, --help            show this help message and exit
+  --build_base_path BUILD_BASE_PATH
+                        Directory in which to build the catalog and source(s). A directory with
+                        name equal to the version (see the `--version` argument) of the catalog
+                        being built will be created here. The catalog file (see the
+                        `--catalog_file` argument) will be written into this version directory,
+                        and any new intake source(s) will be written into a 'source' directory
+                        within the version directory. Defaults to the current work directory.
+  --catalog_base_path CATALOG_BASE_PATH
+                        Directory in which to place the catalog.yaml file. This file is the
+                        descriptor of the catalog, and provides references to the data locations
+                        where the catalog data itself is stored (build_base_path). Defaults to
+                        the current work directory.
+  --data_base_path DATA_BASE_PATH
+                        Home directory that contains the data referenced by the input experiment
+                        YAMLfiles. Typically only required for testing. Defaults to None.
+  --catalog_file CATALOG_FILE
+                        The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'
+  --version VERSION     The version of the catalog to build/add to. Defaults to the current date.
+  --no_update           Set this if you don't want to update the access_nri_intake.data (e.g. if
+                        running a test)
+  --no_concretize       Set this if you don't want to concretize the build, ie. keep the new
+                        catalog in .$VERSION & don't update catalog.yaml
 
 The ACCESS-NRI catalog is built using this script by submitting the :code:`build_all.sh` shell script 
 in the :code:`bin/` directory of https://github.com/ACCESS-NRI/access-nri-intake-catalog. See the section 

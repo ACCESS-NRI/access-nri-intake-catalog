@@ -17,22 +17,41 @@ from intake import DataSource
 from . import COLUMNS_WITH_ITERABLES
 from .utils import _to_tuple, trace_failure, tuplify_series
 
+__all__ = [
+    "Cmip6Translator",
+    "Cmip5Translator",
+    "BarpaTranslator",
+    "CordexTranslator",
+    "Era5Translator",
+    "EsmValToolTranslator",
+    "CcamTranslator",
+    "NarclimTranslator",
+    "EsgfTranslator",
+]
+
 FREQUENCY_TRANSLATIONS = {
     "monthly-averaged-by-hour": "1hr",
-    "monthly-averaged-by-day": "1hr",
+    "monthly-averaged-by-day": "1day",
+    "1hrCM": "1hr",
     "3hrPt": "3hr",
     "6hrPt": "6hr",
     "daily": "1day",
     "day": "1day",
+    "night": "1day",
+    "mon_day_time": "1mon",
+    "mon_night_time": "1mon",
     "mon": "1mon",
     "monthly-averaged": "1mon",
     "monC": "1mon",
     "monClim": "1mon",
     "monPt": "1mon",
     "sem": "3mon",
+    "20min": "subhr",
     "subhrPt": "subhr",
     "yr": "1yr",
     "yrPt": "1yr",
+    "yrC": "1yr",
+    "na": "fx",
 }
 
 
@@ -371,6 +390,11 @@ class CordexTranslator(DefaultTranslator):
         self.set_dispatch(
             input_name="realm", core_colname="realm", func=self._realm_translator
         )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
 
     def _realm_translator(self):
         """
@@ -422,7 +446,7 @@ class Era5Translator(DefaultTranslator):
         where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1',
         'era5-derived'.
         """
-        return self.source.df["path"].str.split("/").str[4]
+        return self.source.df["path"].astype(str).str.split("/").str[4]
 
     def _realm_translator(self):
         """
@@ -437,7 +461,7 @@ class Era5Translator(DefaultTranslator):
         """
         Get the frequency from the path
         """
-        config_str = self.source.df["path"].str.split("/").str[6].copy()
+        config_str = self.source.df["path"].astype(str).str.split("/").str[6].copy()
         """
         ERA5 contains some datasets where the frequency isn't readily identifiable:
         - 'reanalysis' is at 1hour frequency
@@ -549,6 +573,134 @@ class NarclimTranslator(DefaultTranslator):
         Return realm, fixing a few issues
         """
         return self.source.df.apply(lambda x: ("atmos",), 1)
+
+
+class EsgfTranslator(DefaultTranslator):
+    def __init__(self, source, columns):
+        """
+        Initialise an EsgfTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI Earth System Grid intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="source_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="realm",
+            core_colname="realm",
+            func=super()._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=super()._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+
+
+class EsmValToolTranslator(DefaultTranslator):
+    """
+    EsmValTool Translator for translating metadata from the NCI EsmValTool intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise an EsgfTranslator
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI Earth System Grid intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+        self.set_dispatch(
+            input_name="source_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+        self.set_dispatch(
+            input_name="table_id",
+            core_colname="realm",
+            func=self._realm_translator,
+        )
+        self.set_dispatch(
+            input_name="table_id",
+            core_colname="frequency",
+            func=self._frequency_translator,
+        )
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+
+    @tuplify_series
+    @trace_failure
+    def _realm_translator(self):
+        """
+        Return realm, fixing a few issues
+        """
+        CT11_TABLEID_REALM_TRANSLATIONS = {
+            "Ofx": "ocean",
+            "OImon": "ocean",
+            "Oyr": "ocean",
+            "Lmon": "land",
+            "aero": "aerosol",
+            "LImon": "landIce",
+            "Amon": "atmos",
+            "Omon": "ocean",
+        }
+
+        return self.source.df["table_id"].apply(
+            lambda x: CT11_TABLEID_REALM_TRANSLATIONS.get(x, "none")
+        )
+
+    @tuplify_series
+    @trace_failure
+    def _frequency_translator(self):
+        """
+        Return frequency, fixing a few issues
+        """
+
+        CT11_TABLEID_FREQ_TRANSLATIONS = {
+            "1.1": "fx",
+            "Ofx": "fx",
+            "OImon": "1mon",
+            "Oyr": "1yr",
+            "day": "1day",
+            "fx": "fx",
+            "Lmon": "1mon",
+            "aero": "fx",
+            "LImon": "1mon",
+            "Amon": "1mon",
+            "mon": "1mon",
+            "Omon": "1mon",
+            "cfMon": "1mon",
+            "Emon": "1mon",
+            "unknown": "fx",
+            "CFday": "1day",
+            "Eday": "1day",
+        }
+
+        return self.source.df["table_id"].apply(
+            lambda x: CT11_TABLEID_FREQ_TRANSLATIONS.get(x, "none")
+        )
 
 
 @dataclass

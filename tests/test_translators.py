@@ -15,6 +15,8 @@ from access_nri_intake.catalog.translators import (
     CordexTranslator,
     DefaultTranslator,
     Era5Translator,
+    EsgfTranslator,
+    EsmValToolTranslator,
     NarclimTranslator,
     TranslatorError,
     _cmip_realm_translator,
@@ -361,6 +363,52 @@ def test_NarclimTranslator(test_data, groupby, n_entries):
     esmds.name = "name"
     esmds.description = "description"
     df = NarclimTranslator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 6),
+        (["variable"], 4),
+        (
+            ["frequency"],
+            2,
+        ),  # We have 3hr and 3hrPt in the test dataset - both translate to 3hr.
+        (["model"], 2),
+        (["realm"], 1),
+    ],
+)
+def test_esgfTranslator(test_data, groupby, n_entries):
+    esmds = intake.open_esm_datastore(
+        test_data / "esm_datastore/cmip-forcing-qv56.json"
+    )
+    esmds.name = "name"
+    esmds.description = "description"
+    translator = EsgfTranslator(esmds, CORE_COLUMNS)
+    df = translator.translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 7),
+        (["variable"], 6),
+        (
+            ["frequency"],
+            1,
+        ),
+        (["model"], 6),
+        (["realm"], 1),
+    ],
+)
+def test_esmvaltoolTranslator(test_data, groupby, n_entries):
+    """Test ESMValTool translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/access-ct11.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = EsmValToolTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries
 
 
