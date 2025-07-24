@@ -237,16 +237,18 @@ class BaseBuilder(Builder):
         raise NotImplementedError
 
     @classmethod
-    def generate_file_shape_info(
-        cls, filename: str | Path, time_dim: str = "time"
-    ) -> str:
+    def _generate_file_shape_info(cls, xds: xr.Dataset, time_dim: str = "time") -> str:
         """
         Parse an ACCESS model file and return a file id constructed from shape information.
 
+        This is *only* called by the `parse_ncfile` method, and is used to generate a
+        file id based on the sizes of the dimensions in the dataset, excluding the time
+        dimension
+
         Parameters
         ----------
-        filename: str or pathlib.Path
-            The filename of the file to parse
+        ds: xr.Dataset
+            The xarray dataset to parse.
         time_dim: str
             The time dimension name for this file. Defaults to "time".
 
@@ -258,13 +260,10 @@ class BaseBuilder(Builder):
         """
 
         # Open the file using xarray
-        with xr.open_dataset(
-            filename, mode="r", engine="netcdf4", decode_times=False
-        ) as xds:
-            file_id = ".".join(
-                sorted([f"{s}:{xds.sizes[s]}" for s in xds.sizes if s != time_dim])
-            )
-            # Sorting should ensure reproducibility
+        file_id = ".".join(
+            sorted([f"{s}:{xds.sizes[s]}" for s in xds.sizes if s != time_dim])
+        )
+        # Sorting should ensure reproducibility
 
         return file_id
 
@@ -308,6 +307,7 @@ class BaseBuilder(Builder):
                 dvars.append_attrs(var, attrs)  # type: ignore
 
             start_date, end_date, frequency = cls.TIME_PARSER(ds, time_dim)()
+            file_id = cls._generate_file_shape_info(ds, time_dim)
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
@@ -315,7 +315,7 @@ class BaseBuilder(Builder):
         output_ncfile = _NCFileInfo(
             filename=file_path.name,
             path=file,
-            file_id="",
+            file_id=file_id,
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
@@ -382,7 +382,7 @@ class AccessOm2Builder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
+            # ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
             ncinfo_dict["file_id"] = ".".join(
                 [
                     str(ncinfo_dict["realm"]),
@@ -459,7 +459,7 @@ class AccessOm3Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
+            # ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
             ncinfo_dict["file_id"] = ".".join(
                 [
                     str(ncinfo_dict["realm"]),
@@ -541,7 +541,7 @@ class Mom6Builder(BaseBuilder):
             else:
                 raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
+            # ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
             ncinfo_dict["file_id"] = ".".join(
                 [ncinfo_dict["realm"], ncinfo_dict["frequency"], ncinfo_dict["file_id"]]
             )
@@ -616,7 +616,7 @@ class AccessEsm15Builder(BaseBuilder):
             nc_info = cls.parse_ncfile(file)
             ncinfo_dict = nc_info.to_dict()
 
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
+            # ncinfo_dict["file_id"] = cls.generate_file_shape_info(Path(file))
             ncinfo_dict["realm"] = realm_mapping[realm]
             ncinfo_dict["member"] = exp_id
             ncinfo_dict["file_id"] = ".".join(
@@ -693,9 +693,9 @@ class ROMSBuilder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             ncinfo_dict["realm"] = realm
-            ncinfo_dict["file_id"] = cls.generate_file_shape_info(
-                Path(file), time_dim=time_dim
-            )
+            # ncinfo_dict["file_id"] = cls.generate_file_shape_info(
+            # Path(file), time_dim=time_dim
+            # )
             ncinfo_dict["file_id"] = ".".join(
                 [
                     str(ncinfo_dict["realm"]),
@@ -757,7 +757,7 @@ class WoaBuilder(BaseBuilder):
             realm: str = "ocean"
 
             nc_info = cls.parse_ncfile(file, time_dim="time")
-            nc_info.file_id = cls.generate_file_shape_info(Path(file))
+            # nc_info.file_id = cls.generate_file_shape_info(Path(file))
 
             ncinfo_dict = nc_info.to_dict()
             ncinfo_dict["realm"] = realm
