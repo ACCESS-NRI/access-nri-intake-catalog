@@ -3,9 +3,11 @@
 
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
+import json
 import os
 import re
 import warnings
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 from pathlib import Path
@@ -13,6 +15,9 @@ from pathlib import Path
 import cftime
 import polars as pl
 import xarray as xr
+import xxhash
+from frozendict import frozendict
+from pandas.api.types import is_object_dtype
 
 FREQUENCY_STATIC = "fx"
 
@@ -65,6 +70,7 @@ class _NCFileInfo:
     variable_standard_name: list[str]
     variable_cell_methods: list[str]
     variable_units: list[str]
+    index_hash: str
 
     def to_dict(self) -> dict[str, str | list[str]]:
         """
@@ -123,7 +129,7 @@ class _VarInfo:
     def to_var_info_dict(self) -> dict[str, list[str]]:
         """
         Return a dictionary representation of the _VarInfo object. Fields are
-        defined explicitly for use in the _AccessNCFileInfo constructor.
+        defined explicitly for use in the _NCFileInfo constructor.
         """
         return {
             "variable": self.variable_list,
@@ -132,6 +138,29 @@ class _VarInfo:
             "variable_cell_methods": self.cell_methods_list,
             "variable_units": self.units_list,
         }
+
+
+class HashableIndexes:
+    """
+    Consumes an xarray datasets `_indexes` attribute and creates a hashable representation.
+    Is this a bad idea? Probably
+    """
+
+    def __init__(self, _indexes: dict, drop_indices: Iterable[str] | None = None):
+        drop_indices = drop_indices or []
+        self.dict = frozendict(
+            {
+                key: tuple(val.index.to_list())
+                for key, val in _indexes.items()
+                if not is_object_dtype(val.coord_dtype) and key not in drop_indices
+            }
+        )
+
+        bytestream_dict = json.dumps(self.dict).encode("utf-8")
+        self.xxh = xxhash.xxh3_64(bytestream_dict).hexdigest()
+
+    def __repr__(self):
+        return str(self.xxh)
 
 
 class GenericTimeParser:
@@ -488,7 +517,6 @@ class AccessTimeParser(GenericTimeParser):
 
 
 class GfdlTimeParser(GenericTimeParser):
-
     def __init__(self, ds: xr.Dataset, time_dim: str):
         self.ds = ds
         self.time_dim = time_dim

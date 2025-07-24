@@ -17,6 +17,7 @@ from .utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
+    HashableIndexes,
     WoaTimeParser,
     _NCFileInfo,
     _VarInfo,
@@ -308,6 +309,7 @@ class BaseBuilder(Builder):
                 dvars.append_attrs(var, attrs)  # type: ignore
 
             start_date, end_date, frequency = cls.TIME_PARSER(ds, time_dim)()
+            index_hash = HashableIndexes(ds._indexes, [time_dim]).xxh
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
@@ -319,6 +321,7 @@ class BaseBuilder(Builder):
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
+            index_hash=index_hash,
             **dvars.to_var_info_dict(),
         )
 
