@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from pathlib import Path
+
 import pytest
 import xarray as xr
 
@@ -11,6 +13,7 @@ from access_nri_intake.source.utils import (
     EmptyFileError,
     GenericTimeParser,
     GfdlTimeParser,
+    HashableIndexes,
     WoaTimeParser,
 )
 
@@ -557,3 +560,14 @@ def test_woa_time_parser_nocalendar(times, ffreq, expected):
     ds["time"].attrs |= dict(units="days since 1900-01-01 00:00:00")
 
     assert WoaTimeParser(ds, time_dim="time")() == expected
+
+
+def test_hashable_indexes(test_data):
+    ds = xr.open_dataset(
+        Path(test_data) / "access-om2/output000/ocean/ocean_grid.nc",
+    )
+
+    hi = HashableIndexes(ds)
+    assert hi.xxh == "1349cde127705c16"  # Example hash value
+    hi_repr = repr(hi)
+    assert hi_repr == hi.xxh

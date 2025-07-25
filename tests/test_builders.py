@@ -473,7 +473,10 @@ def test_builder_columns_with_iterables(test_data):
 )
 def test_generate_file_shape_info(builder, filename, time_dim, expected):
     filepath = Path(__file__).parent / "data" / "size_info_test_data" / filename
-    assert builder.generate_file_shape_info(filepath, time_dim=time_dim) == expected
+    ds = xr.open_dataset(
+        filepath, chunks={}, decode_cf=False, decode_times=False, decode_coords=False
+    )
+    assert builder._generate_file_shape_info(ds, time_dim=time_dim) == expected
 
 
 @pytest.mark.parametrize(
@@ -492,7 +495,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_grid.nc",
-                file_id="",
+                file_id="xt_ocean:1.yt_ocean:1",
                 frequency="fx",
                 start_date="none",
                 end_date="none",
@@ -506,6 +509,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_standard_name=["", "", "", ""],
                 variable_cell_methods=["time: point", "time: point", "", ""],
                 variable_units=["degrees_N", "degrees_E", "degrees_E", "degrees_N"],
+                index_hash="71e155653bdbde78",
             ),
         ),
         (
@@ -514,7 +518,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean.nc",
-                file_id="",
+                file_id="nv:2.st_ocean:1.xt_ocean:1.yt_ocean:1",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1910-01-01, 00:00:00",
@@ -555,6 +559,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
+                index_hash="2158d857cdf21b5f",
             ),
         ),
         (
@@ -563,7 +568,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month.nc",
-                file_id="",
+                file_id="nv:2.xt_ocean:1.yt_ocean:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1910-01-01, 00:00:00",
@@ -593,6 +598,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
+                index_hash="12448e60a05a5bcb",
             ),
         ),
         (
@@ -601,7 +607,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month_inst_nobounds.nc",
-                file_id="",
+                file_id="xt_ocean:1.yt_ocean:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -625,6 +631,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
+                index_hash="71e155653bdbde78",
             ),
         ),
         (
@@ -633,7 +640,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1900-01.nc",
-                file_id="",
+                file_id="d2:2.ni:1.nj:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -656,6 +663,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 1900-01-01 00:00:00",
                     "days since 1900-01-01 00:00:00",
                 ],
+                index_hash="1349cde127705c16",
             ),
         ),
         (
@@ -664,7 +672,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="by578a.pd201501_dai.nc",
-                file_id="",
+                file_id="bnds:2.lat:1.lon:1",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-02-01, 00:00:00",
@@ -673,6 +681,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_standard_name=["air_temperature"],
                 variable_cell_methods=["time: mean"],
                 variable_units=["K"],
+                index_hash="446bcff922b69f03",
             ),
         ),
         (
@@ -681,7 +690,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh_d.2015-01.nc",
-                file_id="",
+                file_id="d2:2.ni:1.nj:1",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-02-01, 00:00:00",
@@ -704,6 +713,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 1850-01-01 00:00:00",
                     "days since 1850-01-01 00:00:00",
                 ],
+                index_hash="1349cde127705c16",
             ),
         ),
         (
@@ -712,7 +722,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_daily.nc-20150630",
-                file_id="",
+                file_id="nv:2.xt_ocean:1.yt_ocean:1",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-07-01, 00:00:00",
@@ -735,6 +745,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
+                index_hash="3c2bc5097b7f9360",
             ),
         ),
         (
@@ -743,7 +754,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_scalar.nc-20150630",
-                file_id="",
+                file_id="nv:2.scalar_axis:1",
                 frequency="1mon",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-07-01, 00:00:00",
@@ -776,6 +787,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 1850-01-01 00:00:00",
                     "days",
                 ],
+                index_hash="e8a263ba6de1225f",
             ),
         ),
         (
@@ -784,7 +796,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="HI-C-05-r1.pa-185001_mon.nc",
-                file_id="",
+                file_id="bnds:2.lat:1.lon:1",
                 frequency="1mon",
                 start_date="1850-01-01, 00:00:00",
                 end_date="1850-02-01, 00:00:00",
@@ -793,6 +805,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_standard_name=["air_temperature"],
                 variable_cell_methods=["time: mean"],
                 variable_units=["K"],
+                index_hash="8c003d3dd8e3a688",
             ),
         ),
         (
@@ -801,7 +814,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1850-01.nc",
-                file_id="",
+                file_id="d2:2.ni:1.nj:1",
                 frequency="1mon",
                 start_date="1850-01-01, 00:00:00",
                 end_date="1850-02-01, 00:00:00",
@@ -824,6 +837,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 0001-01-01 00:00:00",
                     "days since 0001-01-01 00:00:00",
                 ],
+                index_hash="1349cde127705c16",
             ),
         ),
         (
@@ -832,7 +846,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc_ann.nc-18501231",
-                file_id="",
+                file_id="nv:2.xt_ocean:1.yt_ocean:1",
                 frequency="1yr",
                 start_date="1849-12-30, 00:00:00",
                 end_date="1850-12-30, 00:00:00",
@@ -862,6 +876,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
+                index_hash="92924aa704571f3a",
             ),
         ),
         (
@@ -870,7 +885,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc.nc-18501231",
-                file_id="",
+                file_id="nv:2.st_ocean:50.xt_ocean:1.yt_ocean:1",
                 frequency="1mon",
                 start_date="1849-12-30, 00:00:00",
                 end_date="1850-12-30, 00:00:00",
@@ -903,6 +918,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
+                index_hash="d89f78ad467e18fe",
             ),
         ),
         (
@@ -911,7 +927,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.native_1900_01.nc",
-                file_id="",
+                file_id="nv:2.xh:1.yh:1.zl:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -975,6 +991,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_north",
                     "meter",
                 ],
+                index_hash="548112c24ec92044",
             ),
         ),
         (
@@ -983,7 +1000,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
-                file_id="",
+                file_id="nv:2.xh:1.yh:1",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1042,6 +1059,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_east",
                     "degrees_north",
                 ],
+                index_hash="8b280ba6920cf216",
             ),
         ),
         (
@@ -1050,7 +1068,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.static.nc",
-                file_id="",
+                file_id="xh:1.yh:1",
                 frequency="fx",
                 start_date="none",
                 end_date="none",
@@ -1069,6 +1087,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_east",
                     "degrees_north",
                 ],
+                index_hash="4e7a08bce8bc0dc2",
             ),
         ),
         (
@@ -1077,7 +1096,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.z_1900_01.nc",
-                file_id="",
+                file_id="nv:2.xh:1.yh:1.z_l:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -1141,6 +1160,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_north",
                     "meters",
                 ],
+                index_hash="56d373fe2791ffc5",
             ),
         ),
         (
@@ -1149,7 +1169,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.cice.h.1900-01-01.nc",
-                file_id="",
+                file_id="nbnd:2.ni:1.nj:1",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1172,6 +1192,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 0000-01-01 00:00:00",
                     "days since 0000-01-01 00:00:00",
                 ],
+                index_hash="1349cde127705c16",
             ),
         ),
         (
@@ -1180,7 +1201,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
-                file_id="",
+                file_id="freq:1.nx:1.ny:1",
                 frequency="fx",  # WW3 provides no time bounds
                 start_date="1900-01-02, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1189,6 +1210,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_standard_name=["", ""],
                 variable_cell_methods=["", ""],
                 variable_units=["m2 s", "unitless"],
+                index_hash="1349cde127705c16",
             ),
         ),
         (
@@ -1197,7 +1219,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ice_daily.nc",
-                file_id="",
+                file_id="nv:2.xT:1.xTe:1.yT:1.yTe:1",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1271,6 +1293,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
+                index_hash="7f85e7dcfcae518a",
             ),
         ),
         (
@@ -1279,7 +1302,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_annual_z.nc",
-                file_id="",
+                file_id="nv:2.xh:1.xq:1.yh:1.yq:1.z_i:1.z_l:1",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1901-01-01, 00:00:00",
@@ -1433,6 +1456,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
+                index_hash="5e4728f6584429ee",
             ),
         ),
         (
@@ -1441,7 +1465,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_month_rho2.nc",
-                file_id="",
+                file_id="nv:2.rho2_i:1.rho2_l:1.xh:1.yh:1.yq:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -1525,6 +1549,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
+                index_hash="486fd6b682cdd97d",
             ),
         ),
         (
@@ -1533,7 +1558,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_scalar_annual.nc",
-                file_id="",
+                file_id="nv:2.scalar_axis:1",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1901-01-01, 00:00:00",
@@ -1607,6 +1632,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
+                index_hash="92e148f4db29c196",
             ),
         ),
         (
@@ -1615,7 +1641,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_static.nc",
-                file_id="",
+                file_id="xh:1.xq:1.yh:1.yq:1",
                 frequency="fx",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-01, 00:00:00",
@@ -1784,6 +1810,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "m2",
                     "m2",
                 ],
+                index_hash="6b44f310c83b7583",
             ),
         ),
         (
@@ -1792,7 +1819,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_2005_360.nc",
-                file_id="",
+                file_id="nv:2.xh:1.xq:1.yh:1.yq:1.zl:1",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -1916,6 +1943,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
+                index_hash="6371057c2931a919",
             ),
         ),
         (
@@ -1924,7 +1952,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_rho2_2005_360.nc",
-                file_id="",
+                file_id="nv:2.rho2_i:1.rho2_l:1.xh:1.xq:1.yh:1.yq:1",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -2013,6 +2041,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
+                index_hash="db2bc2134d23b24c",
             ),
         ),
         (
@@ -2021,7 +2050,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_z_2005_360.nc",
-                file_id="",
+                file_id="nv:2.xh:1.xq:1.yh:1.yq:1.z_i:1.z_l:1.z_l_sub01:1",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -2125,6 +2154,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
+                index_hash="82e6c95388593825",
             ),
         ),
         (
@@ -2132,7 +2162,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             "roms/roms_his_0016.nc",
             _NCFileInfo(
                 filename="roms_his_0016.nc",
-                file_id="",
+                file_id="boundary:1.eta_psi:1.eta_rho:1.eta_u:1.eta_v:1.ocean_time:73.s_rho:1.s_w:1.tracer:1.xi_psi:1.xi_rho:1.xi_u:1.xi_v:1",
                 path=None,  # type: ignore
                 frequency="fx",
                 start_date="none",
@@ -2642,6 +2672,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "newton meter-2",
                     "newton meter-2",
                 ],
+                index_hash="ed46535a33c6545e",
             ),
         ),
     ],
