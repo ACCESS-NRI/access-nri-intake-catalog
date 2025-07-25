@@ -292,8 +292,6 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        # file_id, _, _ = cls.parse_filename(file_path.stem)
-
         with xr.open_dataset(
             file,
             chunks={},
