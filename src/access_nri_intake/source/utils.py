@@ -213,7 +213,7 @@ class HashableIndexes:
         """
         if not isinstance(other, HashableIndexes):
             raise TypeError(
-                f"Cannot compare HashableIndexes object with type {type(other)}"
+                f"Cannot compare HashableIndexes with type {other.__class__.__name__}"
             )
         shared_keys = self.keys() & other.keys()
 

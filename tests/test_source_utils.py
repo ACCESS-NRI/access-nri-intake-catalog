@@ -4,6 +4,7 @@
 
 from pathlib import Path
 
+import cftime
 import pytest
 import xarray as xr
 
@@ -577,10 +578,24 @@ def test_hashable_indexes(test_data):
     assert h1 ^ h2 == set()
     assert h1 & h2 == set(h1.keys())
 
+    with pytest.raises(
+        TypeError,
+        match=r"Can only initialise HashableIndexes with either an xarray dataset",
+    ):
+        HashableIndexes(_indexes=ds._indexes, ds=ds)
 
-def test_hashable_indexes_cftime(test_data):
-    import cftime
+    h3 = HashableIndexes(ds=ds, drop_indices=["xt_ocean"])
 
+    assert h1 != [1, 2, 3]
+    assert h1 != h3
+
+    with pytest.raises(
+        TypeError, match="Cannot compare HashableIndexes with type list"
+    ):
+        h1 ^ [1, 2, 3]
+
+
+def test_hashable_indexes_cftime():
     ds = xr.Dataset(
         {
             "foo": ("time", [0.0]),
