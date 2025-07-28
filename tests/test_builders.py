@@ -509,7 +509,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_standard_name=["", "", "", ""],
                 variable_cell_methods=["time: point", "time: point", "", ""],
                 variable_units=["degrees_N", "degrees_E", "degrees_E", "degrees_N"],
-                index_hash="71e155653bdbde78",
+                grid_id="7f9556036b3d01ba",
             ),
         ),
         (
@@ -559,7 +559,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
-                index_hash="2158d857cdf21b5f",
+                grid_id="8eb03dad695e3aff",
             ),
         ),
         (
@@ -598,7 +598,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
-                index_hash="12448e60a05a5bcb",
+                grid_id="8568338253de3e36",
             ),
         ),
         (
@@ -631,7 +631,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
-                index_hash="71e155653bdbde78",
+                grid_id="7f9556036b3d01ba",
             ),
         ),
         (
@@ -663,7 +663,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 1900-01-01 00:00:00",
                     "days since 1900-01-01 00:00:00",
                 ],
-                index_hash="1349cde127705c16",
+                grid_id="53dfde4d62872e35",
             ),
         ),
         (
@@ -681,7 +681,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_standard_name=["air_temperature"],
                 variable_cell_methods=["time: mean"],
                 variable_units=["K"],
-                index_hash="446bcff922b69f03",
+                grid_id="5d37a27850c376b5",
             ),
         ),
         (
@@ -713,7 +713,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 1850-01-01 00:00:00",
                     "days since 1850-01-01 00:00:00",
                 ],
-                index_hash="1349cde127705c16",
+                grid_id="53dfde4d62872e35",
             ),
         ),
         (
@@ -745,7 +745,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
-                index_hash="3c2bc5097b7f9360",
+                grid_id="626012da486f2188",
             ),
         ),
         (
@@ -787,7 +787,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 1850-01-01 00:00:00",
                     "days",
                 ],
-                index_hash="e8a263ba6de1225f",
+                grid_id="1c90c15f0d162bb9",
             ),
         ),
         (
@@ -805,7 +805,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_standard_name=["air_temperature"],
                 variable_cell_methods=["time: mean"],
                 variable_units=["K"],
-                index_hash="8c003d3dd8e3a688",
+                grid_id="f507a55ed6dea99a",
             ),
         ),
         (
@@ -837,7 +837,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 0001-01-01 00:00:00",
                     "days since 0001-01-01 00:00:00",
                 ],
-                index_hash="1349cde127705c16",
+                grid_id="53dfde4d62872e35",
             ),
         ),
         (
@@ -876,7 +876,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
-                index_hash="92924aa704571f3a",
+                grid_id="a186688379b2acb2",
             ),
         ),
         (
@@ -918,7 +918,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_E",
                     "degrees_N",
                 ],
-                index_hash="d89f78ad467e18fe",
+                grid_id="ec0dd2b0a9e4fc10",
             ),
         ),
         (
@@ -991,7 +991,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_north",
                     "meter",
                 ],
-                index_hash="548112c24ec92044",
+                grid_id="d881f1e8d7b0aedb",
             ),
         ),
         (
@@ -1059,7 +1059,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_east",
                     "degrees_north",
                 ],
-                index_hash="8b280ba6920cf216",
+                grid_id="7c0964f77c963cf2",
             ),
         ),
         (
@@ -1087,7 +1087,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_east",
                     "degrees_north",
                 ],
-                index_hash="4e7a08bce8bc0dc2",
+                grid_id="1b7dea32d483126b",
             ),
         ),
         (
@@ -1160,7 +1160,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "degrees_north",
                     "meters",
                 ],
-                index_hash="56d373fe2791ffc5",
+                grid_id="e74b3615370a2c82",
             ),
         ),
         (
@@ -1192,7 +1192,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days since 0000-01-01 00:00:00",
                     "days since 0000-01-01 00:00:00",
                 ],
-                index_hash="1349cde127705c16",
+                grid_id="53dfde4d62872e35",
             ),
         ),
         (
@@ -1210,7 +1210,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                 variable_standard_name=["", ""],
                 variable_cell_methods=["", ""],
                 variable_units=["m2 s", "unitless"],
-                index_hash="1349cde127705c16",
+                grid_id="53dfde4d62872e35",
             ),
         ),
         (
@@ -1293,7 +1293,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
-                index_hash="7f85e7dcfcae518a",
+                grid_id="23ccc568d3eb25f9",
             ),
         ),
         (
@@ -1456,7 +1456,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
-                index_hash="5e4728f6584429ee",
+                grid_id="b1aea407fb94ba79",
             ),
         ),
         (
@@ -1549,7 +1549,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
-                index_hash="486fd6b682cdd97d",
+                grid_id="4bb3485767c980d7",
             ),
         ),
         (
@@ -1632,7 +1632,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
-                index_hash="92e148f4db29c196",
+                grid_id="6aaef9bd2c3ee393",
             ),
         ),
         (
@@ -1810,7 +1810,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "m2",
                     "m2",
                 ],
-                index_hash="6b44f310c83b7583",
+                grid_id="6f8fdb799d6e00bd",
             ),
         ),
         (
@@ -1943,7 +1943,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
-                index_hash="6371057c2931a919",
+                grid_id="da29ca096dfaf5ad",
             ),
         ),
         (
@@ -2041,7 +2041,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
-                index_hash="db2bc2134d23b24c",
+                grid_id="7b6a41aab8ae93f4",
             ),
         ),
         (
@@ -2154,7 +2154,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "days",
                     "days",
                 ],
-                index_hash="82e6c95388593825",
+                grid_id="90bac2c805d82562",
             ),
         ),
         (
@@ -2672,7 +2672,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
                     "newton meter-2",
                     "newton meter-2",
                 ],
-                index_hash="ed46535a33c6545e",
+                grid_id="c97dcd976b29e170",
             ),
         ),
     ],

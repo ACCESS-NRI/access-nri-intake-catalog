@@ -567,7 +567,42 @@ def test_hashable_indexes(test_data):
         Path(test_data) / "access-om2/output000/ocean/ocean_grid.nc",
     )
 
-    hi = HashableIndexes(ds)
-    assert hi.xxh == "1349cde127705c16"  # Example hash value
-    hi_repr = repr(hi)
-    assert hi_repr == hi.xxh
+    h1 = HashableIndexes(ds=ds)
+    h2 = HashableIndexes(_indexes=ds._indexes)
+    assert h1.xxh == "7f9556036b3d01ba"  # Example hash value
+    h1_repr = repr(h1)
+    assert h1_repr == h1.xxh
+
+    assert h1 == h2
+    assert h1 ^ h2 == set()
+    assert h1 & h2 == set(h1.keys())
+
+
+def test_hashable_indexes_cftime(test_data):
+    import cftime
+
+    ds = xr.Dataset(
+        {
+            "foo": ("time", [0.0]),
+            "time_bnds": (
+                ("time", "bnds"),
+                [
+                    [
+                        cftime.Datetime360Day(2005, 12, 1, 0, 0, 0, 0),
+                        cftime.Datetime360Day(2005, 12, 2, 0, 0, 0, 0),
+                    ]
+                ],
+            ),
+        },
+        {"time": [cftime.Datetime360Day(2005, 12, 1, 12, 0, 0, 0)]},
+    )
+
+    h1 = HashableIndexes(ds=ds)
+    h2 = HashableIndexes(_indexes=ds._indexes)
+    assert h1.xxh == "53dfde4d62872e35"  # Example hash value
+    h1_repr = repr(h1)
+    assert h1_repr == h1.xxh
+
+    assert h1 == h2
+    assert h1 ^ h2 == set()
+    assert h1 & h2 == set(h1.keys())

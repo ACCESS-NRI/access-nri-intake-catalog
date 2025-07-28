@@ -3,8 +3,8 @@
 
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
-import json
 import os
+import pickle
 import re
 import warnings
 from collections.abc import Iterable
@@ -70,7 +70,7 @@ class _NCFileInfo:
     variable_standard_name: list[str]
     variable_cell_methods: list[str]
     variable_units: list[str]
-    index_hash: str
+    grid_id: str
 
     def to_dict(self) -> dict[str, str | list[str]]:
         """
@@ -142,25 +142,85 @@ class _VarInfo:
 
 class HashableIndexes:
     """
-    Consumes an xarray datasets `_indexes` attribute and creates a hashable representation.
-    Is this a bad idea? Probably
+    Consumes either an xarray dataset or its _indexes attribute, and creates a
+    hashable representation of the indexes. Can be used to compare datasets & whether
+    they are mergeable based on their indexes, and potentially for labelling grids
+    in a catalog.
     """
 
-    def __init__(self, _indexes: dict, drop_indices: Iterable[str] | None = None):
+    def __init__(
+        self,
+        *,
+        ds: xr.Dataset | None = None,
+        _indexes: dict | None = None,
+        drop_indices: Iterable[str] | None = None,
+    ):
+        if ds is not None and _indexes is not None:
+            raise TypeError(
+                "Can only initialise HashableIndexes with either an xarray dataset (ds) or its _indexes (_indexes), not both"
+            )
+        elif ds is not None:
+            _indexes = ds._indexes
+
         drop_indices = drop_indices or []
         self.dict = frozendict(
             {
-                key: tuple(val.index.to_list())
-                for key, val in _indexes.items()
+                key: val.index.values
+                for key, val in _indexes.items()  # type:ignore[union-attr]
                 if not is_object_dtype(val.coord_dtype) and key not in drop_indices
             }
         )
 
-        bytestream_dict = json.dumps(self.dict).encode("utf-8")
-        self.xxh = xxhash.xxh3_64(bytestream_dict).hexdigest()
+        self._bytedict = {key: val.tobytes() for key, val in self.dict.items()}
+
+        bytestream = pickle.dumps(self._bytedict, protocol=pickle.HIGHEST_PROTOCOL)
+        self.xxh = xxhash.xxh3_64(bytestream).hexdigest()
 
     def __repr__(self):
         return str(self.xxh)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, HashableIndexes):
+            return False
+        if other.xxh == self.xxh:
+            return True
+        return False
+
+    def __and__(self, other) -> set:
+        """
+        Return all keys which are:
+        - In both objects
+        - Have the same hashes
+
+        Useful for determining why two mergeable datasets have differing hashes.
+        """
+
+        if not isinstance(other, HashableIndexes):
+            raise TypeError(
+                f"Cannot compare HashableIndexes object with type {type(other)}"
+            )
+        shared_keys = self.keys() & other.keys()
+
+        return {key for key in shared_keys if self.dict[key] == other.dict[key]}
+
+    def __xor__(self, other):
+        """
+        Return all keys which are:
+        - In both objects
+        - Have differing hashes
+
+        Useful for determining two griß with differing hashes are mergeable
+        """
+        if not isinstance(other, HashableIndexes):
+            raise TypeError(
+                f"Cannot compare HashableIndexes object with type {type(other)}"
+            )
+        shared_keys = self.keys() & other.keys()
+
+        return {key for key in shared_keys if self.dict[key] != other.dict[key]}
+
+    def keys(self):
+        return self.dict.keys()
 
 
 class GenericTimeParser:

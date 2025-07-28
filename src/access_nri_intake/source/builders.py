@@ -306,7 +306,7 @@ class BaseBuilder(Builder):
                 dvars.append_attrs(var, attrs)  # type: ignore
 
             start_date, end_date, frequency = cls.TIME_PARSER(ds, time_dim)()
-            index_hash = HashableIndexes(ds._indexes, [time_dim]).xxh
+            grid_id = HashableIndexes(ds=ds, drop_indices=[time_dim]).xxh
             file_id = cls._generate_file_shape_info(ds, time_dim)
 
         if not dvars.variable_list:
@@ -319,7 +319,7 @@ class BaseBuilder(Builder):
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
-            index_hash=index_hash,
+            grid_id=grid_id,
             **dvars.to_var_info_dict(),
         )
 
