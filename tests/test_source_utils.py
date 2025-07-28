@@ -594,6 +594,11 @@ def test_hashable_indexes(test_data):
     ):
         h1 ^ [1, 2, 3]
 
+    with pytest.raises(
+        TypeError, match="Cannot compare HashableIndexes with type list"
+    ):
+        h1 & [1, 2, 3]
+
 
 def test_hashable_indexes_cftime():
     ds = xr.Dataset(
