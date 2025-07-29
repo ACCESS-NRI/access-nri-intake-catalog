@@ -889,6 +889,7 @@ def test_builder_columns_with_iterables(test_data):
                 "woa13_ts_XX_mom01",
                 "01",
                 None,
+                {},
             ),
         ),
         (
@@ -898,6 +899,7 @@ def test_builder_columns_with_iterables(test_data):
                 "woa13_ts_XX_mom01",
                 "01",
                 None,
+                {},
             ),
         ),
         (
@@ -907,6 +909,7 @@ def test_builder_columns_with_iterables(test_data):
                 "woa13_ts_XX_mom01",
                 "01",
                 None,
+                {},
             ),
         ),
     ],
