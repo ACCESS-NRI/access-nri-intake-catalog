@@ -34,12 +34,13 @@ def test_alignment(translator_name, live_config_dir, BASE_DIR, v_num):
                 "--build_base_path",
                 str(BASE_DIR),
                 "--catalog_base_path",
-                "./",
+                str(BASE_DIR),
                 "--catalog_file",
                 "metacatalog.csv",
                 "--version",
                 v_num,
                 "--no_update",
+                "--no_concretize",
             ]
         )
     except Exception as exc:
