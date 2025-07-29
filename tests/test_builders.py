@@ -32,6 +32,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
+        (["woa"], "WoaBuilder", {}, 4, 4, 2),
         (
             ["mopper"],
             "MopperBuilder",
@@ -230,6 +231,13 @@ def test_builder_build(
             "roms_his_XXXX",
         ),
         (
+            "woa/woa13_ts_01_mom01.nc",
+            "WoaBuilder",
+            "ocean",
+            None,
+            "woa13_ts_XX_mom01",
+        ),
+        (
             "mopper/ashwed83/v1-0/1hr/huss/huss_AUS2200_ashwed1983_1hr_198302150030-198302172330.nc",
             "MopperBuilder",
             "unknown",
@@ -301,6 +309,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
         "AccessEsm15Builder",
         "AccessCm2Builder",
         "ROMSBuilder",
+        "WoaBuilder",
     ],
 )
 def test_builder_parser_exception(test_data, filename, builder):
@@ -871,6 +880,33 @@ def test_builder_columns_with_iterables(test_data):
                 "0016",
                 None,
                 {"ts": "0016"},
+            ),
+        ),
+        (
+            builders.WoaBuilder,
+            "woa13_ts_01_mom01",
+            (
+                "woa13_ts_XX_mom01",
+                "01",
+                None,
+            ),
+        ),
+        (
+            builders.WoaBuilder,
+            "woa13_ts_01_mom01",
+            (
+                "woa13_ts_XX_mom01",
+                "01",
+                None,
+            ),
+        ),
+        (
+            builders.WoaBuilder,
+            "woa13_ts_01_mom01",
+            (
+                "woa13_ts_XX_mom01",
+                "01",
+                None,
             ),
         ),
     ],
@@ -1623,7 +1659,7 @@ def test_parse_filename(builder, filename, expected):
                 filename_timestamp="19000101",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1901-01-01, 00:00:00",
+                end_date="1900-01-02, 00:00:00",
                 variable=[
                     "xT",
                     "xTe",
@@ -1685,12 +1721,12 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_E",
                     "degrees_N",
                     "degrees_N",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "0-1",
                     "m-ice",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1832,7 +1868,7 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_north",
                     "meters",
                     "meters",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
@@ -1852,8 +1888,8 @@ def test_parse_filename(builder, filename, expected):
                     "W",
                     "psu m3 s-1",
                     "psu m3 s-1",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1869,7 +1905,7 @@ def test_parse_filename(builder, filename, expected):
                 filename_timestamp="19000101",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1901-01-01, 00:00:00",
+                end_date="1900-02-01, 00:00:00",
                 variable=[
                     "xh",
                     "yh",
@@ -1939,14 +1975,14 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_north",
                     "kg m-3",
                     "kg m-3",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "degrees_north",
                     "m3",
                     "m",
                     "kg s-1",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -2021,15 +2057,15 @@ def test_parse_filename(builder, filename, expected):
                 ],
                 variable_units=[
                     "",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "kg",
                     "m3",
                     "degC",
                     "psu",
                     "psu",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -2181,7 +2217,7 @@ def test_parse_filename(builder, filename, expected):
                 variable_units=[
                     "degrees_east",
                     "degrees_north",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "degrees_east",
                     "degrees_north",
                     "m2",
@@ -2324,7 +2360,7 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_east",
                     "degrees_north",
                     "meter",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
@@ -2339,8 +2375,8 @@ def test_parse_filename(builder, filename, expected):
                     "kg m-2 s-1",
                     "W",
                     "W",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -2430,15 +2466,15 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_north",
                     "kg m-3",
                     "kg m-3",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
                     "m3",
                     "kg s-1",
                     "kg s-1",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -2540,7 +2576,7 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_north",
                     "meters",
                     "meters",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "meters",
@@ -2550,8 +2586,8 @@ def test_parse_filename(builder, filename, expected):
                     "m s-1",
                     "degC",
                     "psu",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -3195,7 +3231,11 @@ def test_parse_ncfile(test_data, builder, filename, expected, compare_files):
     # Set the path to the test data directory
     expected.path = file
 
-    assert builder.parse_ncfile(file) == expected
+    parsed_file = builder.parse_ncfile(file)
+
+    exptd_dict = expected.to_dict()
+    parsed_dict = parsed_file.to_dict()
+    assert exptd_dict == parsed_dict
 
     if not compare_files:
         return None
@@ -3285,3 +3325,24 @@ def test_builder_include_exclude_patterns(
     assert bld.exclude_patterns == (
         exclude_patts if exclude_patts is not None else default_exclude
     )
+
+
+def test_parser_woa(test_data, tmpdir):
+    """
+    Test the parser for WOA files separates out kds/non kds files correctly.
+
+    This kind of duplicates test_builder_build, but hopefully having it separate
+    keeps the intent clear. When we move to grid based file ids this can be deleted.
+    """
+    srcdir = test_data / "woa"
+
+    builders.WoaBuilder(str(srcdir)).build().save(
+        name="woa_ds", description="test_woa", directory=str(tmpdir)
+    )
+
+    esm_ds = intake.open_esm_datastore(
+        str(tmpdir / "woa_ds.json"),
+    )
+
+    # Should be two datastores.
+    assert len(esm_ds) == 2

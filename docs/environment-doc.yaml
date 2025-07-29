@@ -12,6 +12,7 @@ dependencies:
   - sphinx
   - sphinx-autobuild
   - pre-commit
+  - accessnri::yamanifest>=0.3.12
   - pip
   - pip:
     - sphinx-autoapi
@@ -21,5 +22,4 @@ dependencies:
     - sphinxcontrib-napoleon
     - myst-nb
     - access-py-telemetry
-    - yamanifest
     - -e ..

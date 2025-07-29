@@ -33,7 +33,7 @@ def metacat(BASE_DIR, config_dir, v_num):
             "--build_base_path",
             str(BASE_DIR),
             "--catalog_base_path",
-            "./",
+            str(BASE_DIR),
             "--catalog_file",
             "metacatalog.csv",
             "--version",
@@ -285,6 +285,7 @@ def test_cmip5_metacat_vals_found(metacat, colname, expected):
 
 
 @e2e
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "colname, expected",
     [
@@ -2181,9 +2182,13 @@ def test_cmip5_metacat_vals_found(metacat, colname, expected):
     ],
 )
 def test_om2_metacat_vals_found(metacat, colname, expected):
-    # Test that the unique values in the column are as expected. I've truncated
-    # the unique values to the first 10 for brevity because I'm not typing out
-    # 3700255 unique values.
+    """
+    Test that the unique values in the column are as expected. I've truncated
+    the unique values to the first 10 for brevity because I'm not typing out
+    3700255 unique values.
+
+    Marked as xfail as this datastore is liable to change
+    """
     cat = metacat["1deg_jra55_ryf9091_gadi"]
     if colname not in [
         "variable",
@@ -2411,6 +2416,7 @@ def test_cmip5_values_correct(metacat, current_catalog, path, varname, first_ten
 
 
 @e2e
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "path, varname, first_ten_mean",
     [
@@ -2476,6 +2482,8 @@ def test_om2_values_correct(metacat, path, varname, first_ten_mean):
     All these values are taken from the first 10 values of the first dimension
     to minimize the amount of data we need to load. They have been verified against
     the production catalog (as of 2024-11-20).
+
+    Marked as xfail as this datastore is liable to change
     """
     om2_cat = metacat["1deg_jra55_ryf9091_gadi"]
     esm_ds = om2_cat.search(path=path).to_dask()
