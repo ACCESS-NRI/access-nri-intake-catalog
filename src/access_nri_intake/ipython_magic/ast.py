@@ -21,7 +21,13 @@ class MissingStorageWarning(UserWarning):
     pass
 
 
-def check_permissions(esm_datastore) -> None:
+class MissingStorageError(Exception):
+    """Error raised when a storage flag is missing for a project code."""
+
+    pass
+
+
+def check_permissions(esm_datastore, err: Exception | None = None) -> None:
     """
     Use an IPython cell magic to listen for calls to `.to_dask`, `.to_dataset_dict()` or `to_datatree`, and
     inspect the list of paths attached to the associated esm_datastore. If we find any paths that we don't
@@ -31,10 +37,16 @@ def check_permissions(esm_datastore) -> None:
 
     access_valid, error_msg = _confirm_project_access(project_codes)
 
-    error_msg = f"\n{error_msg}\nThis is likely the source of any ESMDataSourceErrors or missing data"
+    error_msg = f"{error_msg}\n\tThis is likely the source of any ESMDataSourceErrors or missing data"
 
     if not access_valid:
-        warnings.warn(error_msg, category=MissingStorageWarning)
+        if err is None:
+            warnings.warn("\n".join(error_msg), category=MissingStorageWarning)
+        else:
+            # We don't raise from err here, as it's already propagated out to our
+            # stack trace in the `result = ip.run_cell(cell); _err = result.error_in_exec if result.error_in_exec else None`
+            # `check_load_calls` magic.
+            raise MissingStorageError(error_msg)
 
     return None
 
@@ -133,26 +145,23 @@ def check_load_calls(line, cell) -> None:
         return None
 
     ip = get_ipython()  # type: ignore
-    ip.run_cell(cell)
+
+    result = ip.run_cell(cell)
+    _err = result.error_in_exec if result.error_in_exec else None
 
     user_namespace: dict[str, Any] = get_ipython().user_ns  # type: ignore
 
-    try:
-        visitor = CallListener(user_namespace)
-        visitor.visit(tree)
-    except Exception:
-        return None
+    visitor = CallListener(user_namespace, _err)
+    visitor.visit(tree)
 
     return None
 
 
 class CallListener(ast.NodeVisitor):
-    def __init__(
-        self,
-        user_namespace: dict[str, Any],
-    ):
+    def __init__(self, user_namespace: dict[str, Any], _err: Exception | None = None):
         self.user_namespace = user_namespace
         self._caught_calls: set[str] = set()  # Mostly for debugging
+        self._err = _err
 
     def _get_full_name(self, node: ast.AST) -> str | None:
         """Recursively get the full name of a function or method call."""
@@ -203,7 +212,7 @@ class CallListener(ast.NodeVisitor):
             return None
 
         if func_name.startswith("esm_datastore") and self._is_load_call(func_name):
-            check_permissions(instance)
+            check_permissions(instance, self._err)
 
         self.generic_visit(node)
 
