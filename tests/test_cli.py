@@ -14,15 +14,26 @@ import yaml
 import access_nri_intake
 from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
+    DirectoryExistsError,
     MetadataCheckError,
     _add_source_to_catalog,
     _check_build_args,
+    _confirm_project_access,
     build,
+    concretize,
     metadata_template,
     metadata_validate,
     scaffold_catalog_entry,
     use_esm_datastore,
 )
+
+
+@pytest.fixture
+def fake_project_access():
+    with mock.patch(
+        "access_nri_intake.cli._confirm_project_access", return_value=(True, "")
+    ):
+        yield
 
 
 def test_entrypoint():
@@ -133,7 +144,9 @@ def test_check_build_args(args, raises):
         ),
     ],
 )
-def test_build(version, input_list, expected_size, test_data, tmpdir):
+def test_build(
+    version, input_list, expected_size, test_data, tmpdir, fake_project_access
+):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     build_base_path = str(tmpdir)
@@ -197,7 +210,7 @@ def test_build(version, input_list, expected_size, test_data, tmpdir):
         "v0.1.2",  # Old-style version numbers
     ],
 )
-def test_build_bad_version(bad_vers, test_data, tmp_path):
+def test_build_bad_version(bad_vers, test_data, tmp_path, fake_project_access):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
     build_base_path = str(tmp_path)
@@ -226,7 +239,7 @@ def test_build_bad_version(bad_vers, test_data, tmp_path):
         )
 
 
-def test_build_bad_metadata(test_data, tmp_path):
+def test_build_bad_metadata(test_data, tmp_path, fake_project_access):
     """
     Test if bad metadata is detected
     """
@@ -257,7 +270,9 @@ def test_build_bad_metadata(test_data, tmp_path):
         )
 
 
-def test_build_bad_metadata_no_metadata_yaml_value(test_data, tmp_path):
+def test_build_bad_metadata_no_metadata_yaml_value(
+    test_data, tmp_path, fake_project_access
+):
     """
     Test if bad metadata is detected
     """
@@ -287,7 +302,40 @@ def test_build_bad_metadata_no_metadata_yaml_value(test_data, tmp_path):
         )
 
 
-def test_build_repeat_nochange(test_data, tmp_path):
+@mock.patch(
+    "access_nri_intake.cli._confirm_project_access",
+    return_value=(False, "Simulated access failure"),
+)
+def test_build_no_project_access(mock_confirm_project_access, test_data, tmp_path):
+    """
+    Test if the build dies because it can't access project storage area
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    with pytest.raises(RuntimeError, match="Simulated access failure"):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                "v2024-01-01",
+            ]
+        )
+
+
+def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
     """
     Test if the intelligent versioning works correctly when there is
     no significant change to the underlying catalogue
@@ -341,18 +389,70 @@ def test_build_repeat_nochange(test_data, tmp_path):
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2024-01-02"
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-02'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-02"
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
 
 
-def test_build_repeat_adddata(test_data, tmp_path):
+def test_build_repeat_overwrite_version(test_data, tmp_path, fake_project_access):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    VERSION = "v2024-01-01"
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    with pytest.raises(
+        DirectoryExistsError,
+        match="Catalog version v2024-01-01 already exists",
+    ):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+            ]
+        )
+
+
+def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
     configs = [
         str(test_data / "config/access-om2.yaml"),
     ]
@@ -403,22 +503,22 @@ def test_build_repeat_adddata(test_data, tmp_path):
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2024-01-02"
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-02'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-02"
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-02'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
     assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
 
 
 @mock.patch("access_nri_intake.cli._get_project", return_value=set())
 @mock.patch("access_nri_intake.cli._get_project_code", return_value="aa99")
 def test_build_project_base_code(
-    mock_get_project, mock_get_project_code, test_data, tmp_path
+    mock_get_project, mock_get_project_code, test_data, tmp_path, fake_project_access
 ):
     configs = [
         str(test_data / "config/access-om2.yaml"),
@@ -458,7 +558,9 @@ def test_build_project_base_code(
         ("v2001-01-01", None),
     ],
 )
-def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
+def test_build_existing_data(
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
+):
     """
     Test if the build process can handle min and max catalog
     versions when an original catalog.yaml does not exist
@@ -498,15 +600,15 @@ def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
 
     assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
         min_vers if min_vers is not None else VERSION
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {min_vers if min_vers is not None else VERSION}"
     assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
         max_vers if max_vers is not None else VERSION
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {max_vers if max_vers is not None else VERSION}"
     # Default should always be the newly-built version
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == VERSION
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {VERSION}'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected {VERSION}"
 
 
 @pytest.mark.parametrize(
@@ -517,7 +619,9 @@ def test_build_existing_data(test_data, min_vers, max_vers, tmp_path):
         ("v2001-01-01", None),
     ],
 )
-def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp_path):
+def test_build_existing_data_existing_old_cat(
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
+):
     """
     Test if the build process can handle min and max catalog
     versions when a old-style catalog.yaml exists
@@ -560,15 +664,15 @@ def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp
 
     assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == (
         min_vers if min_vers is not None else VERSION
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {min_vers if min_vers is not None else VERSION}"
     assert cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == (
         max_vers if max_vers is not None else VERSION
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {max_vers if max_vers is not None else VERSION}"
     # Default should always be the newly-built version
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == VERSION
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {VERSION}'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected {VERSION}"
     # Make sure the catalog storage flags were correctly merged
     assert (
         cat_yaml["sources"]["access_nri"]["metadata"]["storage"]
@@ -589,7 +693,7 @@ def test_build_existing_data_existing_old_cat(test_data, min_vers, max_vers, tmp
     ],
 )
 def test_build_separation_between_catalog_and_buildbase(
-    test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
     """
     Test if the intelligent versioning works correctly when there is
@@ -601,7 +705,7 @@ def test_build_separation_between_catalog_and_buildbase(
         str(test_data / "config/cmip5.yaml"),
     ]
     data_base_path = str(test_data)
-    build_base_path = str(tmp_path)
+    # build_base_path = str(tmp_path) Now unused
     VERSION = "v2024-01-01"
 
     bbp, catdir = tmp_path / "bbp", tmp_path / "catdir"
@@ -625,11 +729,12 @@ def test_build_separation_between_catalog_and_buildbase(
             "--data_base_path",
             data_base_path,
             "--build_base_path",
-            build_base_path,
+            str(bbp),
             "--catalog_base_path",
             str(catdir),
             "--version",
             VERSION,
+            # "--no_update", maybe?
         ]
     )
 
@@ -641,17 +746,16 @@ def test_build_separation_between_catalog_and_buildbase(
 
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min") == VERSION
-    ), f'Min version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max") == VERSION
-    ), f'Max version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-01'
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-01"
     assert (
         cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
         == VERSION
-    ), f'Default version {cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
 
-@mock.patch("access_nri_intake.cli.get_catalog_fp")
 @pytest.mark.parametrize(
     "min_vers,max_vers",
     [
@@ -660,9 +764,7 @@ def test_build_separation_between_catalog_and_buildbase(
         ("v2001-01-01", None),
     ],
 )
-def test_build_repeat_renamecatalogyaml(
-    get_catalog_fp, test_data, min_vers, max_vers, tmp_path
-):
+def test_build_repeat_renamecatalogyaml(test_data, min_vers, max_vers, tmp_path):
     configs = [
         str(test_data / "config/access-om2.yaml"),
     ]
@@ -671,7 +773,7 @@ def test_build_repeat_renamecatalogyaml(
     VERSION = "v2024-01-01"
 
     # Write the catalog.yamls to where the catalogs go
-    get_catalog_fp.return_value = str(tmp_path / "catalog.yaml")
+    ##get_catalog_fp.return_value = str(tmp_path / f".{VERSION}" / "catalog.yaml")
 
     # Build the first catalog
     build(
@@ -690,9 +792,15 @@ def test_build_repeat_renamecatalogyaml(
         ]
     )
 
+    # Rename the catalog.yaml to metacatalog.yaml - as if someone had
+    # manually moved it
+    (Path(build_base_path) / "catalog.yaml").rename(
+        Path(build_base_path) / "metacatalog.yaml"
+    )
+
     # Update the version number, *and* the catalog name
     NEW_VERSION = "v2025-01-01"
-    get_catalog_fp.return_value = str(tmp_path / "metacatalog.yaml")
+    ## get_catalog_fp.return_value = str(tmp_path / f".{NEW_VERSION}" / "metacatalog.yaml")
     # Put dummy version folders into the tempdir
     # The new catalog will consider these, as the catalog.yaml
     # names are no longer consistent
@@ -719,40 +827,40 @@ def test_build_repeat_renamecatalogyaml(
     )
 
     # There should now be two catalogs - catalog.yaml and metacatalog.yaml
-    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
-        cat_first = yaml.safe_load(fobj)
     with (tmp_path / "metacatalog.yaml").open(mode="r") as fobj:
+        cat_first = yaml.safe_load(fobj)
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_second = yaml.safe_load(fobj)
 
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
-    ), f'Min version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_first['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2024-01-01"
-    ), f'Max version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-01'
+    ), f"Max version {cat_first['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-01"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-01"
-    ), f'Default version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+    ), f"Default version {cat_first['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")
         == min_vers
         if min_vers is not None
         else VERSION
-    ), f'Min version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else VERSION}'
+    ), f"Min version {cat_second['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {min_vers if min_vers is not None else VERSION}"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")
         == max_vers
         if max_vers is not None
         else VERSION
-    ), f'Max version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else VERSION}'
+    ), f"Max version {cat_second['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {max_vers if max_vers is not None else VERSION}"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2025-01-01"
-    ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
+    ), f"Default version {cat_second['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2025-01-01"
 
 
 @pytest.mark.parametrize(
@@ -823,28 +931,28 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
-    ), f'Min version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2024-01-01'
+    ), f"Min version {cat_first['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2024-01-01"
-    ), f'Max version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2024-01-01'
+    ), f"Max version {cat_first['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-01"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-01"
-    ), f'Default version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+    ), f"Default version {cat_first['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")
         == NEW_VERSION
-    ), f'Min version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {NEW_VERSION}'
+    ), f"Min version {cat_second['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {NEW_VERSION}"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")
         == NEW_VERSION
-    ), f'Max version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {NEW_VERSION}'
+    ), f"Max version {cat_second['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {NEW_VERSION}"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")
         == NEW_VERSION
-    ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected {NEW_VERSION}'
+    ), f"Default version {cat_second['sources']['access_nri']['parameters']['version'].get('default')} does not match expected {NEW_VERSION}"
 
 
 @pytest.mark.parametrize(
@@ -856,7 +964,7 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
     ],
 )
 def test_build_repeat_altercatalogstruct_multivers(
-    test_data, min_vers, max_vers, tmp_path
+    test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
     configs = [
         str(test_data / "config/cmip5.yaml"),
@@ -923,30 +1031,30 @@ def test_build_repeat_altercatalogstruct_multivers(
         == min_vers
         if min_vers is not None
         else "v2024-01-01"
-    ), f'Min version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected {min_vers if min_vers is not None else "v2024-01-01"}'
+    ), f"Min version {cat_first['sources']['access_nri']['parameters']['version'].get('min')} does not match expected {min_vers if min_vers is not None else 'v2024-01-01'}"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")
         == max_vers
         if max_vers is not None
         else "v2024-01-01"
-    ), f'Max version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected {max_vers if max_vers is not None else "v2024-01-01"}'
+    ), f"Max version {cat_first['sources']['access_nri']['parameters']['version'].get('max')} does not match expected {max_vers if max_vers is not None else 'v2024-01-01'}"
     assert (
         cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2024-01-01"
-    ), f'Default version {cat_first["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2024-01-01'
+    ), f"Default version {cat_first['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
 
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2025-01-01"
-    ), f'Min version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("min")} does not match expected v2025-01-01'
+    ), f"Min version {cat_second['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2025-01-01"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")
         == "v2025-01-01"
-    ), f'Max version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("max")} does not match expected v2025-01-01'
+    ), f"Max version {cat_second['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2025-01-01"
     assert (
         cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2025-01-01"
-    ), f'Default version {cat_second["sources"]["access_nri"]["parameters"]["version"].get("default")} does not match expected v2025-01-01'
+    ), f"Default version {cat_second['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2025-01-01"
 
 
 @mock.patch("access_nri_intake.cli._parse_build_directory")
@@ -1129,25 +1237,30 @@ def test_metadata_validate_multi(test_data):
     metadata_validate(files)
 
 
-def test_metadata_validate_no_file():
+def test_metadata_validate_no_file(check_metadata_cwd):
     """Test metadata_validate"""
     with pytest.raises(FileNotFoundError) as excinfo:
         metadata_validate(["./does/not/exist.yaml"])
     assert "No such file(s)" in str(excinfo.value)
 
 
-def test_metadata_template(tmp_path):
-    metadata_template(loc=tmp_path)
+def test_metadata_template(check_metadata_cwd, tmp_path):
+    metadata_template(["--loc", str(tmp_path)])
     if not (tmp_path / "metadata.yaml").is_file():
         raise RuntimeError("Didn't write template into temp dir")
 
 
-def test_metadata_template_default_loc():
-    metadata_template()
+def test_metadata_template_default_loc(check_metadata_cwd):
+    metadata_template([])
     if (Path.cwd() / "metadata.yaml").is_file():
         (Path.cwd() / "metadata.yaml").unlink()
     else:
         raise RuntimeError("Didn't write template into PWD")
+
+
+def test_metadata_template_bad_loc():
+    with pytest.raises(FileNotFoundError):
+        metadata_template(["--loc", "/path/does/not/exist"])
 
 
 @pytest.mark.parametrize(
@@ -1325,3 +1438,413 @@ def test_scaffold_catalog_entry():
         NotImplementedError, match="not yet implemented for interactive mode"
     ):
         scaffold_catalog_entry(["--interactive"])
+
+
+@pytest.mark.parametrize(
+    "needed_projects, valid_projects, expected",
+    [
+        ({"aa99"}, {"aa99"}, (True, "")),
+        ({"aa99", "bb99"}, {"aa99", "bb99", "cc99"}, (True, "")),
+        (
+            {"aa99"},
+            {"bb99"},
+            (False, "Unable to access projects aa99 - check your group memberships"),
+        ),
+        (
+            {"aa99", "bb99", "cc99"},
+            {"aa99"},
+            (
+                False,
+                "Unable to access projects bb99, cc99 - check your group memberships",
+            ),
+        ),
+    ],
+)
+def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, expected):
+    """
+    Check that _confirm_project_access returns expected values.
+    """
+
+    # Create a patched version of Path.exists that checks against our accessible projects
+    def mock_exists(self):
+        if self.parent == Path("/g/data"):
+            return self.name in valid_projects
+        return original_exists(self)
+
+    # Save the original method - we need this for the above mock_exists function
+    # to work properly
+    original_exists = Path.exists
+
+    # Apply the monkeypatch
+    monkeypatch.setattr(Path, "exists", mock_exists)
+
+    # Run the function under test
+    result = _confirm_project_access(needed_projects)
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "v2024-01-01",
+        "2024-01-01",
+    ],
+)
+@pytest.mark.parametrize(
+    "input_list, expected_size",
+    [
+        (
+            ["config/access-om2.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 12, "cmip5_al33": 5},
+        ),
+        (
+            ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 6, "cmip5_al33": 5},
+        ),
+    ],
+)
+def test_build_no_concrete(
+    version, input_list, expected_size, test_data, tmpdir, fake_project_access
+):
+    """Test full catalog build process from config files. We turn off concretization,
+    so the catalog should just stick in `.../.{version}/cat.csv`"""
+    # Update the config_yaml paths
+    build_base_path = str(tmpdir)
+
+    configs = [str(test_data / fname) for fname in input_list]
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            # "--no_update",  # commented out to test brand-new-catalog-versioning
+            "--version",
+            version,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--data_base_path",
+            str(test_data),
+            "--no_concretize",
+        ]
+    )
+
+    # manually fix the version so we can correctly build the test path: build
+    # will do this for us so we need to replicate it here
+    if not version.startswith("v"):
+        version = f"v{version}"
+
+    # Try to open the catalog
+    build_path = Path(build_base_path) / f".{version}" / "cat.csv"
+    cat = intake.open_df_catalog(build_path)
+    assert len(cat) == 2
+
+    # Check that the individual experiment sizes are as expected
+    for exp, size in expected_size.items():
+        assert len(cat[exp].df) == size, f"Catalog size mismatch for {exp}"
+
+    # Check that the metacatalog is correct
+    metacat = Path(build_base_path) / f".{version}" / "catalog.yaml"
+    with metacat.open(mode="r") as fobj:
+        cat_info = yaml.safe_load(fobj)
+    assert (
+        cat_info["sources"]["access_nri"]["parameters"]["version"]["default"] == version
+    )
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
+    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
+
+
+def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_access):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    NEW_VERSION = "v2024-01-02"
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+            "--no_concretize",
+        ]
+    )
+
+    # Concretization should not have been run, so the catalog should be unchanged.
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2024-01-01"
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2024-01-01"
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-01"
+
+    concretize(
+        [
+            "--catalog_file",
+            "cat.csv",
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+        ]
+    )
+
+    # Now the catalog should have been updated, and the version numbers should be
+    # updated to the new version
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f"Min version {cat_yaml['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2024-01-02"
+    ), f"Max version {cat_yaml['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2024-01-02"
+    ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
+
+
+def test_build_repeat_overwrite_version_then_concretize_entrypoints(
+    test_data, tmp_path, fake_project_access
+):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    VERSION = "v2024-01-01"
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    with pytest.raises(
+        DirectoryExistsError,
+        match=r"Catalog version v2024-01-01 already exists",
+    ) as excinfo:
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+            ]
+        )
+
+    exc_msg = str(excinfo.value)
+    CMD = exc_msg.split("`")[1]
+
+    CMD_noforce = " ".join(CMD.split(" ")[:-1])  # Remove the --force flag
+    exit_status_noforce = os.system(CMD_noforce)
+    assert (
+        exit_status_noforce
+    ), f"Expected command `{CMD_noforce}` to fail, but it did not."
+
+    # Check that we have an extant `$BUILD_BASE_PATH/.v2024-01-01` directory
+    assert (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to exist, but it does not."
+    )
+
+    exit_status = os.system(CMD)
+    assert exit_status == 0
+
+    # Now check that the `$BUILD_BASE_PATH/.v2024-01-01` directory has been removed
+    assert not (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to not exist, but it does."
+    )
+
+    # And that the `$BUILD_BASE_PATH/.tmp-old-v2024-01-01` directory has been removed
+
+    assert not (
+        tmp_path / f".tmp-old-{VERSION}"
+    ).is_dir(), f"Expected directory {tmp_path / f'.tmp-old-{VERSION}'} to not exist, but it does."
+
+
+def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
+    test_data, tmp_path, fake_project_access
+):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    VERSION = "v2024-01-01"
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    with pytest.raises(
+        DirectoryExistsError,
+        match=r"Catalog version v2024-01-01 already exists",
+    ):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+            ]
+        )
+
+    with pytest.raises(
+        DirectoryExistsError,
+        match=r"Unable to concretize catalog build: Catalog version v2024-01-01 already exists",
+    ):
+        # This is equivalent to the CMD_noforce in the previous test.
+        # exc_msg = str(excinfo.value)
+        # CMD = exc_msg.split("`")[1]
+        # CMD_noforce = " ".join(CMD.split(" ")[:-1])  # Remove the --force flag
+        # exit_status_noforce = os.system(CMD_noforce)
+        concretize(
+            [
+                "--build_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+                "--catalog_file",
+                "cat.csv",
+                "--catalog_base_path",
+                build_base_path,
+            ]
+        )
+
+    # Check that we have an extant `$BUILD_BASE_PATH/.v2024-01-01` directory
+    assert (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to exist, but it does not."
+    )
+
+    # Equivalent to this in the previous test:
+    # exit_status = os.system(CMD)
+    concretize(
+        [
+            "--build_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+            "--catalog_file",
+            "cat.csv",
+            "--catalog_base_path",
+            build_base_path,
+            "--force",
+        ]
+    )
+
+    # Now check that the `$BUILD_BASE_PATH/.v2024-01-01` directory has been removed
+    assert not (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to not exist, but it does."
+    )
+
+    # And that the `$BUILD_BASE_PATH/.tmp-old-v2024-01-01` directory has been removed
+
+    assert not (
+        tmp_path / f".tmp-old-{VERSION}"
+    ).is_dir(), f"Expected directory {tmp_path / f'.tmp-old-{VERSION}'} to not exist, but it does."

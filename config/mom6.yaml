@@ -15,3 +15,15 @@ sources:
   - metadata_yaml: /g/data/ik11/outputs/mom6-panan/panant-01-zstar-v13/metadata.yaml
     path:
     - /g/data/ik11/outputs/mom6-panan/panant-01-zstar-v13
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/mom6_panant_01_zstar_ACCESS2yr_ol01/metadata.yaml
+    path:
+    - /g/data/ol01/outputs/mom6-panan/panant-01-zstar-ACCESSyr2
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/mom6_panant_005_zstar_ACCESS2yr_ol01/metadata.yaml
+    path:
+    - /g/data/ol01/outputs/mom6-panan/panant-005-zstar-ACCESSyr2
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/mom6_panant_0025_zstar_ACCESS2yr_ol01/metadata.yaml
+    path:
+    - /g/data/ol01/outputs/mom6-panan/panant-0025-zstar-ACCESSyr2

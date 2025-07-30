@@ -13,28 +13,33 @@ paths to sources and which Builders and Translators to use. It can be used as fo
 
    Build an intake-dataframe-catalog from YAML configuration file(s).
 
-   positional arguments:
-   config_yaml           Configuration YAML file(s) specifying the Intake source(s) to add.
+positional arguments:
+  config_yaml           Configuration YAML file(s) specifying the Intake source(s) to add.
 
-   options:
-      -h, --help            show this help message and exit
-      --build_base_path BUILD_BASE_PATH
-                              Directory in which to build the catalog and source(s). A directory 
-                              with name equal to the version (see the `--version` argument) of 
-                              the catalog being built will be created here. The catalog file 
-                              (see the `--catalog_file` argument) will be written into this version 
-                              directory, and any new intake source(s) will be written into a 
-                              'source' directory within the version directory. 
-                              Defaults to the current work directory.
-      --catalog_base_path CATALOG_BASE_PATH
-                              Directory in which to place the catalog.yaml file. This file is the 
-                              descriptor of the catalog, and provides references to the data locations 
-                              where the catalog data itself is stored (build_base_path). 
-                              Defaults to the current work directory.
-      --catalog_file CATALOG_FILE
-                              The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'
-      --version VERSION     The version of the catalog to build/add to. Defaults to the current date.
-      --no_update           Set this if you don't want to update the access_nri_intake.data (e.g. if running a test)
+options:
+  -h, --help            show this help message and exit
+  --build_base_path BUILD_BASE_PATH
+                        Directory in which to build the catalog and source(s). A directory with
+                        name equal to the version (see the `--version` argument) of the catalog
+                        being built will be created here. The catalog file (see the
+                        `--catalog_file` argument) will be written into this version directory,
+                        and any new intake source(s) will be written into a 'source' directory
+                        within the version directory. Defaults to the current work directory.
+  --catalog_base_path CATALOG_BASE_PATH
+                        Directory in which to place the catalog.yaml file. This file is the
+                        descriptor of the catalog, and provides references to the data locations
+                        where the catalog data itself is stored (build_base_path). Defaults to
+                        the current work directory.
+  --data_base_path DATA_BASE_PATH
+                        Home directory that contains the data referenced by the input experiment
+                        YAMLfiles. Typically only required for testing. Defaults to None.
+  --catalog_file CATALOG_FILE
+                        The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'
+  --version VERSION     The version of the catalog to build/add to. Defaults to the current date.
+  --no_update           Set this if you don't want to update the access_nri_intake.data (e.g. if
+                        running a test)
+  --no_concretize       Set this if you don't want to concretize the build, ie. keep the new
+                        catalog in .$VERSION & don't update catalog.yaml
 
 The ACCESS-NRI catalog is built using this script by submitting the :code:`build_all.sh` shell script 
 in the :code:`bin/` directory of https://github.com/ACCESS-NRI/access-nri-intake-catalog. See the section 
@@ -81,16 +86,72 @@ Each source in the catalog must have an associated :code:`metadata.yaml` file th
 metadata about the data product. This is to ensure that there is core metadata associated with all data 
 products in the catalog. Additionally, this core metadata is added to the corresponding Intake-ESM 
 datastore's :code:`metadata` attribute, meaning it is available to Translators and to catalog users wanting 
-to know more about a particular product. The contents of the :code:`metadata.yaml` files are validated against 
-:code:`access_nri_intake.catalog.EXP_JSONSCHEMA` (see :ref:`catalog`) when the script :code:`catalog-build` 
+to know more about a particular product. Ideally this file will live in the base output directory of your model run so that it's easy for others to 
+find, even if they aren't using the catalog (but it doesn't have to).
+
+The contents of the :code:`metadata.yaml` files are validated against 
+:any:`access_nri_intake.catalog.EXP_JSONSCHEMA` (see :ref:`catalog`) when the script :code:`catalog-build` 
 is called to ensure that all required metadata is available prior to building the catalog. The 
 :code:`metadata.yaml` file should include the following:
 
-.. include:: metadata.yaml
-   :literal:
+.. literalinclude:: metadata.yaml
+   :language: yaml
 
-Ideally this file will live in the base output directory of your model run so that it's easy for others to 
-find, even if they aren't using the catalog (but it doesn't have to).
+.. warning:: 
+
+   Your experiment `UUID <https://en.wikipedia.org/wiki/Universally_unique_identifier>`_ 
+   must be **unique** to the experiment. Even if you're adding multiple related experiments,
+   each experiment must have a unique UUID.
+
+   There's nothing special about the UUID value - they're simply meant to be randomly-generated values that 
+   are almost guaranteed to be unique. You can get a UUID value easily from any Unix system by running the 
+   :code:`uuidgen` command:
+
+   .. code-block:: bash
+
+      > uuidgen
+      36C2010B-9D65-4066-AB91-CE9D1FAE30B4
+
+.. topic:: Quick notes on YAML structure
+
+   For those who haven't seen a YAML file before, the structure can be subtly confusing. Here's some tips
+   to help make your YAML editing time as pain-free as possible:
+
+   - :code:`<` and :code:`>` are being used here to denote where you should replace the existing text with your experiment's
+     metadata values. They should *not* be kept in your final :code:`metadata.yaml`.
+   - String values simply follow the colon after the key name, e.g.:
+
+     .. code-block:: yaml
+     
+         name: my_first_experiment
+     
+     Longer strings (in this case, the :code:`long_description`), can use a special syntax to give you room
+     to input a multi-line string:
+
+     .. code-block:: yaml
+   
+         long_description: >-
+            This is my multi-line description.
+            YAML will treat this as a text 'block', in effect.
+
+   - The attributes shown in the template metadata where the value is preceded with a ':code:`-`' are *lists*. Lists
+     are denoted by lines starting with the :code:`-` character. For example, if your experiment contains data from both
+     the :code:`ocean` and :code:`seaIce` realms, your :code:`realm` should look like this:
+
+     .. code-block:: yaml
+
+         realm:
+         - ocean
+         - seaIce
+
+     If a list is going to be left empty, it still needs to be a list. For example, if you have no 
+     :code:`related_experiments`, but you want to keep the key in the YAML file, you'll need to leave it like this:
+
+     .. code-block:: yaml
+
+         related_experiments:
+         - 
+
 
 .. note::
 
