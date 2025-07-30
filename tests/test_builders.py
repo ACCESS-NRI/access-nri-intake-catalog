@@ -310,6 +310,36 @@ def test_builder_columns_with_iterables(test_data):
         # Example ACCESS-CM2 filenames
         (
             builders.AccessCm2Builder,
+            "ocean_scalar_ym_0001_07.nc",
+            ("ocean_scalar_ym_XXXX_XX", "0001_07", (1, "mon")),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "ocean_month_ym_0001_01.nc",
+            ("ocean_month_ym_XXXX_XX", "0001_01", (1, "mon")),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "ocean_daily_yd_0001_01.nc",
+            ("ocean_daily_yd_XXXX_XX", "0001_01", (1, "day")),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "ocean_ym_0001_01.nc",
+            ("ocean_ym_XXXX_XX", "0001_01", (1, "mon")),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "a_pm000101.nc",
+            ("a_pmXXXXXX", "000101", (1, "mon")),
+        ),
+        (
+            builders.AccessCm2Builder,
+            "a_pd000101.nc",
+            ("a_pdXXXXXX", "000101", (1, "day")),
+        ),
+        (
+            builders.AccessCm2Builder,
             "bz687a.pm107912_mon",
             ("bz687a_pmXXXXXX_mon", "107912", (1, "mon")),
         ),

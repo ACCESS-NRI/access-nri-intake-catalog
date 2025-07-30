@@ -639,14 +639,16 @@ class AccessCm2Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-CM2 datasets"""
 
     PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
+        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ice
         rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
-        rf"^ocean-ym.*({PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ocean
-        rf"^ocean_month-ym.*({PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ocean
-        rf"^ocean_scalar-ym.*({PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ocean scalar
-        rf"^iceh_d.*({PATTERNS_HELPERS['ym']}).*",  # ACCESS-ESM1.5/OM2/CM2 ice daily
-        rf"^cz861a.p[dm]({PATTERNS_HELPERS['y']})[a-z]{{3}}.*",  # Experiment Specific
-        rf"^cz861a.p[dm]({PATTERNS_HELPERS['ym']}).*",  # Experiment Specific
+        rf"^ocean[_-]ym.*({PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ocean
+        rf"^ocean_daily[_-]yd.*({PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ocean
+        rf"^ocean_month[_-]ym.*({PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ocean
+        rf"^ocean_scalar[_-]ym.*({PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ocean scalar
+        rf"^iceh_d.*({PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice daily
+        rf"^.*a.p[dm]({PATTERNS_HELPERS['y']})[a-z]{{3}}$",  # Experiment Specific
+        rf"^.*a.p[dm]({PATTERNS_HELPERS['ym']})$",  # Experiment Specific
+        r"^.*a.p[dm](\d{6})$",  # Experiment Specific - 6 digit YYYYMM format
         r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
     ]
 
@@ -658,7 +660,7 @@ class AccessCm2Builder(AccessEsm15Builder):
         "iceh_d": (1, "day"),
     }
 
-    _MONTH_PATT = rf"^cz861a.p[dm]({PATTERNS_HELPERS['y']})([a-z]{{3}}).*"
+    _MONTH_PATT = rf"^cz861a.p[dm]({PATTERNS_HELPERS['y']})([a-z]{{3}})$"
 
     MONTH_PATTERNS = {
         "jan": "_01",
@@ -683,6 +685,9 @@ class AccessCm2Builder(AccessEsm15Builder):
         frequencies: dict = FREQUENCIES,
         redaction_fill: str = "X",
     ) -> tuple[str, str | None, str | None]:
+        # We can't do this: filename = Path(filename).stem
+        # because it will strip anything that *looks like* an extension, not just `.nc`
+        filename = filename[:-3] if filename.endswith(".nc") else filename
         if match := re.match(cls._MONTH_PATT, filename):
             month = match.groups()[1]
             filename = re.sub(month, cls.MONTH_PATTERNS[month], filename)
