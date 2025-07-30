@@ -15,11 +15,9 @@ from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import (
     EmptyFileError,
-    GenericTimeParser,
-    GfdlTimeParser,
-    WoaTimeParser,
     _NCFileInfo,
     _VarInfo,
+    get_timeinfo,
 )
 
 __all__ = [
@@ -72,7 +70,6 @@ class BaseBuilder(Builder):
 
     # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
-    TIME_PARSER = GenericTimeParser
 
     def __init__(
         self,
@@ -340,9 +337,9 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = cls.TIME_PARSER(
+            start_date, end_date, frequency = get_timeinfo(
                 ds, filename_frequency, time_dim
-            )()
+            )
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
@@ -501,7 +498,6 @@ class Mom6Builder(BaseBuilder):
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
     ]
-    TIME_PARSER = GfdlTimeParser
 
     def __init__(self, path, **kwargs):
         """
@@ -715,7 +711,6 @@ class WoaBuilder(BaseBuilder):
         r"surface.nc",
         r"ocean_temp_salt.res.nc",
     ]
-    TIME_PARSER = WoaTimeParser
 
     def __init__(self, path, **kwargs):
         """
