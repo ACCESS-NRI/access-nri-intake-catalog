@@ -7,6 +7,7 @@ import ast
 import re
 import warnings
 from typing import Any
+from warnings import deprecated
 
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import ExecutionInfo, InteractiveShell
@@ -45,7 +46,7 @@ def check_permissions(esm_datastore, err: Exception | None = None) -> None:
         else:
             # We don't raise from err here, as it's already propagated out to our
             # stack trace in the `result = ip.run_cell(cell); _err = result.error_in_exec if result.error_in_exec else None`
-            # `check_load_calls` magic.
+            # `check_load_calls` magic. So we just raise a new error
             raise MissingStorageError(error_msg)
 
     return None
@@ -76,6 +77,7 @@ def strip_magic(code: str) -> str:
     return code
 
 
+@deprecated("Probably going to be removed")
 def capture_load_calls(info: ExecutionInfo) -> None:
     """
     Use the AST module to parse the code that we are executing & check for attempts
@@ -116,7 +118,7 @@ def capture_load_calls(info: ExecutionInfo) -> None:
 
 
 @cell_magic
-def check_load_calls(line, cell) -> None:
+def check_storage_enabled(line, cell) -> None:
     """
     Use the AST module to parse the code that we are executing & check for attempts
     to access directories that we haven't set storage flags for.
@@ -125,8 +127,11 @@ def check_load_calls(line, cell) -> None:
 
     Parameters
     ----------
-    info : IPython.core.interactiveshell.ExecutionInfo
-        An object containing information about the code being executed.
+    line:   str
+        The line of the cell magic (not used here, but required by IPython).
+
+    cell : str
+        The code to parse.
 
     Returns
     -------
@@ -232,7 +237,9 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
     Load the IPython extension and register it to run before cells.
     """
     # ipython.events.register("pre_run_cell", capture_load_calls)  # type: ignore
-    ipython.register_magic_function(check_load_calls, "cell", "check_load_calls")
+    ipython.register_magic_function(
+        check_storage_enabled, "cell", "check_storage_enabled"
+    )
     return None
 
 
