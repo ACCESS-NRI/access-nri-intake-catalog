@@ -24,6 +24,12 @@ def ipython():
     return ip
 
 
+@pytest.fixture(scope="session")
+def ipython_bare():
+    ip = get_ipython()
+    return ip
+
+
 def metadata_sources():
     return Path(here.parent / "config" / "metadata_sources")
 

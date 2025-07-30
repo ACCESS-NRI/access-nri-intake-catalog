@@ -130,7 +130,7 @@ class CallListener(ast.NodeVisitor):
             return f"{self._get_full_name(node.value)}.{node.attr}"
         elif isinstance(node, ast.Name):
             return node.id
-        return None
+        return None  # pragma: no cover
         # ^ This is a belt and braces return, I have no idea how to actually trigger
         # it. It mostly helps with type checking. Will be missing in test coverage.
 
@@ -162,7 +162,7 @@ class CallListener(ast.NodeVisitor):
                     func_name = f"{instance.__name__}.{'.'.join(parts[1:])}"
 
         if func_name is None:
-            return None
+            return None  # pragma: no cover
         # ^ This is a belt and braces check, I have no idea how to actually trigger
         # it. It mostly helps with type narrowing. Will be missing in test coverage.
 
@@ -196,4 +196,4 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
 # Register the extension
 ip = get_ipython()  # type: ignore
 if ip:
-    load_ipython_extension(ip)
+    load_ipython_extension(ip)  # pragma: no cover

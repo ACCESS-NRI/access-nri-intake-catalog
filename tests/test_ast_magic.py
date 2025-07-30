@@ -9,11 +9,6 @@ from access_nri_intake.ipython_magic import (
 )
 
 
-class MockInfo:
-    def __init__(self, raw_cell=None):
-        self.raw_cell = raw_cell
-
-
 @pytest.mark.parametrize(
     "func",
     [
