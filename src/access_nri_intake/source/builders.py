@@ -660,7 +660,7 @@ class AccessCm2Builder(AccessEsm15Builder):
         "iceh_d": (1, "day"),
     }
 
-    _MONTH_PATT = rf"^cz861a.p[dm]({PATTERNS_HELPERS['y']})([a-z]{{3}})$"
+    _MONTH_PATT = rf"^.*a.p[dm]({PATTERNS_HELPERS['y']})([a-z]{{3}})$"
 
     MONTH_PATTERNS = {
         "jan": "_01",

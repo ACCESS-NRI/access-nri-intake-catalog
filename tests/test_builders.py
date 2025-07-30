@@ -335,6 +335,11 @@ def test_builder_columns_with_iterables(test_data):
         ),
         (
             builders.AccessCm2Builder,
+            "a_pd0001jan.nc",
+            ("a_pdXXXX_XX", "0001_01", (1, "day")),
+        ),
+        (
+            builders.AccessCm2Builder,
             "a_pd000101.nc",
             ("a_pdXXXXXX", "000101", (1, "day")),
         ),
