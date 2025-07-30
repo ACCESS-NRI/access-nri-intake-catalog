@@ -7,10 +7,9 @@ import ast
 import re
 import warnings
 from typing import Any
-from warnings import deprecated
 
 from IPython.core.getipython import get_ipython
-from IPython.core.interactiveshell import ExecutionInfo, InteractiveShell
+from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.magic import cell_magic
 
 from access_nri_intake.cli import _confirm_project_access, _get_project_code
@@ -77,46 +76,6 @@ def strip_magic(code: str) -> str:
     return code
 
 
-@deprecated("Probably going to be removed")
-def capture_load_calls(info: ExecutionInfo) -> None:
-    """
-    Use the AST module to parse the code that we are executing & check for attempts
-    to access directories that we haven't set storage flags for.
-
-    Fail silently if we can't parse the code.
-
-    Parameters
-    ----------
-    info : IPython.core.interactiveshell.ExecutionInfo
-        An object containing information about the code being executed.
-
-    Returns
-    -------
-    None
-    """
-    code = info.raw_cell
-
-    if code is None:
-        return None
-
-    code = strip_magic(code)
-
-    try:
-        tree = ast.parse(code)
-    except (SyntaxError, IndentationError):
-        return None
-
-    user_namespace: dict[str, Any] = get_ipython().user_ns  # type: ignore
-
-    try:
-        visitor = CallListener(user_namespace)
-        visitor.visit(tree)
-    except Exception:
-        return None
-
-    return None
-
-
 @cell_magic
 def check_storage_enabled(line, cell) -> None:
     """
@@ -138,9 +97,6 @@ def check_storage_enabled(line, cell) -> None:
     None
     """
     code = cell
-
-    if code is None:
-        return None
 
     code = strip_magic(code)
 
@@ -175,16 +131,8 @@ class CallListener(ast.NodeVisitor):
         elif isinstance(node, ast.Name):
             return node.id
         return None
-
-    def safe_eval(self, node: ast.AST) -> Any:
-        """Try to evaluate a node, or return the unparsed node if that fails.
-
-        Might be unnecessary.
-        """
-        try:
-            return ast.literal_eval(node)
-        except (ValueError, SyntaxError):
-            return ast.unparse(node)
+        # ^ This is a belt and braces return, I have no idea how to actually trigger
+        # it. It mostly helps with type checking. Will be missing in test coverage.
 
     def visit_Call(self, node: ast.Call) -> None:
         """
@@ -215,6 +163,8 @@ class CallListener(ast.NodeVisitor):
 
         if func_name is None:
             return None
+        # ^ This is a belt and braces check, I have no idea how to actually trigger
+        # it. It mostly helps with type narrowing. Will be missing in test coverage.
 
         if func_name.startswith("esm_datastore") and self._is_load_call(func_name):
             check_permissions(instance, self._err)
