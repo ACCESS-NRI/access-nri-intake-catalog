@@ -3,14 +3,15 @@
 
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
-import ast
 import re
 import warnings
 from typing import Any
 
+import libcst as cst
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.magic import cell_magic
+from libcst._exceptions import ParserSyntaxError
 
 from access_nri_intake.cli import _confirm_project_access, _get_project_code
 
@@ -101,8 +102,8 @@ def check_storage_enabled(line, cell) -> None:
     code = strip_magic(code)
 
     try:
-        tree = ast.parse(code)
-    except (SyntaxError, IndentationError):
+        tree = cst.parse_module(code)
+    except (SyntaxError, ParserSyntaxError, IndentationError):
         return None
 
     ip = get_ipython()  # type: ignore
@@ -113,28 +114,30 @@ def check_storage_enabled(line, cell) -> None:
     user_namespace: dict[str, Any] = get_ipython().user_ns  # type: ignore
 
     visitor = CallListener(user_namespace, _err)
-    visitor.visit(tree)
+    tree.visit(visitor)
 
     return None
 
 
-class CallListener(ast.NodeVisitor):
+class CallListener(cst.CSTVisitor):
+    METADATA_DEPENDENCIES = (cst.metadata.ParentNodeProvider,)
+
     def __init__(self, user_namespace: dict[str, Any], _err: Exception | None = None):
         self.user_namespace = user_namespace
         self._caught_calls: set[str] = set()  # Mostly for debugging
         self._err = _err
 
-    def _get_full_name(self, node: ast.AST) -> str | None:
+    def _get_full_name(self, node: cst.CSTNode) -> str | None:
         """Recursively get the full name of a function or method call."""
-        if isinstance(node, ast.Attribute):
-            return f"{self._get_full_name(node.value)}.{node.attr}"
-        elif isinstance(node, ast.Name):
-            return node.id
+        if isinstance(node, cst.Attribute):
+            return f"{self._get_full_name(node.value)}.{node.attr.value}"
+        elif isinstance(node, cst.Name):
+            return node.value
         return None  # pragma: no cover
         # ^ This is a belt and braces return, I have no idea how to actually trigger
         # it. It mostly helps with type checking. Will be missing in test coverage.
 
-    def visit_Call(self, node: ast.Call) -> None:
+    def visit_Call(self, node: cst.Call) -> None:
         """
         Listen for calls that match anything of the form `esm_datastore.to_dask()`, `esm_datastore.to_dataset_dict()`, or
         `esm_datastore.to_datatree()`. Annoyingly, we also need to be able to identify stuff that looks like this too:
@@ -152,7 +155,6 @@ class CallListener(ast.NodeVisitor):
                 # Check if the first part is in the user namespace
                 instance = self.user_namespace.get(parts[0])
                 if instance is None:
-                    self.generic_visit(node)
                     return None
 
                 class_name = type(instance).__name__
@@ -169,7 +171,12 @@ class CallListener(ast.NodeVisitor):
         if func_name.startswith("esm_datastore") and self._is_load_call(func_name):
             check_permissions(instance, self._err)
 
-        self.generic_visit(node)
+    def vist_Expr(self, node: cst.Expr) -> None:
+        """
+        If the top of our node is an esm_datastore, and the bottom is a todask/etc
+        call, then we need to check permissions.
+        """
+        pass
 
     def _is_load_call(self, func_name: str) -> bool:
         """
