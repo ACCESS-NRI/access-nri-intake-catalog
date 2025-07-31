@@ -171,12 +171,47 @@ class CallListener(cst.CSTVisitor):
         if func_name.startswith("esm_datastore") and self._is_load_call(func_name):
             check_permissions(instance, self._err)
 
-    def vist_Expr(self, node: cst.Expr) -> None:
+    def visit_Expr(self, node: cst.Expr) -> None:
         """
         If the top of our node is an esm_datastore, and the bottom is a todask/etc
         call, then we need to check permissions.
         """
-        pass
+        # Check if this is a chained call that we're interested in
+        if isinstance(node.value, cst.Call) and isinstance(
+            node.value.func, cst.Attribute
+        ):
+            # Get the method name being called
+            method_name = node.value.func.attr.value
+
+            # Check if it's one of our target methods
+            if self._is_load_call(f"dummy.{method_name}"):
+                # Check if the value is itself a call (indicating a chain)
+                if isinstance(node.value.func.value, cst.Call):
+                    # Get the root object of the chain
+                    root_obj = self._get_root_object(node.value.func.value)
+
+                    if root_obj:
+                        # Check if root object is an esm_datastore in user namespace
+                        instance = self.user_namespace.get(root_obj)
+                        if instance is not None:
+                            class_name = type(instance).__name__
+                            if class_name == "esm_datastore":
+                                # We found a chained call on an esm_datastore
+                                check_permissions(instance, self._err)
+
+    def _get_root_object(self, node: cst.Call) -> str | None:
+        """
+        Recursively traverse a chained call to find the root object name.
+        For ds.search().to_dask(), this would return 'ds'.
+        """
+        if isinstance(node.func, cst.Attribute):
+            if isinstance(node.func.value, cst.Name):
+                # Base case: we've reached the root object
+                return node.func.value.value
+            elif isinstance(node.func.value, cst.Call):
+                # Recursive case: continue traversing the chain
+                return self._get_root_object(node.func.value)
+        return None
 
     def _is_load_call(self, func_name: str) -> bool:
         """

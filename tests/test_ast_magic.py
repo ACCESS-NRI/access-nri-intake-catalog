@@ -121,7 +121,6 @@ undefined_datastore.{func}()
         "to_datatree",
     ],
 )
-@pytest.mark.xfail(reason="Not implemented yet")
 def test_chained_to_datasets_raises(ipython, test_data, func):
     raw_cell = f"""
 %%check_storage_enabled
