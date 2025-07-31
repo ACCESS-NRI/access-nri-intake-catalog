@@ -126,7 +126,6 @@ def test_chained_to_datasets_raises(ipython, test_data, func):
 %%check_storage_enabled
 import intake
 ds = intake.open_esm_datastore("{test_data}/esm_datastore/cmip-forcing-qv56.json")
-# ds.search(source_id='.*').{func}()
 ds.search(source_id='.*').search(source_id='.*').{func}()
 """
 
