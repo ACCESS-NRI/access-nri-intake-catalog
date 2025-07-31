@@ -479,6 +479,8 @@ class AccessOm3Builder(BaseBuilder):
 
             if "mom6" in ncinfo_dict["filename"]:
                 realm = "ocean"
+            elif "ocean_month" in ncinfo_dict["filename"]:
+                realm = "ocean"
             elif "ww3" in ncinfo_dict["filename"]:
                 realm = "wave"
             elif "cice" in ncinfo_dict["filename"]:
