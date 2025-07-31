@@ -211,7 +211,7 @@ class CallListener(cst.CSTVisitor):
             elif isinstance(node.func.value, cst.Call):
                 # Recursive case: continue traversing the chain
                 return self._get_root_object(node.func.value)
-        return None
+        return None  # pragma: no cover
 
     def _is_load_call(self, func_name: str) -> bool:
         """
