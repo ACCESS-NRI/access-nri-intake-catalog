@@ -457,6 +457,24 @@ def test_builder_columns_with_iterables(test_data):
         # Example ACCESS-OM3 filenames
         (
             builders.AccessOm3Builder,
+            "ocean_month",
+            (
+                "ocean_month",
+                "Unknown",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "ocean_month_z",
+            (
+                "ocean_month_z",
+                "Unknown",
+                (1, "mon"),
+            ),
+        ),
+        (
+            builders.AccessOm3Builder,
             "access-om3.ww3.hi.1958-01-02-00000",
             (
                 "access_om3_ww3_hi_XXXX_XX_XX_XXXXX",

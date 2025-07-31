@@ -283,7 +283,12 @@ class BaseBuilder(Builder):
             if match:
                 # FIXME switch to using named group for timestamp
                 # Loop over all found groups and redact
-                timestamp = match.group(1)
+
+                if not match.groups():
+                    timestamp = "Unknown"
+                else:
+                    timestamp = match.group(1)
+
                 for grp in match.groups():
                     if grp is not None:
                         redaction = re.sub(r"\d", redaction_fill, grp)
@@ -425,6 +430,7 @@ class AccessOm3Builder(BaseBuilder):
 
     PATTERNS = [
         rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
+        "ocean_month(?:_z)?",
     ]
 
     def __init__(self, path, **kwargs):
