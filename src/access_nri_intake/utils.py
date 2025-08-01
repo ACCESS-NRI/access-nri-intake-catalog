@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-"""General utility functions for access-rni-intake"""
+"""General utility functions for access-nri-intake"""
 
 import json
 from importlib import resources as rsr
@@ -111,9 +111,9 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
         issue_str = ""
         for i, issue in enumerate(issues, start=1):
             try:
-                issue_str += f"\n{i:02d} | {issue.absolute_path[0]} : { issue.message }"
+                issue_str += f"\n{i:02d} | {issue.absolute_path[0]} : {issue.message}"
             except IndexError:  # Must be a missing keyword, not a bad type/value
-                issue_str += f"\n{i:02d} | (missing) : { issue.message }"
+                issue_str += f"\n{i:02d} | (missing) : {issue.message}"
         raise jsonschema.ValidationError(issue_str)
 
     return
