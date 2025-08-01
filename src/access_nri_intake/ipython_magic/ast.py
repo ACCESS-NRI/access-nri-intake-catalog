@@ -128,16 +128,6 @@ class CallListener(cst.CSTVisitor):
         self._caught_calls: set[str] = set()  # Mostly for debugging
         self._err = _err
 
-    def _get_full_name(self, node: cst.CSTNode) -> str | None:
-        """Recursively get the full name of a function or method call."""
-        if isinstance(node, cst.Attribute):
-            return f"{self._get_full_name(node.value)}.{node.attr.value}"
-        elif isinstance(node, cst.Name):
-            return node.value
-        return None  # pragma: no cover
-        # ^ This is a belt and braces return, I have no idea how to actually trigger
-        # it. It mostly helps with type checking. Will be missing in test coverage.
-
     def visit_Call(self, node: cst.Call) -> None:
         """
         Listen for calls that match anything of the form `esm_datastore.to_dask()`, `esm_datastore.to_dataset_dict()`, or
