@@ -1,5 +1,8 @@
 """Tests for the AST module"""
 
+from unittest import mock
+
+import intake
 import pytest
 
 from access_nri_intake.ipython_magic import (
@@ -127,6 +130,32 @@ def test_chained_to_datasets_raises(ipython, test_data, func):
 import intake
 ds = intake.open_esm_datastore("{test_data}/esm_datastore/cmip-forcing-qv56.json")
 ds.search(source_id='.*').search(source_id='.*').{func}()
+"""
+
+    assert ipython.find_magic("check_storage_enabled", "cell") is not None
+
+    with pytest.raises(MissingStorageError):
+        check_storage_enabled("", raw_cell)
+
+
+@pytest.mark.parametrize(
+    "func",
+    [
+        "to_dataset_dict",
+        "to_dask",
+        "to_datatree",
+    ],
+)
+@mock.patch("intake.catalog.base.Catalog.__getitem__", return_value=mock.MagicMock())
+def test_index_and_load(mock_getitem, ipython, test_data, func):
+    mock_getitem.return_value = intake.open_esm_datastore(
+        f"{test_data}/esm_datastore/cmip-forcing-qv56.json"
+    )
+    raw_cell = f"""
+%%check_storage_enabled
+import intake
+cat = intake.cat.access_nri
+cat['01deg_jra55_ryf_Control'].search(source_id='.*').search(source_id='.*').{func}()
 """
 
     assert ipython.find_magic("check_storage_enabled", "cell") is not None

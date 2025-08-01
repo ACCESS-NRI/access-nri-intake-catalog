@@ -114,7 +114,7 @@ def check_storage_enabled(line, cell) -> None:
 
     user_namespace: dict[str, Any] = get_ipython().user_ns  # type: ignore
 
-    reducer = ChainSimplifier()
+    reducer = ChainSimplifier(user_namespace)
     reduced_tree = tree.visit(reducer)
     visitor = CallListener(user_namespace, _err)
     reduced_tree.visit(visitor)
@@ -167,6 +167,9 @@ class ChainSimplifier(cst.CSTTransformer):
     becomes: ds.to_dataset_dict()
     """
 
+    def __init__(self, user_namespace: dict[str, Any] | None = None):
+        self.user_namespace = user_namespace or {}
+
     def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
         # Use matcher to identify the pattern: any_method(search_call(...))
         search_pattern = m.Call(
@@ -180,6 +183,25 @@ class ChainSimplifier(cst.CSTTransformer):
             # Replace the value with the inner call's value to remove the `.search()` call
             new_func = updated_node.func.with_changes(value=inner_call.func.value)
             return updated_node.with_changes(func=new_func)
+
+        return updated_node
+
+    def leave_Subscript(
+        self, original_node: cst.Subscript, updated_node: cst.Subscript
+    ) -> cst.Name | cst.Subscript:
+        """
+        Handle subscript access to catalog items. This transforms a node, taking
+        something like `cat["expt"]` and replacing it with it's return value. It
+        also inserts the return value into the user namespace with the name
+        `obj_<id(instance)>`, so that we can refer to it later in the code.
+        """
+
+        instance = self.user_namespace.get(original_node.value.value, None)  # type: ignore[attr-defined]
+        if type(instance).__name__ == "esm_datastore":
+            # Just replace it with the esm_datastore node
+            _name = f"obj_{id(instance)}"
+            self.user_namespace[_name] = instance
+            return cst.Name(value=_name)
 
         return updated_node
 
