@@ -146,7 +146,7 @@ ds.search(source_id='.*').search(source_id='.*').{func}()
         "to_datatree",
     ],
 )
-@mock.patch("intake.catalog.base.Catalog.__getitem__", return_value=mock.MagicMock())
+@mock.patch("access_nri_intake.ipython_magic.ast.eval")
 def test_index_and_load(mock_getitem, ipython, test_data, func):
     mock_getitem.return_value = intake.open_esm_datastore(
         f"{test_data}/esm_datastore/cmip-forcing-qv56.json"
@@ -162,3 +162,24 @@ cat['01deg_jra55_ryf_Control'].search(source_id='.*').search(source_id='.*').{fu
 
     with pytest.raises(MissingStorageError):
         check_storage_enabled("", raw_cell)
+
+
+def test_indexing_something_ele(
+    ipython,
+):
+    """
+    Test that we don't intercept indexing of non-catalog items.
+    """
+    raw_cell = """
+%%check_storage_enabled
+import intake
+
+l = ["A","B","C"]
+l[1].lower()
+"""
+
+    assert ipython.find_magic("check_storage_enabled", "cell") is not None
+
+    check_storage_enabled("", raw_cell)
+
+    assert True

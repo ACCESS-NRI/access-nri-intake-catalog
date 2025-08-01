@@ -196,7 +196,12 @@ class ChainSimplifier(cst.CSTTransformer):
         `obj_<id(instance)>`, so that we can refer to it later in the code.
         """
 
-        instance = self.user_namespace.get(original_node.value.value, None)  # type: ignore[attr-defined]
+        subscript_expression = cst.Module(
+            [cst.SimpleStatementLine([cst.Expr(original_node)])]
+        ).code.strip()
+
+        instance = eval(subscript_expression, self.user_namespace)
+
         if type(instance).__name__ == "esm_datastore":
             # Just replace it with the esm_datastore node
             _name = f"obj_{id(instance)}"
