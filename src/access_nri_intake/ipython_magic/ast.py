@@ -8,6 +8,7 @@ import warnings
 from typing import Any
 
 import libcst as cst
+import libcst.matchers as m
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.magic import cell_magic
@@ -113,15 +114,15 @@ def check_storage_enabled(line, cell) -> None:
 
     user_namespace: dict[str, Any] = get_ipython().user_ns  # type: ignore
 
+    reducer = ChainSimplifier()
+    reduced_tree = tree.visit(reducer)
     visitor = CallListener(user_namespace, _err)
-    tree.visit(visitor)
+    reduced_tree.visit(visitor)
 
     return None
 
 
 class CallListener(cst.CSTVisitor):
-    METADATA_DEPENDENCIES = (cst.metadata.ParentNodeProvider,)
-
     def __init__(self, user_namespace: dict[str, Any], _err: Exception | None = None):
         self.user_namespace = user_namespace
         self._caught_calls: set[str] = set()  # Mostly for debugging
@@ -140,78 +141,23 @@ class CallListener(cst.CSTVisitor):
     def visit_Call(self, node: cst.Call) -> None:
         """
         Listen for calls that match anything of the form `esm_datastore.to_dask()`, `esm_datastore.to_dataset_dict()`, or
-        `esm_datastore.to_datatree()`. Annoyingly, we also need to be able to identify stuff that looks like this too:
-        `esm_datastore.search(variable='xyz').to_dask()`
+        `esm_datastore.to_datatree()`.
         """
-
-        full_name = self._get_full_name(node.func)
-        func_name = None
-        if full_name:
-            parts = full_name.split(".")
-            if len(parts) == 1:
-                # Regular function call, not interested, return
-                return None
-            else:
-                # Check if the first part is in the user namespace
-                instance = self.user_namespace.get(parts[0])
-                if instance is None:
-                    return None
-
-                class_name = type(instance).__name__
-                if class_name != "module":
-                    func_name = f"{class_name}.{'.'.join(parts[1:])}"
-                else:
-                    func_name = f"{instance.__name__}.{'.'.join(parts[1:])}"
-
-        if func_name is None:
-            return None  # pragma: no cover
-        # ^ This is a belt and braces check, I have no idea how to actually trigger
-        # it. It mostly helps with type narrowing. Will be missing in test coverage.
-
-        if func_name.startswith("esm_datastore") and self._is_load_call(func_name):
-            check_permissions(instance, self._err)
-
-    def visit_Expr(self, node: cst.Expr) -> None:
-        """
-        If the top of our node is an esm_datastore, and the bottom is a todask/etc
-        call, then we need to check permissions.
-        """
-        # Check if this is a chained call that we're interested in
-        if isinstance(node.value, cst.Call) and isinstance(
-            node.value.func, cst.Attribute
+        if isinstance(node.func, cst.Attribute) and isinstance(
+            node.func.value, cst.Name
         ):
-            # Get the method name being called
-            method_name = node.value.func.attr.value
+            obj_name = node.func.value.value
+            method_name = node.func.attr.value
 
-            # Check if it's one of our target methods
-            if self._is_load_call(f"dummy.{method_name}"):
-                # Check if the value is itself a call (indicating a chain)
-                if isinstance(node.value.func.value, cst.Call):
-                    # Get the root object of the chain
-                    root_obj = self._get_root_object(node.value.func.value)
+            # Check if object exists in user namespace
+            instance = self.user_namespace.get(obj_name)
+            if instance is None:
+                return
 
-                    if root_obj:
-                        # Check if root object is an esm_datastore in user namespace
-                        instance = self.user_namespace.get(root_obj)
-                        if instance is not None:
-                            class_name = type(instance).__name__
-                            if class_name == "esm_datastore":
-                                # We found a chained call on an esm_datastore
-                                check_permissions(instance, self._err)
-
-    def _get_root_object(self, node: cst.Call) -> str | None:
-        """
-        Recursively traverse a chained call to find the root object name.
-        For ds.search().to_dask(), this would return 'ds'.
-        """
-        if isinstance(node.func, cst.Attribute):
-            if isinstance(node.func.value, cst.Name):
-                # Base case: we've reached the root object
-                return node.func.value.value
-            elif isinstance(node.func.value, cst.Call):
-                # Recursive case: continue traversing the chain
-                return self._get_root_object(node.func.value)
-        return None  # pragma: no cover
+            # Check if it's an esm_datastore with a load method
+            class_name = type(instance).__name__
+            if class_name == "esm_datastore" and self._is_load_call(method_name):
+                check_permissions(instance, self._err)
 
     def _is_load_call(self, func_name: str) -> bool:
         """
@@ -222,6 +168,30 @@ class CallListener(cst.CSTVisitor):
             or func_name.endswith("to_dataset_dict")
             or func_name.endswith("to_datatree")
         )
+
+
+class ChainSimplifier(cst.CSTTransformer):
+    """
+    Transform chained calls by removing intermediate method calls
+    Example: ds.search(...).search(...).to_dataset_dict()
+    becomes: ds.to_dataset_dict()
+    """
+
+    def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
+        # Use matcher to identify the pattern: any_method(search_call(...))
+        search_pattern = m.Call(
+            func=m.Attribute(value=m.Call(func=m.Attribute(attr=m.Name("search"))))
+        )
+
+        if m.matches(updated_node, search_pattern):
+            # Extract the method name and inner call
+            inner_call = updated_node.func.value  # type: ignore[attr-defined]
+
+            # Replace the value with the inner call's value to remove the `.search()` call
+            new_func = updated_node.func.with_changes(value=inner_call.func.value)
+            return updated_node.with_changes(func=new_func)
+
+        return updated_node
 
 
 def load_ipython_extension(ipython: InteractiveShell) -> None:
