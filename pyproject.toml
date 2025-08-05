@@ -16,6 +16,21 @@ classifiers = [
 
 dynamic = ["version"]
 
+dependencies = [
+    "cftime",
+    "ecgtools>=2023.7.13",
+    "intake>=2.0.0",
+    "intake-dataframe-catalog>=0.3.1",
+    "intake-esm>=2025.2.3",
+    "jsonschema",
+    "polars>=1.24.0",
+    "pooch",
+    "xarray",
+    "colorama",
+    "yamanifest>=0.3.12",
+    "access-py-telemetry>=0.1.6",
+]
+
 [project.optional-dependencies]
 test = ["pytest", "tox"]
 e2e = ["pytest", "pytest-ordering"]
