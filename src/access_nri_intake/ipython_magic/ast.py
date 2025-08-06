@@ -271,7 +271,8 @@ class ChainSimplifier(cst.CSTTransformer):
             ):
                 instance = self.user_namespace.get(datastore_obj)  # type: ignore[has-type]
                 if type(instance).__name__ != "esm_datastore":
-                    return updated_node
+                    # This is a no-op, so we can't really cover it meaningfully
+                    return updated_node  # pragma: no cover
                 search_expr = cst.Module(
                     [cst.SimpleStatementLine([cst.Expr(original_node)])]
                 ).code.strip()
