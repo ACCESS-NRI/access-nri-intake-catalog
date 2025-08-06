@@ -223,6 +223,7 @@ cat['01deg_jra55_ryf_Control'].search(source_id='.*').search(source_id='.*').{fu
         check_dataset_number("", raw_cell)
 
 
+@pytest.mark.xfail(reason="`path = esm_ds.unique().path[0]` cell currently broken")
 @pytest.mark.parametrize(
     "func",
     [

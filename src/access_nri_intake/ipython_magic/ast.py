@@ -283,6 +283,24 @@ class ChainSimplifier(cst.CSTTransformer):
                 )
                 # Then update the node to just be the datastore object
                 return cst.Name(value=datastore_obj)  # type: ignore[has-type]
+            case cst.Call(
+                func=cst.Attribute(
+                    value=cst.Name(
+                        value=datastore_obj,
+                    ),
+                    attr=cst.Name(value="unique"),
+                )
+            ):
+                # Try to get esm_ds - or default to self._instance if not found
+                instance = self.user_namespace.get(datastore_obj, self._instance)  # type: ignore
+                if type(instance).__name__ != "esm_datastore":
+                    # This is a no-op, so we can't really cover it meaningfully
+                    return updated_node  # pragma: no cover
+                # Evaluate the unique call, and put the result back into the user namespace
+                _obj = instance.unique()  # type: ignore[union-attr]
+                _name = f"obj_{id(_obj)}"
+                self.user_namespace[_name] = _obj
+                return cst.Name(value=_name)  # type: ignore[has-type]
 
         return updated_node
 
