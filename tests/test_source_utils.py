@@ -1,11 +1,16 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+
+from pathlib import Path
+
+import cftime
 import pytest
 import xarray as xr
 
 from access_nri_intake.source.utils import (
     EmptyFileError,
+    HashableIndexes,
     _guess_start_end_dates,
     get_timeinfo,
 )
@@ -161,7 +166,6 @@ def test__guess_start_end_dates_warning():
 
 def test_empty_file_error():
     times = []
-    ffreq = (3, "hr")
 
     ds = xr.Dataset(
         data_vars={"dummy": ("time", [])},
@@ -173,4 +177,82 @@ def test_empty_file_error():
     )
 
     with pytest.raises(EmptyFileError):
-        get_timeinfo(ds, filename_frequency=ffreq, time_dim="time")
+        get_timeinfo(ds, filename_frequency=None, time_dim="time")
+
+
+def test_hashable_indexes(test_data):
+    ds = xr.open_dataset(
+        Path(test_data) / "access-om2/output000/ocean/ocean_grid.nc",
+    )
+
+    h1 = HashableIndexes(ds=ds)
+
+    h2 = HashableIndexes(_indexes=ds._indexes)
+
+    assert h1.xxh == "7f9556036b3d01ba"  # Example hash value
+
+    h1_repr = repr(h1)
+
+    assert h1_repr == h1.xxh
+
+    assert h1 == h2
+
+    assert h1 ^ h2 == set()
+
+    assert h1 & h2 == set(h1.keys())
+
+    with pytest.raises(
+        TypeError,
+        match=r"Can only initialise HashableIndexes with either an xarray dataset",
+    ):
+        HashableIndexes(_indexes=ds._indexes, ds=ds)
+
+    h3 = HashableIndexes(ds=ds, drop_indices=["xt_ocean"])
+
+    assert h1 != [1, 2, 3]
+
+    assert h1 != h3
+
+    with pytest.raises(
+        TypeError, match="Cannot compare HashableIndexes with type list"
+    ):
+        h1 ^ [1, 2, 3]
+
+    with pytest.raises(
+        TypeError, match="Cannot compare HashableIndexes with type list"
+    ):
+        h1 & [1, 2, 3]
+
+
+def test_hashable_indexes_cftime():
+    ds = xr.Dataset(
+        {
+            "foo": ("time", [0.0]),
+            "time_bnds": (
+                ("time", "bnds"),
+                [
+                    [
+                        cftime.Datetime360Day(2005, 12, 1, 0, 0, 0, 0),
+                        cftime.Datetime360Day(2005, 12, 2, 0, 0, 0, 0),
+                    ]
+                ],
+            ),
+        },
+        {"time": [cftime.Datetime360Day(2005, 12, 1, 12, 0, 0, 0)]},
+    )
+
+    h1 = HashableIndexes(ds=ds)
+
+    h2 = HashableIndexes(_indexes=ds._indexes)
+
+    assert h1.xxh == "53dfde4d62872e35"  # Example hash value
+
+    h1_repr = repr(h1)
+
+    assert h1_repr == h1.xxh
+
+    assert h1 == h2
+
+    assert h1 ^ h2 == set()
+
+    assert h1 & h2 == set(h1.keys())
