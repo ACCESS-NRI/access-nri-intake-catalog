@@ -15,11 +15,9 @@ from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import (
     EmptyFileError,
-    GenericTimeParser,
-    GfdlTimeParser,
-    WoaTimeParser,
     _NCFileInfo,
     _VarInfo,
+    get_timeinfo,
 )
 
 __all__ = [
@@ -72,7 +70,6 @@ class BaseBuilder(Builder):
 
     # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
-    TIME_PARSER = GenericTimeParser
 
     def __init__(
         self,
@@ -268,6 +265,69 @@ class BaseBuilder(Builder):
         return file_id
 
     @classmethod
+    def parse_filename_freq(
+        cls,
+        filename: str,
+        patterns: list[str] | None = None,
+        frequencies: dict = FREQUENCIES,
+        redaction_fill: str = "X",
+    ) -> tuple[str, str | None, str | None]:
+        """
+        Parse an ACCESS model filename and return a file id and any time information
+
+        Parameters
+        ----------
+        filename: str
+            The filename to parse with the extension removed
+        patterns: list of str, optional
+            A list of regex patterns to match against the filename. If None, use the class PATTERNS
+        frequencies: dict, optional
+            A dictionary of regex patterns to match against the filename to determine the frequency
+        redaction_fill: str, optional
+            The character to replace time information with. Defaults to "X"
+
+        Returns
+        -------
+        file_id: str
+            The file id constructed by redacting time information and replacing non-python characters
+            with underscores
+        timestamp: str | None
+            A string of the redacted time information (e.g. "1990-01") if available, otherwise None
+        frequency: str | None
+            The frequency of the file if available in the filename, otherwise None
+        """
+        if patterns is None:
+            patterns = cls.PATTERNS
+
+        # Try to determine frequency
+        frequency = None
+        for pattern, freq in frequencies.items():
+            if re.search(pattern, filename):
+                frequency = freq
+                break
+
+        # Parse file id
+        file_id = filename
+        timestamp = None
+        for pattern in patterns:
+            match = re.match(pattern, file_id)
+            if match:
+                # FIXME switch to using named group for timestamp
+                # Loop over all found groups and redact
+                timestamp = match.group(1)
+                for grp in match.groups():
+                    if grp is not None:
+                        redaction = re.sub(r"\d", redaction_fill, grp)
+                        file_id = re.sub(grp, redaction, file_id)
+                break
+
+        # Remove non-python characters from file ids
+        file_id = re.sub(r"[-.]", "_", file_id)
+        file_id = re.sub(r"_+", "_", file_id).strip("_")
+
+        return file_id, timestamp, frequency
+
+    @classmethod
     def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
         """
         Get Intake-ESM datastore entry info from a netcdf file
@@ -291,7 +351,7 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        # file_id, _, _ = cls.parse_filename(file_path.stem)
+        _, _, filename_frequency = cls.parse_filename_freq(file_path.stem)
 
         with xr.open_dataset(
             file,
@@ -306,7 +366,9 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = cls.TIME_PARSER(ds, time_dim)()
+            start_date, end_date, frequency = get_timeinfo(
+                ds, filename_frequency, time_dim
+            )
             file_id = cls._generate_file_shape_info(ds, time_dim)
 
         if not dvars.variable_list:
@@ -485,7 +547,6 @@ class Mom6Builder(BaseBuilder):
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
         rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
     ]
-    TIME_PARSER = GfdlTimeParser
 
     def __init__(self, path, **kwargs):
         """
@@ -718,7 +779,6 @@ class WoaBuilder(BaseBuilder):
         r"surface.nc",
         r"ocean_temp_salt.res.nc",
     ]
-    TIME_PARSER = WoaTimeParser
 
     def __init__(self, path, **kwargs):
         """
