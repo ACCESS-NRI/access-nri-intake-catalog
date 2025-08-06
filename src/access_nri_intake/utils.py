@@ -99,7 +99,7 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
 
     Validator = jsonschema.validators.validator_for(schema)
     type_checker = Validator.TYPE_CHECKER.redefine(
-        "array", lambda checker, instance: isinstance(instance, (list, tuple))
+        "array", lambda checker, instance: isinstance(instance, list | tuple)
     )
     TupleAllowingValidator = jsonschema.validators.extend(
         Validator, type_checker=type_checker

@@ -5,7 +5,8 @@
 
 import re
 import warnings
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import libcst as cst
 from IPython.core.getipython import get_ipython
@@ -268,7 +269,7 @@ class ChainSimplifier(cst.CSTTransformer):
                     attr=cst.Name(value="search"),
                 )
             ):
-                instance = self.user_namespace.get(datastore_obj)
+                instance = self.user_namespace.get(datastore_obj)  # type: ignore[has-type]
                 if type(instance).__name__ != "esm_datastore":
                     return updated_node
                 search_expr = cst.Module(
@@ -276,11 +277,11 @@ class ChainSimplifier(cst.CSTTransformer):
                 ).code.strip()
                 # Evaluate it, put the result back into the user namespace with
                 # the same name as the datastore object - ie. ~ return self
-                self.user_namespace[datastore_obj] = eval(
+                self.user_namespace[datastore_obj] = eval(  # type: ignore[has-type]
                     search_expr, self.user_namespace
                 )
                 # Then update the node to just be the datastore object
-                return cst.Name(value=datastore_obj)
+                return cst.Name(value=datastore_obj)  # type: ignore[has-type]
 
         return updated_node
 

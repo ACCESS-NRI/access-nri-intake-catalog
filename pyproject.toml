@@ -78,7 +78,7 @@ omit = [
 ]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 exclude = [
     ".bzr",
     ".direnv",
@@ -99,6 +99,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "versioneer.py",
 ]
 # E402: module level import not at top of file
 # E501: line too long - let black worry about that
