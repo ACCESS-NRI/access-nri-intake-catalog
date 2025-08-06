@@ -227,7 +227,7 @@ def test_builder_build(
             "WoaBuilder",
             "ocean",
             None,
-            "ocean.fx.GRID_X_T:2.GRID_Y_T:2.ZT:2",
+            "ocean.fx.GRID_X_T:2.GRID_Y_T:2.ZT:2.03f617824bf731c4",
         ),
     ],
 )

@@ -15,6 +15,7 @@ from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
 from .utils import (
     EmptyFileError,
+    HashableIndexes,
     _NCFileInfo,
     _VarInfo,
     get_timeinfo,
@@ -784,6 +785,9 @@ class WoaBuilder(BaseBuilder):
 
     @classmethod
     def parser(cls, file) -> dict:
+        """
+        Overwrite the parser method to add a grid id to the output dictionary.
+        """
         try:
             realm: str = "ocean"
 
@@ -792,9 +796,19 @@ class WoaBuilder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
             ncinfo_dict["realm"] = realm
 
+            with xr.open_dataset(
+                file,
+                chunks={},
+                decode_cf=False,
+                decode_times=False,
+                decode_coords=False,
+            ) as ds:
+                grid_id = HashableIndexes(ds=ds, drop_indices=["time"]).xxh
+
             ncinfo_dict["file_id"] = ".".join(
-                [realm, nc_info.frequency, nc_info.file_id]
+                [realm, nc_info.frequency, nc_info.file_id, grid_id]
             )
+
             return ncinfo_dict
 
         except Exception:
