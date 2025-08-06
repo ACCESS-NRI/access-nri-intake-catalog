@@ -270,8 +270,7 @@ class BaseBuilder(Builder):
         filename: str,
         patterns: list[str] | None = None,
         frequencies: dict = FREQUENCIES,
-        redaction_fill: str = "X",
-    ) -> tuple[str, str | None, str | None]:
+    ) -> str | None:
         """
         Parse an ACCESS model filename and return a file id and any time information
 
@@ -288,11 +287,6 @@ class BaseBuilder(Builder):
 
         Returns
         -------
-        file_id: str
-            The file id constructed by redacting time information and replacing non-python characters
-            with underscores
-        timestamp: str | None
-            A string of the redacted time information (e.g. "1990-01") if available, otherwise None
         frequency: str | None
             The frequency of the file if available in the filename, otherwise None
         """
@@ -306,26 +300,7 @@ class BaseBuilder(Builder):
                 frequency = freq
                 break
 
-        # Parse file id
-        file_id = filename
-        timestamp = None
-        for pattern in patterns:
-            match = re.match(pattern, file_id)
-            if match:
-                # FIXME switch to using named group for timestamp
-                # Loop over all found groups and redact
-                timestamp = match.group(1)
-                for grp in match.groups():
-                    if grp is not None:
-                        redaction = re.sub(r"\d", redaction_fill, grp)
-                        file_id = re.sub(grp, redaction, file_id)
-                break
-
-        # Remove non-python characters from file ids
-        file_id = re.sub(r"[-.]", "_", file_id)
-        file_id = re.sub(r"_+", "_", file_id).strip("_")
-
-        return file_id, timestamp, frequency
+        return frequency
 
     @classmethod
     def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
@@ -351,7 +326,7 @@ class BaseBuilder(Builder):
 
         file_path = Path(file)
 
-        _, _, filename_frequency = cls.parse_filename_freq(file_path.stem)
+        filename_frequency = cls.parse_filename_freq(file_path.stem)
 
         with xr.open_dataset(
             file,

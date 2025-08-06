@@ -480,6 +480,210 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
 
 
 @pytest.mark.parametrize(
+    "builder, filename, expected",
+    [
+        # Example ACCESS-CM2 filenames
+        (builders.AccessCm2Builder, "bz687a.pm107912_mon", (1, "mon")),
+        (builders.AccessCm2Builder, "bz687a.p7107912_mon", (1, "mon")),
+        (builders.AccessCm2Builder, "bz687a.p7107912_dai", (1, "day")),
+        (builders.AccessCm2Builder, "iceh_m.2014-06", None),
+        (builders.AccessCm2Builder, "iceh.1917-05-daily", (1, "day")),
+        (builders.AccessCm2Builder, "iceh_03h.2016-01-3hourly", None),
+        (builders.AccessCm2Builder, "ocean_bgc_ann", (1, "yr")),
+        (builders.AccessCm2Builder, "ocean_daily", (1, "day")),
+        # Example ACCESS-ESM1.5 filenames
+        (builders.AccessEsm15Builder, "PI-GWL-B2035.pe-109904_dai", (1, "day")),
+        (builders.AccessEsm15Builder, "PI-GWL-B2035.pa-109904_mon", (1, "mon")),
+        (builders.AccessEsm15Builder, "PI-1pct-02.pe-011802_dai.nc_dai", (1, "day")),
+        (builders.AccessEsm15Builder, "iceh.1917-05", None),
+        # Example ACCESS-OM2 filenames
+        (builders.AccessOm2Builder, "iceh.057-daily", (1, "day")),
+        (builders.AccessOm2Builder, "iceh.1958-02-daily", (1, "day")),
+        (builders.AccessOm2Builder, "iceh.1985-08-31", None),
+        (builders.AccessOm2Builder, "ocean", None),
+        (builders.AccessOm2Builder, "ocean_month", (1, "mon")),
+        (builders.AccessOm2Builder, "ocean-2d-area_t", None),
+        (builders.AccessOm2Builder, "ocean_daily_3d_pot_rho_1", (1, "day")),
+        (builders.AccessOm2Builder, "ocean_daily_3d_vhrho_nt_07", (1, "day")),
+        (
+            builders.AccessOm2Builder,
+            "ocean-3d-v-1-monthly-pow02-ym_1958_04",
+            (1, "mon"),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "ocean-2d-sfc_salt_flux_restore-1-monthly-mean-ym_1958_04",
+            (1, "mon"),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "ocean-2d-sea_level-540-seconds-snap-ym_2022_04_01",
+            None,
+        ),
+        (
+            builders.AccessOm2Builder,
+            "ocean-3d-salt-1-daily-mean-ym_2018_10_jmax511_sigfig4",
+            (1, "day"),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "oceanbgc-3d-caco3-1-yearly-mean-y_2015",
+            (1, "yr"),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "oceanbgc-2d-wdet100-1-daily-mean-y_2015",
+            (1, "day"),
+        ),
+        (
+            builders.AccessOm2Builder,
+            "oceanbgc-3d-phy-1-daily-mean-3-sigfig-5-daily-ymd_2020_12_01",
+            (1, "day"),
+        ),
+        (builders.AccessOm2Builder, "rregionPrydz_temp_xflux_adv", None),
+        # Example ACCESS-OM3 filenames
+        (builders.AccessOm3Builder, "access-om3.ww3.hi.1958-01-02-00000", None),
+        (builders.AccessOm3Builder, "access-om3.cice.h.1900-01-01", None),
+        (builders.AccessOm3Builder, "access-om3.cice.h.1900-01", None),
+        (builders.AccessOm3Builder, "access-om3.cice.h.1900-01-daily", (1, "day")),
+        (builders.AccessOm3Builder, "access-om3.mom6.ocean_sfc_1900_01_01", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.sfc_1900_01", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.sfc_1900", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.static", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.static", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.3d.uh.1mon.mean.1900", (1, "mon")),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
+            (1, "mon"),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01",
+            (1, "mon"),
+        ),
+        (builders.AccessOm3Builder, "GMOM_JRA_WD.ww3.hi.1900-01-03-00000", None),
+        (builders.AccessOm3Builder, "GMOM_JRA_WD.ww3.hi.1900", None),
+        (builders.AccessOm3Builder, "GMOM_JRA_WD.ww3.hi.1900-01", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.3d.uh.1mon.mean.1900", (1, "mon")),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
+            (1, "mon"),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "access-om3.mom6.3d.uh.1mon.mean.1900-01",
+            (1, "mon"),
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
+            None,
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900",
+            None,
+        ),
+        (
+            builders.AccessOm3Builder,
+            "GMOM_JRA_WD.ww3.hi.1900-01",
+            None,
+        ),
+        # MOM6
+        (
+            builders.Mom6Builder,
+            "19000101.ice_daily",
+            (1, "day"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ice_month",
+            (1, "mon"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ocean_annual_rho2",
+            (1, "yr"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_annual_z",
+            (1, "yr"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_annual",
+            (1, "yr"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_daily",
+            (1, "day"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ocean_month_rho2",
+            (1, "mon"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_month_z",
+            (1, "mon"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_month",
+            (1, "mon"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_scalar_annual",
+            (1, "yr"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ocean_scalar_month",
+            (1, "mon"),
+        ),
+        (
+            builders.Mom6Builder,
+            "19010101.ocean_static",
+            None,
+        ),
+        (
+            builders.Mom6Builder,
+            "20000201.ocean_daily_2000_032",
+            (1, "day"),
+        ),
+        (
+            builders.Mom6Builder,
+            "20000201.ocean_daily_rho2_2000_056",
+            (1, "day"),
+        ),
+        (
+            builders.Mom6Builder,
+            "20000201.ocean_daily_z_2000_119",
+            (1, "day"),
+        ),
+        (
+            builders.ROMSBuilder,
+            "roms_his_0016",
+            None,
+        ),
+        (
+            builders.WoaBuilder,
+            "woa13_ts_01_mom01",
+            None,
+        ),
+    ],
+)
+def test_parse_filename(builder, filename, expected):
+    assert builder.parse_filename_freq(filename) == expected
+
+
+@pytest.mark.parametrize(
     "compare_files",
     [
         (True),
