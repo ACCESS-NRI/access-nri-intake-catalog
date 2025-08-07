@@ -3,6 +3,7 @@ import warnings
 from pathlib import Path
 
 import intake
+import pandas as pd
 from intake_esm import esm_datastore
 
 from ..source.builders import Builder
@@ -128,6 +129,11 @@ def use_datastore(
             or f"esm_datastore for the model output in '{str(experiment_dir)}'",
             directory=str(catalog_dir),
         )
+
+        _invalid_assetlist: pd.DataFrame = builder_instance.invalid_assets
+        import pdb
+
+        pdb.set_trace()
 
         print(
             f"{f_info}Hashing catalog to prevent unnecessary rebuilds.\nThis may take some time...{f_reset}"
