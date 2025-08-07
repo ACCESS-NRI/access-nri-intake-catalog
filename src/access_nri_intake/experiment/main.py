@@ -1,5 +1,6 @@
 import itertools
 import warnings
+from datetime import datetime
 from pathlib import Path
 
 import intake
@@ -131,9 +132,14 @@ def use_datastore(
         )
 
         _invalid_assetlist: pd.DataFrame = builder_instance.invalid_assets
-        import pdb
-
-        pdb.set_trace()
+        if not _invalid_assetlist.empty:
+            invalid_asset_fname = f"{datastore_name}-invalid-assets-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
+            invalid_asset_path = catalog_dir / invalid_asset_fname
+            _invalid_assetlist.to_csv(invalid_asset_path, index=False)
+            print(
+                f"{f_warn}Some assets were not included in the datastore due to errors. "
+                f"Please check {f_path}{invalid_asset_path}{f_warn} for details.{f_reset}"
+            )
 
         print(
             f"{f_info}Hashing catalog to prevent unnecessary rebuilds.\nThis may take some time...{f_reset}"
