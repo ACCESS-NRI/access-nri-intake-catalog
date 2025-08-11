@@ -357,6 +357,23 @@ class BaseBuilder(Builder):
 
         return output_ncfile
 
+    @property
+    def valid_assets(self) -> list[str]:
+        """
+        Return the list of valid assets that have been parsed and validated
+        """
+        if not self.assets:
+            raise ValueError(
+                "asset list provided is None. Please run `.get_assets()` first"
+            )
+
+        if self.invalid_assets.empty:
+            return self.assets
+
+        invalid_assetlist = self.invalid_assets["INVALID_ASSET"].tolist()
+
+        return [asset for asset in self.assets if asset not in invalid_assetlist]
+
 
 class AccessOm2Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM2 COSIMA datasets"""
