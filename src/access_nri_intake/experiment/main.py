@@ -133,7 +133,7 @@ def use_datastore(
 
         _invalid_assetlist: pd.DataFrame = builder_instance.invalid_assets
         if not _invalid_assetlist.empty:
-            invalid_asset_fname = f"{datastore_name}-invalid-assets-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
+            invalid_asset_fname = f"{datastore_name}_invalid_assets_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}.csv"
             invalid_asset_path = catalog_dir / invalid_asset_fname
             _invalid_assetlist.to_csv(invalid_asset_path, index=False)
             print(
