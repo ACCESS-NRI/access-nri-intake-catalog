@@ -52,6 +52,9 @@ def test_builder_build(
     path = [str(test_data / Path(basedir)) for basedir in basedirs]
     builder = Builder(path, **kwargs)
 
+    with pytest.raises(ValueError, match="asset list provided is None"):
+        builder.valid_assets
+
     builder.get_assets()
     assert isinstance(builder.assets, list)
     assert len(builder.assets) == num_assets
@@ -69,6 +72,8 @@ def test_builder_build(
     )
     assert len(cat.df) == num_valid_assets
     assert len(cat) == num_datasets
+
+    assert len(builder.valid_assets) == num_valid_assets
 
 
 @pytest.mark.parametrize(
