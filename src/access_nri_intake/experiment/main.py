@@ -1,8 +1,10 @@
 import itertools
 import warnings
+from datetime import datetime
 from pathlib import Path
 
 import intake
+import pandas as pd
 from intake_esm import esm_datastore
 
 from ..source.builders import Builder
@@ -128,6 +130,16 @@ def use_datastore(
             or f"esm_datastore for the model output in '{str(experiment_dir)}'",
             directory=str(catalog_dir),
         )
+
+        _invalid_assetlist: pd.DataFrame = builder_instance.invalid_assets
+        if not _invalid_assetlist.empty:
+            invalid_asset_fname = f"{datastore_name}_invalid_assets_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}.csv"
+            invalid_asset_path = catalog_dir / invalid_asset_fname
+            _invalid_assetlist.to_csv(invalid_asset_path, index=False)
+            print(
+                f"{f_warn}Some assets were not included in the datastore due to errors. "
+                f"Please check {f_path}{invalid_asset_path}{f_warn} for details.{f_reset}"
+            )
 
         print(
             f"{f_info}Hashing catalog to prevent unnecessary rebuilds.\nThis may take some time...{f_reset}"

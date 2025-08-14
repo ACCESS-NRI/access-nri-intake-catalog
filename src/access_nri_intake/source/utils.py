@@ -3,15 +3,41 @@
 
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
+import pickle
 import warnings
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 from pathlib import Path
 
 import cftime
+import polars as pl
 import xarray as xr
+import xxhash
+from frozendict import frozendict
+from pandas.api.types import is_object_dtype
 
 FREQUENCY_STATIC = "fx"
+
+
+# Note the ordering of this dictionary - we are deliberately searching for
+# the 'rarer' frequency descriptors first, because, e.g., "mon" may appear as
+# part of a totally unrelated word in the filename
+FILENAME_TO_FREQ = {
+    "annual": "yr",
+    "yearly": "yr",
+    "hourly": "hr",
+    "hour": "hr",
+    "monthly": "mon",
+    "month": "mon",
+    "daily": "day",
+    "day": "day",
+    "year": "yr",
+    "yr": "yr",
+    "mth": "mon",
+    "mon": "mon",
+    "hr": "hr",
+}
 
 
 class EmptyFileError(Exception):
@@ -32,9 +58,8 @@ class _NCFileInfo:
     """
 
     filename: str | Path
-    file_id: str
     path: str
-    filename_timestamp: str | None
+    file_id: str
     frequency: str
     start_date: str
     end_date: str
@@ -48,7 +73,27 @@ class _NCFileInfo:
         """
         Return a dictionary representation of the NcFileInfo object
         """
-        return asdict(self)
+        d = asdict(self)
+
+        d_sortable = {
+            key: val
+            for key, val in d.items()
+            if key
+            in [
+                "variable",
+                "variable_long_name",
+                "variable_standard_name",
+                "variable_cell_methods",
+                "variable_units",
+            ]
+        }
+
+        d_sorted = (pl.DataFrame(d_sortable).sort("variable")).to_dict(as_series=False)
+
+        for key, val in d_sorted.items():
+            d[key] = val
+
+        return d
 
 
 @dataclass
@@ -92,417 +137,244 @@ class _VarInfo:
         }
 
 
-class GenericTimeParser:
+class HashableIndexes:
     """
-    Generic time parser
+    Consumes either an xarray dataset or its _indexes attribute, and creates a
+    hashable representation of the indexes. Can be used to compare datasets & whether
+    they are mergeable based on their indexes, and potentially for labelling grids
+    in a catalog.
     """
 
-    TIMEINFO_TIME_FORMAT = "%Y-%m-%d, %H:%M:%S"
+    def __init__(
+        self,
+        *,
+        ds: xr.Dataset | None = None,
+        _indexes: dict | None = None,
+        drop_indices: Iterable[str] | None = None,
+    ):
+        if ds is not None and _indexes is not None:
+            raise TypeError(
+                "Can only initialise HashableIndexes with either an xarray dataset (ds) or its _indexes (_indexes), not both"
+            )
+        elif ds is not None:
+            _indexes = ds._indexes
 
-    def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
+        drop_indices = drop_indices or []
+        self.dict = frozendict(
+            {
+                key: val.index.values
+                for key, val in _indexes.items()  # type:ignore[union-attr]
+                if not is_object_dtype(val.coord_dtype) and key not in drop_indices
+            }
+        )
+
+        self._bytedict = {key: val.tobytes() for key, val in self.dict.items()}
+
+        bytestream = pickle.dumps(self._bytedict, protocol=pickle.HIGHEST_PROTOCOL)
+        self.xxh = xxhash.xxh3_64(bytestream).hexdigest()
+
+    def __repr__(self):
+        return str(self.xxh)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, HashableIndexes):
+            return False
+        if other.xxh == self.xxh:
+            return True
+        return False
+
+    def __and__(self, other) -> set:
         """
-        Parameters
-        ----------
-        ds: :py:class:`xarray.Dataset`
-            The dataset to parse the time info from
-        filename_frequency: str
-            Frequency as determined from the filename
-        time_dim: str
-            The name of the time dimension
+        Return all keys which are:
+        - In both objects
+        - Have the same hashes
+
+        Useful for determining why two mergeable datasets have differing hashes.
         """
-        self.ds = ds
-        self.filename_frequency = filename_frequency
-        self.time_dim = time_dim
 
-    @staticmethod
-    def _add_month_start(time, n: int):
-        """Add months to cftime datetime and truncate to start"""
-        year = time.year + ((time.month + n - 1) // 12)
-        month = (time.month + n - 1) % 12 + 1
-        return time.replace(
-            year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0
-        )
+        if not isinstance(other, HashableIndexes):
+            raise TypeError(
+                f"Cannot compare HashableIndexes with type {other.__class__.__name__}"
+            )
+        shared_keys = self.keys() & other.keys()
 
-    @staticmethod
-    def _add_year_start(time, n: int):
-        """Add years to cftime datetime and truncate to start"""
-        return time.replace(
-            year=time.year + n,
-            month=1,
-            day=1,
-            hour=0,
-            minute=0,
-            second=0,
-            microsecond=0,
-        )
+        return {key for key in shared_keys if self.dict[key] == other.dict[key]}
 
-    @staticmethod
-    def _guess_start_end_dates(ts, te, frequency):
-        """Guess the start and end bounded times for a given frequency"""
-        warnings.warn(
-            "Time coordinate does not include bounds information. Guessing "
-            "start and end times."
-        )
-        num, unit = frequency
-        if unit == "yr":
-            step_back = -int(num / 2)
-            step_fwd = num + step_back
-            ts = GenericTimeParser._add_year_start(ts, step_back)
-            te = GenericTimeParser._add_year_start(te, step_fwd)
-        elif unit == "mon":
-            step_back = -int(num / 2)
-            step_fwd = num + step_back
-            ts = GenericTimeParser._add_month_start(ts, step_back)
-            te = GenericTimeParser._add_month_start(te, step_fwd)
-        elif unit == "day":
-            dt = timedelta(days=num) / 2
-            ts = ts - dt
-            te = te + dt
-        elif unit == "hr":
-            dt = timedelta(hours=num) / 2
-            ts = ts - dt
-            te = te + dt
+    def __xor__(self, other):
+        """
+        Return all keys which are:
+        - In both objects
+        - Have differing hashes
+
+        Useful for determining two griß with differing hashes are mergeable
+        """
+        if not isinstance(other, HashableIndexes):
+            raise TypeError(
+                f"Cannot compare HashableIndexes with type {other.__class__.__name__}"
+            )
+        shared_keys = self.keys() & other.keys()
+
+        return {key for key in shared_keys if self.dict[key] != other.dict[key]}
+
+    def keys(self):
+        return self.dict.keys()
+
+
+def _add_month_start(time, n: int):
+    """Add months to cftime datetime and truncate to start"""
+    year = time.year + ((time.month + n - 1) // 12)
+    month = (time.month + n - 1) % 12 + 1
+    return time.replace(
+        year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+def _add_year_start(time, n: int):
+    """Add years to cftime datetime and truncate to start"""
+    return time.replace(
+        year=time.year + n, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+def _guess_start_end_dates(ts, te, frequency):
+    """Guess the start and end bounded times for a given frequency"""
+    warnings.warn(
+        "Time coordinate does not include bounds information. Guessing "
+        "start and end times."
+    )
+    num, unit = frequency
+    if unit == "yr":
+        step_back = -int(num / 2)
+        step_fwd = num + step_back
+        ts = _add_year_start(ts, step_back)
+        te = _add_year_start(te, step_fwd)
+    elif unit == "mon":
+        step_back = -int(num / 2)
+        step_fwd = num + step_back
+        ts = _add_month_start(ts, step_back)
+        te = _add_month_start(te, step_fwd)
+    elif unit == "day":
+        dt = timedelta(days=num) / 2
+        ts = ts - dt
+        te = te + dt
+    elif unit == "hr":
+        dt = timedelta(hours=num) / 2
+        ts = ts - dt
+        te = te + dt
+    else:
+        warnings.warn("Cannot infer start and end times for subhourly frequencies.")
+    return ts, te
+
+
+def get_timeinfo(
+    ds: xr.Dataset,
+    filename_frequency: str | None,
+    time_dim: str,
+) -> tuple[str, str, str]:
+    """
+    Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
+    cosima cookbook, see
+    https://github.com/COSIMA/cosima-cookbook/blob/master/cosima_cookbook/database.py#L565
+
+    Parameters
+    ----------
+    ds: :py:class:`xarray.Dataset`
+        The dataset to parse the time info from
+    filename_frequency: str
+        Frequency as determined from the filename
+    time_dim: str
+        The name of the time dimension
+
+    Returns
+    -------
+    start_date: str
+        The start date of the dataset
+    end_date: str
+        The end date of the dataset
+    frequency: str
+        The frequency of the dataset
+
+    Raises
+    ------
+    EmptyFileError
+        If the dataset has a valid unlimited dimension, but no data
+    """
+
+    def _todate(t):
+        return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
+
+    time_format = "%Y-%m-%d, %H:%M:%S"
+    ts = None
+    te = None
+    frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
+    has_time = time_dim in ds
+
+    if has_time:
+        time_var = ds[time_dim]
+
+        if len(time_var) == 0:
+            raise EmptyFileError(
+                "This file has a valid unlimited dimension, but no data"
+            )
+
+        has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
+        if has_bounds:
+            bounds_var = ds.variables[time_var.bounds]
+            ts = _todate(bounds_var[0, 0])
+            te = _todate(bounds_var[-1, 1])
         else:
-            warnings.warn("Cannot infer start and end times for subhourly frequencies.")
-        return ts, te
+            ts = _todate(time_var[0])
+            te = _todate(time_var[-1])
 
-    def _get_timeinfo(self) -> tuple[str, str, str]:
-        """
-        Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
-        cosima cookbook, see
-        https://github.com/COSIMA/cosima-cookbook/blob/master/cosima_cookbook/database.py#L565
-
-        Parameters
-        ----------
-        ds: :py:class:`xarray.Dataset`
-            The dataset to parse the time info from
-        filename_frequency: str
-            Frequency as determined from the filename
-        time_dim: str
-            The name of the time dimension
-
-        Returns
-        -------
-        start_date: str
-            The start date of the dataset
-        end_date: str
-            The end date of the dataset
-        frequency: str
-            The frequency of the dataset
-
-        Raises
-        ------
-        EmptyFileError
-            If the dataset has a valid unlimited dimension, but no data
-        """
-
-        ds = self.ds
-        filename_frequency = self.filename_frequency
-        time_dim = self.time_dim
-
-        def _todate(t):
-            return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
-
-        ts = None
-        te = None
-        frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
-        has_time = time_dim in ds
-
-        if has_time:
-            time_var = ds[time_dim]
-
-            if len(time_var) == 0:
-                raise EmptyFileError(
-                    "This file has a valid unlimited dimension, but no data"
-                )
-
-            has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
+        if len(time_var) > 1 or has_bounds:
             if has_bounds:
-                bounds_var = ds.variables[time_var.bounds]
-                ts = _todate(bounds_var[0, 0])
-                te = _todate(bounds_var[-1, 1])
+                t1 = _todate(bounds_var[0, 1])
             else:
-                ts = _todate(time_var[0])
-                te = _todate(time_var[-1])
-
-            if len(time_var) > 1 or has_bounds:
-                if has_bounds:
-                    t1 = _todate(bounds_var[0, 1])
-                else:
-                    t1 = _todate(time_var[1])
-
-                dt = t1 - ts
-                # TODO: This is not a very good way to get the frequency
-                if dt.days >= 365:
-                    years = round(dt.days / 365)
-                    frequency = (years, "yr")
-                elif dt.days >= 28:
-                    months = round(dt.days / 30)
-                    frequency = (months, "mon")
-                elif dt.days >= 1:
-                    frequency = (dt.days, "day")
-                elif dt.seconds >= 3600:
-                    hours = round(dt.seconds / 3600)
-                    frequency = (hours, "hr")
-                else:
-                    frequency = (None, "subhr")
-
-        if filename_frequency:
-            if filename_frequency != frequency:
-                msg = (
-                    f"The frequency '{filename_frequency}' determined from filename does not "
-                    f"match the frequency '{frequency}' determined from the file contents."
-                )
-                if frequency == FREQUENCY_STATIC:
-                    frequency = filename_frequency
-                warnings.warn(f"{msg} Using '{frequency}'.")
-
-        if has_time & (frequency != FREQUENCY_STATIC):
-            if not has_bounds:
-                ts, te = GenericTimeParser._guess_start_end_dates(ts, te, frequency)
-
-        if ts is None:
-            start_date = "none"
-        else:
-            start_date = ts.strftime(self.TIMEINFO_TIME_FORMAT)
-
-        if te is None:
-            end_date = "none"
-        else:
-            end_date = te.strftime(self.TIMEINFO_TIME_FORMAT)
-
-        if frequency[0]:
-            frequency = f"{str(frequency[0])}{frequency[1]}"
-        else:
-            frequency = frequency[1]
-
-        return start_date, end_date, frequency
-
-    def __call__(self) -> tuple[str, str, str]:
-        return self._get_timeinfo()
-
-
-class WoaTimeParser(GenericTimeParser):
-    """
-    The WOA datasets don't necessarily contain a calendar, so we have to override
-    the _get_timeinfo method to fix this.
-    """
-
-    def _get_timeinfo(self) -> tuple[str, str, str]:
-        """
-        Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
-        cosima cookbook, see
-        https://github.com/COSIMA/cosima-cookbook/blob/master/cosima_cookbook/database.py#L565
-
-        Parameters
-        ----------
-        ds: :py:class:`xarray.Dataset`
-            The dataset to parse the time info from
-        filename_frequency: str
-            Frequency as determined from the filename
-        time_dim: str
-            The name of the time dimension
-
-        Returns
-        -------
-        start_date: str
-            The start date of the dataset
-        end_date: str
-            The end date of the dataset
-        frequency: str
-            The frequency of the dataset
-
-        Raises
-        ------
-        EmptyFileError
-            If the dataset has a valid unlimited dimension, but no data
-        """
-
-        ds = self.ds
-        filename_frequency = self.filename_frequency
-        time_dim = self.time_dim
-
-        def _todate(t):
-            return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
-
-        ts = None
-        te = None
-        frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
-        has_time = time_dim in ds
-
-        if has_time:
-            time_var = ds[time_dim]
-
-            if len(time_var) == 0:
-                raise EmptyFileError(
-                    "This file has a valid unlimited dimension, but no data"
-                )
-
-            for attr in ["calendar", "calendar_type"]:
-                if not time_var.attrs.get("calendar", False):
-                    time_var.attrs[attr] = "360_day"
-
-            ts = _todate(time_var[0])
-            te = _todate(time_var[-1])
-
-            if len(time_var) > 1:
                 t1 = _todate(time_var[1])
 
-                dt = t1 - ts
-                # TODO: This is not a very good way to get the frequency
-                if dt.days >= 365:
-                    years = round(dt.days / 365)
-                    frequency = (years, "yr")
-                elif dt.days >= 28:
-                    months = round(dt.days / 30)
-                    frequency = (months, "mon")
-                elif dt.days >= 1:
-                    frequency = (dt.days, "day")
-                elif dt.seconds >= 3600:
-                    hours = round(dt.seconds / 3600)
-                    frequency = (hours, "hr")
-                else:
-                    frequency = (None, "subhr")
+            dt = t1 - ts
+            # TODO: This is not a very good way to get the frequency
+            if dt.days >= 365:
+                years = round(dt.days / 365)
+                frequency = (years, "yr")
+            elif dt.days >= 28:
+                months = round(dt.days / 30)
+                frequency = (months, "mon")
+            elif dt.days >= 1:
+                frequency = (dt.days, "day")
+            elif dt.seconds >= 3600:
+                hours = round(dt.seconds / 3600)
+                frequency = (hours, "hr")
+            else:
+                frequency = (None, "subhr")
 
-        if filename_frequency:
-            if filename_frequency != frequency:
-                msg = (
-                    f"The frequency '{filename_frequency}' determined from filename does not "
-                    f"match the frequency '{frequency}' determined from the file contents."
-                )
-                if frequency == FREQUENCY_STATIC:
-                    frequency = filename_frequency
-                warnings.warn(f"{msg} Using '{frequency}'.")
+    if filename_frequency:
+        if filename_frequency != frequency:
+            msg = (
+                f"The frequency '{filename_frequency}' determined from filename does not "
+                f"match the frequency '{frequency}' determined from the file contents."
+            )
+            if frequency == FREQUENCY_STATIC:
+                frequency = filename_frequency
+            warnings.warn(f"{msg} Using '{frequency}'.")
 
-        if has_time & (frequency != FREQUENCY_STATIC):
-            ts, te = GenericTimeParser._guess_start_end_dates(ts, te, frequency)
+    if has_time & (frequency != FREQUENCY_STATIC):
+        if not has_bounds:
+            ts, te = _guess_start_end_dates(ts, te, frequency)
 
-        if ts is None:
-            start_date = "none"
-        else:
-            start_date = ts.strftime(self.TIMEINFO_TIME_FORMAT)
+    if ts is None:
+        start_date = "none"
+    else:
+        start_date = ts.strftime(time_format)
 
-        if te is None:
-            end_date = "none"
-        else:
-            end_date = te.strftime(self.TIMEINFO_TIME_FORMAT)
+    if te is None:
+        end_date = "none"
+    else:
+        end_date = te.strftime(time_format)
 
-        if frequency[0]:
-            frequency = f"{str(frequency[0])}{frequency[1]}"
-        else:
-            frequency = frequency[1]
+    if frequency[0]:
+        frequency = f"{str(frequency[0])}{frequency[1]}"
+    else:
+        frequency = frequency[1]
 
-        return start_date, end_date, frequency
-
-
-class AccessTimeParser(GenericTimeParser):
-    pass
-
-
-class GfdlTimeParser(GenericTimeParser):
-    def __init__(self, ds: xr.Dataset, filename_frequency: str | None, time_dim: str):
-        self.ds = ds
-        self.filename_frequency = filename_frequency
-        self.time_dim = time_dim
-
-    def _get_timeinfo(self) -> tuple[str, str, str]:
-        """
-        Get start date, end date and frequency of a xarray dataset. Stolen and adapted from the
-        cosima cookbook, see
-        https://github.com/COSIMA/cosima-cookbook/blob/master/cosima_cookbook/database.py#L565
-
-        Parameters
-        ----------
-        ds: :py:class:`xarray.Dataset`
-            The dataset to parse the time info from
-        filename_frequency: str
-            Frequency as determined from the filename
-        time_dim: str
-            The name of the time dimension
-
-        Returns
-        -------
-        start_date: str
-            The start date of the dataset
-        end_date: str
-            The end date of the dataset
-        frequency: str
-            The frequency of the dataset
-
-        Raises
-        ------
-        EmptyFileError
-            If the dataset has a valid unlimited dimension, but no data
-        """
-
-        ds = self.ds
-        filename_frequency = self.filename_frequency
-        time_dim = self.time_dim
-
-        def _todate(t):
-            return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
-
-        ts = None
-        te = None
-        frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
-        has_time = time_dim in ds
-
-        if has_time:
-            time_var = ds[time_dim]
-
-            if len(time_var) == 0:
-                raise EmptyFileError(
-                    "This file has a valid unlimited dimension, but no data"
-                )
-
-            ts = _todate(time_var[0])
-            te = _todate(time_var[-1])
-
-            if len(time_var) > 1:
-                t1 = _todate(time_var[1])
-
-                dt = t1 - ts
-                # TODO: This is not a very good way to get the frequency
-                if dt.days >= 365:
-                    years = round(dt.days / 365)
-                    frequency = (years, "yr")
-                elif dt.days >= 28:
-                    months = round(dt.days / 30)
-                    frequency = (months, "mon")
-                elif dt.days >= 1:
-                    frequency = (dt.days, "day")
-                elif dt.seconds >= 3600:
-                    hours = round(dt.seconds / 3600)
-                    frequency = (hours, "hr")
-                else:
-                    frequency = (None, "subhr")
-
-        if filename_frequency:
-            if filename_frequency != frequency:
-                msg = (
-                    f"The frequency '{filename_frequency}' determined from filename does not "
-                    f"match the frequency '{frequency}' determined from the file contents."
-                )
-                if frequency == FREQUENCY_STATIC:
-                    frequency = filename_frequency
-                warnings.warn(f"{msg} Using '{frequency}'.")
-
-        if has_time & (frequency != FREQUENCY_STATIC):
-            ts, te = GenericTimeParser._guess_start_end_dates(ts, te, frequency)
-
-        if ts is None:
-            start_date = "none"
-        else:
-            start_date = ts.strftime(self.TIMEINFO_TIME_FORMAT)
-
-        if te is None:
-            end_date = "none"
-        else:
-            end_date = te.strftime(self.TIMEINFO_TIME_FORMAT)
-
-        if frequency[0]:
-            frequency = f"{str(frequency[0])}{frequency[1]}"
-        else:
-            frequency = frequency[1]
-
-        return start_date, end_date, frequency
+    return start_date, end_date, frequency

@@ -28,12 +28,12 @@ from access_nri_intake.source.utils import _NCFileInfo
             14,
             7,
         ),
-        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 11),
+        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 85, 85, 84),
-        (["woa"], "WoaBuilder", {}, 2, 2, 1),
+        (["woa"], "WoaBuilder", {}, 4, 4, 1),
     ],
 )
 def test_builder_build(
@@ -53,6 +53,9 @@ def test_builder_build(
     path = [str(test_data / Path(basedir)) for basedir in basedirs]
     builder = Builder(path, **kwargs)
 
+    with pytest.raises(ValueError, match="asset list provided is None"):
+        builder.valid_assets
+
     builder.get_assets()
     assert isinstance(builder.assets, list)
     assert len(builder.assets) == num_assets
@@ -71,6 +74,8 @@ def test_builder_build(
     assert len(cat.df) == num_valid_assets
     assert len(cat) == num_datasets
 
+    assert len(builder.valid_assets) == num_valid_assets
+
 
 @pytest.mark.parametrize(
     "filename, builder, realm, member, file_id",
@@ -80,63 +85,63 @@ def test_builder_build(
             "AccessOm2Builder",
             "ocean",
             None,
-            "ocean",
+            "ocean.1yr.nv:2.st_ocean:1.xt_ocean:1.yt_ocean:1",
         ),
         (
             "access-om2/output000/ice/OUTPUT/iceh.1900-01.nc",
             "AccessOm2Builder",
             "seaIce",
             None,
-            "iceh_XXXX_XX",
+            "seaIce.1mon.d2:2.ni:1.nj:1",
         ),
         (
             "access-cm2/by578/history/atm/netCDF/by578a.pd201501_dai.nc",
             "AccessCm2Builder",
             "atmos",
             "by578",
-            "a_pdXXXXXX_dai",
+            "atmos.1day.bnds:2.lat:1.lon:1",
         ),
         (
             "access-cm2/by578a/history/atm/netCDF/by578aa.pd201501_dai.nc",
             "AccessCm2Builder",
             "atmos",
             "by578a",
-            "a_pdXXXXXX_dai",
+            "atmos.1day.bnds:2.lat:1.lon:1",
         ),
         (
             "access-cm2/by578/history/ice/iceh_d.2015-01.nc",
             "AccessCm2Builder",
             "seaIce",
             "by578",
-            "iceh_d_XXXX_XX",
+            "seaIce.1day.d2:2.ni:1.nj:1",
         ),
         (
             "access-cm2/by578/history/ocn/ocean_daily.nc-20150630",
             "AccessCm2Builder",
             "ocean",
             "by578",
-            "ocean_daily",
+            "ocean.1day.nv:2.xt_ocean:1.yt_ocean:1",
         ),
         (
             "access-om3/output000/GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
             "AccessOm3Builder",
             "ocean",
             None,
-            "GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
+            "ocean.1day.nv:2.xh:1.yh:1",
         ),
         (
             "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
             "AccessOm3Builder",
             "seaIce",
             None,
-            "GMOM_JRA_WD_cice_h_XXXX_XX_XX",
+            "seaIce.1day.nbnd:2.ni:1.nj:1",
         ),
         (
             "access-om3/output000/GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
             "AccessOm3Builder",
             "wave",
             None,
-            "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
+            "wave.fx.freq:1.nx:1.ny:1",
         ),
         # MOM6
         (
@@ -144,84 +149,84 @@ def test_builder_build(
             "Mom6Builder",
             "seaIce",
             None,
-            "XXXXXXXX_ice_daily",
+            "seaIce.1day.nv:2.xT:1.xTe:1.yT:1.yTe:1",
         ),
         (
             "mom6/output001/19010101.ice_month.nc",
             "Mom6Builder",
             "seaIce",
             None,
-            "XXXXXXXX_ice_month",
+            "seaIce.1mon.nv:2.xT:1.xTe:1.yT:1.yTe:1",
         ),
         (
             "mom6/output001/19010101.ocean_annual_rho2.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_annual_rho2",
+            "ocean.1yr.nv:2.rho2_i:1.rho2_l:1.xh:1.xq:1.yh:1.yq:1",
         ),
         (
             "mom6/output000/19000101.ocean_annual_z.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_annual_z",
+            "ocean.1yr.nv:2.xh:1.xq:1.yh:1.yq:1.z_i:1.z_l:1",
         ),
         (
             "mom6/output000/19000101.ocean_daily.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_daily",
+            "ocean.1day.nv:2.xh:1.yh:1",
         ),
         (
             "mom6/output001/19010101.ocean_month_rho2.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_month_rho2",
+            "ocean.1mon.nv:2.rho2_i:1.rho2_l:1.xh:1.yh:1.yq:1",
         ),
         (
             "mom6/output000/19000101.ocean_month_z.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_month_z",
+            "ocean.1mon.nv:2.xh:1.xq:1.yh:1.yq:1.z_i:1.z_l:1",
         ),
         (
             "mom6/output001/19010101.ocean_month.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_month",
+            "ocean.1mon.nv:2.xh:1.xq:1.yh:1.yq:1.zi:1.zl:1",
         ),
         (
             "mom6/output000/19000101.ocean_scalar_annual.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_scalar_annual",
+            "ocean.1yr.nv:2.scalar_axis:1",
         ),
         (
             "mom6/output001/19010101.ocean_scalar_month.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_scalar_month",
+            "ocean.1mon.nv:2.scalar_axis:1",
         ),
         (
             "mom6/output000/19000101.ocean_static.nc",
             "Mom6Builder",
             "ocean",
             None,
-            "XXXXXXXX_ocean_static",
+            "ocean.fx.xh:1.xq:1.yh:1.yq:1",
         ),
         (
             "roms/roms_his_0016.nc",
             "ROMSBuilder",
             "seaIce",
             None,
-            "roms_his_XXXX",
+            "seaIce.5day.boundary:1.eta_psi:1.eta_rho:1.eta_u:1.eta_v:1.s_rho:1.s_w:1.tracer:1.xi_psi:1.xi_rho:1.xi_u:1.xi_v:1",
         ),
         (
             "access-esm1-6/output000/atmosphere/NetCDF/aiihca.pea1apr.nc",
@@ -242,7 +247,7 @@ def test_builder_build(
             "WoaBuilder",
             "ocean",
             None,
-            "woa13_ts_XX_mom01",
+            "ocean.fx.GRID_X_T:2.GRID_Y_T:2.ZT:2.03f617824bf731c4",
         ),
     ],
 )
@@ -321,503 +326,382 @@ def test_builder_columns_with_iterables(test_data):
 
 
 @pytest.mark.parametrize(
-    "builder, filename, expected",
+    "builder, filename, time_dim, expected",
     [
         # Example ACCESS-CM2 filenames
         (
             builders.AccessCm2Builder,
-            "bz687a.pm107912_mon",
-            ("bz687a_pmXXXXXX_mon", "107912", (1, "mon")),
+            "bz687a.pm107912_mon.nc",
+            "time",
+            "bnds:2.depth:6.lat:144.lat_v:145.lon:192.lon_u:192.model_rho_level_number:85.model_theta_level_number:85.pressure:19.pseudo_level:5.pseudo_level_0:6.pseudo_level_1:17.pseudo_level_2:13",
         ),
         (
             builders.AccessCm2Builder,
-            "bz687a.p7107912_mon",
-            ("bz687a_p7XXXXXX_mon", "107912", (1, "mon")),
+            "iceh_m.0498-09.nc",
+            "time",
+            "d2:2.nc:5.ni:1440.nj:1080.nkbio:2",
         ),
         (
             builders.AccessCm2Builder,
-            "bz687a.p7107912_dai",
-            ("bz687a_p7XXXXXX_dai", "107912", (1, "day")),
+            "ocean-2d-surface_salt-1-daily-mean-ym_0409_01.nc",
+            "time",
+            "nv:2.xt_ocean:1440.yt_ocean:1080",
         ),
         (
             builders.AccessCm2Builder,
-            "iceh_m.2014-06",
-            ("iceh_m_XXXX_XX", "2014-06", None),
+            "iceh_d.1972-04.nc",
+            "time",
+            "d2:2.nc:5.ni:360.nj:300.nkbio:2",
         ),
         (
             builders.AccessCm2Builder,
-            "iceh.1917-05-daily",
-            ("iceh_XXXX_XX_daily", "1917-05", (1, "day")),
+            "ocean_daily.nc-19960630",
+            "time",
+            "nv:2.xt_ocean:360.yt_ocean:300",
         ),
-        (
-            builders.AccessCm2Builder,
-            "iceh_03h.2016-01-3hourly",
-            ("iceh_03h_XXXX_XX_3hourly", "2016-01", None),
-        ),
-        (
-            builders.AccessCm2Builder,
-            "ocean_bgc_ann",
-            ("ocean_bgc_ann", None, (1, "yr")),
-        ),
-        (builders.AccessCm2Builder, "ocean_daily", ("ocean_daily", None, (1, "day"))),
         # Example ACCESS-ESM1.5 filenames
         (
             builders.AccessEsm15Builder,
-            "PI-GWL-B2035.pe-109904_dai",
-            ("PI_GWL_B2035_pe_XXXXXX_dai", "109904", (1, "day")),
+            "PI-GWL-B2035.pe-109904_dai.nc",
+            "time",
+            "bnds:2.lat:145.lat_v:144.lon:192.lon_u:192.pseudo_level:17.soil_model_level_number:6",
         ),
         (
             builders.AccessEsm15Builder,
-            "PI-GWL-B2035.pa-109904_mon",
-            ("PI_GWL_B2035_pa_XXXXXX_mon", "109904", (1, "mon")),
+            "PI-GWL-B2035.pa-109904_mon.nc",
+            "time",
+            "bnds:2.lat:145.lat_v:144.lon:192.lon_u:192.model_rho_level_number:38.model_theta_level_number:38.pressure:19.pseudo_level:6.pseudo_level_0:17.pseudo_level_2:13.soil_model_level_number:6.time_0:1",
         ),
         (
             builders.AccessEsm15Builder,
-            "PI-1pct-02.pe-011802_dai.nc_dai",
-            ("PI_1pct_02_pe_XXXXXX_dai_nc_dai", "011802", (1, "day")),
+            "PI-1pct-02.pe-011802_dai.nc_dai.nc",
+            "time",
+            "bnds:2.lat:145.lat_v:144.lon:192.lon_u:192.pressure:8.pseudo_level:17.soil_model_level_number:6",
         ),
         (
             builders.AccessEsm15Builder,
-            "iceh.1917-05",
-            ("iceh_XXXX_XX", "1917-05", None),
+            "iceh.1917-05.nc",
+            "time",
+            "d2:2.nc:5.ni:360.nj:300.nkice:1.nksnow:1",
         ),
         # Example ACCESS-OM2 filenames
         (
             builders.AccessOm2Builder,
-            "iceh.057-daily",
-            ("iceh_XXX_daily", "057", (1, "day")),
+            "ocean_month.nc",
+            "time",
+            "grid_xt_ocean:360.grid_xu_ocean:360.grid_yt_ocean:300.grid_yu_ocean:300.neutral:80.neutralrho_edges:81.nv:2.potrho:80.potrho_edges:81.st_edges_ocean:51.st_ocean:50.sw_edges_ocean:51.sw_ocean:50.xt_ocean:360.xu_ocean:360.yt_ocean:300.yu_ocean:300",
         ),
         (
             builders.AccessOm2Builder,
-            "iceh.1958-02-daily",
-            ("iceh_XXXX_XX_daily", "1958-02", (1, "day")),
+            "ocean_daily_3d_pot_rho_1.nc",
+            "time",
+            "nv:2.st_edges_ocean:76.st_ocean:75.xt_ocean:3600.yt_ocean:2700",
         ),
         (
             builders.AccessOm2Builder,
-            "iceh.1985-08-31",
-            ("iceh_XXXX_XX_XX", "1985-08-31", None),
-        ),
-        (builders.AccessOm2Builder, "ocean", ("ocean", None, None)),
-        (builders.AccessOm2Builder, "ocean_month", ("ocean_month", None, (1, "mon"))),
-        (
-            builders.AccessOm2Builder,
-            "ocean-2d-area_t",
-            ("ocean_2d_area_t", None, None),
+            "ocean_daily_3d_vhrho_nt_07.nc",
+            "time",
+            "nv:2.st_ocean:75.xt_ocean:3600.yt_ocean:900",
         ),
         (
             builders.AccessOm2Builder,
-            "ocean_daily_3d_pot_rho_1",
-            ("ocean_daily_3d_pot_rho_1", None, (1, "day")),
+            "ocean-3d-v-1-monthly-pow02-ym_1958_04.nc",
+            "time",
+            "nv:2.st_edges_ocean:76.st_ocean:75.xu_ocean:3600.yu_ocean:2700",
         ),
         (
             builders.AccessOm2Builder,
-            "ocean_daily_3d_vhrho_nt_07",
-            ("ocean_daily_3d_vhrho_nt_XX", "07", (1, "day")),
+            "ocean-2d-sfc_salt_flux_restore-1-monthly-mean-ym_1958_04.nc",
+            "time",
+            "nv:2.xt_ocean:3600.yt_ocean:2700",
         ),
+        (
+            builders.AccessOm2Builder,
+            "ocean-2d-sea_level-540-seconds-snap-ym_2022_04_01.nc",
+            "time",
+            "xt_ocean:3600.yt_ocean:2700",
+        ),
+        (
+            builders.AccessOm2Builder,
+            "ocean-3d-salt-1-daily-mean-ym_2018_10_jmax511_sigfig4.nc",
+            "time",
+            "nv:2.st_ocean:75.xt_ocean:3600.yt_ocean:511",
+        ),
+        (
+            builders.AccessOm2Builder,
+            "oceanbgc-3d-caco3-1-yearly-mean-y_2015.nc",
+            "time",
+            "nv:2.st_edges_ocean:51.st_ocean:50.xt_ocean:360.yt_ocean:300",
+        ),
+        (
+            builders.AccessOm2Builder,
+            "oceanbgc-2d-wdet100-1-daily-mean-y_2015.nc",
+            "time",
+            "nv:2.xt_ocean:360.yt_ocean:300",
+        ),
+        (
+            builders.AccessOm2Builder,
+            "oceanbgc-3d-phy-1-daily-mean-3-sigfig-5-daily-ymd_2020_12_01.nc",
+            "time",
+            "st_ocean:75.xt_ocean:3600.yt_ocean:2700",
+        ),
+        (
+            builders.AccessOm2Builder,
+            "rregionPrydz_temp_xflux_adv.nc",
+            "time",
+            "nv:2.st_edges_ocean:76.st_ocean:75.xu_ocean_sub02:351.yt_ocean_sub02:119",
+        ),
+        # Example ACCESS-OM3 filenames
+        # No live OM3 data - test data cannot be opened by xarray
+        # MOM6
+        (
+            builders.Mom6Builder,
+            "19000101.ice_daily.nc",
+            "time",
+            "nv:2.xT:1440.xTe:1441.yT:1080.yTe:1081",
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ice_month.nc",
+            "time",
+            "nv:2.xT:1440.xTe:1441.yT:1080.yTe:1081",
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_annual.nc",
+            "time",
+            "nv:2.xh:1440.xq:1441.yh:1080.yq:1081.zi:76.zl:75",
+        ),
+        (
+            builders.Mom6Builder,
+            "19000101.ocean_month_rho2.nc",
+            "time",
+            "nv:2.rho2_i:36.rho2_l:35.xh:1440.yh:1080.yq:1081",
+        ),
+        (
+            builders.ROMSBuilder,
+            "roms_his_0016.nc",
+            "ocean_time",
+            "boundary:4.eta_psi:309.eta_rho:310.eta_u:310.eta_v:309.s_rho:31.s_w:32.tracer:2.xi_psi:294.xi_rho:295.xi_u:294.xi_v:295",
+        ),
+        (
+            builders.WoaBuilder,
+            "woa13_ts_01_mom01.nc",
+            "time",
+            "GRID_X_T:2.GRID_Y_T:2.ZT:2",
+        ),
+    ],
+)
+def test_generate_file_shape_info(builder, filename, time_dim, expected):
+    filepath = Path(__file__).parent / "data" / "size_info_test_data" / filename
+    ds = xr.open_dataset(
+        filepath, chunks={}, decode_cf=False, decode_times=False, decode_coords=False
+    )
+    assert builder._generate_file_shape_info(ds, time_dim=time_dim) == expected
+
+
+@pytest.mark.parametrize(
+    "builder, filename, expected",
+    [
+        # Example ACCESS-CM2 filenames
+        (builders.AccessCm2Builder, "bz687a.pm107912_mon", (1, "mon")),
+        (builders.AccessCm2Builder, "bz687a.p7107912_mon", (1, "mon")),
+        (builders.AccessCm2Builder, "bz687a.p7107912_dai", (1, "day")),
+        (builders.AccessCm2Builder, "iceh_m.2014-06", None),
+        (builders.AccessCm2Builder, "iceh.1917-05-daily", (1, "day")),
+        (builders.AccessCm2Builder, "iceh_03h.2016-01-3hourly", None),
+        (builders.AccessCm2Builder, "ocean_bgc_ann", (1, "yr")),
+        (builders.AccessCm2Builder, "ocean_daily", (1, "day")),
+        # Example ACCESS-ESM1.5 filenames
+        (builders.AccessEsm15Builder, "PI-GWL-B2035.pe-109904_dai", (1, "day")),
+        (builders.AccessEsm15Builder, "PI-GWL-B2035.pa-109904_mon", (1, "mon")),
+        (builders.AccessEsm15Builder, "PI-1pct-02.pe-011802_dai.nc_dai", (1, "day")),
+        (builders.AccessEsm15Builder, "iceh.1917-05", None),
+        # Example ACCESS-OM2 filenames
+        (builders.AccessOm2Builder, "iceh.057-daily", (1, "day")),
+        (builders.AccessOm2Builder, "iceh.1958-02-daily", (1, "day")),
+        (builders.AccessOm2Builder, "iceh.1985-08-31", None),
+        (builders.AccessOm2Builder, "ocean", None),
+        (builders.AccessOm2Builder, "ocean_month", (1, "mon")),
+        (builders.AccessOm2Builder, "ocean-2d-area_t", None),
+        (builders.AccessOm2Builder, "ocean_daily_3d_pot_rho_1", (1, "day")),
+        (builders.AccessOm2Builder, "ocean_daily_3d_vhrho_nt_07", (1, "day")),
         (
             builders.AccessOm2Builder,
             "ocean-3d-v-1-monthly-pow02-ym_1958_04",
-            ("ocean_3d_v_1_monthly_pow02_ym_XXXX_XX", "1958_04", (1, "mon")),
+            (1, "mon"),
         ),
         (
             builders.AccessOm2Builder,
             "ocean-2d-sfc_salt_flux_restore-1-monthly-mean-ym_1958_04",
-            (
-                "ocean_2d_sfc_salt_flux_restore_1_monthly_mean_ym_XXXX_XX",
-                "1958_04",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.AccessOm2Builder,
             "ocean-2d-sea_level-540-seconds-snap-ym_2022_04_01",
-            (
-                "ocean_2d_sea_level_540_seconds_snap_ym_XXXX_XX_XX",
-                "2022_04_01",
-                None,
-            ),
+            None,
         ),
         (
             builders.AccessOm2Builder,
             "ocean-3d-salt-1-daily-mean-ym_2018_10_jmax511_sigfig4",
-            (
-                "ocean_3d_salt_1_daily_mean_ym_XXXX_XX_jmax511_sigfig4",
-                "2018_10",
-                (1, "day"),
-            ),
+            (1, "day"),
         ),
         (
             builders.AccessOm2Builder,
             "oceanbgc-3d-caco3-1-yearly-mean-y_2015",
-            ("oceanbgc_3d_caco3_1_yearly_mean_y_XXXX", "2015", (1, "yr")),
+            (1, "yr"),
         ),
         (
             builders.AccessOm2Builder,
             "oceanbgc-2d-wdet100-1-daily-mean-y_2015",
-            ("oceanbgc_2d_wdet100_1_daily_mean_y_XXXX", "2015", (1, "day")),
+            (1, "day"),
         ),
         (
             builders.AccessOm2Builder,
             "oceanbgc-3d-phy-1-daily-mean-3-sigfig-5-daily-ymd_2020_12_01",
-            (
-                "oceanbgc_3d_phy_1_daily_mean_3_sigfig_5_daily_ymd_XXXX_XX_XX",
-                "2020_12_01",
-                (1, "day"),
-            ),
+            (1, "day"),
         ),
-        (
-            builders.AccessOm2Builder,
-            "rregionPrydz_temp_xflux_adv",
-            ("rregionPrydz_temp_xflux_adv", None, None),
-        ),
+        (builders.AccessOm2Builder, "rregionPrydz_temp_xflux_adv", None),
         # Example ACCESS-OM3 filenames
-        (
-            builders.AccessOm3Builder,
-            "access-om3.ww3.hi.1958-01-02-00000",
-            (
-                "access_om3_ww3_hi_XXXX_XX_XX_XXXXX",
-                "1958-01-02-00000",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.cice.h.1900-01-01",
-            (
-                "access_om3_cice_h_XXXX_XX_XX",
-                "1900-01-01",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.cice.h.1900-01",
-            (
-                "access_om3_cice_h_XXXX_XX",
-                "1900-01",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.cice.h.1900-01-daily",
-            (
-                "access_om3_cice_h_XXXX_XX_daily",
-                "1900-01",
-                (1, "day"),
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.mom6.ocean_sfc_1900_01_01",
-            (
-                "access_om3_mom6_ocean_sfc_XXXX_XX_XX",
-                "1900_01_01",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.mom6.sfc_1900_01",
-            (
-                "access_om3_mom6_sfc_XXXX_XX",
-                "1900_01",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.mom6.sfc_1900",
-            (
-                "access_om3_mom6_sfc_XXXX",
-                "1900",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.mom6.static",
-            (
-                "access_om3_mom6_static",
-                None,
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.mom6.static",
-            (
-                "access_om3_mom6_static",
-                None,
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.mom6.3d.uh.1mon.mean.1900",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
-                "1900",
-                (1, "mon"),
-            ),
-        ),
+        (builders.AccessOm3Builder, "access-om3.ww3.hi.1958-01-02-00000", None),
+        (builders.AccessOm3Builder, "access-om3.cice.h.1900-01-01", None),
+        (builders.AccessOm3Builder, "access-om3.cice.h.1900-01", None),
+        (builders.AccessOm3Builder, "access-om3.cice.h.1900-01-daily", (1, "day")),
+        (builders.AccessOm3Builder, "access-om3.mom6.ocean_sfc_1900_01_01", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.sfc_1900_01", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.sfc_1900", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.static", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.static", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.3d.uh.1mon.mean.1900", (1, "mon")),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
-                "1900-01-01-00000",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900-01",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
-                "1900-01",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
-        (
-            builders.AccessOm3Builder,
-            "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
-                "1900-01-03-00000",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "GMOM_JRA_WD.ww3.hi.1900",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX",
-                "1900",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "GMOM_JRA_WD.ww3.hi.1900-01",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
-                "1900-01",
-                None,
-            ),
-        ),
-        (
-            builders.AccessOm3Builder,
-            "access-om3.mom6.3d.uh.1mon.mean.1900",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX",
-                "1900",
-                (1, "mon"),
-            ),
-        ),
+        (builders.AccessOm3Builder, "GMOM_JRA_WD.ww3.hi.1900-01-03-00000", None),
+        (builders.AccessOm3Builder, "GMOM_JRA_WD.ww3.hi.1900", None),
+        (builders.AccessOm3Builder, "GMOM_JRA_WD.ww3.hi.1900-01", None),
+        (builders.AccessOm3Builder, "access-om3.mom6.3d.uh.1mon.mean.1900", (1, "mon")),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900-01-01-00000",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX_XX_XXXXX",
-                "1900-01-01-00000",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.AccessOm3Builder,
             "access-om3.mom6.3d.uh.1mon.mean.1900-01",
-            (
-                "access_om3_mom6_3d_uh_1mon_mean_XXXX_XX",
-                "1900-01",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900-01-03-00000",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
-                "1900-01-03-00000",
-                None,
-            ),
+            None,
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX",
-                "1900",
-                None,
-            ),
+            None,
         ),
         (
             builders.AccessOm3Builder,
             "GMOM_JRA_WD.ww3.hi.1900-01",
-            (
-                "GMOM_JRA_WD_ww3_hi_XXXX_XX",
-                "1900-01",
-                None,
-            ),
+            None,
         ),
         # MOM6
         (
             builders.Mom6Builder,
             "19000101.ice_daily",
-            (
-                "XXXXXXXX_ice_daily",
-                "19000101",
-                (1, "day"),
-            ),
+            (1, "day"),
         ),
         (
             builders.Mom6Builder,
             "19010101.ice_month",
-            (
-                "XXXXXXXX_ice_month",
-                "19010101",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.Mom6Builder,
             "19010101.ocean_annual_rho2",
-            (
-                "XXXXXXXX_ocean_annual_rho2",
-                "19010101",
-                (1, "yr"),
-            ),
+            (1, "yr"),
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_annual_z",
-            (
-                "XXXXXXXX_ocean_annual_z",
-                "19000101",
-                (1, "yr"),
-            ),
+            (1, "yr"),
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_annual",
-            (
-                "XXXXXXXX_ocean_annual",
-                "19000101",
-                (1, "yr"),
-            ),
+            (1, "yr"),
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_daily",
-            (
-                "XXXXXXXX_ocean_daily",
-                "19000101",
-                (1, "day"),
-            ),
+            (1, "day"),
         ),
         (
             builders.Mom6Builder,
             "19010101.ocean_month_rho2",
-            (
-                "XXXXXXXX_ocean_month_rho2",
-                "19010101",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_month_z",
-            (
-                "XXXXXXXX_ocean_month_z",
-                "19000101",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_month",
-            (
-                "XXXXXXXX_ocean_month",
-                "19000101",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.Mom6Builder,
             "19000101.ocean_scalar_annual",
-            (
-                "XXXXXXXX_ocean_scalar_annual",
-                "19000101",
-                (1, "yr"),
-            ),
+            (1, "yr"),
         ),
         (
             builders.Mom6Builder,
             "19010101.ocean_scalar_month",
-            (
-                "XXXXXXXX_ocean_scalar_month",
-                "19010101",
-                (1, "mon"),
-            ),
+            (1, "mon"),
         ),
         (
             builders.Mom6Builder,
             "19010101.ocean_static",
-            (
-                "XXXXXXXX_ocean_static",
-                "19010101",
-                None,
-            ),
+            None,
         ),
         (
             builders.Mom6Builder,
             "20000201.ocean_daily_2000_032",
-            (
-                "XXXXXXXX_ocean_daily_XXXX_XXX",
-                "20000201",
-                (1, "day"),
-            ),
+            (1, "day"),
         ),
         (
             builders.Mom6Builder,
             "20000201.ocean_daily_rho2_2000_056",
-            (
-                "XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
-                "20000201",
-                (1, "day"),
-            ),
+            (1, "day"),
         ),
         (
             builders.Mom6Builder,
             "20000201.ocean_daily_z_2000_119",
-            (
-                "XXXXXXXX_ocean_daily_z_XXXX_XXX",
-                "20000201",
-                (1, "day"),
-            ),
+            (1, "day"),
         ),
         (
             builders.ROMSBuilder,
             "roms_his_0016",
-            (
-                "roms_his_XXXX",
-                "0016",
-                None,
-            ),
+            None,
         ),
         (
             builders.WoaBuilder,
             "woa13_ts_01_mom01",
-            (
-                "woa13_ts_XX_mom01",
-                "01",
-                None,
-            ),
+            None,
         ),
     ],
 )
 def test_parse_filename(builder, filename, expected):
-    assert builder.parse_filename(filename) == expected
+    assert builder.parse_filename_freq(filename) == expected
 
 
 @pytest.mark.parametrize(
@@ -836,8 +720,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_grid.nc",
-                file_id="ocean_grid",
-                filename_timestamp=None,
+                file_id="xt_ocean:1.yt_ocean:1",
                 frequency="fx",
                 start_date="none",
                 end_date="none",
@@ -859,8 +742,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean.nc",
-                file_id="ocean",
-                filename_timestamp=None,
+                file_id="nv:2.st_ocean:1.xt_ocean:1.yt_ocean:1",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1910-01-01, 00:00:00",
@@ -909,8 +791,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month.nc",
-                file_id="ocean_month",
-                filename_timestamp=None,
+                file_id="nv:2.xt_ocean:1.yt_ocean:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1910-01-01, 00:00:00",
@@ -948,8 +829,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_month_inst_nobounds.nc",
-                file_id="ocean_month_inst_nobounds",
-                filename_timestamp=None,
+                file_id="xt_ocean:1.yt_ocean:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -981,8 +861,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1900-01.nc",
-                file_id="iceh_XXXX_XX",
-                filename_timestamp="1900-01",
+                file_id="d2:2.ni:1.nj:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -1013,8 +892,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="by578a.pd201501_dai.nc",
-                file_id="by578a_pdXXXXXX_dai",
-                filename_timestamp="201501",
+                file_id="bnds:2.lat:1.lon:1",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-02-01, 00:00:00",
@@ -1031,8 +909,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh_d.2015-01.nc",
-                file_id="iceh_d_XXXX_XX",
-                filename_timestamp="2015-01",
+                file_id="d2:2.ni:1.nj:1",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-02-01, 00:00:00",
@@ -1063,8 +940,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_daily.nc-20150630",
-                file_id="ocean_daily",
-                filename_timestamp=None,
+                file_id="nv:2.xt_ocean:1.yt_ocean:1",
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-07-01, 00:00:00",
@@ -1095,8 +971,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_scalar.nc-20150630",
-                file_id="ocean_scalar",
-                filename_timestamp=None,
+                file_id="nv:2.scalar_axis:1",
                 frequency="1mon",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-07-01, 00:00:00",
@@ -1137,8 +1012,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="HI-C-05-r1.pa-185001_mon.nc",
-                file_id="HI_C_05_r1_pa_XXXXXX_mon",
-                filename_timestamp="185001",
+                file_id="bnds:2.lat:1.lon:1",
                 frequency="1mon",
                 start_date="1850-01-01, 00:00:00",
                 end_date="1850-02-01, 00:00:00",
@@ -1155,8 +1029,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="iceh.1850-01.nc",
-                file_id="iceh_XXXX_XX",
-                filename_timestamp="1850-01",
+                file_id="d2:2.ni:1.nj:1",
                 frequency="1mon",
                 start_date="1850-01-01, 00:00:00",
                 end_date="1850-02-01, 00:00:00",
@@ -1187,8 +1060,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc_ann.nc-18501231",
-                file_id="ocean_bgc_ann",
-                filename_timestamp=None,
+                file_id="nv:2.xt_ocean:1.yt_ocean:1",
                 frequency="1yr",
                 start_date="1849-12-30, 00:00:00",
                 end_date="1850-12-30, 00:00:00",
@@ -1226,8 +1098,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="ocean_bgc.nc-18501231",
-                file_id="ocean_bgc",
-                filename_timestamp=None,
+                file_id="nv:2.st_ocean:50.xt_ocean:1.yt_ocean:1",
                 frequency="1mon",
                 start_date="1849-12-30, 00:00:00",
                 end_date="1850-12-30, 00:00:00",
@@ -1268,8 +1139,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.native_1900_01.nc",
-                file_id="GMOM_JRA_WD_mom6_h_native_XXXX_XX",
-                filename_timestamp="1900_01",
+                file_id="nv:2.xh:1.yh:1.zl:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -1341,8 +1211,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.sfc_1900_01_02.nc",
-                file_id="GMOM_JRA_WD_mom6_h_sfc_XXXX_XX_XX",
-                filename_timestamp="1900_01_02",
+                file_id="nv:2.xh:1.yh:1",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1409,8 +1278,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.static.nc",
-                file_id="GMOM_JRA_WD_mom6_h_static",
-                filename_timestamp=None,
+                file_id="xh:1.yh:1",
                 frequency="fx",
                 start_date="none",
                 end_date="none",
@@ -1437,8 +1305,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.mom6.h.z_1900_01.nc",
-                file_id="GMOM_JRA_WD_mom6_h_z_XXXX_XX",
-                filename_timestamp="1900_01",
+                file_id="nv:2.xh:1.yh:1.z_l:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-02-01, 00:00:00",
@@ -1510,8 +1377,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.cice.h.1900-01-01.nc",
-                file_id="GMOM_JRA_WD_cice_h_XXXX_XX_XX",
-                filename_timestamp="1900-01-01",
+                file_id="nbnd:2.ni:1.nj:1",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1542,8 +1408,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="GMOM_JRA_WD.ww3.hi.1900-01-02-00000.nc",
-                file_id="GMOM_JRA_WD_ww3_hi_XXXX_XX_XX_XXXXX",
-                filename_timestamp="1900-01-02-00000",
+                file_id="freq:1.nx:1.ny:1",
                 frequency="fx",  # WW3 provides no time bounds
                 start_date="1900-01-02, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
@@ -1560,11 +1425,10 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ice_daily.nc",
-                file_id="XXXXXXXX_ice_daily",
-                filename_timestamp="19000101",
+                file_id="nv:2.xT:1.xTe:1.yT:1.yTe:1",
                 frequency="1day",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1901-01-01, 00:00:00",
+                end_date="1900-01-02, 00:00:00",
                 variable=[
                     "xT",
                     "xTe",
@@ -1626,12 +1490,12 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_E",
                     "degrees_N",
                     "degrees_N",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "0-1",
                     "m-ice",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1643,8 +1507,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_annual_z.nc",
-                file_id="XXXXXXXX_ocean_annual_z",
-                filename_timestamp="19000101",
+                file_id="nv:2.xh:1.xq:1.yh:1.yq:1.z_i:1.z_l:1",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1901-01-01, 00:00:00",
@@ -1773,7 +1636,7 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_north",
                     "meters",
                     "meters",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
@@ -1793,8 +1656,8 @@ def test_parse_filename(builder, filename, expected):
                     "W",
                     "psu m3 s-1",
                     "psu m3 s-1",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1806,11 +1669,10 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_month_rho2.nc",
-                file_id="XXXXXXXX_ocean_month_rho2",
-                filename_timestamp="19000101",
+                file_id="nv:2.rho2_i:1.rho2_l:1.xh:1.yh:1.yq:1",
                 frequency="1mon",
                 start_date="1900-01-01, 00:00:00",
-                end_date="1901-01-01, 00:00:00",
+                end_date="1900-02-01, 00:00:00",
                 variable=[
                     "xh",
                     "yh",
@@ -1880,14 +1742,14 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_north",
                     "kg m-3",
                     "kg m-3",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "degrees_north",
                     "m3",
                     "m",
                     "kg s-1",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1899,8 +1761,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_scalar_annual.nc",
-                file_id="XXXXXXXX_ocean_scalar_annual",
-                filename_timestamp="19000101",
+                file_id="nv:2.scalar_axis:1",
                 frequency="1yr",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1901-01-01, 00:00:00",
@@ -1962,15 +1823,15 @@ def test_parse_filename(builder, filename, expected):
                 ],
                 variable_units=[
                     "",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "",
                     "kg",
                     "m3",
                     "degC",
                     "psu",
                     "psu",
-                    "days since 1900-01-01 00:00:00",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
+                    "days since 1900-01-01",
                     "days",
                     "days",
                 ],
@@ -1982,8 +1843,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="19000101.ocean_static.nc",
-                file_id="XXXXXXXX_ocean_static",
-                filename_timestamp="19000101",
+                file_id="xh:1.xq:1.yh:1.yq:1",
                 frequency="fx",
                 start_date="1900-01-01, 00:00:00",
                 end_date="1900-01-01, 00:00:00",
@@ -2122,7 +1982,7 @@ def test_parse_filename(builder, filename, expected):
                 variable_units=[
                     "degrees_east",
                     "degrees_north",
-                    "days since 1900-01-01 00:00:00",
+                    "days since 1900-01-01",
                     "degrees_east",
                     "degrees_north",
                     "m2",
@@ -2160,8 +2020,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_2005_360.nc",
-                file_id="XXXXXXXX_ocean_daily_XXXX_XXX",
-                filename_timestamp="20051101",
+                file_id="nv:2.xh:1.xq:1.yh:1.yq:1.zl:1",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -2265,7 +2124,7 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_east",
                     "degrees_north",
                     "meter",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
@@ -2280,8 +2139,8 @@ def test_parse_filename(builder, filename, expected):
                     "kg m-2 s-1",
                     "W",
                     "W",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -2293,8 +2152,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_rho2_2005_360.nc",
-                file_id="XXXXXXXX_ocean_daily_rho2_XXXX_XXX",
-                filename_timestamp="20051101",
+                file_id="nv:2.rho2_i:1.rho2_l:1.xh:1.xq:1.yh:1.yq:1",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -2371,15 +2229,15 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_north",
                     "kg m-3",
                     "kg m-3",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "degrees_north",
                     "m3",
                     "kg s-1",
                     "kg s-1",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -2391,8 +2249,7 @@ def test_parse_filename(builder, filename, expected):
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="20051101.ocean_daily_z_2005_360.nc",
-                file_id="XXXXXXXX_ocean_daily_z_XXXX_XXX",
-                filename_timestamp="20051101",
+                file_id="nv:2.xh:1.xq:1.yh:1.yq:1.z_i:1.z_l:1.z_l_sub01:1",
                 frequency="1day",
                 start_date="2005-12-26, 00:00:00",
                 end_date="2005-12-27, 00:00:00",
@@ -2481,7 +2338,7 @@ def test_parse_filename(builder, filename, expected):
                     "degrees_north",
                     "meters",
                     "meters",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
                     "",
                     "degrees_east",
                     "meters",
@@ -2491,8 +2348,8 @@ def test_parse_filename(builder, filename, expected):
                     "m s-1",
                     "degC",
                     "psu",
-                    "days since 1991-01-01 00:00:00",
-                    "days since 1991-01-01 00:00:00",
+                    "days since 1991-01-01",
+                    "days since 1991-01-01",
                     "days",
                     "days",
                 ],
@@ -2503,9 +2360,8 @@ def test_parse_filename(builder, filename, expected):
             "roms/roms_his_0016.nc",
             _NCFileInfo(
                 filename="roms_his_0016.nc",
-                file_id="roms_his_XXXX",
+                file_id="boundary:1.eta_psi:1.eta_rho:1.eta_u:1.eta_v:1.ocean_time:73.s_rho:1.s_w:1.tracer:1.xi_psi:1.xi_rho:1.xi_u:1.xi_v:1",
                 path=None,  # type: ignore
-                filename_timestamp="0016",
                 frequency="fx",
                 start_date="none",
                 end_date="none",
@@ -3031,7 +2887,11 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
     # Set the path to the test data directory
     expected.path = file
 
-    assert builder.parse_ncfile(file) == expected
+    parsed_file = builder.parse_ncfile(file)
+
+    exptd_dict = expected.to_dict()
+    parsed_dict = parsed_file.to_dict()
+    assert exptd_dict == parsed_dict
 
     if not compare_files:
         return None
