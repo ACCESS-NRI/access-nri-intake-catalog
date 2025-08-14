@@ -3,7 +3,9 @@
 
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
+import pickle
 import warnings
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 from pathlib import Path
@@ -11,8 +13,31 @@ from pathlib import Path
 import cftime
 import polars as pl
 import xarray as xr
+import xxhash
+from frozendict import frozendict
+from pandas.api.types import is_object_dtype
 
 FREQUENCY_STATIC = "fx"
+
+
+# Note the ordering of this dictionary - we are deliberately searching for
+# the 'rarer' frequency descriptors first, because, e.g., "mon" may appear as
+# part of a totally unrelated word in the filename
+FILENAME_TO_FREQ = {
+    "annual": "yr",
+    "yearly": "yr",
+    "hourly": "hr",
+    "hour": "hr",
+    "monthly": "mon",
+    "month": "mon",
+    "daily": "day",
+    "day": "day",
+    "year": "yr",
+    "yr": "yr",
+    "mth": "mon",
+    "mon": "mon",
+    "hr": "hr",
+}
 
 
 class EmptyFileError(Exception):
@@ -33,9 +58,8 @@ class _NCFileInfo:
     """
 
     filename: str | Path
-    file_id: str
     path: str
-    filename_timestamp: str | None
+    file_id: str
     frequency: str
     start_date: str
     end_date: str
@@ -111,6 +135,89 @@ class _VarInfo:
             "variable_cell_methods": self.cell_methods_list,
             "variable_units": self.units_list,
         }
+
+
+class HashableIndexes:
+    """
+    Consumes either an xarray dataset or its _indexes attribute, and creates a
+    hashable representation of the indexes. Can be used to compare datasets & whether
+    they are mergeable based on their indexes, and potentially for labelling grids
+    in a catalog.
+    """
+
+    def __init__(
+        self,
+        *,
+        ds: xr.Dataset | None = None,
+        _indexes: dict | None = None,
+        drop_indices: Iterable[str] | None = None,
+    ):
+        if ds is not None and _indexes is not None:
+            raise TypeError(
+                "Can only initialise HashableIndexes with either an xarray dataset (ds) or its _indexes (_indexes), not both"
+            )
+        elif ds is not None:
+            _indexes = ds._indexes
+
+        drop_indices = drop_indices or []
+        self.dict = frozendict(
+            {
+                key: val.index.values
+                for key, val in _indexes.items()  # type:ignore[union-attr]
+                if not is_object_dtype(val.coord_dtype) and key not in drop_indices
+            }
+        )
+
+        self._bytedict = {key: val.tobytes() for key, val in self.dict.items()}
+
+        bytestream = pickle.dumps(self._bytedict, protocol=pickle.HIGHEST_PROTOCOL)
+        self.xxh = xxhash.xxh3_64(bytestream).hexdigest()
+
+    def __repr__(self):
+        return str(self.xxh)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, HashableIndexes):
+            return False
+        if other.xxh == self.xxh:
+            return True
+        return False
+
+    def __and__(self, other) -> set:
+        """
+        Return all keys which are:
+        - In both objects
+        - Have the same hashes
+
+        Useful for determining why two mergeable datasets have differing hashes.
+        """
+
+        if not isinstance(other, HashableIndexes):
+            raise TypeError(
+                f"Cannot compare HashableIndexes with type {other.__class__.__name__}"
+            )
+        shared_keys = self.keys() & other.keys()
+
+        return {key for key in shared_keys if self.dict[key] == other.dict[key]}
+
+    def __xor__(self, other):
+        """
+        Return all keys which are:
+        - In both objects
+        - Have differing hashes
+
+        Useful for determining two griß with differing hashes are mergeable
+        """
+        if not isinstance(other, HashableIndexes):
+            raise TypeError(
+                f"Cannot compare HashableIndexes with type {other.__class__.__name__}"
+            )
+        shared_keys = self.keys() & other.keys()
+
+        return {key for key in shared_keys if self.dict[key] != other.dict[key]}
+
+    def keys(self):
+        return self.dict.keys()
 
 
 def _add_month_start(time, n: int):
