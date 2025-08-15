@@ -1540,7 +1540,7 @@ def test_build_no_concrete(
         str(test_data),
         "--no_concretize",
     ]
-    if not no_update:
+    if no_update:
         arglist.append("--no_update")
     build(arglist)
 
