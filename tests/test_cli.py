@@ -1491,6 +1491,13 @@ def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, ex
     ],
 )
 @pytest.mark.parametrize(
+    "no_update",
+    [
+        True,
+        False,
+    ],
+)
+@pytest.mark.parametrize(
     "input_list, expected_size",
     [
         (
@@ -1504,7 +1511,13 @@ def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, ex
     ],
 )
 def test_build_no_concrete(
-    version, input_list, expected_size, test_data, tmpdir, fake_project_access
+    version,
+    input_list,
+    expected_size,
+    test_data,
+    tmpdir,
+    fake_project_access,
+    no_update,
 ):
     """Test full catalog build process from config files. We turn off concretization,
     so the catalog should just stick in `.../.{version}/cat.csv`"""
@@ -1513,23 +1526,23 @@ def test_build_no_concrete(
 
     configs = [str(test_data / fname) for fname in input_list]
 
-    build(
-        [
-            *configs,
-            "--catalog_file",
-            "cat.csv",
-            # "--no_update",  # commented out to test brand-new-catalog-versioning
-            "--version",
-            version,
-            "--build_base_path",
-            build_base_path,
-            "--catalog_base_path",
-            build_base_path,
-            "--data_base_path",
-            str(test_data),
-            "--no_concretize",
-        ]
-    )
+    arglist = [
+        *configs,
+        "--catalog_file",
+        "cat.csv",
+        "--version",
+        version,
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+        "--no_concretize",
+    ]
+    if not no_update:
+        arglist.append("--no_update")
+    build(arglist)
 
     # manually fix the version so we can correctly build the test path: build
     # will do this for us so we need to replicate it here
@@ -1549,11 +1562,17 @@ def test_build_no_concrete(
     metacat = Path(build_base_path) / f".{version}" / "catalog.yaml"
     with metacat.open(mode="r") as fobj:
         cat_info = yaml.safe_load(fobj)
+
     assert (
         cat_info["sources"]["access_nri"]["parameters"]["version"]["default"] == version
     )
-    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
-    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
+    if not no_update:  # We won't have created min/max versions if we haven't updated
+        assert (
+            cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
+        )
+        assert (
+            cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
+        )
 
 
 def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_access):
@@ -1819,6 +1838,122 @@ def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
     ).is_dir(), (
         f"Expected directory {tmp_path / f'.{VERSION}'} to exist, but it does not."
     )
+
+    # Equivalent to this in the previous test:
+    # exit_status = os.system(CMD)
+    concretize(
+        [
+            "--build_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+            "--catalog_file",
+            "cat.csv",
+            "--catalog_base_path",
+            build_base_path,
+            "--force",
+        ]
+    )
+
+    # Now check that the `$BUILD_BASE_PATH/.v2024-01-01` directory has been removed
+    assert not (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to not exist, but it does."
+    )
+
+    # And that the `$BUILD_BASE_PATH/.tmp-old-v2024-01-01` directory has been removed
+
+    assert not (
+        tmp_path / f".tmp-old-{VERSION}"
+    ).is_dir(), f"Expected directory {tmp_path / f'.tmp-old-{VERSION}'} to not exist, but it does."
+
+
+def test_build_no_update_creates_hidden_catalog(
+    test_data, tmp_path, fake_project_access
+):
+    """
+    Test if the intelligent versioning works correctly when there is
+    no significant change to the underlying catalogue
+    """
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    VERSION = "v2024-01-01"
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            VERSION,
+        ]
+    )
+
+    # Update the version number and have another crack at building
+    with pytest.raises(
+        DirectoryExistsError,
+        match=r"Catalog version v2024-01-01 already exists",
+    ):
+        build(
+            [
+                *configs,
+                "--catalog_file",
+                "cat.csv",
+                "--data_base_path",
+                data_base_path,
+                "--build_base_path",
+                build_base_path,
+                "--catalog_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+            ]
+        )
+
+    with pytest.raises(
+        DirectoryExistsError,
+        match=r"Unable to concretize catalog build: Catalog version v2024-01-01 already exists",
+    ):
+        # This is equivalent to the CMD_noforce in the previous test.
+        # exc_msg = str(excinfo.value)
+        # CMD = exc_msg.split("`")[1]
+        # CMD_noforce = " ".join(CMD.split(" ")[:-1])  # Remove the --force flag
+        # exit_status_noforce = os.system(CMD_noforce)
+        concretize(
+            [
+                "--build_base_path",
+                build_base_path,
+                "--version",
+                VERSION,
+                "--catalog_file",
+                "cat.csv",
+                "--catalog_base_path",
+                build_base_path,
+            ]
+        )
+
+    # Check that we have an extant `$BUILD_BASE_PATH/.v2024-01-01` directory
+    assert (
+        tmp_path / f".{VERSION}"
+    ).is_dir(), (
+        f"Expected directory {tmp_path / f'.{VERSION}'} to exist, but it does not."
+    )
+
+    assert (
+        tmp_path / f".{VERSION}" / "catalog.yaml"
+    ).is_file(), f"Expected file {tmp_path / f'.{VERSION}' / 'catalog.yaml'} to exist, but it does not."
 
     # Equivalent to this in the previous test:
     # exit_status = os.system(CMD)

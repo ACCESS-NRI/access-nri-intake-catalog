@@ -543,9 +543,10 @@ def build(argv: Sequence[str] | None = None):
     except Exception as e:
         raise RuntimeError(f"Catalog save failed: {str(e)}")
 
-    yaml_dict = _compute_previous_versions(
-        yaml_dict, catalog_base_path, build_base_path, version
-    )
+    if update:
+        yaml_dict = _compute_previous_versions(
+            yaml_dict, catalog_base_path, build_base_path, version
+        )
     catalog_tmp_path = Path(build_base_path) / f".{version}"
 
     with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
