@@ -1,50 +1,100 @@
 {
-    "id": "access-regional-bs94",
-    "title": "access-regional-bs94",
-    "description": "Datasets on Gadi, both publised and replicated. All file versions present are in the listing\nMaintained By: NCI\nContact: help@nci.org.au",
+    "esmcat_version": "0.0.1",
+    "attributes": [
+        {
+            "column_name": "filename",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "file_id",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "path",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "filename_timestamp",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "frequency",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "start_date",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "end_date",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "variable",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "variable_long_name",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "variable_standard_name",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "variable_cell_methods",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "variable_units",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "version",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "experiment",
+            "vocabulary": ""
+        },
+        {
+            "column_name": "realm",
+            "vocabulary": ""
+        }
+    ],
     "assets": {
         "column_name": "path",
-        "format": "netcdf"
+        "format": "netcdf",
+        "format_column_name": null
     },
     "aggregation_control": {
-        "variable_column_name": "variable_id",
+        "variable_column_name": "variable",
         "groupby_attrs": [
-            "file_type",
-            "model_id",
-            "frequency",
-            "variable_id",
-            "version"
+            "file_id",
+            "frequency"
         ],
         "aggregations": [
             {
                 "type": "join_existing",
-                "attribute_name": "time_range",
+                "attribute_name": "start_date",
                 "options": {
-                    "dim": "time"
+                    "dim": "time",
+                    "combine": "by_coords"
+                }
+            },
+            {
+                "type": "join_new",
+                "attribute_name": "member",
+                "options": {
+                    "dim": null,
+                    "combine": null
                 }
             }
         ]
     },
-    "esmcat_version": "0.1.0",
-    "catalog_file": "aus2200-bs94.csv",
-    "attributes": [
-        {
-            "column_name": "file_type"
-        },
-        {
-            "column_name": "model_id"
-        },
-        {
-            "column_name": "frequency"
-        },
-        {
-            "column_name": "variable_id"
-        },
-        {
-            "column_name": "version"
-        },
-        {
-            "column_name": "time_range"
-        }
-    ]
+    "id": "AUS2200",
+    "description": "AUS2200 simulations collections. Each simulation is a limited area model study of the entire Australian continent at 2.2 km resolution, using the UM atmospheric model. \n         This dataset is part of the AUS2200 simulations collection at NCI.\n",
+    "title": null,
+    "last_updated": "2025-08-11T03:30:20Z",
+    "catalog_file": "aus2200-bs94.csv"
 }

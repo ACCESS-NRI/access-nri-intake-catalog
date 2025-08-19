@@ -728,6 +728,8 @@ def _cmip_realm_translator(series) -> pd.Series:
             "landonly": "land",
             "ocnBgChem": "ocnBgchem",
             "seaice": "seaIce",
+            "atmos": "atmos",
+            "land": "land",
         }
 
         raw_realms = string.split(" ")
@@ -759,19 +761,19 @@ class Aus2200Translator(DefaultTranslator):
 
         super().__init__(source, columns)
         self.set_dispatch(
-            input_name="model_id",
+            input_name="model",
             core_colname="model",
-            func=super()._model_translator,
+            func=self._model_translator,
         )
         self.set_dispatch(
-            input_name="variable_id",
+            input_name="variable",
             core_colname="variable",
             func=super()._variable_translator,
         )
         self.set_dispatch(
             input_name="realm",
             core_colname="realm",
-            func=self._realm_translator,
+            func=super()._realm_translator,
         )
         self.set_dispatch(
             input_name="frequency",
@@ -779,9 +781,9 @@ class Aus2200Translator(DefaultTranslator):
             func=super()._frequency_translator,
         )
 
-    def _realm_translator(self):
+    def _model_translator(self):
         """
-        Realm is not available in the AUS2200 metadata, so we'll just return
-        ('none',) for now.
+        Model is not available in the AUS2200 metadata, so we'll just return
+        ('UM',) for now.
         """
-        return self.source.df.apply(lambda x: ("none",), 1)
+        return self.source.df.apply(lambda x: ("UM",), 1)
