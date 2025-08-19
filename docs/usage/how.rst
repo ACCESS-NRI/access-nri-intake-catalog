@@ -35,7 +35,7 @@ In order to use the catalog, you will need to have the following:
       Catalog users will only be able to load data from projects that they have access to.
 
 #. **An installation of the catalog**: the catalog is pre-installed in 
-   the ACCESS-NRI "access-med" conda environment (all versions). Users are encouraged to use this
+   the ACCESS-NRI "analysis3" conda environment (all versions). Users are encouraged to use this
    environment to use the catalog. Alternatively, you can install the catalog into your own environment 
    as described below.
 
@@ -98,7 +98,7 @@ data it references are available from your session. In particular:
   session. As mentioned above, the easiest way to do this is to use the
   :code:`xp65` public analysis environment. You can activate the :code:`xp65` environment within your 
   JupyterLab session using the "Advanced options" to set the "Module directories" to 
-  :code:`/g/data/xp65/public/modules` and "Modules" to :code:`conda/access-med`.
+  :code:`/g/data/xp65/public/modules` and "Modules" to :code:`conda/analysis3`.
 
   .. note::
    If you are intending to do a multi-threaded catalog build, you will also need to explicitly load

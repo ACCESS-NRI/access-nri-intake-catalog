@@ -17,6 +17,7 @@ classifiers = [
 dependencies = [
     "cftime",
     "ecgtools>=2023.7.13",
+    "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
     "intake-esm>=2025.2.3",
@@ -25,7 +26,7 @@ dependencies = [
     "pooch",
     "xarray",
     "colorama",
-    "yamanifest",
+    "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
 ]
 dynamic = ["version"]

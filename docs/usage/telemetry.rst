@@ -17,7 +17,7 @@ A typical telemetry record is shown below:
        "function": "esm_datastore.search",
        "args": [],
        "kwargs": {
-           "file_id": "ocean_month"
+           "file_id": "ocean.month"
        },
        "session_id": "df07384b-acca-49e9-949c-dbef13b45562",
        "catalog_version": "v2025-03-04"
@@ -28,7 +28,7 @@ following signature:
 
 .. code-block:: python
 
-   esm_ds.search(file_id='ocean_month') # Searching for a file with the ID 'ocean_month' - this is our recorded call
+   esm_ds.search(file_id='ocean.month') # Searching for a file with the ID 'ocean_month' - this is our recorded call
 
 The other data collected are:
 

@@ -446,7 +446,7 @@ class Era5Translator(DefaultTranslator):
         where model is one of 'era5', 'era5t', 'era5-preliminary', 'era5-1',
         'era5-derived'.
         """
-        return self.source.df["path"].str.split("/").str[4]
+        return self.source.df["path"].astype(str).str.split("/").str[4]
 
     def _realm_translator(self):
         """
@@ -461,7 +461,7 @@ class Era5Translator(DefaultTranslator):
         """
         Get the frequency from the path
         """
-        config_str = self.source.df["path"].str.split("/").str[6].copy()
+        config_str = self.source.df["path"].astype(str).str.split("/").str[6].copy()
         """
         ERA5 contains some datasets where the frequency isn't readily identifiable:
         - 'reanalysis' is at 1hour frequency

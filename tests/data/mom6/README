@@ -1,39 +1,65 @@
 Generated using the following Python on NCI ARE:
 
 ```
-import netCDF4
-import glob
-import os
+import xarray as xr 
+from pathlib import Path
 
-srcdir = "/g/data/ik11/outputs/mom6-om4-025/OM4_025.JRA_RYF/"
-destdir = "/home/120/mcw120/scratch/"
+srcdir = Path("/g/data/ik11/outputs/mom6-om4-025/OM4_025.JRA_RYF/")
+destdir = Path("/scratch/tm70/ct1163/mom6_testdata")
 
 targets = ["output000", "output001"]
-target_glob = "190*.nc"
+target_globs = ["190*.nc","2005*.nc"]
 
 for target in targets:
-    srcglob = os.path.join(srcdir, target, target_glob)
-    srcfns = [os.path.basename(_) for _ in glob.glob(srcglob)]
-    for srcfn in srcfns:
-        with netCDF4.Dataset(os.path.join(srcdir, target, srcfn), "r") as old, netCDF4.Dataset(os.path.join(destdir, target, srcfn), "w") as new:
-            print(old.filepath())
-            print(new.filepath())
-            new.setncattr("file_format", old.file_format)
-            new.setncatts(old.__dict__)
-            # new.set_fill_off()
-            for name, dimension in old.dimensions.items():
-                if name == "nv":
-                        dimn = 2
-                elif not dimension.isunlimited():
-                    dimn = 1
-                else:
-                    dimn = dimension.size
-                new.createDimension(name, dimn)
-            for name, variable in old.variables.items():
-                x = new.createVariable(name, variable.datatype, variable.dimensions)
-                new[name].setncatts(old[name].__dict__)
-                if name == "time" or name == "nv":  # Need time-related data only
-                    new[name][:] = old[name][:]
-            print(">> Complete!")
-            print("--")
+    for target_glob in target_globs:
+        src_fglob = (srcdir /  target)
+        src_fnames = [fname for fname in src_fglob.glob(target_glob)]
+    
+        for file in src_fnames:
+            ds = xr.open_dataset(file, decode_timedelta=False)
+    
+            for coord in ds.coords:
+                try:
+                    if coord == 'nv':
+                        ds = ds.isel(**{coord : [0,1], "drop" : False})
+                    else:
+                        raise IndexError('Hack to go to the error handling below')
+                except IndexError:
+                    ds = ds.isel(**{coord : [0], "drop" : False})
+    
+            output_path = Path(destdir/target).mkdir(exist_ok=True)
+            output_fname = destdir / target / file.name
+            
+            print(f"Finished for {output_fname}")
+            ds.to_netcdf(output_fname)
+
+srcdir = Path("/g/data/ol01/outputs/mom6-panan/panant-01-zstar-ACCESSyr2/")
+destdir = Path("/scratch/tm70/ct1163/mom6_testdata")
+            
+target_globs = ["20051101.ocean_daily_*_360.nc"]
+targets = ["output053",]
+
+for target in targets:
+    for target_glob in target_globs:
+        src_fglob = (srcdir /  target)
+        src_fnames = [fname for fname in src_fglob.glob(target_glob)]
+    
+        for file in src_fnames:
+            ds = xr.open_dataset(file, decode_timedelta=False)
+    
+            for coord in ds.coords:
+                try:
+                    if coord == 'nv':
+                        ds = ds.isel(**{coord : [0,1], "drop" : False})
+                    else:
+                        raise IndexError('Hack to go to the error handling below')
+                except IndexError:
+                    ds = ds.isel(**{coord : [0], "drop" : False})
+    
+            output_path = Path(destdir/target).mkdir(exist_ok=True)
+            output_fname = destdir / target / file.name
+            
+            print(f"Finished for {output_fname}")
+            ds.to_netcdf(output_fname)
+            
 ```
