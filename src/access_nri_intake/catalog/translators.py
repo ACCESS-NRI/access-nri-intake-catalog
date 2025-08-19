@@ -728,8 +728,6 @@ def _cmip_realm_translator(series) -> pd.Series:
             "landonly": "land",
             "ocnBgChem": "ocnBgchem",
             "seaice": "seaIce",
-            "atmos": "atmos",
-            "land": "land",
         }
 
         raw_realms = string.split(" ")
@@ -760,25 +758,12 @@ class Aus2200Translator(DefaultTranslator):
         """
 
         super().__init__(source, columns)
+
+        # Use default translators for variable, realm, and frequency
         self.set_dispatch(
             input_name="model",
             core_colname="model",
             func=self._model_translator,
-        )
-        self.set_dispatch(
-            input_name="variable",
-            core_colname="variable",
-            func=super()._variable_translator,
-        )
-        self.set_dispatch(
-            input_name="realm",
-            core_colname="realm",
-            func=super()._realm_translator,
-        )
-        self.set_dispatch(
-            input_name="frequency",
-            core_colname="frequency",
-            func=super()._frequency_translator,
         )
 
     def _model_translator(self):
