@@ -24,6 +24,7 @@ from .utils import (
 __all__ = [
     "AccessOm2Builder",
     "AccessOm3Builder",
+    "CryoInputDataBuilder",
     "Mom6Builder",
     "AccessEsm15Builder",
     "AccessEsm16Builder",
@@ -564,6 +565,68 @@ class AccessOm3Builder(BaseBuilder):
         )
 
         return ncinfo_dict
+
+## DRAFT builder for key cryosphere-related input data
+class CryoInputDataBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for common Cryosphere Input datasets"""
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a CryoInputDataBuilder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path = path,
+            data_format = "netcdf",
+            depth = 1,
+            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            groupby_attrs=[
+                "file_id",
+            ],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        try:
+
+            nc_info = cls.parse_ncfile(file)
+            ncinfo_dict = nc_info.to_dict()
+
+            # TEMP - hardcode realm and frequency (assuming static input files for now)
+            ncinfo_dict["realm"] = "cryo"
+            ncinfo_dict["frequency"] = "fx"
+
+            # Formulate custom file_id because input data files generally differ from ACCESS model files (use filename, not file_id)
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(str(ncinfo_dict["filename"]).removesuffix(".nc"))
+                ]
+            )
+
+            return ncinfo_dict
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 
 # FIXME refactor to be called Mom6Builder (TBC)

@@ -19,6 +19,7 @@
                 "aerosol",
                 "atmos",
                 "atmosChem",
+                "cryo",
                 "land",
                 "landIce",
                 "none",
