@@ -3003,7 +3003,7 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
     else:
         with pytest.raises(
             (builders.ParserError, jsonschema.exceptions.ValidationError)
-        ) as e_info:
+        ):
             builder = builder.build()
 
     assert len(builder.assets) == n_assets
