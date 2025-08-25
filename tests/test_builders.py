@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest import mock
 
 import intake
+import jsonschema
 import pandas as pd
 import pytest
 import xarray as xr
@@ -2965,3 +2966,44 @@ def test_builder_include_exclude_patterns(
     assert bld.exclude_patterns == (
         exclude_patts if exclude_patts is not None else default_exclude
     )
+
+
+@pytest.mark.parametrize(
+    "test_dir,valid,realm,n_assets",
+    [
+        ("om3_realm/1_single-realm", True, ["ocean"], 1),
+        ("om3_realm/2_multiple-realms", False, ["ocean atmos"], 1),
+        ("om3_realm/3_no-realm", False, None, 1),
+        ("om3_realm", False, ["ocean", "ocean atmos"], 3),  # All files
+        ("om3_realm_reordered", False, ["ocean", "ocean atmos"], 3),  # All files
+    ],
+)
+def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
+    """
+    Tests the OM3 builder with the .nc files in "om3_realm.
+
+    The .nc files have the 'realm' global attribute set and the filenames do not
+    match any of the normal patterns for extracting 'realm'.
+
+    Currently the multiple realms tests are expected to fail to parse since the
+    schema only allows a single realm.
+
+    FIXME: If the multiple realms file is not the first one to be parsed then the
+    building succeeds. This is shown in the last two parameterised tests - the
+    files are identical but the directory names are such that the lexicographical
+    order is different and currently one test succeeds and one fails.
+    """
+    data_path = str(test_data / test_dir)
+    builder = builders.AccessOm3Builder(path=data_path)
+
+    if valid:
+        builder = builder.build()
+
+        assert all(builder.df["realm"].isin(realm))
+    else:
+        with pytest.raises(
+            (builders.ParserError, jsonschema.exceptions.ValidationError)
+        ):
+            builder = builder.build()
+
+    assert len(builder.assets) == n_assets
