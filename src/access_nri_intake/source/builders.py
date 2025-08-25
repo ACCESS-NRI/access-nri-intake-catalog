@@ -337,6 +337,7 @@ class BaseBuilder(Builder):
             decode_coords=False,
         ) as ds:
             dvars = _VarInfo()
+            additional_info = {}
 
             for var in ds.variables:
                 attrs = ds[var].attrs
@@ -346,6 +347,12 @@ class BaseBuilder(Builder):
                 ds, filename_frequency, time_dim
             )
             file_id = cls._generate_file_shape_info(ds, time_dim)
+
+            # Get the realm from the global attributes if present
+            try:
+                additional_info['realm'] = ds.attrs['realm']
+            except KeyError:
+                pass
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
@@ -357,6 +364,7 @@ class BaseBuilder(Builder):
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
+            **additional_info,
             **dvars.to_var_info_dict(),
         )
 
@@ -511,7 +519,8 @@ class AccessOm3Builder(BaseBuilder):
             elif "cice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
-                raise ParserError(f"Cannot determine realm for file {file}")
+                if (realm:=ncinfo_dict["realm"]) is None:
+                    raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
 
             ncinfo_dict["file_id"] = ".".join(

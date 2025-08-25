@@ -2965,3 +2965,15 @@ def test_builder_include_exclude_patterns(
     assert bld.exclude_patterns == (
         exclude_patts if exclude_patts is not None else default_exclude
     )
+
+
+def test_builder_om3_realm(test_data):
+    # om3-with-realm/ocean_month.nc has had global attr 'realm' set to 'ocean'
+    # om3 otherwise doesn't know the realm for that filename
+    data_path = str(test_data / "om3-with-realm")
+    builder = builders.AccessOm3Builder(path=data_path)
+    builder = builder.build()
+
+    assert len(builder.assets) == 1
+    assert len(builder.invalid_assets) == 0
+    assert all(builder.df['realm'] == 'ocean')
