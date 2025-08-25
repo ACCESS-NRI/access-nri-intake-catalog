@@ -68,7 +68,7 @@ class _NCFileInfo:
     variable_standard_name: list[str]
     variable_cell_methods: list[str]
     variable_units: list[str]
-    realm: list[str] = field(default_factory=list)
+    realm: str = ""
 
     def to_dict(self) -> dict[str, str | list[str]]:
         """

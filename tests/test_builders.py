@@ -8,6 +8,7 @@ import intake
 import pandas as pd
 import pytest
 import xarray as xr
+import jsonschema
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
 from intake_esm.utils import OPTIONS
@@ -2967,22 +2968,39 @@ def test_builder_include_exclude_patterns(
     )
 
 
-def test_builder_om3_realm(test_data):
-    # om3-with-realm/ocean_month.nc has had global attr 'realm' set to 'ocean'
-    # om3-with-realm/ocean_month_no_realm.nc does not and should be invalid
-    #     om3 builder otherwise doesn't know the realm for that filename
-    # om3-with-realm/ocean_month_multiple_realms.nc has "ocean atmos"
-    data_path = str(test_data / "om3-with-realm")
+@pytest.mark.parametrize(
+    "test_dir,valid,realm,n_assets", [
+        ("single-realm", True, ["ocean"], 1),
+        ("z_multiple-realms", False, ["ocean atmos"], 1),
+        ("no-realm", False, None, 1),
+        ("", False, ["ocean", "ocean atmos"], 3), # All files
+    ]
+)
+def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
+    """
+    Tests the OM3 builder with the .nc files in "om3_realm.
+
+    The .nc files have the 'realm' global attribute set and the filenames do not
+    match any of the normal patterns for extracting 'realm'.
+
+    Currently the multiple realms tests are expected to fail to parse since the
+    schema only allows a single realm.
+
+    FIXME: If the multiple realms file is not the first one to be parsed then the
+    building succeeds. This can be engineered by putting a 'z' in front of the
+    dirname.
+    """
+    data_path = str(test_data / "om3_realm" / test_dir)
     builder = builders.AccessOm3Builder(path=data_path)
-    builder = builder.build()
 
-    assert len(builder.assets) == 3
-    assert len(builder.invalid_assets) == 1
+    if valid:
+        builder = builder.build()
 
-    expected_realms = {
-        "ocean_month.nc": "ocean",
-        "ocean_month_multiple_realms.nc": "ocean atmos",
-    }
-    b_df = builder.df
-    for f, r in expected_realms.items():
-        assert all(b_df[b_df["filename"] == f].realm == r)
+        assert all(builder.df["realm"].isin(realm))
+    else:
+        with pytest.raises((
+            builders.ParserError,
+            jsonschema.exceptions.ValidationError)) as e_info:
+            builder = builder.build()
+
+    assert len(builder.assets) == n_assets

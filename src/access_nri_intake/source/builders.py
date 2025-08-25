@@ -348,12 +348,7 @@ class BaseBuilder(Builder):
             )
             file_id = cls._generate_file_shape_info(ds, time_dim)
 
-            # Get realm from the global attributes if present
-            # realm should be one of more strings separated by spaces
-            try:
-                additional_info["realm"] = ds.attrs["realm"].split(" ")
-            except KeyError:
-                pass
+            additional_info["realm"] = ds.attrs.get("realm", "")
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
@@ -522,11 +517,9 @@ class AccessOm3Builder(BaseBuilder):
             elif "cice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
-                if len(realm_list := ncinfo_dict["realm"]) == 0:
+                # Default/missing value for realm is "" which is Falsy
+                if not (realm := ncinfo_dict["realm"]):
                     raise ParserError(f"Cannot determine realm for file {file}")
-                else:
-                    # Code below is expecting a string, so join the list of realms
-                    realm = " ".join(realm_list)
             ncinfo_dict["realm"] = realm
 
             ncinfo_dict["file_id"] = ".".join(
