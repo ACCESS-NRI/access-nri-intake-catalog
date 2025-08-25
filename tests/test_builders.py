@@ -5,10 +5,10 @@ from pathlib import Path
 from unittest import mock
 
 import intake
+import jsonschema
 import pandas as pd
 import pytest
 import xarray as xr
-import jsonschema
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 from intake_esm.source import _get_xarray_open_kwargs, _open_dataset
 from intake_esm.utils import OPTIONS
@@ -2969,12 +2969,13 @@ def test_builder_include_exclude_patterns(
 
 
 @pytest.mark.parametrize(
-    "test_dir,valid,realm,n_assets", [
+    "test_dir,valid,realm,n_assets",
+    [
         ("single-realm", True, ["ocean"], 1),
         ("z_multiple-realms", False, ["ocean atmos"], 1),
         ("no-realm", False, None, 1),
-        ("", False, ["ocean", "ocean atmos"], 3), # All files
-    ]
+        ("", False, ["ocean", "ocean atmos"], 3),  # All files
+    ],
 )
 def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
     """
@@ -2998,9 +2999,9 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
 
         assert all(builder.df["realm"].isin(realm))
     else:
-        with pytest.raises((
-            builders.ParserError,
-            jsonschema.exceptions.ValidationError)) as e_info:
+        with pytest.raises(
+            (builders.ParserError, jsonschema.exceptions.ValidationError)
+        ) as e_info:
             builder = builder.build()
 
     assert len(builder.assets) == n_assets
