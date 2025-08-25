@@ -2970,11 +2970,19 @@ def test_builder_include_exclude_patterns(
 def test_builder_om3_realm(test_data):
     # om3-with-realm/ocean_month.nc has had global attr 'realm' set to 'ocean'
     # om3-with-realm/ocean_month_no_realm.nc does not and should be invalid
-    # om3 otherwise doesn't know the realm for that filename
+    #     om3 builder otherwise doesn't know the realm for that filename
+    # om3-with-realm/ocean_month_multiple_realms.nc has "ocean atmos"
     data_path = str(test_data / "om3-with-realm")
     builder = builders.AccessOm3Builder(path=data_path)
     builder = builder.build()
 
-    assert len(builder.assets) == 2
+    assert len(builder.assets) == 3
     assert len(builder.invalid_assets) == 1
-    assert all(builder.df["realm"] == "ocean")
+
+    expected_realms = {
+        "ocean_month.nc": "ocean",
+        "ocean_month_multiple_realms.nc": "ocean atmos",
+    }
+    b_df = builder.df
+    for f, r in expected_realms.items():
+        assert all(b_df[b_df["filename"] == f].realm == r)

@@ -348,14 +348,18 @@ class BaseBuilder(Builder):
             )
             file_id = cls._generate_file_shape_info(ds, time_dim)
 
-            # Get the realm from the global attributes if present
+            # Get realm from the global attributes if present
+            # realm should be one of more strings separated by spaces
             try:
-                additional_info["realm"] = ds.attrs["realm"]
+                additional_info["realm"] = ds.attrs["realm"].split(" ")
             except KeyError:
                 pass
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
+
+        # Combine the kwargs so mypy doesn't complain about types
+        kwargs = dict(**dvars.to_var_info_dict(), **additional_info)
 
         output_ncfile = _NCFileInfo(
             filename=file_path.name,
@@ -364,8 +368,7 @@ class BaseBuilder(Builder):
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
-            **additional_info,
-            **dvars.to_var_info_dict(),
+            **kwargs,
         )
 
         return output_ncfile
@@ -519,8 +522,11 @@ class AccessOm3Builder(BaseBuilder):
             elif "cice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
-                if (realm := ncinfo_dict["realm"]) is None:
+                if len(realm_list := ncinfo_dict["realm"]) == 0:
                     raise ParserError(f"Cannot determine realm for file {file}")
+                else:
+                    # Code below is expecting a string, so join the list of realms
+                    realm = " ".join(realm_list)
             ncinfo_dict["realm"] = realm
 
             ncinfo_dict["file_id"] = ".".join(
