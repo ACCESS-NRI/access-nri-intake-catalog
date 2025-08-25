@@ -350,7 +350,7 @@ class BaseBuilder(Builder):
 
             # Get the realm from the global attributes if present
             try:
-                additional_info['realm'] = ds.attrs['realm']
+                additional_info["realm"] = ds.attrs["realm"]
             except KeyError:
                 pass
 
@@ -519,7 +519,7 @@ class AccessOm3Builder(BaseBuilder):
             elif "cice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
-                if (realm:=ncinfo_dict["realm"]) is None:
+                if (realm := ncinfo_dict["realm"]) is None:
                     raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
 

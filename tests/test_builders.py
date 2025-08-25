@@ -2976,4 +2976,4 @@ def test_builder_om3_realm(test_data):
 
     assert len(builder.assets) == 1
     assert len(builder.invalid_assets) == 0
-    assert all(builder.df['realm'] == 'ocean')
+    assert all(builder.df["realm"] == "ocean")
