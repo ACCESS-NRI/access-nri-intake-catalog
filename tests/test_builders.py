@@ -2971,10 +2971,11 @@ def test_builder_include_exclude_patterns(
 @pytest.mark.parametrize(
     "test_dir,valid,realm,n_assets",
     [
-        ("single-realm", True, ["ocean"], 1),
-        ("z_multiple-realms", False, ["ocean atmos"], 1),
-        ("no-realm", False, None, 1),
-        ("", False, ["ocean", "ocean atmos"], 3),  # All files
+        ("om3_realm/1_single-realm", True, ["ocean"], 1),
+        ("om3_realm/2_multiple-realms", False, ["ocean atmos"], 1),
+        ("om3_realm/3_no-realm", False, None, 1),
+        ("om3_realm", False, ["ocean", "ocean atmos"], 3),  # All files
+        ("om3_realm_reordered", False, ["ocean", "ocean atmos"], 3),  # All files
     ],
 )
 def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
@@ -2988,10 +2989,11 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
     schema only allows a single realm.
 
     FIXME: If the multiple realms file is not the first one to be parsed then the
-    building succeeds. This can be engineered by putting a 'z' in front of the
-    dirname.
+    building succeeds. This is shown in the last two parameterised tests - the
+    files are identical but the directory names are such that the lexicographical
+    order is different and currently one test succeeds and one fails.
     """
-    data_path = str(test_data / "om3_realm" / test_dir)
+    data_path = str(test_data / test_dir)
     builder = builders.AccessOm3Builder(path=data_path)
 
     if valid:
