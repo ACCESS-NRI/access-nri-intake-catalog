@@ -518,7 +518,7 @@ class AccessOm3Builder(BaseBuilder):
                 realm = "seaIce"
             else:
                 # Default/missing value for realm is "" which is Falsy
-                if not (realm := ncinfo_dict["realm"]):
+                if not (realm := str(ncinfo_dict["realm"])):
                     raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
 
