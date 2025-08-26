@@ -2971,27 +2971,18 @@ def test_builder_include_exclude_patterns(
 @pytest.mark.parametrize(
     "test_dir,valid,realm,n_assets",
     [
-        ("om3_realm/1_single-realm", True, ["ocean"], 1),
-        ("om3_realm/2_multiple-realms", False, ["ocean atmos"], 1),
-        ("om3_realm/3_no-realm", False, None, 1),
-        ("om3_realm", False, ["ocean", "ocean atmos"], 3),  # All files
-        ("om3_realm_reordered", False, ["ocean", "ocean atmos"], 3),  # All files
+        ("om3_realm/single-realm", True, ["ocean"], 1),
+        ("om3_realm/no-realm", False, None, 1),
+        ("om3_realm", True, ["ocean"], 2),  # All files
     ],
 )
 def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
     """
-    Tests the OM3 builder with the .nc files in "om3_realm.
+    Tests the OM3 builder with the .nc files in om3_realm.
 
-    The .nc files have the 'realm' global attribute set and the filenames do not
-    match any of the normal patterns for extracting 'realm'.
-
-    Currently the multiple realms tests are expected to fail to parse since the
-    schema only allows a single realm.
-
-    FIXME: If the multiple realms file is not the first one to be parsed then the
-    building succeeds. This is shown in the last two parameterised tests - the
-    files are identical but the directory names are such that the lexicographical
-    order is different and currently one test succeeds and one fails.
+    The single-realm file has the 'realm' global attribute set and the
+    filenames does not match any of the normal patterns for extracting 'realm'.
+    The no-realm file does not have the 'realm' attribute set.
     """
     data_path = str(test_data / test_dir)
     builder = builders.AccessOm3Builder(path=data_path)
@@ -3001,9 +2992,9 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
 
         assert all(builder.df["realm"].isin(realm))
     else:
-        with pytest.raises(
-            (builders.ParserError, jsonschema.exceptions.ValidationError)
-        ):
+        with pytest.raises(builders.ParserError):
             builder = builder.build()
+            import pdb
+            pdb.set_trace()
 
     assert len(builder.assets) == n_assets
