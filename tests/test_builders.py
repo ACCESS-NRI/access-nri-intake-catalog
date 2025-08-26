@@ -5,7 +5,6 @@ from pathlib import Path
 from unittest import mock
 
 import intake
-import jsonschema
 import pandas as pd
 import pytest
 import xarray as xr
@@ -2995,6 +2994,7 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
         with pytest.raises(builders.ParserError):
             builder = builder.build()
             import pdb
+
             pdb.set_trace()
 
     assert len(builder.assets) == n_assets
