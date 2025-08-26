@@ -226,21 +226,22 @@ class CallListener(cst.CSTVisitor):
         Listen for calls that match anything of the form `esm_datastore.to_dask()`, `esm_datastore.to_dataset_dict()`, or
         `esm_datastore.to_datatree()`.
         """
-        if isinstance(node.func, cst.Attribute) and isinstance(
-            node.func.value, cst.Name
-        ):
-            obj_name = node.func.value.value
-            method_name = node.func.attr.value
+        match node:
+            case cst.Call(
+                func=cst.Attribute(
+                    value=cst.Name(
+                        value=obj_name,
+                    ),
+                    attr=cst.Name(value=method_name),
+                )
+            ):
+                instance = self.user_namespace.get(obj_name)  # type: ignore[has-type]
+                if instance is None:
+                    return
 
-            # Check if object exists in user namespace
-            instance = self.user_namespace.get(obj_name)
-            if instance is None:
-                return
-
-            # Check if it's an esm_datastore with a load method
-            class_name = type(instance).__name__
-            if class_name == "esm_datastore":
-                self.check_func(instance, method_name, self._err)
+                # Check if it's an esm_datastore with a load method
+                if isinstance(instance, esm_datastore):
+                    self.check_func(instance, method_name, self._err)  # type: ignore[has-type]
 
 
 class ChainSimplifier(cst.CSTTransformer):
