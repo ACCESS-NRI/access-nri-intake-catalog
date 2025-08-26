@@ -223,7 +223,6 @@ cat['01deg_jra55_ryf_Control'].search(source_id='.*').search(source_id='.*').{fu
         check_dataset_number("", raw_cell)
 
 
-@pytest.mark.xfail(reason="`path = esm_ds.unique().path[0]` cell currently broken")
 @pytest.mark.parametrize(
     "func",
     [
@@ -232,16 +231,15 @@ cat['01deg_jra55_ryf_Control'].search(source_id='.*').search(source_id='.*').{fu
         "to_datatree",
     ],
 )
-@mock.patch("access_nri_intake.ipython_magic.ast.eval")
-def test_too_many_ds_no_errors(mock_getitem, ipython, test_data, func):
-    mock_getitem.return_value = intake.open_esm_datastore(
-        f"{test_data}/esm_datastore/cmip-forcing-qv56.json"
-    )
+def test_too_many_ds_no_errors(ipython, test_data, func):
+    """
+    This should pass, because the .search(path=path) call takes it down to one dataset.
+    """
     raw_cell = f"""
 %%check_dataset_number
 import intake
 cat = intake.cat.access_nri
-esm_ds = cat['01deg_jra55_ryf_Control'].search(source_id='.*').search(source_id='.*')
+esm_ds = intake.open_esm_datastore("{test_data}/esm_datastore/cmip-forcing-qv56.json")
 
 path = esm_ds.unique().path[0]
 

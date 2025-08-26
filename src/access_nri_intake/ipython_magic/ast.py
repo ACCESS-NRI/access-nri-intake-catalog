@@ -9,6 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 import libcst as cst
+from intake_esm import esm_datastore
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.magic import cell_magic
@@ -270,7 +271,7 @@ class ChainSimplifier(cst.CSTTransformer):
                 )
             ):
                 instance = self.user_namespace.get(datastore_obj)  # type: ignore[has-type]
-                if type(instance).__name__ != "esm_datastore":
+                if not isinstance(instance, esm_datastore):
                     # This is a no-op, so we can't really cover it meaningfully
                     return updated_node  # pragma: no cover
                 search_expr = cst.Module(
@@ -278,29 +279,10 @@ class ChainSimplifier(cst.CSTTransformer):
                 ).code.strip()
                 # Evaluate it, put the result back into the user namespace with
                 # the same name as the datastore object - ie. ~ return self
-                self.user_namespace[datastore_obj] = eval(  # type: ignore[has-type]
-                    search_expr, self.user_namespace
-                )
-                # Then update the node to just be the datastore object
-                return cst.Name(value=datastore_obj)  # type: ignore[has-type]
-            case cst.Call(
-                func=cst.Attribute(
-                    value=cst.Name(
-                        value=datastore_obj,
-                    ),
-                    attr=cst.Name(value="unique"),
-                )
-            ):
-                # Try to get esm_ds - or default to self._instance if not found
-                instance = self.user_namespace.get(datastore_obj, self._instance)  # type: ignore
-                if type(instance).__name__ != "esm_datastore":
-                    # This is a no-op, so we can't really cover it meaningfully
-                    return updated_node  # pragma: no cover
-                # Evaluate the unique call, and put the result back into the user namespace
-                _obj = instance.unique()  # type: ignore[union-attr]
+                _obj = eval(search_expr, self.user_namespace)  # type: ignore[has-type]
                 _name = f"obj_{id(_obj)}"
                 self.user_namespace[_name] = _obj
-                return cst.Name(value=_name)  # type: ignore[has-type]
+                return cst.Name(value=_name)
 
         return updated_node
 
@@ -320,7 +302,7 @@ class ChainSimplifier(cst.CSTTransformer):
 
         instance = eval(subscript_expression, self.user_namespace)
 
-        if type(instance).__name__ == "esm_datastore":
+        if isinstance(instance, esm_datastore):
             # Just replace it with the esm_datastore node
             _name = f"obj_{id(instance)}"
             self.user_namespace[_name] = instance
