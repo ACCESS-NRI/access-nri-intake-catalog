@@ -1,0 +1,126 @@
+name: AUS2200
+experiment_uuid: 03d1874c-596e-4fdf-8066-e87d922ac0de
+description: |
+  "AUS2200 AMIP simulations collection. Each simulation is a limited area model study of the entire Australian continent at 2.2 km resolution, using the UM atmospheric model. The simulations cover adverse weather events as wildfires, flodds and heavy rain, and three simulations of MJOs in neutral, El Nino and La Nina phases for a total of 16 simulations."
+long_description: |
+  "A set of experiments are aimed at understanding the atmospheric conditions that contributed to extreme dryness and severe wildfires in southeastern Australia during significant events. Using AUS2200 simulations, Ayat et al. (2024) examined high spatio-temporal resolution atmospheric variables (e.g., temperature, humidity, and wind dynamics) over key wildfire-affected regions. This enabled the simulation of mesoscale processes, such as downward mixing and convective rolls, alongside large-scale processes that transported dry air from upper levels to these regions. These insights are crucial for understanding fire weather dynamics.
+  Contact is Hooman Ayat: hooman.ayat@unimelb.edu.au.
+  Experiments:
+    ashwed80 - ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions. The study covers the time period of 1980-02-18 to 1980-02-21, including the 1980 Ash Wednesday bushfires.
+    ashwed83 - ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions. The study covers the time period of 1983-02-15 to 1983-02-17, including the 1983 Ash Wednesday bushfires.
+    blacksat2009 - ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions. The study covers the time period of 2009-02-05 to 2009-02-08, including the Victoria Black Saturday bushfires.
+    canberra2003 - ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions. The study covers the time period of 2003-01-16 to 2003-01-19, including the 2003 Canberra bushfires.
+
+  A set of simulations of the June 2016 East Coast Low pressure system and heavy rain over the East Coast of Australia, under varying conditions for sea surface temperature. The study covers the period from 2016-06-03 to 2016-06-07, including the East Coast Low event which gave rise to widespread flooding in many areas stretching from southeast Queensland, eastern New South Wales, eastern Victoria, and large areas of northern Tasmania.
+  Contact is Chris Chambers: cchambers@unimelb.edu.au
+  Experiments:
+    ecoastlow-climsst: ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions, using the 1980-2019 climatological average for the 3 June of ERA5 sea-surface temperatures throughout the simulation.
+    ecoastlow-corclimsst: ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions, sea-surface temperatures in Coral Sea region are replaced by the 1980-2019 climatological average for the 3 June used in the climsst experiment, 3 buffer boxes are used around the edge to smooth the transition.
+    ecoastlow-evolsst: ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions, sea-surface temperatures are evolving throughout the simulation.
+    ecoastlow-fixsst: ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions, 0000 UTC 3 June ERA5 sea-surface temperatures were kept constant throughout the simulation.
+    ecoastlow-smooth: ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions. A prominent warm eddy, over which the greatest intensification of the subtropical cyclone occurs, is smoothed out while keeping the area-averaged sea-surface temperatures the same and using 3 buffer boxes around the edge to smooth the transition.
+    ecoastlow-tasclimsst: ERA5+ERA5Land reanalysis data was used to provide initial and boundary conditions, sea-surface temperatures for the Tasman Sea region are replaced by the 1980-2019 climatological average for the 3rd June used in the climsst experiment, 3 buffer boxes are used around the edge to smooth the transition.
+
+  A set of simulations to reproduce the 2022 Brisbane floods under varying sea surface temperature conditions on the Coral Sea. The study covers the time period of 2022-02-22 to 2022-03-7 including high rainfall events.
+  Contact is Kim Reid: reid.k@unimelb.edu.au.
+  Experiments:
+    coralsea-sstobs - ERA5 and ERA5-Land reanalysis data was used to provide initial and boundary conditions. Climatological ERA5 monthly mean (1960-2019) was used for SST over part of the Coral Sea, off the East coast of Australia, lat(-44,-10), lon(143,160).
+    coralsea-sstreduced - ERA5 and ERA5-Land reanalysis data was used to provide initial and boundary conditions, with the exception of soil moisture content for which BARRA-R reanalysis was used. Reduced climatological ERA5 monthly mean (1960-2019) was used for SST over part of the Coral Sea, off the East coast of Australia, lat(-44,-10), lon(143,160).
+    flood2022 - ERA5 and ERA5-Land reanalysis data was used to provide initial and boundary conditions, with the exception of soil moisture content for which BARRA-R reanalysis was used. The model is restarted every day with a 24 hours spinup.
+
+  A set of simulations covering three Madden-Julian Oscillation events during an El Nino, La Nina and neutral phases.
+  Contact is Claire Vincent: claire.vincent@unimelb.edu.au.
+  Experiments:
+    mjo-elnino2016 - ERA5, ERA5Land and BARRA-R for soil moisture only reanalysis data was used to provide initial and boundary conditions. The study covers a complete Madden-Julian Oscillation event during an El Nino phase in January-February 2016.
+    mjo-lanina2018 - ERA5, ERA5Land and BARRA-R for soil moisture only reanalysis data was used to provide initial and boundary conditions. The study covers a complete Madden-Julian Oscillation event during a La Nina phase in January-February 2018.
+    mjo-neutral2013 - ERA5, ERA5Land and BARRA-R for soil moisture only reanalysis data was used to provide initial and boundary conditions. The study covers a complete Madden-Julian Oscillation event during a neutral phase in January-February 2013."
+model: "AUS2200 (UM v12.2)"
+frequency:
+  - subhr
+  - 1hr
+variable:
+  - cl
+  - clhigh
+  - cli
+  - cllow
+  - clmed
+  - clmxro
+  - clw
+  - eow
+  - estot
+  - evspsbl
+  - grplmxrat
+  - hfls
+  - hfss
+  - hus
+  - huss
+  - lmask
+  - mrso
+  - mrsol
+  - orog
+  - pfull
+  - pralsns
+  - pralsprof
+  - psl
+  - rainmxrat
+  - refl
+  - reflmax
+  - rlds
+  - rls
+  - rlut
+  - rsds
+  - rsdsdiff
+  - rsdsdir
+  - rsdt
+  - rss
+  - rsut
+  - ta
+  - tas
+  - theta
+  - tke
+  - ua
+  - uas
+  - va
+  - vas
+  - wa
+  - wsgmax10m
+  - z0
+  - zg
+  - zmla
+realm:
+  - atmos
+  - land
+nominal_resolution:
+  - atmos = 2.2 km
+version: 1.0
+contact: Yi Huang
+email: yi.huang4@unimelb.edu.au
+created: 2023-10-01
+reference:
+  - "Roberts, Dale, Petrelli, Paola, Ayat, Hooman. AUS2200 Unified Model atmospheric simulation of the 1980 Ash Wednesday bushfire, over Australia at 2.2km resolution. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/7wpa-tb70"
+  - "Roberts, Dale, Petrelli, Paola, Ayat, Hooman. AUS2200 Unified Model atmospheric simulation of the 1983 Ash Wednesday bushfire, over Australia at 2.2km resolution. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/9pw2-8b46"
+  - "Roberts, Dale, Petrelli, Paola, Ayat, Hooman. AUS2200 Unified Model atmospheric simulation of the 2009 Black Saturday bushfires, over Australia at 2.2km resolution. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/hjy7-jb56"
+  - "Roberts, Dale, Petrelli, Paola, Ayat, Hooman. AUS2200 Unified Model atmospheric simulation of the 2003 Canberra bushfire, over Australia at 2.2km resolution. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/vhs6-ja29"
+  - "Chambers, Chris, Roberts, Dale, Petrelli, Paola. AUS2200 Unified Model atmospheric simulation of the June 2016 East Coast Low pressure system and heavy rain over the East Coast of Australia, at 2.2km resolution: climatology sea surface temperature experiment. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/v3jq-qe52"
+  - "Chambers, Chris, Roberts, Dale, Petrelli, Paola. AUS2200 Unified Model atmospheric simulation of the June 2016 East Coast Low pressure system and heavy rain over the East Coast of Australia, at 2.2km resolution: Coral Sea climatology sea surface temperature experiment. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/g7b2-ff17"
+  - "Chambers, Chris, Roberts, Dale, Petrelli, Paola. AUS2200 Unified Model atmospheric simulation of the June 2016 East Coast Low pressure system and heavy rain over the East Coast of Australia, at 2.2km resolution: evolving sea surface temperature experiment. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/vkk9-4m12"
+  - "Chambers, Chris, Roberts, Dale, Petrelli, Paola. AUS2200 Unified Model atmospheric simulation of the June 2016 East Coast Low pressure system and heavy rain over the East Coast of Australia, at 2.2km resolution: fixed sea surface temperature experiment. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/4qsd-cd89"
+  - "Chambers, Chris, Roberts, Dale, Petrelli, Paola. AUS2200 Unified Model atmospheric simulation of the June 2016 East Coast Low pressure system and heavy rain over the East Coast of Australia, at 2.2km resolution: smoothed warm eddy experiment. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/tphz-p529"
+  - "Chambers, Chris, Roberts, Dale, Petrelli, Paola. AUS2200 Unified Model atmospheric simulation of the June 2016 East Coast Low pressure system and heavy rain over the East Coast of Australia, at 2.2km resolution: Tasman Sea climatology sea surface temperature experiment. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/vfzx-7d38"
+  - "Roberts, Dale, Petrelli, Paola, Reid, Kim. AUS2200 Unified Model atmospheric simulation of warmer Coral Sea surface temperatures during the 2022 Brisbane floods, at 2.2km resolution: observed sea surface temperatures. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/807q-rx33"
+  - "Roberts, Dale, Petrelli, Paola, Reid, Kim. AUS2200 Unified Model atmospheric simulation of warmer Coral Sea surface temperatures during the 2022 Brisbane floods, at 2.2km resolution: reduced sea surface temperatures. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/11cg-js25"
+  - "Roberts, Dale, Petrelli, Paola, Reid, Kim. AUS2200 Unified Model atmospheric simulation of the 2022 Brisbane floods, over Australia at 2.2km resolution. v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/abqk-cq07"
+  - "Roberts, Dale, Petrelli, Paola, Vincent, Claire. AUS2200 Unified Model atmospheric simulation of a Madden-Julian Oscillation event during an El-Nino phase, Jan and Feb 2016, over Australia at 2.2km resolution v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/yj50-dm80"
+  - "Roberts, Dale, Petrelli, Paola, Vincent, Claire. AUS2200 Unified Model atmospheric simulation of a Madden-Julian Oscillation event during a La-Nina phase, Jan and Feb 2018, over Australia at 2.2km resolution v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/1cz8-vk42"
+  - "Roberts, Dale, Petrelli, Paola, Vincent, Claire. AUS2200 Unified Model atmospheric simulation of a Madden-Julian Oscillation event during a neutral phase, Jan and Feb 2013, over Australia at 2.2km resolution v1.0 (2024). NCI Australia. (Dataset) https://doi.org/10.25914/gprx-2d45"
+license: https://creativecommons.org/licenses/by/4.0/
+url: https://doi.org/10.25914/w95d-q328
+parent_experiment:
+related_experiments:
+  -
+notes: >-
+  This dataset is an output of the research program - CLEX Weather and Climate Interactions. This data is supported by the Australian Government's National Collaborative Research Infrastructure Strategy (NCRIS), with access to resources provided through the ACCESS-NRI Merit Allocation Scheme and the National Computational Infrastructure (NCI).
+keywords:
+  - Climate change processes
+  - Adverse weather events
+  - Cloud physics

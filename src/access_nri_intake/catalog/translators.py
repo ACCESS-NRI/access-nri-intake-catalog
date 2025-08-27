@@ -27,6 +27,7 @@ __all__ = [
     "CcamTranslator",
     "NarclimTranslator",
     "EsgfTranslator",
+    "Aus2200Translator",
 ]
 
 FREQUENCY_TRANSLATIONS = {
