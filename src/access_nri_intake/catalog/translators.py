@@ -750,6 +750,8 @@ class Aus2200Translator(DefaultTranslator):
         """
         Initialise an Aus2200Translator
 
+        Uses default translators for variable, realm, and frequency.
+
         Parameters
         ----------
         source: :py:class:`~intake.DataSource`
@@ -760,7 +762,6 @@ class Aus2200Translator(DefaultTranslator):
 
         super().__init__(source, columns)
 
-        # Use default translators for variable, realm, and frequency
         self.set_dispatch(
             input_name="model",
             core_colname="model",
