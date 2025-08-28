@@ -1491,6 +1491,13 @@ def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, ex
     ],
 )
 @pytest.mark.parametrize(
+    "no_update",
+    [
+        True,
+        False,
+    ],
+)
+@pytest.mark.parametrize(
     "input_list, expected_size",
     [
         (
@@ -1504,7 +1511,13 @@ def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, ex
     ],
 )
 def test_build_no_concrete(
-    version, input_list, expected_size, test_data, tmpdir, fake_project_access
+    version,
+    input_list,
+    expected_size,
+    test_data,
+    tmpdir,
+    fake_project_access,
+    no_update,
 ):
     """Test full catalog build process from config files. We turn off concretization,
     so the catalog should just stick in `.../.{version}/cat.csv`"""
@@ -1513,23 +1526,23 @@ def test_build_no_concrete(
 
     configs = [str(test_data / fname) for fname in input_list]
 
-    build(
-        [
-            *configs,
-            "--catalog_file",
-            "cat.csv",
-            # "--no_update",  # commented out to test brand-new-catalog-versioning
-            "--version",
-            version,
-            "--build_base_path",
-            build_base_path,
-            "--catalog_base_path",
-            build_base_path,
-            "--data_base_path",
-            str(test_data),
-            "--no_concretize",
-        ]
-    )
+    arglist = [
+        *configs,
+        "--catalog_file",
+        "cat.csv",
+        "--version",
+        version,
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+        "--no_concretize",
+    ]
+    if no_update:
+        arglist.append("--no_update")
+    build(arglist)
 
     # manually fix the version so we can correctly build the test path: build
     # will do this for us so we need to replicate it here
@@ -1549,11 +1562,17 @@ def test_build_no_concrete(
     metacat = Path(build_base_path) / f".{version}" / "catalog.yaml"
     with metacat.open(mode="r") as fobj:
         cat_info = yaml.safe_load(fobj)
+
     assert (
         cat_info["sources"]["access_nri"]["parameters"]["version"]["default"] == version
     )
-    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
-    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
+    if not no_update:  # We won't have created min/max versions if we haven't updated
+        assert (
+            cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
+        )
+        assert (
+            cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
+        )
 
 
 def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_access):
