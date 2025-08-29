@@ -7,7 +7,8 @@ import pickle
 import warnings
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
-from datetime import timedelta
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from pathlib import Path
 
 import cftime
@@ -302,6 +303,46 @@ def get_timeinfo(
     """
 
     def _todate(t):
+        try:
+            cal = time_var.calendar
+        except AttributeError as e:
+            # Temporary fix for woa23 lack of calendar
+            # Not intended to be merged!
+            print("######################")
+            try:
+                t0 = t['time'].data[0]
+            except IndexError as e:
+                t0 = t['time'].data
+
+            print(t0, time_var.units)
+
+            one_month = relativedelta(months=1)
+            if 'months since' in time_var.units:
+                # Get the reference date
+                unit_spl = time_var.units.split(' ')
+                assert unit_spl[0]=='months' and unit_spl[1]=='since' and unit_spl[3]=='00:00:00'
+                ref_date = datetime.strptime(unit_spl[2], '%Y-%m-%d')
+
+                # Calculate the date in question
+                d = ref_date + t0 * one_month
+
+                # Deal with partial months
+                remainder = t0 % 1
+                if remainder != 0:
+                    print(f"\tPartial month detected ({remainder}), adjusting")
+
+                    dt_start_of_month = d
+                    dt_end_of_month = dt_start_of_month + one_month
+                    dt_mid_month = dt_start_of_month + (dt_end_of_month - dt_start_of_month) * remainder
+
+                    print(dt_mid_month)
+                    return dt_mid_month
+                else:
+                    print(d)
+                    return d
+            else:
+                raise e
+
         return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
 
     time_format = "%Y-%m-%d, %H:%M:%S"
