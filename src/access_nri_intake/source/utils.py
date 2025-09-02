@@ -302,51 +302,37 @@ def get_timeinfo(
         If the dataset has a valid unlimited dimension, but no data
     """
 
+    def _monthly_units_to_datetime(time_var):
+        """
+        Convert time coordinates with units "months since X" to datetimes assuming a
+        standard Georgian calendar where calendar is not otherwise defined.
+        """
+        # Get the reference date from the units
+        ref_date = datetime.strptime(time_var.units, "months since %Y-%m-%d %H:%M:%S")
+
+        # Calculate the date in question
+        # relativedelta only takes integer months
+        # relativedelta multiplication floors the multiplier
+        dts = ref_date + time_var.to_numpy() * relativedelta(months=1)
+
+        # Deal with partial months
+        remainders = time_var.to_numpy() % 1
+        if any(remainders != 0):
+            dt_start_of_months = dts
+            dt_end_of_months = dt_start_of_months + relativedelta(months=1)
+            dt_month_offsets = (dt_end_of_months - dt_start_of_months) * remainders
+
+            dts += dt_month_offsets
+
+        # cftime.num2date returns a datetime or a numpy array of datetimes
+        return dts if len(dts) > 1 else dts[0]
+
     def _todate(t):
         try:
             cal = time_var.calendar
         except AttributeError as e:
-            # Temporary fix for woa23 lack of calendar
-            # Not intended to be merged!
-            print("######################")
-            try:
-                t0 = t["time"].data[0]
-            except IndexError:
-                t0 = t["time"].data
-
-            print(t0, time_var.units)
-
-            one_month = relativedelta(months=1)
             if "months since" in time_var.units:
-                # Get the reference date
-                unit_spl = time_var.units.split(" ")
-                assert (
-                    unit_spl[0] == "months"
-                    and unit_spl[1] == "since"
-                    and unit_spl[3] == "00:00:00"
-                )
-                ref_date = datetime.strptime(unit_spl[2], "%Y-%m-%d")
-
-                # Calculate the date in question
-                d = ref_date + t0 * one_month
-
-                # Deal with partial months
-                remainder = t0 % 1
-                if remainder != 0:
-                    print(f"\tPartial month detected ({remainder}), adjusting")
-
-                    dt_start_of_month = d
-                    dt_end_of_month = dt_start_of_month + one_month
-                    dt_mid_month = (
-                        dt_start_of_month
-                        + (dt_end_of_month - dt_start_of_month) * remainder
-                    )
-
-                    print(dt_mid_month)
-                    return dt_mid_month
-                else:
-                    print(d)
-                    return d
+                return _monthly_units_to_datetime(time_var)
             else:
                 raise e
 
