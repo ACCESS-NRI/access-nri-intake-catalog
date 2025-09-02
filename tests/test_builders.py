@@ -3004,6 +3004,7 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
     "test_file,builder,is_monthly",
     [
         ("woa/woa23_A5B4_s00_04.nc", "WoaBuilder", True),
+        ("woa/woa23_A5B4_s01_04.nc", "WoaBuilder", True),
         ("woa/woa23_A5B4_s00_04.nc.not-monthly", "WoaBuilder", False),
     ],
 )
