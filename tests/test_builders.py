@@ -2999,12 +2999,13 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
 
     assert len(builder.assets) == n_assets
 
+
 @pytest.mark.parametrize(
     "test_file,builder,is_monthly",
     [
-        ('woa/woa23_A5B4_s00_04.nc', 'WoaBuilder', True),
-        ('woa/woa23_A5B4_s00_04.nc.not-monthly', 'WoaBuilder', False),
-    ]
+        ("woa/woa23_A5B4_s00_04.nc", "WoaBuilder", True),
+        ("woa/woa23_A5B4_s00_04.nc.not-monthly", "WoaBuilder", False),
+    ],
 )
 def test_builder_no_calendar(test_data, test_file, builder, is_monthly):
     """
@@ -3018,4 +3019,4 @@ def test_builder_no_calendar(test_data, test_file, builder, is_monthly):
     ncinfo_dict = getattr(builders, builder).parser(file_path)
 
     # File parse should succeed if monthly, fail otherwise
-    assert ('INVALID_ASSET' not in ncinfo_dict) == is_monthly
+    assert ("INVALID_ASSET" not in ncinfo_dict) == is_monthly
