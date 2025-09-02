@@ -11,6 +11,7 @@ realm:
 - ocean
 frequency:
 - fx
+- 1mon
 variable:
 - i_an
 - i_dd

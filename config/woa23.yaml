@@ -1,9 +1,0 @@
-builder: null
-
-translator: DefaultTranslator
-
-sources:
-
-  - metadata_yaml: /g/data/xp65/admin/intake/metadata/woa23_av17/metadata.yaml
-    path:
-    - /g/data/av17/access-nri-temporary/OM3/woa23/catalog/woa23.json
