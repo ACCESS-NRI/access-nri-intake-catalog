@@ -336,7 +336,7 @@ def get_timeinfo(
             else:
                 raise e
 
-        return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
+        return cftime.num2date(t, time_var.units, calendar=cal)
 
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
