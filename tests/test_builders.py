@@ -32,7 +32,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["woa"], "WoaBuilder", {}, 4, 4, 1),
+        (["woa"], "WoaBuilder", {}, 6, 6, 2),
     ],
 )
 def test_builder_build(
@@ -2998,3 +2998,24 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
             pdb.set_trace()
 
     assert len(builder.assets) == n_assets
+
+@pytest.mark.parametrize(
+    "test_file,builder,is_monthly",
+    [
+        ('woa/woa23_A5B4_s00_04.nc', 'WoaBuilder', True),
+        ('woa/woa23_A5B4_s00_04.nc.not-monthly', 'WoaBuilder', False),
+    ]
+)
+def test_builder_no_calendar(test_data, test_file, builder, is_monthly):
+    """
+    Test the cases where the .nc file's time variable is missing the calendar
+
+    The woa23_A5B4_s00_04.nc.not-monthly has had it's time units attribute
+    altered to be 'foobars since 2005-01-01 00:00:00'.
+    """
+    file_path = str(test_data / test_file)
+
+    ncinfo_dict = getattr(builders, builder).parser(file_path)
+
+    # File parse should succeed if monthly, fail otherwise
+    assert ('INVALID_ASSET' not in ncinfo_dict) == is_monthly
