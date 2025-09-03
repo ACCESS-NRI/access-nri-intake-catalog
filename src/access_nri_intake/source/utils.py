@@ -329,14 +329,12 @@ def get_timeinfo(
 
     def _todate(t):
         try:
-            cal = time_var.calendar
+            return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
         except AttributeError as e:
             if "months since" in time_var.units:
                 return _monthly_units_to_datetime(time_var)
             else:
                 raise e
-
-        return cftime.num2date(t, time_var.units, calendar=cal)
 
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None
