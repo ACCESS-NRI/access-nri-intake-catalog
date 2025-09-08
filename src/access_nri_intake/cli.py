@@ -547,10 +547,10 @@ def build(argv: Sequence[str] | None = None):
         yaml_dict = _compute_previous_versions(
             yaml_dict, catalog_base_path, build_base_path, version
         )
-        catalog_tmp_path = Path(build_base_path) / f".{version}"
+    catalog_tmp_path = Path(build_base_path) / f".{version}"
 
-        with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
-            yaml.dump(yaml_dict, fobj)
+    with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
+        yaml.dump(yaml_dict, fobj)
 
     if concretize:
         _concretize_build(
@@ -566,7 +566,7 @@ def build(argv: Sequence[str] | None = None):
         print("*** Build Complete! ***")
         print(
             f"To concretize the build, run:\n"
-            f"\t $ catalog-concretize --build-base-path {build_base_path} --version {version} --catalog_file {catalog_file} --catalog_base_path {catalog_base_path} \n"
+            f"\t $ catalog-concretize --build_base_path {build_base_path} --version {version} --catalog_file {catalog_file} --catalog_base_path {catalog_base_path} \n"
         )
 
     print(

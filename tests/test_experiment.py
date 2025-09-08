@@ -3,6 +3,7 @@
 
 
 import shutil
+from datetime import datetime
 from pathlib import Path
 from unittest import mock
 
@@ -263,7 +264,11 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
     "open_ds, return_type", [(True, esm_datastore), (False, type(None))]
 )
 @pytest.mark.parametrize("use_path", [True, False])
+@mock.patch(
+    "access_nri_intake.experiment.main.datetime",
+)
 def test_use_datastore(
+    mock_datetime,
     test_data: Path,
     basedir,
     builder,
@@ -279,17 +284,22 @@ def test_use_datastore(
     Run the `use_datastore` function on a bunch of different builders to make sure
     they all work as expected.
     """
+    mock_datetime.now.return_value = datetime(2000, 1, 1, 0, 0, 0)
     srcdir, destdir = test_data / basedir, tmp_path / "tests" / "data" / basedir
 
     shutil.copytree(src=srcdir, dst=destdir)
+
+    invalid_asset = destdir / "invalid_asset.nc"
+    invalid_asset.touch()  # Create an empty file to simulate an invalid asset
+
     basedir = [str(destdir)]
     # I think the str wrapper here is a bug- type hint implies we can pass a single string
     builder_type: Builder = getattr(builders, builder)
     builder = builder_type(basedir, **kwargs)
-    builder.get_assets()
+    builder.build()
 
     assert isinstance(builder.assets, list)
-    assert len(builder.assets) == num_assets
+    assert len(builder.assets) == num_assets + 1  # +1 for the invalid asset
 
     exptdir = Path(basedir[0]) if use_path else basedir[0]
     # This creates a bunch of datastoers that we don't actually want here.
@@ -300,6 +310,19 @@ def test_use_datastore(
         builder_kwargs=kwargs,
     )
     assert isinstance(ret, return_type)
+
+    assert len(builder.invalid_assets) == 1
+    assert len(builder.assets) - len(builder.invalid_assets) == num_assets
+    # ^ This check looks really stupid, but we don't have a `builder.valid_assets`
+    # property. I think we want to add this tbh...
+    invalid_assetfile = Path(
+        destdir / "experiment_datastore_invalid_assets_2000-01-01-00:00:00.csv"
+    )
+
+    assert invalid_assetfile.exists()
+    invalid_assets_df = pd.read_csv(invalid_assetfile)
+    assert len(invalid_assets_df) == 1
+    assert Path(invalid_assets_df.loc[0, "INVALID_ASSET"]).stem == "invalid_asset"
 
     captured = capsys.readouterr()
     assert "Generating esm-datastore for" in captured.out
