@@ -2981,3 +2981,36 @@ def test_builder_include_exclude_patterns(
     assert bld.exclude_patterns == (
         exclude_patts if exclude_patts is not None else default_exclude
     )
+
+
+@pytest.mark.parametrize(
+    "test_dir,valid,realm,n_assets",
+    [
+        ("om3_realm/single-realm", True, ["ocean"], 1),
+        ("om3_realm/no-realm", False, None, 1),
+        ("om3_realm", True, ["ocean"], 2),  # All files
+    ],
+)
+def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
+    """
+    Tests the OM3 builder with the .nc files in om3_realm.
+
+    The single-realm file has the 'realm' global attribute set and the
+    filenames does not match any of the normal patterns for extracting 'realm'.
+    The no-realm file does not have the 'realm' attribute set.
+    """
+    data_path = str(test_data / test_dir)
+    builder = builders.AccessOm3Builder(path=data_path)
+
+    if valid:
+        builder = builder.build()
+
+        assert all(builder.df["realm"].isin(realm))
+    else:
+        with pytest.raises(builders.ParserError):
+            builder = builder.build()
+            import pdb
+
+            pdb.set_trace()
+
+    assert len(builder.assets) == n_assets

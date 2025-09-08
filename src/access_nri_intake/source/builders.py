@@ -338,6 +338,7 @@ class BaseBuilder(Builder):
             decode_coords=False,
         ) as ds:
             dvars = _VarInfo()
+            additional_info = {}
 
             for var in ds.variables:
                 attrs = ds[var].attrs
@@ -348,8 +349,13 @@ class BaseBuilder(Builder):
             )
             file_id = cls._generate_file_shape_info(ds, time_dim)
 
+            additional_info["realm"] = ds.attrs.get("realm", "")
+
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
+
+        # Combine the kwargs so mypy doesn't complain about types
+        kwargs = dict(**dvars.to_var_info_dict(), **additional_info)
 
         output_ncfile = _NCFileInfo(
             filename=file_path.name,
@@ -358,7 +364,7 @@ class BaseBuilder(Builder):
             frequency=frequency,
             start_date=start_date,
             end_date=end_date,
-            **dvars.to_var_info_dict(),
+            **kwargs,
         )
 
         return output_ncfile
@@ -512,7 +518,9 @@ class AccessOm3Builder(BaseBuilder):
             elif "cice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
             else:
-                raise ParserError(f"Cannot determine realm for file {file}")
+                # Default/missing value for realm is "" which is Falsy
+                if not (realm := output_nc_info.realm):
+                    raise ParserError(f"Cannot determine realm for file {file}")
             ncinfo_dict["realm"] = realm
 
             ncinfo_dict["file_id"] = ".".join(
