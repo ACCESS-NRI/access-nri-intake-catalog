@@ -22,7 +22,7 @@ dependencies = [
     "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
-    "intake-esm>=2025.2.3",
+    "intake-esm-access",
     "jsonschema",
     "polars>=1.24.0",
     "pooch",
@@ -129,20 +129,6 @@ known-first-party = ["access_nri_intake"]
 channels = ["conda-forge","accessnri"]
 platforms = ["osx-arm64", "linux-64", "win-64"]
 
-[tool.pixi.dependencies]
-yamanifest = { version = ">=0.3.12", channel = "accessnri" }
-cftime = "*"
-ecgtools= "==2023.7.13"
-intake= ">=2.0.0"
-intake-dataframe-catalog= ">=0.3.1"
-intake-esm= ">=2025.2.3"
-polars = ">=1.24.0"
-access-py-telemetry = ">=0.1.6"
-jsonschema = "*"
-pooch = "*"
-xarray = "*"
-colorama = "*"
-
 [tool.pixi.environments]
 default = { features = ["dev"], solve-group = "default" }
 e2e = { features = ["e2e"], solve-group = "default" }
@@ -191,5 +177,6 @@ python = "3.11.*"
 
 [tool.pixi.feature.py312.dependencies]
 python = "3.12.*"
+
 [tool.pixi.feature.py313.dependencies]
 python = "3.13.*"
