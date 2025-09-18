@@ -32,7 +32,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["woa"], "WoaBuilder", {}, 4, 4, 1),
+        (["woa"], "WoaBuilder", {}, 7, 7, 2),
     ],
 )
 def test_builder_build(
@@ -2998,3 +2998,36 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
             pdb.set_trace()
 
     assert len(builder.assets) == n_assets
+
+
+@pytest.mark.parametrize(
+    "test_file,builder,is_monthly,expected_start_date",
+    [
+        ("woa/woa23_A5B4_s00_04.nc", "WoaBuilder", True, "2041-07-01, 00:00:00"),
+        ("woa/woa23_A5B4_s01_04.nc", "WoaBuilder", True, "2009-01-16, 12:00:00"),
+        ("woa/woa23_A5B4_s02_04.nc", "WoaBuilder", True, "2009-02-10, 19:11:56"),
+        ("woa/woa23_A5B4_s00_04.nc.not-monthly", "WoaBuilder", False, None),
+    ],
+)
+def test_builder_no_calendar(
+    test_data, test_file, builder, is_monthly, expected_start_date
+):
+    """
+    Test the cases where the .nc file's time variable is missing the calendar
+
+    *s00* is an annual average file with time value 438
+    *s01* is a January file with with time value 48.5
+    *s02* is a February file with with time value changed to 49.35
+
+    The woa23_A5B4_s00_04.nc.not-monthly has had it's time units attribute
+    altered to be 'foobars since 2005-01-01 00:00:00'.
+    """
+    file_path = str(test_data / test_file)
+
+    ncinfo_dict = getattr(builders, builder).parser(file_path)
+
+    # File parse should succeed if monthly, fail otherwise
+    assert ("INVALID_ASSET" not in ncinfo_dict) == is_monthly
+
+    if is_monthly:
+        assert ncinfo_dict["start_date"] == expected_start_date
