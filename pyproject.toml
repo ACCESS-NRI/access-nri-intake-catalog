@@ -20,7 +20,7 @@ dependencies = [
     "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
-    "intake-esm>=2025.2.3",
+    "intake-esm-access",
     "jsonschema",
     "libcst",
     "polars>=1.24.0",
