@@ -302,7 +302,7 @@ def get_timeinfo(
         If the dataset has a valid unlimited dimension, but no data
     """
 
-    def _monthly_units_to_datetime(time_var):
+    def _todate_monthly_nocalendar(time_var):
         """
         Convert time coordinates with units "months since X" to datetimes assuming a
         standard Georgian calendar where calendar is not otherwise defined.
@@ -334,7 +334,7 @@ def get_timeinfo(
             # Some time data doesn't have a calendar specified but can still be
             # converted to datetimes - e.g. WOA23
             if "months since" in time_var.units:
-                return _monthly_units_to_datetime(time_var)
+                return _todate_monthly_nocalendar(time_var)
 
             raise e
 
