@@ -9,4 +9,4 @@ def test_intake_esm_fork():
 
     assert packaging.version.Version(
         intake_esm.__version__
-    ) > packaging.version.Version("2025.7.9")
+    ) > packaging.version.Version("2025.9.10")
