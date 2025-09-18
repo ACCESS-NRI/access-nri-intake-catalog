@@ -4,7 +4,7 @@ experiment_uuid: 0fbaaafe-7055-447f-906f-ba6738752ac8
 description: World Ocean Atlas 2023
 long_description: >-
   The World Ocean Atlas (WOA23) is a collection of objectively analyzed, quality controlled temperature, salinity, oxygen, phosphate, silicate, and nitrate means based on profile data from the World Ocean Database (WOD). It can be used to create boundary and/or initial conditions for a variety of ocean models, verify numerical simulations of the ocean, and corroborate satellite data.
-  The WOA23 was initially released in October 2022 and it contained the 1991-2020 climate normals of global ocean temperature and salinity at selected standard depths. Please refer to the wow website for further information about the dataset and updated releases.
+  The WOA23 was initially released in October 2022 and it contained the 1991-2020 climate normals of global ocean temperature and salinity at selected standard depths.
 model:
 - World Ocean Atlas 2023
 realm:
