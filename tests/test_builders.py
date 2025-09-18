@@ -3003,13 +3003,15 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
 @pytest.mark.parametrize(
     "test_file,builder,is_monthly,expected_start_date",
     [
-        ("woa/woa23_A5B4_s00_04.nc", "WoaBuilder", True, '2041-07-01, 00:00:00'),
-        ("woa/woa23_A5B4_s01_04.nc", "WoaBuilder", True, '2009-01-16, 12:00:00'),
-        ("woa/woa23_A5B4_s02_04.nc", "WoaBuilder", True, '2009-02-10, 19:11:56'),
+        ("woa/woa23_A5B4_s00_04.nc", "WoaBuilder", True, "2041-07-01, 00:00:00"),
+        ("woa/woa23_A5B4_s01_04.nc", "WoaBuilder", True, "2009-01-16, 12:00:00"),
+        ("woa/woa23_A5B4_s02_04.nc", "WoaBuilder", True, "2009-02-10, 19:11:56"),
         ("woa/woa23_A5B4_s00_04.nc.not-monthly", "WoaBuilder", False, None),
     ],
 )
-def test_builder_no_calendar(test_data, test_file, builder, is_monthly, expected_start_date):
+def test_builder_no_calendar(
+    test_data, test_file, builder, is_monthly, expected_start_date
+):
     """
     Test the cases where the .nc file's time variable is missing the calendar
 
@@ -3028,4 +3030,4 @@ def test_builder_no_calendar(test_data, test_file, builder, is_monthly, expected
     assert ("INVALID_ASSET" not in ncinfo_dict) == is_monthly
 
     if is_monthly:
-        assert ncinfo_dict['start_date'] == expected_start_date
+        assert ncinfo_dict["start_date"] == expected_start_date
