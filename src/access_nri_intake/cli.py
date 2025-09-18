@@ -18,6 +18,7 @@ import polars as pl
 import yaml
 from intake import open_esm_datastore
 
+from . import STORAGE_FLAG_PATTERN, STORAGE_LOCATION_REGEX, STORAGE_ROOT
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
@@ -26,8 +27,6 @@ from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
 from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
-
-STORAGE_FLAG_PATTERN = "gdata/[a-z]{1,2}[0-9]{1,2}"
 
 
 class MetadataCheckError(Exception):
@@ -182,7 +181,7 @@ def _parse_build_directory(
 
 
 def _get_project_code(path: str | Path):
-    match = re.match(r"/g/data/([^/]*)/.*", str(path))
+    match = re.match(STORAGE_LOCATION_REGEX, str(path))
     return match.groups()[0] if match else None
 
 
@@ -203,14 +202,14 @@ def _get_project(paths: list[str], method: str | None = None) -> set[str]:
 
 def _confirm_project_access(projects: set[str]) -> tuple[bool, str]:
     """
-    Return False and the missing project if the user can't access all necessary projects' /g/data spaces.
+    Return False and the missing project if the user can't access all necessary projects' `access_nri_intake.STORAGE_ROOT` spaces.
 
     Returns:
         tuple[bool, str]: Whether the user can access all projects, and a string of any missing projects
     """
     missing_projects = []
     for proj in sorted(projects):
-        p = Path("/g/data") / proj
+        p = Path(STORAGE_ROOT) / proj
         if not p.exists():
             missing_projects.append(proj)
 
@@ -515,7 +514,9 @@ def build(argv: Sequence[str] | None = None):
     else:
         warnings.warn(f"Unable to determine project for base path {build_base_path}")
 
-    storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project if proj]))
+    storage_flags = "+".join(
+        sorted([f"{STORAGE_ROOT.replace('/', '')}/{proj}" for proj in project if proj])
+    )
 
     _valid_permissions, _err_msg = _confirm_project_access(project)
     if not _valid_permissions:
