@@ -137,3 +137,5 @@ bin/build_all.sh.o*
 
 # User-made files
 bin/build_all_test.sh
+# pixi environments
+.pixi
