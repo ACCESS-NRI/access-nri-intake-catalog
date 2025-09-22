@@ -158,8 +158,8 @@ def test__guess_start_end_dates_warning():
         UserWarning, match="Cannot infer start and end times for subhourly frequencies."
     ):
         _guess_start_end_dates(
-            ts=xr.cftime_range("1900-01-01", periods=1, freq="6H")[0],
-            te=xr.cftime_range("1900-01-01", periods=1, freq="6H")[0],
+            ts=xr.date_range("1900-01-01", periods=1, freq="6h")[0],
+            te=xr.date_range("1900-01-01", periods=1, freq="6h")[0],
             frequency=(10, "min"),
         )
 
