@@ -1166,7 +1166,7 @@ def test_build_parse_get_project_code_failure(test_data, tmp_path):
         (
             "cmip5-missing-datastore-path.yaml",
             KeyError,
-            "'path'\nUnexpected missing 'path' in datastore",
+            "path - Unexpected missing 'path' in datastore",
         ),
     ],
 )
