@@ -202,7 +202,9 @@ def _get_project(paths: list[str], method: str | None = None) -> set[str]:
                 projects |= set(esm_ds.df["path"].map(_get_project_code))
             except (KeyError, FileNotFoundError):
                 # There's no 'path' in the processed source, or the datastore (likely its project) is not available
-                warnings.warn(f"Unable to access datastore at {path} - may not be able to ingest.")
+                warnings.warn(
+                    f"Unable to access datastore at {path} - may not be able to ingest."
+                )
 
     projects = {p for p in projects if p is not None}
 
