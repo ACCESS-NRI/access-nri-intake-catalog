@@ -1174,7 +1174,9 @@ def test_build_missing_project(test_data, tmp_path, config_file, expected_error,
     build_base_path = str(tmp_path)
 
     # Warning or Error?
-    warn_or_error = pytest.warns if issubclass(expected_error, Warning) else pytest.raises
+    warn_or_error = (
+        pytest.warns if issubclass(expected_error, Warning) else pytest.raises
+    )
 
     with warn_or_error(expected_error, match=match):
         build(
