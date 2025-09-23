@@ -203,7 +203,9 @@ def _get_project(paths: list[str], method: str | None = None) -> set[str]:
                 # There's no 'path' in the processed source
                 # KeyError left in as a precaution, it's not clear what situations
                 # this protects again - hence raising a hopefully informative error.
-                raise KeyError(e.args[0] + f" - Unexpected missing 'path' in datastore: {path}") from e
+                raise KeyError(
+                    e.args[0] + f" - Unexpected missing 'path' in datastore: {path}"
+                ) from e
             except FileNotFoundError:
                 # The datastore (likely its project) is not available
                 warnings.warn(
