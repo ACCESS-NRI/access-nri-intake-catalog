@@ -1109,9 +1109,7 @@ def test_build_parse_builddir_failure(
 
 
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
-def test_build_parse_get_project_code_failure(
-    test_data, tmp_path
-):
+def test_build_parse_get_project_code_failure(test_data, tmp_path):
     """Test build's response to a failure in _get_project (should just carry on)"""
 
     configs = [
@@ -1136,17 +1134,24 @@ def test_build_parse_get_project_code_failure(
         ]
     )
 
+
 @pytest.mark.parametrize(
     "config_file,expected_error,match",
     [
-        ("access-om2-bad-project-path.yaml", RuntimeError, "Unable to access projects badproject"),
-        ('access-om2-bad-project-metadata.yaml', FileNotFoundError, "No such file or directory: '/g/data/badproject"),
+        (
+            "access-om2-bad-project-path.yaml",
+            RuntimeError,
+            "Unable to access projects badproject",
+        ),
+        (
+            "access-om2-bad-project-metadata.yaml",
+            FileNotFoundError,
+            "No such file or directory: '/g/data/badproject",
+        ),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
-def test_build_missing_project(
-    test_data, tmp_path, config_file, expected_error, match
-):
+def test_build_missing_project(test_data, tmp_path, config_file, expected_error, match):
     """Test build's response to a gdata project that is missing"""
 
     configs = [
