@@ -1148,6 +1148,11 @@ def test_build_parse_get_project_code_failure(test_data, tmp_path):
             FileNotFoundError,
             "No such file or directory: '/g/data/badproject",
         ),
+        (
+            "cmip5-badproject.yaml",
+            RuntimeError,
+            "Unable to access projects badproject, projectbad",
+        )
     ],
 )
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
