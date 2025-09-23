@@ -1149,6 +1149,11 @@ def test_build_parse_get_project_code_failure(test_data, tmp_path):
             "No such file or directory: '/g/data/badproject",
         ),
         (
+            "access-om2-multiple-bad-projects.yaml",
+            RuntimeError,
+            "Unable to access projects badproject1, badproject2"
+        ),
+        (
             "cmip5-badproject.yaml",
             RuntimeError,
             "Unable to access projects badproject, projectbad",
