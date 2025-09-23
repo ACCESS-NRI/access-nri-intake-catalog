@@ -144,6 +144,7 @@ def test_check_build_args(args, raises):
         ),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build(
     version, input_list, expected_size, test_data, tmpdir, fake_project_access
 ):
@@ -306,6 +307,7 @@ def test_build_bad_metadata_no_metadata_yaml_value(
     "access_nri_intake.cli._confirm_project_access",
     return_value=(False, "Simulated access failure"),
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_no_project_access(mock_confirm_project_access, test_data, tmp_path):
     """
     Test if the build dies because it can't access project storage area
@@ -335,6 +337,7 @@ def test_build_no_project_access(mock_confirm_project_access, test_data, tmp_pat
         )
 
 
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
     """
     Test if the intelligent versioning works correctly when there is
@@ -400,6 +403,7 @@ def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
     ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
 
 
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_overwrite_version(test_data, tmp_path, fake_project_access):
     """
     Test if the intelligent versioning works correctly when there is
@@ -452,6 +456,7 @@ def test_build_repeat_overwrite_version(test_data, tmp_path, fake_project_access
         )
 
 
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
     configs = [
         str(test_data / "config/access-om2.yaml"),
@@ -558,6 +563,7 @@ def test_build_project_base_code(
         ("v2001-01-01", None),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_existing_data(
     test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
@@ -619,6 +625,7 @@ def test_build_existing_data(
         ("v2001-01-01", None),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_existing_data_existing_old_cat(
     test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
@@ -692,6 +699,7 @@ def test_build_existing_data_existing_old_cat(
         ("v2001-01-01", None),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_separation_between_catalog_and_buildbase(
     test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
@@ -764,6 +772,7 @@ def test_build_separation_between_catalog_and_buildbase(
         ("v2001-01-01", None),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_renamecatalogyaml(test_data, min_vers, max_vers, tmp_path):
     configs = [
         str(test_data / "config/access-om2.yaml"),
@@ -871,6 +880,7 @@ def test_build_repeat_renamecatalogyaml(test_data, min_vers, max_vers, tmp_path)
         ("v2001-01-01", None),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path):
     configs = [
         str(test_data / "config/access-om2.yaml"),
@@ -963,6 +973,7 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
         ("v2001-01-01", None),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_altercatalogstruct_multivers(
     test_data, min_vers, max_vers, tmp_path, fake_project_access
 ):
@@ -1097,9 +1108,9 @@ def test_build_parse_builddir_failure(
         )
 
 
-@mock.patch("access_nri_intake.cli._get_project")
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_parse_get_project_code_failure(
-    mock_get_project_code, test_data, tmp_path
+    test_data, tmp_path
 ):
     """Test build's response to a failure in _get_project (should just carry on)"""
 
@@ -1109,9 +1120,42 @@ def test_build_parse_get_project_code_failure(
     data_base_path = str(test_data)
     build_base_path = str(tmp_path)
 
-    mock_get_project_code.side_effect = KeyError("Simulated key error")
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
 
-    with pytest.warns(UserWarning, match="Unable to determine storage flags/projects"):
+@pytest.mark.parametrize(
+    "config_file,expected_error,match",
+    [
+        ("access-om2-bad-project-path.yaml", RuntimeError, "Unable to access projects badproject"),
+        ('access-om2-bad-project-metadata.yaml', FileNotFoundError, "No such file or directory: '/g/data/badproject"),
+    ],
+)
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+def test_build_missing_project(
+    test_data, tmp_path, config_file, expected_error, match
+):
+    """Test build's response to a gdata project that is missing"""
+
+    configs = [
+        str(test_data / "config" / config_file),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    with pytest.raises(expected_error, match=match):
         build(
             [
                 *configs,
@@ -1130,6 +1174,7 @@ def test_build_parse_get_project_code_failure(
 
 
 @mock.patch("access_nri_intake.cli.Path.mkdir")
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_mkdir_failure(mock_mkdir, test_data, tmp_path):
     """Test build's response to a failure in _get_project (should just carry on)"""
 
@@ -1176,6 +1221,7 @@ def test_add_source_to_catalog_failure(method, tmpdir):
 
 
 @mock.patch("access_nri_intake.cli._write_catalog_yaml")
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_write_catalog_yaml_failure(mock_write_catalog_yaml, test_data, tmp_path):
     """Test build's response to a failure in _write_catalog_yaml"""
 
@@ -1510,6 +1556,7 @@ def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, ex
         ),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_no_concrete(
     version,
     input_list,
@@ -1575,6 +1622,7 @@ def test_build_no_concrete(
         )
 
 
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_access):
     """
     Test if the intelligent versioning works correctly when there is
@@ -1671,6 +1719,7 @@ def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_acce
     ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
 
 
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_overwrite_version_then_concretize_entrypoints(
     test_data, tmp_path, fake_project_access
 ):
@@ -1757,6 +1806,7 @@ def test_build_repeat_overwrite_version_then_concretize_entrypoints(
     ).is_dir(), f"Expected directory {tmp_path / f'.tmp-old-{VERSION}'} to not exist, but it does."
 
 
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
     test_data, tmp_path, fake_project_access
 ):

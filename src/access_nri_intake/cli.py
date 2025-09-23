@@ -191,12 +191,11 @@ def _get_project(paths: list[str], method: str | None = None) -> set[str]:
     projects = set()
 
     for path in paths:
-        # Get the project for the path of the datastore itself
+        # Get the project for the path of the datastore/path itself
         projects |= {_get_project_code(path)}
 
         # Check the files in the datastore
         if method == "load":
-            # This is a hack but I don't know how else to get the storage from pre-built datastores
             try:
                 esm_ds = open_esm_datastore(path)
                 projects |= set(esm_ds.df["path"].map(_get_project_code))
