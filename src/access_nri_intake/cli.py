@@ -199,8 +199,14 @@ def _get_project(paths: list[str], method: str | None = None) -> set[str]:
             try:
                 esm_ds = open_esm_datastore(path)
                 projects |= set(esm_ds.df["path"].map(_get_project_code))
-            except (KeyError, FileNotFoundError):
-                # There's no 'path' in the processed source, or the datastore (likely its project) is not available
+            except KeyError as e:
+                # There's no 'path' in the processed source
+                # KeyError left in as a precaution, it's not clear what situations
+                # this protects again - hence raising a hopefully informative error.
+                e.add_note(f"Unexpected missing 'path' in datastore: {path}")
+                raise e
+            except FileNotFoundError:
+                # The datastore (likely its project) is not available
                 warnings.warn(
                     f"Unable to access datastore at {path} - may not be able to ingest."
                 )
