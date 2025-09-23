@@ -1153,11 +1153,19 @@ def test_build_parse_get_project_code_failure(test_data, tmp_path):
             RuntimeError,
             "Unable to access projects badproject, projectbad",
         ),
+        (
+            "cmip5-missingdatastore.yaml",
+            UserWarning,
+            "Unable to access datastore at ",
+        ),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+@pytest.mark.filterwarnings("ignore:Unable to add cmip5_al33 to catalog")
 def test_build_missing_project(test_data, tmp_path, config_file, expected_error, match):
-    """Test build's response to a gdata project that is missing"""
+    """
+    Test build's response to a gdata project that is missing and similar failures
+    """
 
     configs = [
         str(test_data / "config" / config_file),
@@ -1165,7 +1173,10 @@ def test_build_missing_project(test_data, tmp_path, config_file, expected_error,
     data_base_path = str(test_data)
     build_base_path = str(tmp_path)
 
-    with pytest.raises(expected_error, match=match):
+    # Warning or Error?
+    warn_or_error = pytest.warns if issubclass(expected_error, Warning) else pytest.raises
+
+    with warn_or_error(expected_error, match=match):
         build(
             [
                 *configs,
