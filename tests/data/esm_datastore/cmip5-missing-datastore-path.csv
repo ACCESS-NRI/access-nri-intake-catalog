@@ -1,0 +1,6 @@
+file_type,project,institute,model,experiment,frequency,realm,table,ensemble,version,variable,time_range
+l,CMIP5,BNU,BNU-ESM,rcp26,day,seaIce,day,r1i1p1,v20120503,usi,20060101-21001231
+f,CORDEX,AFR-44,CCCma-CanESM2,historical,day,na,na,r1i1p1,v20150616,pr,19610101-19651231
+l,CMIP5,NCAR,CCSM4,decadal1986,mon,seaIce,OImon,r10i2p1,v20120528,strocny,198601-199512
+f,CMIP5,NSF-DOE-NCAR,CESM1-BGC,historical,day,atmos,day,r1i1p1,v20120523,tas,19550101-19891231
+f,CMIP5,NSF-DOE-NCAR,CESM1-CAM5,rcp85,mon,atmos,Amon,r1i1p1,v20130313,hurs,200601-210012
