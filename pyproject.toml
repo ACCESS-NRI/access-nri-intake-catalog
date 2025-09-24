@@ -18,7 +18,7 @@ dynamic = ["version"]
 
 dependencies = [
     "cftime",
-    "ecgtools>=2023.7.13",
+    "ecgtools-access",
     "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
