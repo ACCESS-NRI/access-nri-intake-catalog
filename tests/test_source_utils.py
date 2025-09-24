@@ -129,7 +129,9 @@ from access_nri_intake.source.utils import (
         ),
     ],
 )
-@pytest.mark.filterwarnings("ignore:The frequency \'\\(\\d, \'(hr|mon|yr)\'\\)\' determined from filename")
+@pytest.mark.filterwarnings(
+    "ignore:The frequency '\\(\\d, '(hr|mon|yr)'\\)' determined from filename"
+)
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds info")
 def test_get_timeinfo(times, bounds, ffreq, expected):
     if bounds:
