@@ -2861,6 +2861,7 @@ def test_parse_filename(builder, filename, expected):
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
+@pytest.mark.filterwarnings("ignore:The frequency \'\\(1, \'mon\'\\)\' determined from filename")
 def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
     """
     Tests for correctness of parser. Note that if we are using intake-esm without
