@@ -36,6 +36,7 @@ from access_nri_intake.source.utils import _NCFileInfo
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
+@pytest.mark.filterwarnings("ignore:Unable to parse 4 assets")
 def test_builder_build(
     tmp_path,
     test_data,
@@ -2981,6 +2982,7 @@ def test_builder_include_exclude_patterns(
         ("om3_realm", True, ["ocean"], 2),  # All files
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
     """
     Tests the OM3 builder with the .nc files in om3_realm.
