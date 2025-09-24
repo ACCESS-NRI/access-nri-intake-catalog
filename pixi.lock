@@ -2458,10 +2458,9 @@ packages:
   - pytest ; extra == 'e2e'
   - pytest-ordering ; extra == 'e2e'
   requires_python: '>=3.10'
-  editable: true
 - pypi: ./
   name: access-nri-intake
-  version: 1.3.0+30.gbabd758.dirty
+  version: 1.3.0+31.g8b3fe18.dirty
   sha256: bb0f8819f991e5e4020c209dbf70339c5f898b0062d1b3d37d1afe3c38d996b1
   requires_dist:
   - cftime
@@ -2482,6 +2481,7 @@ packages:
   - pytest ; extra == 'e2e'
   - pytest-ordering ; extra == 'e2e'
   requires_python: '>=3.10'
+  editable: true
 - pypi: https://files.pythonhosted.org/packages/66/f7/405dd7fe7323893983d79247fe87d23d0d177898a021b34b34c90feb58ba/access_py_telemetry-0.1.9-py3-none-any.whl
   name: access-py-telemetry
   version: 0.1.9
