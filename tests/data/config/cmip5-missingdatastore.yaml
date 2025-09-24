@@ -1,0 +1,9 @@
+builder: null
+
+translator: Cmip5Translator
+
+sources:
+
+  - path:
+      - esm_datastore/cmip5-missingdatastore.json
+    metadata_yaml: esm_datastore/cmip5-al33-metadata.yaml
