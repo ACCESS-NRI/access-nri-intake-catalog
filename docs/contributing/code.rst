@@ -34,36 +34,49 @@ contributions and submitting a pull request.
       `ssh keys set up to access GitHub <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent>`_. 
       If you don't, replace :code:`git@github.com:` with :code:`https://github.com/`.
 
-#. Install access-nri-intake's dependencies into a new conda environment::
+#. Make your code changes, and test them. The easiest way to do this is to run::
 
-      $ conda env create -f ci/environment-3.11.yml
-      $ conda activate access-nri-intake-test
+      pixi run test
+   
+   This will allow you to select which python version you want to run your tests against, and will
+   handle all dependency management for you. If you wish to alter the test execution (eg. to increase verbosity or alter 
+   flags), you can do::
+      
+      pixi shell
+   
+   and then interact with tests directly - as if you were in a conda or virtual environment. :code:`pixi shell` will drop 
+   you into a subshell in which pixi has set up your virtual environment. Alternatively, you can do::
 
-#. Install access-nri-intake using the editable flag (meaning any changes you make to the package will be 
-   reflected directly in your environment without having to reinstall)::
-
-      $ pip install --no-deps -e .
+      pixi run $CMD
 
 #. This project uses :code:`ruff` for linting and :code:`black` to format code . We use :code:`pre-commit` to ensure these 
-   have been run. Please set up commit hooks by running the following. This will mean that :code:`ruff` and :code:`black` 
-   are run whenever you make a commit::
+   have been run. We also use :code:`mypy` for type checking. Please set up commit hooks by running the following. This will
+   mean that :code:`ruff` and :code:`black` are run whenever you make a commit::
 
-      pre-commit install
+      pixi run pre-commit-install
 
    You can also run :code:`pre-commit` manually at any point to format your code::
 
-      pre-commit run --all-files
+      pixi run pre-commit
 
-#. Start making and committing your edits, including adding docstrings to functions, updating the documentation where 
+   In addition, you can use any of the following commands to run the various linters and type checkers manually::
+
+      pixi run ruff
+      pixi run black
+      pixi run mypy
+
+   :code:`mypy` will require you to run :code:`pixi run mypy-setup` first.
+
+#. Continue making and committing your edits, including adding docstrings to functions, updating the documentation where 
    appropriate, and adding unit tests to check that your contributions are doing what they're suppose to. Please try to 
    follow `numpydoc style <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for docstrings. To run the test suite::
 
-      pytest .
+      pixi run test
 
    This project has both unit tests and integration tests. Integration tests are disabled by default due to computational
    expense, and can only be run on Gadi. To run the full test suite, including integration tests, run::
 
-      pytest --e2e .
+      pixi run test-e2e
 
 #. Once you are happy with your contribution, go `here <https://github.com/ACCESS-NRI/access-nri-intake-catalog/pulls>`_ 
    and open a new pull request to merge your branch of your fork with the main branch of the base.
