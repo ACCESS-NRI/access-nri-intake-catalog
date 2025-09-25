@@ -28,6 +28,7 @@ __all__ = [
     "AccessEsm15Builder",
     "AccessEsm16Builder",
     "AccessCm2Builder",
+    "AccessCm3Builder",
     "ROMSBuilder",
     "WoaBuilder",
 ]
