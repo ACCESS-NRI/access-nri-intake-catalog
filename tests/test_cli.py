@@ -145,6 +145,7 @@ def test_check_build_args(args, raises):
     ],
 )
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+@pytest.mark.filterwarnings("ignore:Unable to parse 32 assets")
 def test_build(
     version, input_list, expected_size, test_data, tmpdir, fake_project_access
 ):
@@ -1590,6 +1591,7 @@ def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, ex
     ],
 )
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+@pytest.mark.filterwarnings("ignore:Unable to parse 32 assets")
 def test_build_no_concrete(
     version,
     input_list,
