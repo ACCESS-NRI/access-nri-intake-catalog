@@ -804,15 +804,19 @@ class AccessCm3Builder(BaseBuilder):
         if "mom6" in ncinfo_dict["filename"]:
             realm = "ocean"
         elif "ww3" in ncinfo_dict["filename"]:
-            realm = "wave"
+            realm = "wave"  # pragma: no cover
+            # Curerntly no ACCESS-CM3 wave files available to test with
         elif "cice" in ncinfo_dict["filename"]:
             realm = "seaIce"
         elif "atmos" in ncinfo_dict["filename"]:
             realm = "atmos"
         else:
-            # Default/missing value for realm is "" which is Falsy
-            if not (realm := output_nc_info.realm):
-                raise ParserError(f"Cannot determine realm for file {file}")
+            # Default/missing value for realm is "" which is Falsy.
+            # We don't cover these lines as they're a generic catch-all for unexpected errors
+            if not (realm := output_nc_info.realm):  # pragma: no cover
+                raise ParserError(
+                    f"Cannot determine realm for file {file}"
+                )  # pragma: no cover
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
