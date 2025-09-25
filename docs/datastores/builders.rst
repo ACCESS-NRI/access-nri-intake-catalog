@@ -32,6 +32,13 @@ ACCESS-ESM1.5 output: :code:`AccessEsm15Builder`
    :special-members: __init__, build, save
    :noindex:
 
+ACCESS-ESM1.6 output: :code:`AccessEsm15Builder`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: access_nri_intake.source.builders.AccessEsm16Builder
+   :special-members: __init__, build, save
+   :noindex:
+
 ACCESS-CM2 output: :code:`AccessCm2Builder`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
