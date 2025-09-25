@@ -700,6 +700,86 @@ class AccessCm2Builder(AccessEsm15Builder):
     ]
 
 
+class AccessCm3Builder(BaseBuilder):
+    """Intake-ESM datastore builder for ACCESS-CM3 datasets"""
+
+    # /g/data/zv30/non-cmip/ACCESS-CM3/cm3-run-11-08-2025-25km-beta-om3-new-um-params/archive
+    PATTERNS = [
+        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
+    ]
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a AccessCm3Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=2,
+            exclude_patterns=kwargs.get("exclude_patterns")
+            or [
+                "*restart*",
+                "*MOM_IC.nc",
+                "*ocean_geometry.nc",
+                "*ocean.stats.nc",
+                "*Vertical_coordinate.nc",
+            ],
+            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            data_format="netcdf",
+            groupby_attrs=[
+                "file_id",
+            ],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        try:
+            output_nc_info = cls.parse_ncfile(file)
+            ncinfo_dict = output_nc_info.to_dict()
+
+            if "mom6" in ncinfo_dict["filename"]:
+                realm = "ocean"
+            elif "ww3" in ncinfo_dict["filename"]:
+                realm = "wave"
+            elif "cice" in ncinfo_dict["filename"]:
+                realm = "seaIce"
+            else:
+                # Default/missing value for realm is "" which is Falsy
+                if not (realm := output_nc_info.realm):
+                    raise ParserError(f"Cannot determine realm for file {file}")
+            ncinfo_dict["realm"] = realm
+
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
+
+            return ncinfo_dict
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+
+
 class ROMSBuilder(BaseBuilder):
     """Intake-ESM datastore builder for ROMS datasets
 
