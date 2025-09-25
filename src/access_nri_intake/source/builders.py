@@ -670,14 +670,14 @@ class AccessEsm15Builder(BaseBuilder):
 
     @classmethod
     def parser(cls, file) -> dict:
-        match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
-        if not match_groups:
+        match = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file)
+        if not match:
             raise ParserError(
                 f"Unable to parse filepath {file} in {cls.__class__.__name__}"
             )
 
-        exp_id = match_groups[0]
-        realm = match_groups[1]
+        exp_id = match.groups()[0]
+        realm = match.groups()[1]
 
         realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
 
