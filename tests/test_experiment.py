@@ -267,6 +267,7 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
 @mock.patch(
     "access_nri_intake.experiment.main.datetime",
 )
+@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_use_datastore(
     mock_datetime,
     test_data: Path,
