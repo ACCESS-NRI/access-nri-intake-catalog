@@ -283,7 +283,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
     to_dict_mock.return_value = {
         "filename": filename.replace("ice", "badrealm").replace("ocean", "badrealm")
     }
-    info = builders.Mom6Builder.parser(str(test_data / filename))
+    info = builders.Mom6Builder._parser_catch_invalid(str(test_data / filename))
     assert INVALID_ASSET in info.keys()
     assert TRACEBACK in info.keys()
     assert "ParserError" in info[TRACEBACK]
@@ -308,7 +308,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
 )
 def test_builder_parser_exception(test_data, filename, builder):
     Builder = getattr(builders, builder)
-    info = Builder.parser(str(test_data / filename))
+    info = Builder._parser_catch_invalid(str(test_data / filename))
     assert INVALID_ASSET in info.keys()
     assert info[INVALID_ASSET] == str(test_data / filename)
     assert TRACEBACK in info.keys()
@@ -3042,7 +3042,7 @@ def test_builder_no_calendar(
     """
     file_path = str(test_data / test_file)
 
-    ncinfo_dict = getattr(builders, builder).parser(file_path)
+    ncinfo_dict = getattr(builders, builder)._parser_catch_invalid(file_path)
 
     # File parse should succeed if monthly, fail otherwise
     assert ("INVALID_ASSET" not in ncinfo_dict) == is_monthly
