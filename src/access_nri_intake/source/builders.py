@@ -740,9 +740,10 @@ class AccessEsm16Builder(AccessEsm15Builder):
 class AccessCm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-CM3 datasets"""
 
-    # /g/data/zv30/non-cmip/ACCESS-CM3/cm3-run-11-08-2025-25km-beta-om3-new-um-params/archive
     PATTERNS = [
-        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
+        rf"atmosa.*?({PATTERNS_HELPERS['yymm']}).*?$",  # ACCESS-CM3 atmosphere
+        rf"access-cm3.cice.*?({PATTERNS_HELPERS['ym']}).*?$",  # ACCESS-CM3 ice
+        rf"access_cm3.mom6.*?({PATTERNS_HELPERS['y']}).*?$",  # ACCESS-CM3 ocean
     ]
 
     def __init__(self, path, **kwargs):
@@ -797,6 +798,8 @@ class AccessCm3Builder(BaseBuilder):
                 realm = "wave"
             elif "cice" in ncinfo_dict["filename"]:
                 realm = "seaIce"
+            elif "atmos" in ncinfo_dict["filename"]:
+                realm = "atmos"
             else:
                 # Default/missing value for realm is "" which is Falsy
                 if not (realm := output_nc_info.realm):

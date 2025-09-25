@@ -29,6 +29,7 @@ from access_nri_intake.source.utils import _NCFileInfo
             7,
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
+        (["access-cm3"], "AccessCm3Builder", {}, 30, 30, 10),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
@@ -49,6 +50,7 @@ def test_builder_build(
     """
     Test the various steps of the build process
     """
+
     Builder = getattr(builders, builder)
     path = [str(test_data / Path(basedir)) for basedir in basedirs]
     builder = Builder(path, **kwargs)
