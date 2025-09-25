@@ -32,7 +32,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 85, 85, 84),
+        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 85, 85, 12),
         (["woa"], "WoaBuilder", {}, 7, 7, 2),
     ],
 )
@@ -233,14 +233,14 @@ def test_builder_build(
             "AccessEsm16Builder",
             "atmos",
             None,
-            "aiihca_pea1XXX",
+            "bnds:2.lat:2.lat_v:2.lon:2.lon_u:2.soil_model_level_number:2",
         ),
         (
             "access-esm1-6/output000/ocean/ocean-2d-fprec_melt_heat-1monthly-mean-ym_0101_01.nc",
             "AccessEsm16Builder",
             "ocean",
             None,
-            "ocean_2d_fprec_melt_heat_1monthly_mean_ym_XXXX_XX",
+            "nv:2.xt_ocean:2.yt_ocean:2",
         ),
         (
             "woa/woa13_ts_01_mom01.nc",

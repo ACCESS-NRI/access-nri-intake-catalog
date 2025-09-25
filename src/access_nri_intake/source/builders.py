@@ -736,45 +736,6 @@ class AccessEsm16Builder(AccessEsm15Builder):
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
-    @classmethod
-    def parse_filename(
-        cls,
-        filename: str,
-        patterns: list[str] | None = None,
-        frequencies: dict = FREQUENCIES,
-        redaction_fill: str = "X",
-    ) -> tuple[str, str | None, str | None]:
-        """
-        Parse the filename for ACCESS-ESM1.6 datasets. This wrapper just redacts
-        month names
-        """
-        MONTHS = {
-            "jan": "XXX",
-            "feb": "XXX",
-            "mar": "XXX",
-            "apr": "XXX",
-            "may": "XXX",
-            "jun": "XXX",
-            "jul": "XXX",
-            "aug": "XXX",
-            "sep": "XXX",
-            "oct": "XXX",
-            "nov": "XXX",
-            "dec": "XXX",
-        }
-
-        match = re.match(r"^aiihca\.pea\d([a-z]{3})", filename)
-
-        if match:
-            month_str = match.group(1)
-            if month_str in MONTHS:
-                # Redact the month manually here
-                filename = re.sub(month_str, MONTHS[month_str], filename)
-
-        return BaseBuilder.parse_filename(
-            filename, cls.PATTERNS, frequencies, redaction_fill
-        )
-
 
 class ROMSBuilder(BaseBuilder):
     """Intake-ESM datastore builder for ROMS datasets
