@@ -673,7 +673,7 @@ class AccessEsm15Builder(BaseBuilder):
         match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
         if not match_groups:
             raise ParserError(
-                f"Unable to parse filepath {file} in {self.__class__.__name__}"
+                f"Unable to parse filepath {file} in {cls.__class__.__name__}"
             )
 
         exp_id = match_groups[0]
