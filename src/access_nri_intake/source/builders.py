@@ -443,8 +443,10 @@ class AccessOm2Builder(BaseBuilder):
     @classmethod
     def parser(cls, file) -> dict:
         matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
-        if matches:
-            realm = matches.groups()[0]
+        if not matches:
+            raise ParserError(f"Cannot determine realm for file {file}")
+        
+        realm = str(matches.groups()[0])
 
         if realm == "ice":
             realm = "seaIce"
