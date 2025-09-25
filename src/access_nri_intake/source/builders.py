@@ -724,27 +724,26 @@ class AccessEsm16Builder(AccessEsm15Builder):
     @classmethod
     def parser(cls, file):
         """Get the realm and member/experiment id from the file name"""
-        try:
-            match_groups = re.match(
-                r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc", file
-            ).groups()
-            realm = match_groups[0]
+        match = re.match(r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc", file)
+        if not match:
+            raise ParserError(
+                f"Unable to parse filepath {file} in {cls.__class__.__name__}"
+            )
 
-            realm_mapping = {
-                "atmosphere": "atmos",
-                "ocean": "ocean",
-                "ice": "seaIce",
-            }
+        realm = match.groups()[0]
 
-            nc_info = cls.parse_ncfile(file)
-            ncinfo_dict = nc_info.to_dict()
+        realm_mapping = {
+            "atmosphere": "atmos",
+            "ocean": "ocean",
+            "ice": "seaIce",
+        }
 
-            ncinfo_dict["realm"] = realm_mapping[realm]
+        nc_info = cls.parse_ncfile(file)
+        ncinfo_dict = nc_info.to_dict()
 
-            return ncinfo_dict
+        ncinfo_dict["realm"] = realm_mapping[realm]
 
-        except Exception:
-            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+        return ncinfo_dict
 
 
 class ROMSBuilder(BaseBuilder):
