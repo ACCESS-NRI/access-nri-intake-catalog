@@ -445,7 +445,7 @@ class AccessOm2Builder(BaseBuilder):
         matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
         if not matches:
             raise ParserError(f"Cannot determine realm for file {file}")
-        
+
         realm = str(matches.groups()[0])
 
         if realm == "ice":
