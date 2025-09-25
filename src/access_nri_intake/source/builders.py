@@ -606,7 +606,11 @@ class Mom6Builder(BaseBuilder):
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
-            [str(ncinfo_dict["realm"]), str(ncinfo_dict["frequency"]), str(ncinfo_dict["file_id"])]
+            [
+                str(ncinfo_dict["realm"]),
+                str(ncinfo_dict["frequency"]),
+                str(ncinfo_dict["file_id"]),
+            ]
         )
 
         return ncinfo_dict
@@ -668,7 +672,9 @@ class AccessEsm15Builder(BaseBuilder):
     def parser(cls, file) -> dict:
         match_groups = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file).groups()
         if not match_groups:
-            raise ParserError(f"Unable to parse filepath {file} in {self.__class__.__name__}")
+            raise ParserError(
+                f"Unable to parse filepath {file} in {self.__class__.__name__}"
+            )
 
         exp_id = match_groups[0]
         realm = match_groups[1]
@@ -681,7 +687,11 @@ class AccessEsm15Builder(BaseBuilder):
         ncinfo_dict["realm"] = realm_mapping[realm]
         ncinfo_dict["member"] = exp_id
         ncinfo_dict["file_id"] = ".".join(
-            [str(ncinfo_dict["realm"]), str(ncinfo_dict["frequency"]), str(ncinfo_dict["file_id"])]
+            [
+                str(ncinfo_dict["realm"]),
+                str(ncinfo_dict["frequency"]),
+                str(ncinfo_dict["file_id"]),
+            ]
         )
 
         return ncinfo_dict
