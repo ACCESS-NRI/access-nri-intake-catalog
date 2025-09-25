@@ -90,7 +90,22 @@ class _NCFileInfo:
             ]
         }
 
-        d_sorted = (pl.DataFrame(d_sortable).sort("variable")).to_dict(as_series=False)
+        df_sorted = (
+            pl.DataFrame(d_sortable)
+            .sort("variable")
+            .with_columns(
+                [
+                    pl.col(colname)
+                    .str.replace_all(r'"', r"")
+                    .str.replace_all(r"'", r"")
+                    for colname in d_sortable.keys()
+                ]
+                # This is a hack to remove extra quotes inside strings, which break
+                # json encoding/decoding in intake_esm. TODO: work out a better fix.
+            )
+        )
+
+        d_sorted = df_sorted.to_dict(as_series=False)
 
         for key, val in d_sorted.items():
             d[key] = val
