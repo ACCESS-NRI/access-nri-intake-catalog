@@ -7,11 +7,11 @@ dependencies:
   - python==3.10
   - access-py-telemetry>=0.1.6
   - cftime
-  - ecgtools>=2023.7.13
+  - accessnri::ecgtools-access
   - frozendict
   - intake>=2.0.0
   - intake-dataframe-catalog>=0.3.1
-  - intake-esm>=2025.2.3
+  - accessnri::intake-esm-access
   - jsonschema
   - polars>=1.24.0
   - pooch
