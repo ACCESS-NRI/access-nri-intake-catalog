@@ -797,36 +797,32 @@ class AccessCm3Builder(BaseBuilder):
 
     @classmethod
     def parser(cls, file) -> dict:
-        try:
-            output_nc_info = cls.parse_ncfile(file)
-            ncinfo_dict = output_nc_info.to_dict()
+        output_nc_info = cls.parse_ncfile(file)
+        ncinfo_dict = output_nc_info.to_dict()
 
-            if "mom6" in ncinfo_dict["filename"]:
-                realm = "ocean"
-            elif "ww3" in ncinfo_dict["filename"]:
-                realm = "wave"
-            elif "cice" in ncinfo_dict["filename"]:
-                realm = "seaIce"
-            elif "atmos" in ncinfo_dict["filename"]:
-                realm = "atmos"
-            else:
-                # Default/missing value for realm is "" which is Falsy
-                if not (realm := output_nc_info.realm):
-                    raise ParserError(f"Cannot determine realm for file {file}")
-            ncinfo_dict["realm"] = realm
+        if "mom6" in ncinfo_dict["filename"]:
+            realm = "ocean"
+        elif "ww3" in ncinfo_dict["filename"]:
+            realm = "wave"
+        elif "cice" in ncinfo_dict["filename"]:
+            realm = "seaIce"
+        elif "atmos" in ncinfo_dict["filename"]:
+            realm = "atmos"
+        else:
+            # Default/missing value for realm is "" which is Falsy
+            if not (realm := output_nc_info.realm):
+                raise ParserError(f"Cannot determine realm for file {file}")
+        ncinfo_dict["realm"] = realm
 
-            ncinfo_dict["file_id"] = ".".join(
-                [
-                    str(ncinfo_dict["realm"]),
-                    str(ncinfo_dict["frequency"]),
-                    str(ncinfo_dict["file_id"]),
-                ]
-            )
+        ncinfo_dict["file_id"] = ".".join(
+            [
+                str(ncinfo_dict["realm"]),
+                str(ncinfo_dict["frequency"]),
+                str(ncinfo_dict["file_id"]),
+            ]
+        )
 
-            return ncinfo_dict
-
-        except Exception:
-            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+        return ncinfo_dict
 
 
 class ROMSBuilder(BaseBuilder):
