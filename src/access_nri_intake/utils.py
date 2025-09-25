@@ -1,7 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-"""General utility functions for access-rni-intake"""
+"""General utility functions for access-nri-intake"""
 
 import json
 from importlib import resources as rsr
@@ -99,7 +99,7 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
 
     Validator = jsonschema.validators.validator_for(schema)
     type_checker = Validator.TYPE_CHECKER.redefine(
-        "array", lambda checker, instance: isinstance(instance, (list, tuple))
+        "array", lambda checker, instance: isinstance(instance, list | tuple)
     )
     TupleAllowingValidator = jsonschema.validators.extend(
         Validator, type_checker=type_checker
@@ -111,9 +111,9 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
         issue_str = ""
         for i, issue in enumerate(issues, start=1):
             try:
-                issue_str += f"\n{i:02d} | {issue.absolute_path[0]} : { issue.message }"
+                issue_str += f"\n{i:02d} | {issue.absolute_path[0]} : {issue.message}"
             except IndexError:  # Must be a missing keyword, not a bad type/value
-                issue_str += f"\n{i:02d} | (missing) : { issue.message }"
+                issue_str += f"\n{i:02d} | (missing) : {issue.message}"
         raise jsonschema.ValidationError(issue_str)
 
     return
