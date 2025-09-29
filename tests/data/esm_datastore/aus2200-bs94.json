@@ -26,7 +26,7 @@
         ]
     },
     "esmcat_version": "0.1.0",
-    "catalog_file": "aus2200.csv.random100",
+    "catalog_file": "aus2200-bs94.csv",
     "attributes": [
         {
             "column_name": "file_type"
