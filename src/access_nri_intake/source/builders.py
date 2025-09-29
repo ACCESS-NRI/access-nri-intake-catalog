@@ -805,7 +805,7 @@ class AccessCm3Builder(BaseBuilder):
             realm = "ocean"
         elif "ww3" in ncinfo_dict["filename"]:
             realm = "wave"  # pragma: no cover
-            # Curerntly no ACCESS-CM3 wave files available to test with
+            # Currently no ACCESS-CM3 wave files available to test with
         elif "cice" in ncinfo_dict["filename"]:
             realm = "seaIce"
         elif "atmos" in ncinfo_dict["filename"]:
