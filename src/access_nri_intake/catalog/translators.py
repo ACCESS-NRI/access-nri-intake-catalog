@@ -750,7 +750,7 @@ class Aus2200Translator(DefaultTranslator):
         """
         Initialise an Aus2200Translator
 
-        Uses default translators for variable, realm, and frequency.
+        Uses default translators for realm, and frequency.
 
         Parameters
         ----------
@@ -763,14 +763,13 @@ class Aus2200Translator(DefaultTranslator):
         super().__init__(source, columns)
 
         self.set_dispatch(
-            input_name="model",
+            input_name="model_id",
             core_colname="model",
-            func=self._model_translator,
+            func=super()._model_translator,
         )
 
-    def _model_translator(self):
-        """
-        Model is not available in the AUS2200 metadata, so we'll just return
-        ('UM',) for now.
-        """
-        return self.source.df.apply(lambda x: ("UM",), 1)
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )

@@ -351,11 +351,11 @@ def test_CcamTranslator(test_data, groupby, n_entries):
 @pytest.mark.parametrize(
     "groupby, n_entries",
     [
-        (None, 10),
-        (["variable"], 8),
-        (["frequency"], 2),
+        (None, 100),
+        (["variable"], 23),
+        (["frequency"], 4),
         (["model"], 1),
-        (["realm"], 1),
+        (["realm"], 2),
     ],
 )
 def test_Aus2200Translator(test_data, groupby, n_entries):
