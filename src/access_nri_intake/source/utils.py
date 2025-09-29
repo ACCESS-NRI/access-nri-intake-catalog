@@ -7,13 +7,14 @@ import pickle
 import warnings
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import cftime
 import polars as pl
 import xarray as xr
 import xxhash
+from dateutil.relativedelta import relativedelta
 from frozendict import frozendict
 from pandas.api.types import is_object_dtype
 
@@ -301,8 +302,43 @@ def get_timeinfo(
         If the dataset has a valid unlimited dimension, but no data
     """
 
+    def _todate_monthly_nocalendar(time_var):
+        """
+        Convert time coordinates with units "months since X" to datetimes assuming a
+        standard Georgian calendar where calendar is not otherwise defined.
+        """
+        # Get the reference date from the units
+        ref_date = datetime.strptime(time_var.units, "months since %Y-%m-%d %H:%M:%S")
+
+        # Calculate the date in question
+        # relativedelta only takes integer months
+        # relativedelta multiplication floors the multiplier
+        dts = ref_date + time_var.to_numpy() * relativedelta(months=1)
+
+        # Deal with partial months
+        remainders = time_var.to_numpy() % 1
+        if any(remainders != 0):
+            dt_start_of_months = dts
+            dt_end_of_months = dt_start_of_months + relativedelta(months=1)
+            dt_month_offsets = (dt_end_of_months - dt_start_of_months) * remainders
+
+            dts += dt_month_offsets
+
+        # cftime.num2date returns a datetime or a numpy array of datetimes
+        return dts if len(dts) > 1 else dts[0]
+
     def _todate(t):
-        return cftime.num2date(t, time_var.units, calendar=time_var.calendar)
+        try:
+            cal = time_var.calendar
+        except AttributeError as e:
+            # Some time data doesn't have a calendar specified but can still be
+            # converted to datetimes - e.g. WOA23
+            if "months since" in time_var.units:
+                return _todate_monthly_nocalendar(time_var)
+
+            raise e
+
+        return cftime.num2date(t, time_var.units, calendar=cal)
 
     time_format = "%Y-%m-%d, %H:%M:%S"
     ts = None

@@ -1,0 +1,98 @@
+schema_version: 1-0-3
+name: WOA23
+experiment_uuid: 0fbaaafe-7055-447f-906f-ba6738752ac8
+description: World Ocean Atlas 2023
+long_description: >-
+  The World Ocean Atlas (WOA23) is a collection of objectively analyzed, quality controlled temperature, salinity, oxygen, phosphate, silicate, and nitrate means based on profile data from the World Ocean Database (WOD). It can be used to create boundary and/or initial conditions for a variety of ocean models, verify numerical simulations of the ocean, and corroborate satellite data.
+  The WOA23 was initially released in October 2022 and it contained the 1991-2020 climate normals of global ocean temperature and salinity at selected standard depths.
+model:
+- World Ocean Atlas 2023
+realm:
+- ocean
+frequency:
+- fx
+- 1mon
+variable:
+- i_an
+- i_dd
+- i_gp
+- i_ma
+- i_mn
+- i_oa
+- i_sd
+- i_se
+- i_sea
+- lat
+- lon
+- n_an
+- n_dd
+- n_gp
+- n_ma
+- n_mn
+- n_oa
+- n_sd
+- n_se
+- n_sea
+- o_an
+- o_dd
+- o_gp
+- o_ma
+- o_mn
+- o_oa
+- o_sd
+- o_sdo
+- o_se
+- o_sea
+- p_an
+- p_dd
+- p_gp
+- p_ma
+- p_mn
+- p_oa
+- p_sd
+- p_se
+- p_sea
+- s_an
+- s_dd
+- s_gp
+- s_ma
+- s_mn
+- s_oa
+- s_sd
+- s_sdo
+- s_se
+- s_sea
+- t_an
+- t_dd
+- t_gp
+- t_ma
+- t_mn
+- t_oa
+- t_sd
+- t_sdo
+- t_se
+- t_sea
+- time
+nominal_resolution:
+- 5˚
+- 1.0˚
+- 0.25˚
+version: 2023
+contact: NOAA National Centers for Environmental Information (NCEI)
+email: NCEI.Info@noaa.gov
+created: 2023-09-30
+reference: https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:0270533
+license: These data are openly available to the public. Please acknowledge the use of these data with the text given in the acknowledgment/reference attribute.
+url: https://www.ncei.noaa.gov/products/world-ocean-atlas
+parent_experiment:
+related_experiments:
+-
+notes: >-
+  This data has been made available for ACCESS-OM3 model evaluation and will be reviewed every 6 months to confirm the ongoing requirement.
+  This data is supported by the Australian Government's National Collaborative Research Infrastructure Strategy (NCRIS), with access to resources provided through the ACCESS-NRI Merit Allocation Scheme and the National Computational Infrastructure (NCI).
+keywords:
+- World Ocean Atlas
+- WOA
+- WOA23
+- Oceans
+- Ocean salinity

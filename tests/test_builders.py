@@ -32,7 +32,8 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["woa"], "WoaBuilder", {}, 4, 4, 1),
+        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
+        (["woa"], "WoaBuilder", {}, 7, 7, 2),
     ],
 )
 def test_builder_build(
@@ -228,6 +229,20 @@ def test_builder_build(
             "seaIce.5day.boundary:1.eta_psi:1.eta_rho:1.eta_u:1.eta_v:1.s_rho:1.s_w:1.tracer:1.xi_psi:1.xi_rho:1.xi_u:1.xi_v:1",
         ),
         (
+            "access-esm1-6/output000/atmosphere/NetCDF/aiihca.pea1apr.nc",
+            "AccessEsm16Builder",
+            "atmos",
+            None,
+            "bnds:2.lat:2.lat_v:2.lon:2.lon_u:2.soil_model_level_number:2",
+        ),
+        (
+            "access-esm1-6/output000/ocean/ocean-2d-fprec_melt_heat-1monthly-mean-ym_0101_01.nc",
+            "AccessEsm16Builder",
+            "ocean",
+            None,
+            "nv:2.xt_ocean:2.yt_ocean:2",
+        ),
+        (
             "woa/woa13_ts_01_mom01.nc",
             "WoaBuilder",
             "ocean",
@@ -266,7 +281,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
     to_dict_mock.return_value = {
         "filename": filename.replace("ice", "badrealm").replace("ocean", "badrealm")
     }
-    info = builders.Mom6Builder.parser(str(test_data / filename))
+    info = builders.Mom6Builder._parser_catch_invalid(str(test_data / filename))
     assert INVALID_ASSET in info.keys()
     assert TRACEBACK in info.keys()
     assert "ParserError" in info[TRACEBACK]
@@ -283,6 +298,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
         "AccessOm3Builder",
         "Mom6Builder",
         "AccessEsm15Builder",
+        "AccessEsm16Builder",
         "AccessCm2Builder",
         "ROMSBuilder",
         "WoaBuilder",
@@ -290,7 +306,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
 )
 def test_builder_parser_exception(test_data, filename, builder):
     Builder = getattr(builders, builder)
-    info = Builder.parser(str(test_data / filename))
+    info = Builder._parser_catch_invalid(str(test_data / filename))
     assert INVALID_ASSET in info.keys()
     assert info[INVALID_ASSET] == str(test_data / filename)
     assert TRACEBACK in info.keys()
@@ -2998,3 +3014,36 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
             pdb.set_trace()
 
     assert len(builder.assets) == n_assets
+
+
+@pytest.mark.parametrize(
+    "test_file,builder,is_monthly,expected_start_date",
+    [
+        ("woa/woa23_A5B4_s00_04.nc", "WoaBuilder", True, "2041-07-01, 00:00:00"),
+        ("woa/woa23_A5B4_s01_04.nc", "WoaBuilder", True, "2009-01-16, 12:00:00"),
+        ("woa/woa23_A5B4_s02_04.nc", "WoaBuilder", True, "2009-02-10, 19:11:56"),
+        ("woa/woa23_A5B4_s00_04.nc.not-monthly", "WoaBuilder", False, None),
+    ],
+)
+def test_builder_no_calendar(
+    test_data, test_file, builder, is_monthly, expected_start_date
+):
+    """
+    Test the cases where the .nc file's time variable is missing the calendar
+
+    *s00* is an annual average file with time value 438
+    *s01* is a January file with with time value 48.5
+    *s02* is a February file with with time value changed to 49.35
+
+    The woa23_A5B4_s00_04.nc.not-monthly has had it's time units attribute
+    altered to be 'foobars since 2005-01-01 00:00:00'.
+    """
+    file_path = str(test_data / test_file)
+
+    ncinfo_dict = getattr(builders, builder)._parser_catch_invalid(file_path)
+
+    # File parse should succeed if monthly, fail otherwise
+    assert ("INVALID_ASSET" not in ncinfo_dict) == is_monthly
+
+    if is_monthly:
+        assert ncinfo_dict["start_date"] == expected_start_date
