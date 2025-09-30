@@ -31,6 +31,7 @@ __all__ = [
     "AccessCm3Builder",
     "ROMSBuilder",
     "WoaBuilder",
+    "Cmip6Builder",
 ]
 
 # Frequency translations

@@ -35,6 +35,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
         (["woa"], "WoaBuilder", {}, 7, 7, 2),
+        (["cmip6"], "Cmip6Builder", {}, 74, 73, 14),
     ],
 )
 def test_builder_build(
