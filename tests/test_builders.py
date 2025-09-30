@@ -280,6 +280,13 @@ def test_builder_build(
             None,
             "ocean.20yr.bnds:2.i:2.j:2.lev:2.vertices:2",
         ),
+        (
+            "cmip6/uas_Amon_ACCESS-ESM1-5_historical_r9i1p1f1_1981-2000_r360x180.nc",
+            "Cmip6Builder",
+            "atmos",
+            None,
+            "atmos.1mon.bnds:2.lat:2.lon:2",
+        ),
     ],
 )
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
