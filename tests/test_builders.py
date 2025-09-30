@@ -29,11 +29,13 @@ from access_nri_intake.source.utils import _NCFileInfo
             7,
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
+        (["access-cm3"], "AccessCm3Builder", {}, 31, 30, 12),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
         (["woa"], "WoaBuilder", {}, 7, 7, 2),
+        (["cmip6"], "Cmip6Builder", {}, 74, 73, 14),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -51,6 +53,7 @@ def test_builder_build(
     """
     Test the various steps of the build process
     """
+
     Builder = getattr(builders, builder)
     path = [str(test_data / Path(basedir)) for basedir in basedirs]
     builder = Builder(path, **kwargs)
@@ -250,6 +253,41 @@ def test_builder_build(
             "ocean",
             None,
             "ocean.fx.GRID_X_T:2.GRID_Y_T:2.ZT:2.03f617824bf731c4",
+        ),
+        (
+            "access-cm3/1981/ocean/access-cm3.mom6.2d.Heat_PmE.1mon.mean.1981.nc",
+            "AccessCm3Builder",
+            "ocean",
+            None,
+            "ocean.1mon.nv:2.xh:2.yh:2",
+        ),
+        (
+            "access-cm3/1981/ice/access-cm3.cice.1mon.mean.1981-01.nc",
+            "AccessCm3Builder",
+            "seaIce",
+            None,
+            "seaIce.1mon.nbnd:2.nc:2.ni:2.nj:2.nkaer:2.nkbio:2.nkice:2.nksnow:1",
+        ),
+        (
+            "access-cm3/1981/atmosphere/atmosa.pa-198102-dai.nc",
+            "AccessCm3Builder",
+            "atmos",
+            None,
+            "atmos.1day.bnds:2.lat:2.lat_river:2.lat_v:2.lon:2.lon_river:2.lon_u:2.model_rho_level_number:2.model_theta_level_number:2.pressure:2",
+        ),
+        (
+            "cmip6/agessc_Omon_ACCESS-ESM1-5_ssp585_r3i1p1f1_2081-2100_av.nc",
+            "Cmip6Builder",
+            "ocean",
+            None,
+            "ocean.20yr.bnds:2.i:2.j:2.lev:2.vertices:2",
+        ),
+        (
+            "cmip6/uas_Amon_ACCESS-ESM1-5_historical_r9i1p1f1_1981-2000_r360x180.nc",
+            "Cmip6Builder",
+            "atmos",
+            None,
+            "atmos.1mon.bnds:2.lat:2.lon:2",
         ),
     ],
 )
