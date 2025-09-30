@@ -174,14 +174,14 @@ class BaseBuilder(Builder):
 
         self._save(name, description, directory)
 
-    @staticmethod
-    def _parser_catch_invalid(file: str) -> dict:
+    @classmethod
+    def _parser_catch_invalid(cls, file: str) -> dict:
         """
         Catch all exceptions raised when parsing individual files for the Builders.
         These exceptions are later reported to the user in an INVALID_ASSETS file.
         """
         try:
-            return BaseBuilder.parser(file)
+            return cls.parser(file)
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
@@ -1006,9 +1006,11 @@ class Cmip6Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
+    def parser(cls, file: str) -> dict:
         """
-        No need to do much here -
+        No need to do much here - just parse the netCDF file and return the info
+        as a dictionary. The realm is obtained from the file metadata following
+        https://github.com/ACCESS-NRI/access-nri-intake-catalog/pull/478.
         """
 
         nc_info = cls.parse_ncfile(file, time_dim="time")
