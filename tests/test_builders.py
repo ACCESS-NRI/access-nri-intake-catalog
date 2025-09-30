@@ -273,6 +273,13 @@ def test_builder_build(
             None,
             "atmos.1day.bnds:2.lat:2.lat_river:2.lat_v:2.lon:2.lon_river:2.lon_u:2.model_rho_level_number:2.model_theta_level_number:2.pressure:2",
         ),
+        (
+            "cmip6/agessc_Omon_ACCESS-ESM1-5_ssp585_r3i1p1f1_2081-2100_av.nc",
+            "Cmip6Builder",
+            "ocean",
+            None,
+            "ocean.20yr.bnds:2.i:2.j:2.lev:2.vertices:2",
+        ),
     ],
 )
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
