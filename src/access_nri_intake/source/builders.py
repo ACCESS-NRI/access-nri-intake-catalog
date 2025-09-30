@@ -1006,9 +1006,11 @@ class Cmip6Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
+    def parser(cls, file: str) -> dict:
         """
-        No need to do much here -
+        No need to do much here - just parse the netCDF file and return the info
+        as a dictionary. The realm is obtained from the file metadata following
+        https://github.com/ACCESS-NRI/access-nri-intake-catalog/pull/478.
         """
 
         nc_info = cls.parse_ncfile(file, time_dim="time")
