@@ -6,9 +6,9 @@ Tools for translating metadata in an intake source into a metadata table to use 
 like the ACCESS-NRI catalog
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
-from typing import Callable
 
 import pandas as pd
 import tlz
