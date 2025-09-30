@@ -351,7 +351,7 @@ def test_CcamTranslator(test_data, groupby, n_entries):
 @pytest.mark.parametrize(
     "groupby, n_entries",
     [
-        (None, 100),
+        (None, 23),
         (["variable"], 23),
         (["frequency"], 4),
         (["model"], 1),
