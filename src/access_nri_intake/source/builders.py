@@ -174,14 +174,14 @@ class BaseBuilder(Builder):
 
         self._save(name, description, directory)
 
-    @staticmethod
-    def _parser_catch_invalid(file: str) -> dict:
+    @classmethod
+    def _parser_catch_invalid(cls, file: str) -> dict:
         """
         Catch all exceptions raised when parsing individual files for the Builders.
         These exceptions are later reported to the user in an INVALID_ASSETS file.
         """
         try:
-            return BaseBuilder.parser(file)
+            return cls.parser(file)
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
