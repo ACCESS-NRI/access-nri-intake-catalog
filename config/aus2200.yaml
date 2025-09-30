@@ -1,0 +1,9 @@
+builder: null
+
+translator: Aus2200Translator
+
+sources:
+
+  - metadata_yaml: /g/data/xp65/admin/intake/metadata/aus2200_bs94/metadata.yaml
+    path:
+    - /g/data/bs94/catalog/.prerelease/v2/esm/catalog.json

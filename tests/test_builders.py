@@ -29,9 +29,11 @@ from access_nri_intake.source.utils import _NCFileInfo
             7,
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
+        (["access-cm3"], "AccessCm3Builder", {}, 31, 30, 12),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
+        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
         (["woa"], "WoaBuilder", {}, 7, 7, 2),
     ],
 )
@@ -48,6 +50,7 @@ def test_builder_build(
     """
     Test the various steps of the build process
     """
+
     Builder = getattr(builders, builder)
     path = [str(test_data / Path(basedir)) for basedir in basedirs]
     builder = Builder(path, **kwargs)
@@ -228,11 +231,46 @@ def test_builder_build(
             "seaIce.5day.boundary:1.eta_psi:1.eta_rho:1.eta_u:1.eta_v:1.s_rho:1.s_w:1.tracer:1.xi_psi:1.xi_rho:1.xi_u:1.xi_v:1",
         ),
         (
+            "access-esm1-6/output000/atmosphere/NetCDF/aiihca.pea1apr.nc",
+            "AccessEsm16Builder",
+            "atmos",
+            None,
+            "bnds:2.lat:2.lat_v:2.lon:2.lon_u:2.soil_model_level_number:2",
+        ),
+        (
+            "access-esm1-6/output000/ocean/ocean-2d-fprec_melt_heat-1monthly-mean-ym_0101_01.nc",
+            "AccessEsm16Builder",
+            "ocean",
+            None,
+            "nv:2.xt_ocean:2.yt_ocean:2",
+        ),
+        (
             "woa/woa13_ts_01_mom01.nc",
             "WoaBuilder",
             "ocean",
             None,
             "ocean.fx.GRID_X_T:2.GRID_Y_T:2.ZT:2.03f617824bf731c4",
+        ),
+        (
+            "access-cm3/1981/ocean/access-cm3.mom6.2d.Heat_PmE.1mon.mean.1981.nc",
+            "AccessCm3Builder",
+            "ocean",
+            None,
+            "ocean.1mon.nv:2.xh:2.yh:2",
+        ),
+        (
+            "access-cm3/1981/ice/access-cm3.cice.1mon.mean.1981-01.nc",
+            "AccessCm3Builder",
+            "seaIce",
+            None,
+            "seaIce.1mon.nbnd:2.nc:2.ni:2.nj:2.nkaer:2.nkbio:2.nkice:2.nksnow:1",
+        ),
+        (
+            "access-cm3/1981/atmosphere/atmosa.pa-198102-dai.nc",
+            "AccessCm3Builder",
+            "atmos",
+            None,
+            "atmos.1day.bnds:2.lat:2.lat_river:2.lat_v:2.lon:2.lon_river:2.lon_u:2.model_rho_level_number:2.model_theta_level_number:2.pressure:2",
         ),
     ],
 )
@@ -266,7 +304,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
     to_dict_mock.return_value = {
         "filename": filename.replace("ice", "badrealm").replace("ocean", "badrealm")
     }
-    info = builders.Mom6Builder.parser(str(test_data / filename))
+    info = builders.Mom6Builder._parser_catch_invalid(str(test_data / filename))
     assert INVALID_ASSET in info.keys()
     assert TRACEBACK in info.keys()
     assert "ParserError" in info[TRACEBACK]
@@ -283,6 +321,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
         "AccessOm3Builder",
         "Mom6Builder",
         "AccessEsm15Builder",
+        "AccessEsm16Builder",
         "AccessCm2Builder",
         "ROMSBuilder",
         "WoaBuilder",
@@ -290,7 +329,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
 )
 def test_builder_parser_exception(test_data, filename, builder):
     Builder = getattr(builders, builder)
-    info = Builder.parser(str(test_data / filename))
+    info = Builder._parser_catch_invalid(str(test_data / filename))
     assert INVALID_ASSET in info.keys()
     assert info[INVALID_ASSET] == str(test_data / filename)
     assert TRACEBACK in info.keys()
@@ -3024,7 +3063,7 @@ def test_builder_no_calendar(
     """
     file_path = str(test_data / test_file)
 
-    ncinfo_dict = getattr(builders, builder).parser(file_path)
+    ncinfo_dict = getattr(builders, builder)._parser_catch_invalid(file_path)
 
     # File parse should succeed if monthly, fail otherwise
     assert ("INVALID_ASSET" not in ncinfo_dict) == is_monthly
