@@ -6,9 +6,9 @@ Tools for translating metadata in an intake source into a metadata table to use 
 like the ACCESS-NRI catalog
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
-from typing import Callable
 
 import pandas as pd
 import tlz
@@ -129,7 +129,7 @@ class DefaultTranslator:
         elif column in self.source.metadata:
             val = self.source.metadata[column]
             # Some metadata fields can be a value _or_ array
-            if isinstance(val, (list, tuple, set)):
+            if isinstance(val, list | tuple | set):
                 val = tuple(val)
             elif column in COLUMNS_WITH_ITERABLES:
                 val = (val,)
