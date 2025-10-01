@@ -52,11 +52,6 @@ def check_permissions(
     access_valid, error_msg = _confirm_project_access(project_codes)
 
     # Find the first occurence of "MissingStorageError" in the error message
-    error_msg = (
-        error_msg[: error_msg.find("MissingStorageError")]
-        if "MissingStorageError" in error_msg
-        else error_msg
-    )
 
     error_msg = f"{error_msg}\n\tThis is likely the source of any ESMDataSourceErrors or missing data"
 
@@ -67,7 +62,7 @@ def check_permissions(
             # We don't raise from err here, as it's already propagated out to our
             # stack trace in the `result = ip.run_cell(cell); _err = result.error_in_exec if result.error_in_exec else None`
             # `check_load_calls` magic. So we just raise a new error
-            raise MissingStorageError(error_msg)
+            raise MissingStorageError(error_msg).with_traceback(None)
 
     return None
 
