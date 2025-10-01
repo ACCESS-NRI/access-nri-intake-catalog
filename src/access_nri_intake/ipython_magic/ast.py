@@ -5,7 +5,6 @@
 
 import re
 import warnings
-from collections.abc import Callable
 from typing import Any
 
 import libcst as cst
@@ -51,6 +50,13 @@ def check_permissions(
     project_codes = set(esm_datastore.df["path"].map(_get_project_code))
 
     access_valid, error_msg = _confirm_project_access(project_codes)
+
+    # Find the first occurence of "MissingStorageError" in the error message
+    error_msg = (
+        error_msg[: error_msg.find("MissingStorageError")]
+        if "MissingStorageError" in error_msg
+        else error_msg
+    )
 
     error_msg = f"{error_msg}\n\tThis is likely the source of any ESMDataSourceErrors or missing data"
 
@@ -111,53 +117,8 @@ def check_storage_enabled(line, cell) -> None:
     -------
     None
     """
-    code = cell
 
-    code = strip_magic(code)
-
-    try:
-        tree = cst.parse_module(code)
-    except (SyntaxError, ParserSyntaxError, IndentationError):
-        return None
-
-    ip = get_ipython()  # type: ignore
-
-    result = ip.run_cell(cell)
-    _err = result.error_in_exec if result.error_in_exec else None
-
-    user_namespace: dict[str, Any] = get_ipython().user_ns  # type: ignore
-
-    reducer = ChainSimplifier(user_namespace)
-    reduced_tree = tree.visit(reducer)
-    visitor = CallListener(user_namespace, check_permissions, _err)
-    reduced_tree.visit(visitor)
-
-    return None
-
-
-@cell_magic
-def check_dataset_number(line, cell) -> None:
-    """
-    Use the AST module to parse the code that we are executing & check for attempts
-    to open multiple datasets with `.to_dask()`, so we can inform the user why
-
-    Fail silently if we can't parse the code.
-
-    Parameters
-    ----------
-    line:   str
-        The line of the cell magic (not used here, but required by IPython).
-
-    cell : str
-        The code to parse.
-
-    Returns
-    -------
-    None
-    """
-    code = cell
-
-    code = strip_magic(code)
+    code = strip_magic(cell)
 
     try:
         tree = cst.parse_module(code)
@@ -173,7 +134,7 @@ def check_dataset_number(line, cell) -> None:
 
     reducer = ChainSimplifier(user_namespace)
     reduced_tree = tree.visit(reducer)
-    visitor = CallListener(user_namespace, check_multiple_datasets, _err)
+    visitor = CallListener(user_namespace, _err)
     reduced_tree.visit(visitor)
 
     return None
@@ -183,13 +144,11 @@ class CallListener(cst.CSTVisitor):
     def __init__(
         self,
         user_namespace: dict[str, Any],
-        check_func: Callable,
         _err: Exception | None = None,
     ):
         self.user_namespace = user_namespace
         self._caught_calls: set[str] = set()  # Mostly for debugging
         self._err = _err
-        self.check_func = check_func
 
     def visit_Call(self, node: cst.Call) -> None:
         """
@@ -211,7 +170,7 @@ class CallListener(cst.CSTVisitor):
 
                 # Check if it's an esm_datastore with a load method
                 if isinstance(instance, esm_datastore):
-                    self.check_func(instance, method_name, self._err)  # type: ignore[has-type]
+                    check_permissions(instance, method_name, self._err)  # type: ignore[has-type]
 
 
 class ChainSimplifier(cst.CSTTransformer):
@@ -288,9 +247,6 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
     """
     ipython.register_magic_function(
         check_storage_enabled, "cell", "check_storage_enabled"
-    )
-    ipython.register_magic_function(
-        check_dataset_number, "cell", "check_dataset_number"
     )
     return None
 
