@@ -45,7 +45,7 @@ def check_permissions(
     """
 
     if method_name not in ["to_dask", "to_dataset_dict", "to_datatree"]:
-        return None
+        return None  # pragma: no cover
 
     project_codes = set(esm_datastore.df["path"].map(_get_project_code))
 
