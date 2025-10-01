@@ -40,6 +40,7 @@ from access_nri_intake.source.utils import _NCFileInfo
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
 @pytest.mark.filterwarnings("ignore:Unable to parse 4 assets")
+@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_builder_build(
     tmp_path,
     test_data,
