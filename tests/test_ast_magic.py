@@ -34,6 +34,26 @@ ds.{func}()
         check_storage_enabled("", raw_cell)
 
 
+@pytest.mark.parametrize(
+    "func",
+    [
+        "not_a_function",
+    ],
+)
+def test_to_datasets_no_raise(ipython, test_data, func):
+    raw_cell = f"""
+%%check_storage_enabled
+import intake
+ds = intake.open_esm_datastore("{test_data}/esm_datastore/cmip-forcing-qv56.json")
+ds.{func}()
+"""
+
+    assert ipython.find_magic("check_storage_enabled", "cell") is not None
+
+    check_storage_enabled("", raw_cell)
+    assert True
+
+
 def test_to_datasets_warns(ipython, test_data):
     raw_cell = f"""
 %%check_storage_enabled
