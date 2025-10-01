@@ -66,36 +66,6 @@ def check_permissions(
     return None
 
 
-def check_multiple_datasets(
-    esm_datastore, method_name: str, err: Exception | None = None
-) -> None:
-    """
-    Use an IPython cell magic to listen for calls to `.to_dask`, `.to_dataset_dict()` or `to_datatree`, and
-    inspect the list of datasets attached to the associated esm_datastore. If we find more than one dataset,
-    then raise an error.
-    """
-    if method_name != "to_dask":
-        return None
-
-    if len(esm_datastore) > 1:
-        groupby_attrs = esm_datastore.esmcat.aggregation_control.groupby_attrs
-        uniq = esm_datastore.unique()
-        too_long = []
-        for attr in groupby_attrs:
-            if len(uniq[attr]) > 1:
-                too_long.append((attr, len(uniq[attr])))
-
-        if too_long:
-            err_msg = (
-                f"Found >1 dataset: distinguished on {[f'{(attr[0])} ({attr[1]} values), ' for attr in too_long]}."
-                " Please refine search further, use `.to_dataset_dict()`/`.to_datatree, or change"
-                " aggregation controls: see https://github.com/COSIMA/cosima-recipes/issues/543#issuecomment-3086429836"
-            )
-
-            raise TooManyDatasetsError(err_msg)
-    return None
-
-
 def strip_magic(code: str) -> str:
     """
     Parse the provided code into an AST (Abstract Syntax Tree).
