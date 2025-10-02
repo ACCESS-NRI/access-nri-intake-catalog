@@ -35,8 +35,8 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
         (["woa"], "WoaBuilder", {}, 7, 7, 2),
-        (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 73, 14),
-        (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 73, 31),
+        (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
+        (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
     ],
 )
 def test_builder_build(
@@ -348,6 +348,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
         "AccessCm2Builder",
         "ROMSBuilder",
         "WoaBuilder",
+        "Cmip6Builder",
     ],
 )
 def test_builder_parser_exception(test_data, filename, builder):
