@@ -972,7 +972,7 @@ class Cmip6Builder(BaseBuilder):
     ]
     # PATTERNS is mostly unused here - we get the realm from the metadata. Only
     # using it to match on file names here & should be refactored to be removed. TODO
-    ensemble: bool = False
+    ensemble: bool = True
 
     def __init__(self, path, ensemble: bool, **kwargs):
         """
@@ -1012,6 +1012,7 @@ class Cmip6Builder(BaseBuilder):
                     "attribute_name": "member",
                 },
             ]
+            kwargs["groupby_attrs"] += ["member"]
 
         Cmip6Builder.ensemble = ensemble
 
@@ -1050,6 +1051,6 @@ class Cmip6Builder(BaseBuilder):
                         f"Cannot determine member for file {file} - "
                         "realization_index attribute missing"
                     )
-                ncinfo_dict["member"] = f"r{int(member_id):03d}"
+                ncinfo_dict["member"] = f"r{int(member_id)}"
 
         return ncinfo_dict
