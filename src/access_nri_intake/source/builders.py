@@ -973,7 +973,7 @@ class Cmip6Builder(BaseBuilder):
     # PATTERNS is mostly unused here - we get the realm from the metadata. Only
     # using it to match on file names here & should be refactored to be removed. TODO
 
-    def __init__(self, path, **kwargs):
+    def __init__(self, path, ensemble: bool, **kwargs):
         """
         Initialise a Cmip6Builder
 
@@ -1003,6 +1003,14 @@ class Cmip6Builder(BaseBuilder):
                 },
             ],
         )
+
+        if ensemble:
+            kwargs["aggregations"] += [
+                {
+                    "type": "join_new",
+                    "attribute_name": "member",
+                },
+            ]
 
         super().__init__(**kwargs)
 
