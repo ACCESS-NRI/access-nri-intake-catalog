@@ -359,6 +359,18 @@ def test_builder_parser_exception(test_data, filename, builder):
     assert TRACEBACK in info.keys()
 
 
+def test_cmip6_builder_parser_no_ensemble(test_data):
+    builder = builders.Cmip6Builder([str(test_data / "cmip6")], ensemble=True)
+    with pytest.raises(builders.ParserError, match="Cannot determine member"):
+        builder.parser(
+            str(
+                test_data
+                / "cmip6"
+                / "vas_Amon_ACCESS-ESM1-5_historical_r9i1p1f1_1981-2000_r360x180_no_realisation_index.nc"
+            )
+        )
+
+
 def test_builder_columns_with_iterables(test_data):
     builder = builders.AccessOm2Builder(str(test_data / "access-om2"))
     assert not builder.columns_with_iterables
