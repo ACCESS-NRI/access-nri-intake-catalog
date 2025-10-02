@@ -972,6 +972,7 @@ class Cmip6Builder(BaseBuilder):
     ]
     # PATTERNS is mostly unused here - we get the realm from the metadata. Only
     # using it to match on file names here & should be refactored to be removed. TODO
+    ensemble: bool = False
 
     def __init__(self, path, ensemble: bool, **kwargs):
         """
@@ -1012,6 +1013,8 @@ class Cmip6Builder(BaseBuilder):
                 },
             ]
 
+        Cmip6Builder.ensemble = ensemble
+
         super().__init__(**kwargs)
 
     @classmethod
@@ -1032,5 +1035,21 @@ class Cmip6Builder(BaseBuilder):
                 str(ncinfo_dict["file_id"]),
             ]
         )
+
+        if cls.ensemble:
+            with xr.open_dataset(
+                file,
+                chunks={},
+                decode_cf=False,
+                decode_times=False,
+                decode_coords=False,
+            ) as ds:
+                member_id = ds.attrs.get("realization_index", None)
+                if member_id is None:
+                    raise ParserError(
+                        f"Cannot determine member for file {file} - "
+                        "realization_index attribute missing"
+                    )
+                ncinfo_dict["member"] = f"r{int(member_id):03d}"
 
         return ncinfo_dict
