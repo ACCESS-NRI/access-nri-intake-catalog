@@ -22,6 +22,7 @@ from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
+from .experiment.colours import f_info, f_path, f_reset
 from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
 from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
@@ -850,8 +851,8 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         type=str,
         help=(
             "Builder to use to create the esm-datastore."
-            " Builders are defined the source.builders module. Currently available options are:"
-            f" {', '.join(builders.__all__)}."
+            f" Builders are defined the {f_path}source.builders{f_reset} module. Currently available options are:"
+            f" {f_info}{', '.join(builders.__all__)}{f_reset}."
             " To build a datastore for a new model, please contact the ACCESS-NRI team."
         ),
         required=False,
@@ -865,7 +866,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         nargs="*",
         help=(
             "Additional keyword arguments to pass to the builder."
-            " Should be in the form of key=value."
+            f" Should be in the form of {f_info}key=value{f_reset}."
         ),
     )
 
@@ -885,7 +886,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         type=str,
         help=(
             "Directory in which to place the catalog.json file."
-            " Defaults to the value of --expt-dir if not set."
+            f" Defaults to the value of {f_info}--expt-dir{f_reset} if not set."
         ),
     )
 
@@ -894,7 +895,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         type=str,
         help=(
             "Name of the datastore to use. If not provided, this will default to"
-            " 'experiment_datastore'."
+            f" {f_info}'experiment_datastore'{f_reset}."
         ),
         default="experiment_datastore",
     )
@@ -904,7 +905,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         type=str,
         help=(
             "Description of the datastore. If not provided, a default description will be used:"
-            " 'esm_datastore for the model output in {--expt-dir}'"
+            f" 'esm_datastore for the model output in {f_info}{{--expt-dir}}{f_reset}'"
         ),
         default=None,
     )
