@@ -157,14 +157,14 @@ def test_get_timeinfo(times, bounds, ffreq, expected):
     assert get_timeinfo(ds, filename_frequency=ffreq, time_dim="time") == expected
 
 
-@pytest.mark.filterwarnings("ignore:Cannot infer start and end times")
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
 def test_guess_start_end_dates_warning():
-    _guess_start_end_dates(
-        ts=xr.date_range("1900-01-01", periods=1, freq="6h")[0],
-        te=xr.date_range("1900-01-01", periods=1, freq="6h")[0],
-        frequency=(10, "min"),
-    )
+    with pytest.warns(UserWarning, match="Cannot infer start and end times"):
+        _guess_start_end_dates(
+            ts=xr.date_range("1900-01-01", periods=1, freq="6h")[0],
+            te=xr.date_range("1900-01-01", periods=1, freq="6h")[0],
+            frequency=(10, "min"),
+        )
 
 
 def test_empty_file_error():
