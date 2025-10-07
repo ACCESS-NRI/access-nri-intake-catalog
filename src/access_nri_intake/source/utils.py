@@ -17,6 +17,7 @@ import xxhash
 from dateutil.relativedelta import relativedelta
 from frozendict import frozendict
 from pandas.api.types import is_object_dtype
+import numpy as np
 
 FREQUENCY_STATIC = "fx"
 
@@ -372,9 +373,13 @@ def get_timeinfo(
         has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
         if has_bounds:
             bounds_var = ds.variables[time_var.bounds]
-            ts = _todate(bounds_var[0, 0])
-            te = _todate(bounds_var[-1, 1])
-        else:
+            if np.isnan(bounds_var).all():
+                has_bounds = False
+            else:
+                ts = _todate(bounds_var[0, 0])
+                te = _todate(bounds_var[-1, 1])
+
+        if ts is None and te is None:
             ts = _todate(time_var[0])
             te = _todate(time_var[-1])
 
