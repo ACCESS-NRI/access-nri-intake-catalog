@@ -11,13 +11,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import cftime
+import numpy as np
 import polars as pl
 import xarray as xr
 import xxhash
 from dateutil.relativedelta import relativedelta
 from frozendict import frozendict
 from pandas.api.types import is_object_dtype
-import numpy as np
 
 FREQUENCY_STATIC = "fx"
 
