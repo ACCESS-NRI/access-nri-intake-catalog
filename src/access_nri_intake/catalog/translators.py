@@ -704,43 +704,6 @@ class EsmValToolTranslator(DefaultTranslator):
         )
 
 
-@dataclass
-class _DispatchKeys:
-    """
-    Data class to store the keys for the dispatch dictionary in the Translator classes
-    """
-
-    model: str | None = None
-    realm: str | None = None
-    frequency: str | None = None
-    variable: str | None = None
-
-
-def _cmip_realm_translator(series) -> pd.Series:
-    """
-    Return realm from CMIP realm metadata, fixing some issues. This function takes
-    a series of strings and returns a series of tuples as there are sometimes multiple
-    realms per cmip asset
-    """
-
-    def _translate(string: str) -> tuple[str, ...]:
-        translations = {
-            "na": "none",
-            "landonly": "land",
-            "ocnBgChem": "ocnBgchem",
-            "seaice": "seaIce",
-        }
-
-        raw_realms = string.split(" ")
-        realms = set()
-        for realm in raw_realms:
-            realm = translations.get(realm, realm)
-            realms |= {realm}
-        return tuple(realms)
-
-    return series.apply(lambda string: _translate(string))
-
-
 class Aus2200Translator(DefaultTranslator):
     """
     AUS2200 Translator for translating metadata from the NCI AUS2200 intake datastores.
@@ -797,3 +760,40 @@ class Aus2200Translator(DefaultTranslator):
         return self.source.df["frequency"].apply(
             lambda x: AUS200_FREQ_TRANSLATIONS.get(x, x)
         )
+
+
+@dataclass
+class _DispatchKeys:
+    """
+    Data class to store the keys for the dispatch dictionary in the Translator classes
+    """
+
+    model: str | None = None
+    realm: str | None = None
+    frequency: str | None = None
+    variable: str | None = None
+
+
+def _cmip_realm_translator(series) -> pd.Series:
+    """
+    Return realm from CMIP realm metadata, fixing some issues. This function takes
+    a series of strings and returns a series of tuples as there are sometimes multiple
+    realms per cmip asset
+    """
+
+    def _translate(string: str) -> tuple[str, ...]:
+        translations = {
+            "na": "none",
+            "landonly": "land",
+            "ocnBgChem": "ocnBgchem",
+            "seaice": "seaIce",
+        }
+
+        raw_realms = string.split(" ")
+        realms = set()
+        for realm in raw_realms:
+            realm = translations.get(realm, realm)
+            realms |= {realm}
+        return tuple(realms)
+
+    return series.apply(lambda string: _translate(string))
