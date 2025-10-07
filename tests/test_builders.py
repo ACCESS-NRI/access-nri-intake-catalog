@@ -267,6 +267,13 @@ def test_builder_build(
             "seaIce.1mon.nbnd:2.nc:2.ni:2.nj:2.nkaer:2.nkbio:2.nkice:2.nksnow:1",
         ),
         (
+            "access-cm3/1984/access-cm3.mom6.2d.Rd_dx.1mon.mean.1984.nc",
+            "AccessCm3Builder",
+            "ocean",
+            None,
+            "ocean.1mon.nv:2.xh:1440.yh:1142",
+        ),
+        (
             "access-cm3/1981/atmosphere/atmosa.pa-198102-dai.nc",
             "AccessCm3Builder",
             "atmos",
