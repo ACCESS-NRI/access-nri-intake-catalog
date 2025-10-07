@@ -773,3 +773,27 @@ class Aus2200Translator(DefaultTranslator):
             core_colname="variable",
             func=super()._variable_translator,
         )
+
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=self._frequency_translator,
+        )
+
+    @tuplify_series
+    @trace_failure
+    def _frequency_translator(self):
+        """
+        Return frequency, fixing a few issues
+        TODO: It would be preferable to add 10min, etc. to the data spec.
+        """
+
+        AUS200_FREQ_TRANSLATIONS = {
+            "10min": "subhr",
+            "1hrPlev": "1hr",
+            "6hrPlev": "6hr",
+        }
+
+        return self.source.df["frequency"].apply(
+            lambda x: AUS200_FREQ_TRANSLATIONS.get(x, x)
+        )
