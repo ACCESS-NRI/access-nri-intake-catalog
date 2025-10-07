@@ -46,6 +46,7 @@ def test_CatalogManager_init(tmp_path):
         (AccessOm3Builder, "access-om3", {}),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to parse 2 assets")
 def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs):
     """Test building and adding an Intake-ESM datastore"""
     path = str(tmp_path / "cat.csv")
