@@ -22,3 +22,6 @@ path,file_type,realm,model_id,experiment_id,frequency,variable_id,version,time_r
 /g/data/bs94/AUS2200/ecoastlow-smooth/v1-0/1hr/pfull/pfull_AUS2200_ecoastlow-smooth_1hrPt_201606031900-201606040000.nc,f,atmos,AUS2200,ecoastlow-smooth,1hr,pfull,v1-0,201606031900-201606040000
 /g/data/bs94/AUS2200/coralsea-sstreduced/v1-0/10min/vas/vas_AUS2200_flood22-reducedsst_subhrPt_20220302012000-20220303011000.nc,f,atmos,AUS2200,coralsea-sstreduced,10min,vas,v1-0,20220302012000-20220303011000
 /g/data/bs94/AUS2200/mjo-neutral2013/v1-0/1hr/mrso/mrso_AUS2200_mjo-neutral_1hrPt_201301180100-201301190000.nc,f,land,AUS2200,mjo-neutral2013,1hr,mrso,v1-0,201301180100-201301190000
+/g/data/bs94/AUS2200/mjo-lanina2018/v1-0/1hrPlev/ta/ta_AUS2200_mjo-lanina_1hrPt_201802040100-201802041200.nc,f,atmos,AUS2200,mjo-lanina2018,1hrPlev,ta,v1-0,201802040100-201802041200
+/g/data/bs94/AUS2200/coralsea-sstreduced/v1-0/6hrPlev/zg/zg_AUS2200_coralsea-sstreduced_6hrPt_202203020100-202203021900.nc,f,atmos,AUS2200,coralsea-sstreduced,6hrPlev,zg,v1-0,202203020100-202203021900
+/g/data/bs94/AUS2200/mjo-lanina2018/v1-0/10min/pralsns/pralsns_AUS2200_mjo-lanina_subhr_20180209000500-20180209235500.nc,f,atmos,AUS2200,mjo-lanina2018,10min,pralsns,v1-0,20180209000500-20180209235500
