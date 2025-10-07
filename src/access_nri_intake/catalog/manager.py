@@ -114,7 +114,9 @@ class CatalogManager:
                 )
 
         builder = builder(path, **kwargs).build()
-        builder.save(name=name, description=description, directory=directory)
+        builder.save(
+            name=name, description=description, directory=directory, use_parquet=True
+        )
 
         self.source, self.source_metadata = _open_and_translate(
             str(json_file),
