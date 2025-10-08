@@ -231,6 +231,7 @@ def test_get_catalog_fp_basepath(mock_is_file, isfile_return, basepath):
 
 
 @mock.patch("pathlib.Path.is_file", return_value=True)
+@pytest.mark.filterwarnings("ignore:User defined catalog found in ")
 def test_get_catalog_fp_local(mock_is_file):
     """
     Check that we get pointed back to the user catalog

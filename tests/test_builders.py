@@ -39,6 +39,9 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
+@pytest.mark.filterwarnings("ignore:Unable to parse 4 assets")
+@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_builder_build(
     tmp_path,
     test_data,
@@ -297,6 +300,7 @@ def test_builder_build(
         ),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     Builder = getattr(builders, builder)
     info = Builder.parser(str(test_data / filename))
@@ -2933,6 +2937,10 @@ def test_parse_filename(builder, filename, expected):
         ),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
+@pytest.mark.filterwarnings(
+    "ignore:The frequency '\\(1, 'mon'\\)' determined from filename"
+)
 def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
     """
     Tests for correctness of parser. Note that if we are using intake-esm without
@@ -3050,6 +3058,7 @@ def test_builder_include_exclude_patterns(
         ("om3_realm", True, ["ocean"], 2),  # All files
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
     """
     Tests the OM3 builder with the .nc files in om3_realm.
