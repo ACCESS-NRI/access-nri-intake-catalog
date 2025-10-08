@@ -129,6 +129,10 @@ from access_nri_intake.source.utils import (
         ),
     ],
 )
+@pytest.mark.filterwarnings(
+    "ignore:The frequency '\\(\\d, '(hr|mon|yr)'\\)' determined from filename"
+)
+@pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds info")
 def test_get_timeinfo(times, bounds, ffreq, expected):
     if bounds:
         time = (times[0] + times[1]) / 2
@@ -153,13 +157,12 @@ def test_get_timeinfo(times, bounds, ffreq, expected):
     assert get_timeinfo(ds, filename_frequency=ffreq, time_dim="time") == expected
 
 
-def test__guess_start_end_dates_warning():
-    with pytest.warns(
-        UserWarning, match="Cannot infer start and end times for subhourly frequencies."
-    ):
+@pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
+def test_guess_start_end_dates_warning():
+    with pytest.warns(UserWarning, match="Cannot infer start and end times"):
         _guess_start_end_dates(
-            ts=xr.cftime_range("1900-01-01", periods=1, freq="6H")[0],
-            te=xr.cftime_range("1900-01-01", periods=1, freq="6H")[0],
+            ts=xr.date_range("1900-01-01", periods=1, freq="6h")[0],
+            te=xr.date_range("1900-01-01", periods=1, freq="6h")[0],
             frequency=(10, "min"),
         )
 

@@ -62,6 +62,9 @@ def test_available_versions(mock_get_catalog_fp, mock__get_catalog_root, test_da
 
 @mock.patch("access_nri_intake.data.utils._get_catalog_root")
 @mock.patch("access_nri_intake.data.utils.get_catalog_fp")
+@pytest.mark.filterwarnings(
+    "ignore:Old catalog file catalog-bad-\\w*.yaml is improperly formatted"
+)
 def test_available_versions_pretty(
     mock_get_catalog_fp, mock__get_catalog_root, test_data, capfd
 ):

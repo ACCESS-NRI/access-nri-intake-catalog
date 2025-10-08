@@ -1,6 +1,11 @@
 name: CI
 
-on: [pull_request, push, workflow_dispatch]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   pre-commit:
@@ -19,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
 
       - name: Setup conda environment
         uses: conda-incubator/setup-miniconda@v3
