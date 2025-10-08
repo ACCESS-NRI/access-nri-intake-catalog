@@ -125,7 +125,7 @@ class CatalogManager:
             description,
             metadata,
             translator,
-            columns_with_iterables=list(builder.columns_with_iterables),
+            # No longer need columns with iterables, natively handled by parquet
         )
 
         self._add()
