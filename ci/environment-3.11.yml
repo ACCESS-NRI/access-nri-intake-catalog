@@ -17,6 +17,7 @@ dependencies:
   - pooch
   - pre-commit
   - pytest
+  - pydantic<2.12
   - xarray
   - accessnri::yamanifest>=0.3.12
   - pip
