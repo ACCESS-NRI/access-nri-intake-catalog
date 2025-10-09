@@ -29,7 +29,7 @@ from access_nri_intake.source.utils import _NCFileInfo
             7,
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
-        (["access-cm3"], "AccessCm3Builder", {}, 31, 30, 12),
+        (["access-cm3"], "AccessCm3Builder", {}, 32, 31, 13),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
@@ -269,6 +269,13 @@ def test_builder_build(
             "seaIce",
             None,
             "seaIce.1mon.nbnd:2.nc:2.ni:2.nj:2.nkaer:2.nkbio:2.nkice:2.nksnow:1",
+        ),
+        (
+            "access-cm3/1984/access-cm3.mom6.2d.Rd_dx.1mon.mean.1984.nc",
+            "AccessCm3Builder",
+            "ocean",
+            None,
+            "ocean.1mon.nv:2.xh:1440.yh:1142",
         ),
         (
             "access-cm3/1981/atmosphere/atmosa.pa-198102-dai.nc",
@@ -3115,3 +3122,47 @@ def test_builder_no_calendar(
 
     if is_monthly:
         assert ncinfo_dict["start_date"] == expected_start_date
+
+
+def test_builder_serialization_consistent(
+    tmp_path,
+    test_data,
+):
+    """
+    Test the various steps of the build process
+    """
+
+    path = [str(test_data / "mom6")]
+    builder = builders.Mom6Builder(path)
+
+    with pytest.raises(ValueError, match="asset list provided is None"):
+        builder.valid_assets
+
+    builder.get_assets()
+
+    builder.build()
+
+    builder.save(
+        name="test_pq",
+        description="test-datastore-pq-serialized",
+        directory=str(tmp_path),
+        use_parquet=True,
+    )
+    builder.save(
+        name="test_csv",
+        description="test-datastore-csv-serialized",
+        directory=str(tmp_path),
+        use_parquet=False,
+    )
+
+    cat_pq = intake.open_esm_datastore(
+        str(tmp_path / "test_pq.json"),
+        # columns_with_iterables=builder.columns_with_iterables,
+    )
+
+    cat_csv = intake.open_esm_datastore(
+        str(tmp_path / "test_csv.json"),
+        columns_with_iterables=builder.columns_with_iterables,
+    )
+
+    assert cat_pq.df.equals(cat_csv.df)
