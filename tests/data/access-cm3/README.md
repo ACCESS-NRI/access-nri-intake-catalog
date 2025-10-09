@@ -1,4 +1,6 @@
-Generated with the following, and then manually pruned to reduce wasted file size
+Generated with the following, and then manually pruned to reduce wasted file size. 
+
+The 1984 file was copied manually, as the time bounds are all NaN, which is not something we were previously handling
 ```python
 from pathlib import Path
 import xarray as xr
