@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import cftime
+import numpy as np
 import polars as pl
 import xarray as xr
 import xxhash
@@ -372,9 +373,13 @@ def get_timeinfo(
         has_bounds = hasattr(time_var, "bounds") and time_var.bounds in ds.variables
         if has_bounds:
             bounds_var = ds.variables[time_var.bounds]
-            ts = _todate(bounds_var[0, 0])
-            te = _todate(bounds_var[-1, 1])
-        else:
+            if np.isnan(bounds_var).all():
+                has_bounds = False
+            else:
+                ts = _todate(bounds_var[0, 0])
+                te = _todate(bounds_var[-1, 1])
+
+        if ts is None and te is None:
             ts = _todate(time_var[0])
             te = _todate(time_var[-1])
 
