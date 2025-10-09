@@ -16,7 +16,7 @@ classifiers = [
 
 dependencies = [
     "cftime",
-    "ecgtools-access",
+    "ecgtools-access>=2025.10.7",
     "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
