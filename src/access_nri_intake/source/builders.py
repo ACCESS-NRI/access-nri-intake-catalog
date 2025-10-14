@@ -24,7 +24,8 @@ from .utils import (
 __all__ = [
     "AccessOm2Builder",
     "AccessOm3Builder",
-    "CryoInputDataBuilder",
+    "CryoStaticInputDataBuilder",
+    "CryoAnnualInputDataBuilder",
     "Mom6Builder",
     "AccessEsm15Builder",
     "AccessEsm16Builder",
@@ -62,7 +63,6 @@ PATTERNS_HELPERS = {
     "counter": "\\d+",
 }
 
-
 class ParserError(Exception):
     pass
 
@@ -87,6 +87,7 @@ class BaseBuilder(Builder):
         aggregations: list[dict] | None = None,
         storage_options: dict | None = None,
         joblib_parallel_kwargs: dict = {"n_jobs": multiprocessing.cpu_count()},
+        method: str = "xr"
     ):
         """
         This method should be overwritten. The expection is that some of these arguments
@@ -127,6 +128,7 @@ class BaseBuilder(Builder):
         self.aggregations = aggregations
         self.storage_options = storage_options
         self.joblib_parallel_kwargs = joblib_parallel_kwargs
+        self.method = method
 
         super().__post_init__()
 
@@ -341,7 +343,7 @@ class BaseBuilder(Builder):
         return frequency
 
     @classmethod
-    def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
+    def parse_ncfile(cls, file: str, time_dim: str = "time", method: str = "xr") -> _NCFileInfo:
         """
         Get Intake-ESM datastore entry info from a netcdf file
 
@@ -366,6 +368,17 @@ class BaseBuilder(Builder):
 
         filename_frequency = cls.parse_filename_freq(file_path.stem)
 
+        ## Get years from filename
+        if method == 'annual':
+            match = re.search(r"(\d{4})_(\d{4})", file_path.name)
+            if match:
+                year1, year2 = match.groups()
+                start_date = f"{year1}-01-01, 00:00:00"
+                end_date = f"{year2}-12-31, 00:00:00"
+            else:
+                start_date = None
+                end_date = None
+        
         with xr.open_dataset(
             file,
             chunks={},
@@ -380,10 +393,18 @@ class BaseBuilder(Builder):
                 attrs = ds[var].attrs
                 dvars.append_attrs(var, attrs)  # type: ignore
 
-            start_date, end_date, frequency = get_timeinfo(
-                ds, filename_frequency, time_dim
-            )
             file_id = cls._generate_file_shape_info(ds, time_dim)
+
+            if method != "annual":
+                start_date, end_date, frequency = get_timeinfo(
+                    ds, filename_frequency, time_dim
+                )
+            else:
+                frequency = "1yr"
+
+                # Expand time dimension is it doesn't exist
+                if 'time' not in ds.dims:
+                    ds = ds.expand_dims(time = [pd.Timestamp(start_date)])
 
             additional_info["realm"] = ds.attrs.get("realm", "")
 
@@ -566,13 +587,13 @@ class AccessOm3Builder(BaseBuilder):
 
         return ncinfo_dict
 
-## DRAFT builder for key cryosphere-related input data
-class CryoInputDataBuilder(BaseBuilder):
-    """Intake-ESM datastore builder for common Cryosphere Input datasets"""
+## DRAFT Builder for static cryosphere datasets included in the Cryosphere Data Pool
+class CryoSingleInputDataBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for common static Cryosphere Input datasets"""
 
     def __init__(self, path, **kwargs):
         """
-        Initialise a CryoInputDataBuilder
+        Initialise a CryoStaticInputDataBuilder
 
         Parameters
         ----------
@@ -583,7 +604,7 @@ class CryoInputDataBuilder(BaseBuilder):
         kwargs = dict(
             path = path,
             data_format = "netcdf",
-            depth = 1,
+            depth = 4,
             include_patterns=kwargs.get("include_patterns") or ["*.nc"],
             groupby_attrs=[
                 "file_id",
@@ -611,8 +632,8 @@ class CryoInputDataBuilder(BaseBuilder):
             ncinfo_dict = nc_info.to_dict()
 
             # TEMP - hardcode realm and frequency (assuming static input files for now)
-            ncinfo_dict["realm"] = "cryo"
-            ncinfo_dict["frequency"] = "fx"
+            ncinfo_dict["realm"] = "landIce"
+            # ncinfo_dict["frequency"] = "fx"
 
             # Formulate custom file_id because input data files generally differ from ACCESS model files (use filename, not file_id)
             ncinfo_dict["file_id"] = ".".join(
@@ -628,6 +649,68 @@ class CryoInputDataBuilder(BaseBuilder):
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
+## DRAFT Builder for annual cryosphere datasets included in the Cryosphere Data Pool
+class CryoAnnualInputDataBuilder(BaseBuilder):
+    """Intake-ESM datastore builder for common static Cryosphere Input datasets"""
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a CryoStaticInputDataBuilder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path = path,
+            data_format = "netcdf",
+            depth = 4,
+            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            groupby_attrs=[
+                "file_id",
+            ],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+            method = 'annual',
+
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        try:
+
+            nc_info = cls.parse_ncfile(file, method = 'annual')
+            ncinfo_dict = nc_info.to_dict()
+
+            # TEMP - hardcode realm and frequency (assuming static input files for now)
+            ncinfo_dict["realm"] = "landIce"
+            # ncinfo_dict["frequency"] = "fx"
+
+            # Formulate custom file_id because input data files generally differ from ACCESS model files (use filename, not file_id)
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str('Antarctica_ice_velocity_1km_v01')
+                ]
+            )
+
+            return ncinfo_dict
+
+        except Exception:
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
 # FIXME refactor to be called Mom6Builder (TBC)
 class Mom6Builder(BaseBuilder):
