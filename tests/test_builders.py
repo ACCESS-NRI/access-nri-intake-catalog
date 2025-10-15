@@ -3145,3 +3145,34 @@ def test_builder_serialization_consistent(
     )
 
     assert cat_pq.df.equals(cat_csv.df)
+
+
+def test_builder_varcellmethod_differentiation(
+    tmp_path,
+    test_data,
+):
+    """
+    Test that we don't accidentally merge variables with different cell_methods
+    when we call `.to_dask()`
+    """
+    path = [str(test_data / "om2-var-cell-methods")]
+    builder = builders.AccessOm2Builder(path)
+
+    builder.get_assets()
+
+    builder.build()
+
+    builder.save(
+        name="test_varcellmethod",
+        description="test-datastore-varcellmethod",
+        directory=str(tmp_path),
+        use_parquet=True,
+    )
+
+    cat = intake.open_esm_datastore(
+        str(tmp_path / "test_varcellmethod.json"),
+    )
+
+    # Catalog length == Number of datasets. This should be 2 as time: mean and time: pow(02)
+    # aren't compatible cell methods and so should not be merged.
+    assert len(cat) == 2  #
