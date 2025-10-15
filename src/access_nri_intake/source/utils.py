@@ -124,7 +124,7 @@ class _VarInfo:
     variable_list: list[str] = field(default_factory=list)
     long_name_list: list[str] = field(default_factory=list)
     standard_name_list: list[str] = field(default_factory=list)
-    cell_methods_list: list[str | None] = field(default_factory=list)
+    cell_methods_list: list[str] = field(default_factory=list)
     units_list: list[str] = field(default_factory=list)
 
     def append_attrs(self, var: str, attrs: dict) -> None:
@@ -138,10 +138,10 @@ class _VarInfo:
         self.variable_list.append(var)
         self.long_name_list.append(attrs["long_name"])
         self.standard_name_list.append(attrs.get("standard_name", ""))
-        self.cell_methods_list.append(attrs.get("cell_methods", None))
+        self.cell_methods_list.append(attrs.get("cell_methods", ""))
         self.units_list.append(attrs.get("units", ""))
 
-    def to_var_info_dict(self) -> dict[str, list[str] | list[str | None]]:
+    def to_var_info_dict(self) -> dict[str, list[str]]:
         """
         Return a dictionary representation of the _VarInfo object. Fields are
         defined explicitly for use in the _AccessNCFileInfo constructor.
