@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Generic, TypeVar
 
 import cftime
 import numpy as np
@@ -46,8 +47,11 @@ class EmptyFileError(Exception):
     pass
 
 
+VariableInfoType = TypeVar("VariablesInfoType", str, list[str])
+
+
 @dataclass
-class _NCFileInfo:
+class _NCFileInfo(Generic[VariableInfoType]):
     """
     Holds information about a NetCDF file that is used to create an intake-esm
     catalog entry.
@@ -65,11 +69,11 @@ class _NCFileInfo:
     frequency: str
     start_date: str
     end_date: str
-    variable: list[str]
-    variable_long_name: list[str]
-    variable_standard_name: list[str]
-    variable_cell_methods: list[str]
-    variable_units: list[str]
+    variable: VariableInfoType
+    variable_long_name: VariableInfoType
+    variable_standard_name: VariableInfoType
+    variable_cell_methods: VariableInfoType
+    variable_units: VariableInfoType
     realm: str = ""
 
     def to_dict(self) -> dict[str, str | list[str]]:
@@ -112,6 +116,45 @@ class _NCFileInfo:
             d[key] = val
 
         return d
+
+    def explode_iterables(self) -> list["_NCFileInfo"]:
+        """
+        Currently, we have one _NCFileInfo object per file, but each file may have
+        multiple variables. This method returns a list of _NCFileInfo objects, one
+        per variable, with all other fields identical.
+        """
+
+        n_vars = len(self.variable)
+        if not all(
+            len(getattr(self, attr)) == n_vars
+            for attr in [
+                "variable_long_name",
+                "variable_standard_name",
+                "variable_cell_methods",
+                "variable_units",
+            ]
+        ):
+            raise ValueError(
+                "Cannot explode _NCFileInfo: variable attribute lists are not all the same length"
+            )
+
+        return [
+            _NCFileInfo(
+                filename=self.filename,
+                path=self.path,
+                file_id=self.file_id,
+                frequency=self.frequency,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                variable=self.variable[i],
+                variable_long_name=self.variable_long_name[i],
+                variable_standard_name=self.variable_standard_name[i],
+                variable_cell_methods=self.variable_cell_methods[i],
+                variable_units=self.variable_units[i],
+                realm=self.realm,
+            )
+            for i in range(n_vars)
+        ]
 
 
 @dataclass

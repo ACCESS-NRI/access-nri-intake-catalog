@@ -391,6 +391,9 @@ class BaseBuilder(Builder):
 
         # Combine the kwargs so mypy doesn't complain about types
         kwargs = dict(**dvars.to_var_info_dict(), **additional_info)
+        import pdb
+
+        pdb.set_trace()
 
         output_ncfile = _NCFileInfo(
             filename=file_path.name,
