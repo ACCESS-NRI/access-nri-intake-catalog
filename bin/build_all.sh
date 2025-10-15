@@ -9,7 +9,6 @@
 #PBS -l ncpus=48
 #PBS -l wd
 #PBS -j oe
-#PBS -l jobfs=10GB
 
 ###########################################################################################
 # Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
@@ -26,15 +25,11 @@ if [ ! $# -eq 0 ]; then
     version=$1
 fi
 
-
 module use /g/data/xp65/public/modules
-module load conda/analysis3-25.10 # THIS NEEDS TO BE UPDATED TO THE LATEST VERSION
+module load conda/analysis3-25.05 # THIS NEEDS TO BE UPDATED TO THE LATEST VERSION
 module load openmpi
 
-# source /home/189/ct1163/access-nri-intake-catalog/bin/venv/bin/activate
-
 export PYTHONTRACEMALLOC=1
-export TMPDIR=/jobfs
 
 OUTPUT_BASE_PATH=/g/data/xp65/public/apps/access-nri-intake-catalog
 CONFIG_DIR=/g/data/xp65/admin/access-nri-intake-catalog/config
@@ -43,7 +38,7 @@ CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.ya
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
 
 if [ -z "$version" ]; then
-    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} ${config_paths[@]} --no_concretize --no_update
+    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} ${config_paths[@]}
 else
-    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} --version=${version} ${config_paths[@]} --no_concretize --no_update
+    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} --version=${version} ${config_paths[@]}
 fi
