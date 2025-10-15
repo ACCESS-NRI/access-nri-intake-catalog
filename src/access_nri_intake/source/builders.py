@@ -340,7 +340,7 @@ class BaseBuilder(Builder):
         return frequency
 
     @classmethod
-    def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo:
+    def parse_ncfile(cls, file: str, time_dim: str = "time") -> _NCFileInfo[list[str]]:
         """
         Get Intake-ESM datastore entry info from a netcdf file
 
@@ -391,11 +391,8 @@ class BaseBuilder(Builder):
 
         # Combine the kwargs so mypy doesn't complain about types
         kwargs = dict(**dvars.to_var_info_dict(), **additional_info)
-        import pdb
 
-        pdb.set_trace()
-
-        output_ncfile = _NCFileInfo(
+        output_ncfile = _NCFileInfo[list[str]](
             filename=file_path.name,
             path=file,
             file_id=file_id,
@@ -470,7 +467,7 @@ class AccessOm2Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
+    def parser(cls, file) -> list[dict[str, str]]:
         matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
         if not matches:
             raise ParserError(f"Cannot determine realm for file {file}")
@@ -480,19 +477,26 @@ class AccessOm2Builder(BaseBuilder):
         if realm == "ice":
             realm = "seaIce"
 
-        nc_info = cls.parse_ncfile(file)
-        ncinfo_dict = nc_info.to_dict()
+        _nc_info = cls.parse_ncfile(file)
 
-        ncinfo_dict["realm"] = realm
-        ncinfo_dict["file_id"] = ".".join(
-            [
-                str(ncinfo_dict["realm"]),
-                str(ncinfo_dict["frequency"]),
-                str(ncinfo_dict["file_id"]),
-            ]
-        )
+        nc_infos = _nc_info.explode_iterables()
+        ncinfo_dicts: list[dict[str, str]] = []
 
-        return ncinfo_dict
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["realm"] = realm
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
+
+            ncinfo_dicts.append(ncinfo_dict)
+
+        return ncinfo_dicts
 
 
 class AccessOm3Builder(BaseBuilder):
@@ -544,31 +548,40 @@ class AccessOm3Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
-        output_nc_info = cls.parse_ncfile(file)
-        ncinfo_dict = output_nc_info.to_dict()
+    def parser(cls, file) -> list[dict[str, str]]:
+        _nc_info = cls.parse_ncfile(file)
 
-        if "mom6" in ncinfo_dict["filename"]:
+        filename = _nc_info.to_dict()["filename"]
+
+        if "mom6" in filename:
             realm = "ocean"
-        elif "ww3" in ncinfo_dict["filename"]:
+        elif "ww3" in filename:
             realm = "wave"
-        elif "cice" in ncinfo_dict["filename"]:
+        elif "cice" in filename:
             realm = "seaIce"
         else:
             # Default/missing value for realm is "" which is Falsy
-            if not (realm := output_nc_info.realm):
+            if not (realm := _nc_info.realm):
                 raise ParserError(f"Cannot determine realm for file {file}")
-        ncinfo_dict["realm"] = realm
 
-        ncinfo_dict["file_id"] = ".".join(
-            [
-                str(ncinfo_dict["realm"]),
-                str(ncinfo_dict["frequency"]),
-                str(ncinfo_dict["file_id"]),
-            ]
-        )
+        nc_infos = _nc_info.explode_iterables()
+        ncinfo_dicts: list[dict[str, str]] = []
 
-        return ncinfo_dict
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["realm"] = realm
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
+
+            ncinfo_dicts.append(ncinfo_dict)
+
+        return ncinfo_dicts
 
 
 # FIXME refactor to be called Mom6Builder (TBC)
@@ -626,27 +639,34 @@ class Mom6Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
-        output_nc_info = cls.parse_ncfile(file)
-        ncinfo_dict = output_nc_info.to_dict()
+    def parser(cls, file) -> list[dict[str, str]]:
+        _nc_info = cls.parse_ncfile(file)
+        filename = _nc_info.to_dict()["filename"]
 
-        if "ocean" in ncinfo_dict["filename"]:
+        if "ocean" in filename:
             realm = "ocean"
-        elif "ice" in ncinfo_dict["filename"] or "roms" in ncinfo_dict["filename"]:
+        elif "ice" in filename or "roms" in filename:
             realm = "seaIce"
         else:
             raise ParserError(f"Cannot determine realm for file {file}")
-        ncinfo_dict["realm"] = realm
 
-        ncinfo_dict["file_id"] = ".".join(
-            [
-                str(ncinfo_dict["realm"]),
-                str(ncinfo_dict["frequency"]),
-                str(ncinfo_dict["file_id"]),
-            ]
-        )
+        nc_infos = _nc_info.explode_iterables()
+        ncinfo_dicts: list[dict[str, str]] = []
 
-        return ncinfo_dict
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["realm"] = realm
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
+            ncinfo_dicts.append(ncinfo_dict)
+
+        return ncinfo_dicts
 
 
 class AccessEsm15Builder(BaseBuilder):
@@ -703,7 +723,7 @@ class AccessEsm15Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
+    def parser(cls, file) -> list[dict[str, str]]:
         match = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file)
         if not match:
             raise ParserError(
@@ -715,20 +735,24 @@ class AccessEsm15Builder(BaseBuilder):
 
         realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
 
-        nc_info = cls.parse_ncfile(file)
-        ncinfo_dict = nc_info.to_dict()
+        _nc_info = cls.parse_ncfile(file)
+        nc_infos = _nc_info.explode_iterables()
+        ncinfo_dicts = []
 
-        ncinfo_dict["realm"] = realm_mapping[realm]
-        ncinfo_dict["member"] = exp_id
-        ncinfo_dict["file_id"] = ".".join(
-            [
-                str(ncinfo_dict["realm"]),
-                str(ncinfo_dict["frequency"]),
-                str(ncinfo_dict["file_id"]),
-            ]
-        )
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+            ncinfo_dict["realm"] = realm_mapping[realm]
+            ncinfo_dict["member"] = exp_id
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
+            ncinfo_dicts.append(ncinfo_dict)
 
-        return ncinfo_dict
+        return ncinfo_dicts
 
 
 # Include this so it is in the documentation
@@ -753,7 +777,7 @@ class AccessEsm16Builder(AccessEsm15Builder):
     ]
 
     @classmethod
-    def parser(cls, file):
+    def parser(cls, file) -> list[dict[str, str]]:
         """Get the realm and member/experiment id from the file name"""
         match = re.match(r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc", file)
         if not match:
@@ -769,12 +793,25 @@ class AccessEsm16Builder(AccessEsm15Builder):
             "ice": "seaIce",
         }
 
-        nc_info = cls.parse_ncfile(file)
-        ncinfo_dict = nc_info.to_dict()
+        _nc_info = cls.parse_ncfile(file)
+        nc_infos = _nc_info.explode_iterables()
+        ncinfo_dicts = []
 
-        ncinfo_dict["realm"] = realm_mapping[realm]
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+            ncinfo_dict["realm"] = realm_mapping[realm]
 
-        return ncinfo_dict
+            # TODO: This should have been added in #433 and somehow wasn't
+            # ncinfo_dict["file_id"] = ".".join(
+            #     [
+            #         str(ncinfo_dict["realm"]),
+            #         str(ncinfo_dict["frequency"]),
+            #         str(ncinfo_dict["file_id"]),
+            #     ]
+            # )
+            ncinfo_dicts.append(ncinfo_dict)
+
+        return ncinfo_dicts
 
 
 class AccessCm3Builder(BaseBuilder):
@@ -828,37 +865,44 @@ class AccessCm3Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
-        output_nc_info = cls.parse_ncfile(file)
-        ncinfo_dict = output_nc_info.to_dict()
+    def parser(cls, file) -> list[dict[str, str]]:
+        _nc_info = cls.parse_ncfile(file)
+        filename = _nc_info.to_dict()["filename"]
 
-        if "mom6" in ncinfo_dict["filename"]:
+        if "mom6" in filename:
             realm = "ocean"
-        elif "ww3" in ncinfo_dict["filename"]:
+        if "mom6" in filename:
             realm = "wave"  # pragma: no cover
             # Currently no ACCESS-CM3 wave files available to test with
-        elif "cice" in ncinfo_dict["filename"]:
+        if "mom6" in filename:
             realm = "seaIce"
-        elif "atmos" in ncinfo_dict["filename"]:
+        if "mom6" in filename:
             realm = "atmos"
         else:
             # Default/missing value for realm is "" which is Falsy.
             # We don't cover these lines as they're a generic catch-all for unexpected errors
-            if not (realm := output_nc_info.realm):  # pragma: no cover
+            if not (realm := _nc_info.realm):  # pragma: no cover
                 raise ParserError(
                     f"Cannot determine realm for file {file}"
                 )  # pragma: no cover
-        ncinfo_dict["realm"] = realm
 
-        ncinfo_dict["file_id"] = ".".join(
-            [
-                str(ncinfo_dict["realm"]),
-                str(ncinfo_dict["frequency"]),
-                str(ncinfo_dict["file_id"]),
-            ]
-        )
+        nc_infos = _nc_info.explode_iterables()
+        ncinfo_dicts: list[dict[str, str]] = []
 
-        return ncinfo_dict
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+            ncinfo_dict["realm"] = realm
+
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
+            ncinfo_dicts.append(ncinfo_dict)
+
+        return ncinfo_dicts
 
 
 class ROMSBuilder(BaseBuilder):
@@ -906,24 +950,29 @@ class ROMSBuilder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
+    def parser(cls, file) -> list[dict[str, str]]:
         realm = "seaIce"
         time_dim = "ocean_time"
 
-        nc_info = cls.parse_ncfile(file, time_dim=time_dim)
-        ncinfo_dict = nc_info.to_dict()
+        _nc_info = cls.parse_ncfile(file, time_dim=time_dim)
+        nc_infos = _nc_info.explode_iterables()
 
-        ncinfo_dict["realm"] = realm
+        ncinfo_dicts: list[dict[str, str]] = []
 
-        ncinfo_dict["file_id"] = ".".join(
-            [
-                str(ncinfo_dict["realm"]),
-                str(ncinfo_dict["frequency"]),
-                str(ncinfo_dict["file_id"]),
-            ]
-        )
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+            ncinfo_dict["realm"] = realm
 
-        return ncinfo_dict
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
+            ncinfo_dicts.append(ncinfo_dict)
+
+        return ncinfo_dicts
 
 
 class WoaBuilder(BaseBuilder):
@@ -971,16 +1020,16 @@ class WoaBuilder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> dict:
+    def parser(cls, file) -> list[dict[str, str]]:
         """
         Overwrite the parser method to add a grid id to the output dictionary.
         """
         realm: str = "ocean"
 
-        nc_info = cls.parse_ncfile(file, time_dim="time")
+        _nc_info = cls.parse_ncfile(file, time_dim="time")
+        nc_infos = _nc_info.explode_iterables()
 
-        ncinfo_dict = nc_info.to_dict()
-        ncinfo_dict["realm"] = realm
+        ncinfo_dicts: list[dict[str, str]] = []
 
         with xr.open_dataset(
             file,
@@ -991,11 +1040,16 @@ class WoaBuilder(BaseBuilder):
         ) as ds:
             grid_id = HashableIndexes(ds=ds, drop_indices=["time"]).xxh
 
-        ncinfo_dict["file_id"] = ".".join(
-            [realm, nc_info.frequency, nc_info.file_id, grid_id]
-        )
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+            ncinfo_dict["realm"] = realm
+            ncinfo_dict["file_id"] = ".".join(
+                [realm, nc_info.frequency, nc_info.file_id, grid_id]
+            )
 
-        return ncinfo_dict
+            ncinfo_dicts.append(ncinfo_dict)
+
+        return ncinfo_dicts
 
 
 class Cmip6Builder(BaseBuilder):
@@ -1042,22 +1096,28 @@ class Cmip6Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file: str) -> dict:
+    def parser(cls, file) -> list[dict[str, str]]:
         """
         No need to do much here - just parse the netCDF file and return the info
         as a dictionary. The realm is obtained from the file metadata following
         https://github.com/ACCESS-NRI/access-nri-intake-catalog/pull/478.
         """
 
-        nc_info = cls.parse_ncfile(file, time_dim="time")
-        ncinfo_dict = nc_info.to_dict()
+        _nc_info = cls.parse_ncfile(file, time_dim="time")
+        nc_infos = _nc_info.explode_iterables()
 
-        ncinfo_dict["file_id"] = ".".join(
-            [
-                str(ncinfo_dict["realm"]),
-                str(ncinfo_dict["frequency"]),
-                str(ncinfo_dict["file_id"]),
-            ]
-        )
+        ncinfo_dicts: list[dict[str, str]] = []
 
-        return ncinfo_dict
+        for nc_info in nc_infos:
+            ncinfo_dict = nc_info.to_dict()
+
+            ncinfo_dict["file_id"] = ".".join(
+                [
+                    str(ncinfo_dict["realm"]),
+                    str(ncinfo_dict["frequency"]),
+                    str(ncinfo_dict["file_id"]),
+                ]
+            )
+            ncinfo_dicts.append(ncinfo_dict)
+
+        return ncinfo_dicts

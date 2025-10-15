@@ -13,7 +13,6 @@ from typing import Generic, TypeVar
 
 import cftime
 import numpy as np
-import polars as pl
 import xarray as xr
 import xxhash
 from dateutil.relativedelta import relativedelta
@@ -47,7 +46,7 @@ class EmptyFileError(Exception):
     pass
 
 
-VariableInfoType = TypeVar("VariablesInfoType", str, list[str])
+VariableInfoType = TypeVar("VariableInfoType", str, list[str])
 
 
 @dataclass
@@ -76,52 +75,71 @@ class _NCFileInfo(Generic[VariableInfoType]):
     variable_units: VariableInfoType
     realm: str = ""
 
-    def to_dict(self) -> dict[str, str | list[str]]:
+    def to_dict(self) -> dict[str, VariableInfoType]:
         """
         Return a dictionary representation of the NcFileInfo object
         """
-        d = asdict(self)
+        # d = asdict(self)
 
-        d_sortable = {
-            key: val
-            for key, val in d.items()
-            if key
-            in [
-                "variable",
-                "variable_long_name",
-                "variable_standard_name",
-                "variable_cell_methods",
-                "variable_units",
-            ]
-        }
+        # d_sortable = {
+        #     key: val
+        #     for key, val in d.items()
+        #     if key
+        #     in [
+        #         "variable",
+        #         "variable_long_name",
+        #         "variable_standard_name",
+        #         "variable_cell_methods",
+        #         "variable_units",
+        #     ]
+        # }
 
-        df_sorted = (
-            pl.DataFrame(d_sortable)
-            .sort("variable")
-            .with_columns(
-                [
-                    pl.col(colname)
-                    .str.replace_all(r'"', r"")
-                    .str.replace_all(r"'", r"")
-                    for colname in d_sortable.keys()
-                ]
-                # This is a hack to remove extra quotes inside strings, which break
-                # json encoding/decoding in intake_esm. TODO: work out a better fix.
-            )
-        )
+        # df_sorted = (
+        #     pl.DataFrame(d_sortable)
+        #     .sort("variable")
+        #     .with_columns(
+        #         [
+        #             pl.col(colname)
+        #             .str.replace_all(r'"', r"")
+        #             .str.replace_all(r"'", r"")
+        #             for colname in d_sortable.keys()
+        #         ]
+        #         # This is a hack to remove extra quotes inside strings, which break
+        #         # json encoding/decoding in intake_esm. TODO: work out a better fix.
+        #     )
+        # )
 
-        d_sorted = df_sorted.to_dict(as_series=False)
+        # d_sorted = df_sorted.to_dict(as_series=False)
 
-        for key, val in d_sorted.items():
-            d[key] = val
+        # for key, val in d_sorted.items():
+        #     d[key] = val
 
-        return d
+        # return d
+        return asdict(self)
 
-    def explode_iterables(self) -> list["_NCFileInfo"]:
+    def explode_iterables(self: "_NCFileInfo[list[str]]") -> list["_NCFileInfo[str]"]:
         """
         Currently, we have one _NCFileInfo object per file, but each file may have
         multiple variables. This method returns a list of _NCFileInfo objects, one
         per variable, with all other fields identical.
+
+        Parameters
+        ----------
+        self: _NCFileInfo[list[str]]
+            The _NCFileInfo object to explode. Must be parameterised with list[str].
+
+        Returns
+        -------
+        list[_NCFileInfo[str]]
+            A list of _NCFileInfo objects, where the iterable fields have been
+            exploded into individual objects.
+
+        Raises
+        ------
+        ValueError
+            If the iterable fields are not all the same length. Will definitely
+            fail if we have different length lists, probably fail if we have passed
+            in the wrongly parametrised class (e.g., str instead of list[str]).
         """
 
         n_vars = len(self.variable)
@@ -134,6 +152,7 @@ class _NCFileInfo(Generic[VariableInfoType]):
                 "variable_units",
             ]
         ):
+            # Handily, this will also fail (most probably), if they're strings
             raise ValueError(
                 "Cannot explode _NCFileInfo: variable attribute lists are not all the same length"
             )
