@@ -13,6 +13,7 @@ dependencies:
   - intake-dataframe-catalog>=0.3.1
   - accessnri::intake-esm-access
   - jsonschema
+  - mypy
   - polars>=1.24.0
   - pooch
   - pre-commit
