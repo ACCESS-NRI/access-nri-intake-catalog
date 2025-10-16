@@ -7,7 +7,6 @@ import multiprocessing
 import re
 import traceback
 from abc import ABC, abstractmethod
-from collections.abc import Generator
 from pathlib import Path
 
 import xarray as xr
@@ -200,15 +199,15 @@ class BaseBuilder(Builder, ABC):
         self._save(name, description, directory, use_parquet)
 
     @classmethod
-    def _parser_catch_invalid(cls, file: str) -> Generator[dict[str, str], None, None]:
+    def _parser_catch_invalid(cls, file: str) -> dict[str, str]:
         """
         Catch all exceptions raised when parsing individual files for the Builders.
         These exceptions are later reported to the user in an INVALID_ASSETS file.
         """
         try:
-            yield from cls.parser(file)
+            return cls.parser(file)
         except Exception:
-            yield {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
     def validate_parser(self):
         """
@@ -221,10 +220,10 @@ class BaseBuilder(Builder, ABC):
             )
 
         for asset in self.assets:
-            for info in self._parser_catch_invalid(asset):
-                if INVALID_ASSET not in info:
-                    validate_against_schema(info, ESM_JSONSCHEMA)
-                    return self
+            info = self._parser_catch_invalid(asset)
+            if INVALID_ASSET not in info:
+                validate_against_schema(info, ESM_JSONSCHEMA)
+                return self
 
         raise ParserError(
             f"""Parser returns no valid assets.
