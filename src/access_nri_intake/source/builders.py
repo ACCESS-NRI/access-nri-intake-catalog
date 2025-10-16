@@ -11,6 +11,7 @@ from pathlib import Path
 
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
+from frozendict import frozendict
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
@@ -199,7 +200,7 @@ class BaseBuilder(Builder, ABC):
         self._save(name, description, directory, use_parquet)
 
     @classmethod
-    def _parser_catch_invalid(cls, file: str) -> dict[str, str]:
+    def _parser_catch_invalid(cls, file: str) -> set[frozendict[str, str]]:
         """
         Catch all exceptions raised when parsing individual files for the Builders.
         These exceptions are later reported to the user in an INVALID_ASSETS file.
@@ -207,7 +208,9 @@ class BaseBuilder(Builder, ABC):
         try:
             return cls.parser(file)
         except Exception:
-            return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
+            return set(
+                frozendict({INVALID_ASSET: file, TRACEBACK: traceback.format_exc()})
+            )
 
     def validate_parser(self):
         """
@@ -220,10 +223,10 @@ class BaseBuilder(Builder, ABC):
             )
 
         for asset in self.assets:
-            info = self._parser_catch_invalid(asset)
-            if INVALID_ASSET not in info:
-                validate_against_schema(info, ESM_JSONSCHEMA)
-                return self
+            for info in self._parser_catch_invalid(asset):
+                if INVALID_ASSET not in info:
+                    validate_against_schema(info, ESM_JSONSCHEMA)
+                    return self
 
         raise ParserError(
             f"""Parser returns no valid assets.
@@ -260,7 +263,7 @@ class BaseBuilder(Builder, ABC):
 
     @staticmethod
     @abstractmethod
-    def parser(file) -> list[dict[str, str]]:
+    def parser(file) -> set[frozendict[str, str]]:
         """
         Parse info from a file asset
 
@@ -468,7 +471,7 @@ class AccessOm2Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
         if not matches:
             raise ParserError(f"Cannot determine realm for file {file}")
@@ -481,7 +484,7 @@ class AccessOm2Builder(BaseBuilder):
         _nc_info = cls.parse_ncfile(file)
 
         nc_infos = _nc_info.explode_iterables()
-        ncinfo_dicts: list[dict[str, str]] = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         for nc_info in nc_infos:
             ncinfo_dict = nc_info.to_dict()
@@ -495,7 +498,7 @@ class AccessOm2Builder(BaseBuilder):
                 ]
             )
 
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts
 
@@ -549,7 +552,7 @@ class AccessOm3Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         _nc_info = cls.parse_ncfile(file)
 
         filename = _nc_info.to_dict()["filename"]
@@ -566,7 +569,7 @@ class AccessOm3Builder(BaseBuilder):
                 raise ParserError(f"Cannot determine realm for file {file}")
 
         nc_infos = _nc_info.explode_iterables()
-        ncinfo_dicts: list[dict[str, str]] = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         for nc_info in nc_infos:
             ncinfo_dict = nc_info.to_dict()
@@ -580,7 +583,7 @@ class AccessOm3Builder(BaseBuilder):
                 ]
             )
 
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts
 
@@ -640,7 +643,7 @@ class Mom6Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         _nc_info = cls.parse_ncfile(file)
         filename = _nc_info.to_dict()["filename"]
 
@@ -652,7 +655,7 @@ class Mom6Builder(BaseBuilder):
             raise ParserError(f"Cannot determine realm for file {file}")
 
         nc_infos = _nc_info.explode_iterables()
-        ncinfo_dicts: list[dict[str, str]] = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         for nc_info in nc_infos:
             ncinfo_dict = nc_info.to_dict()
@@ -665,7 +668,7 @@ class Mom6Builder(BaseBuilder):
                     str(ncinfo_dict["file_id"]),
                 ]
             )
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts
 
@@ -724,7 +727,7 @@ class AccessEsm15Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         match = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file)
         if not match:
             raise ParserError(
@@ -738,7 +741,7 @@ class AccessEsm15Builder(BaseBuilder):
 
         _nc_info = cls.parse_ncfile(file)
         nc_infos = _nc_info.explode_iterables()
-        ncinfo_dicts = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         for nc_info in nc_infos:
             ncinfo_dict = nc_info.to_dict()
@@ -751,7 +754,7 @@ class AccessEsm15Builder(BaseBuilder):
                     str(ncinfo_dict["file_id"]),
                 ]
             )
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts
 
@@ -778,7 +781,7 @@ class AccessEsm16Builder(AccessEsm15Builder):
     ]
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         """Get the realm and member/experiment id from the file name"""
         match = re.match(r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc", file)
         if not match:
@@ -796,7 +799,7 @@ class AccessEsm16Builder(AccessEsm15Builder):
 
         _nc_info = cls.parse_ncfile(file)
         nc_infos = _nc_info.explode_iterables()
-        ncinfo_dicts = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         for nc_info in nc_infos:
             ncinfo_dict = nc_info.to_dict()
@@ -810,7 +813,7 @@ class AccessEsm16Builder(AccessEsm15Builder):
             #         str(ncinfo_dict["file_id"]),
             #     ]
             # )
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts
 
@@ -866,7 +869,7 @@ class AccessCm3Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         _nc_info = cls.parse_ncfile(file)
         filename = _nc_info.to_dict()["filename"]
 
@@ -888,7 +891,7 @@ class AccessCm3Builder(BaseBuilder):
                 )  # pragma: no cover
 
         nc_infos = _nc_info.explode_iterables()
-        ncinfo_dicts: list[dict[str, str]] = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         for nc_info in nc_infos:
             ncinfo_dict = nc_info.to_dict()
@@ -901,7 +904,7 @@ class AccessCm3Builder(BaseBuilder):
                     str(ncinfo_dict["file_id"]),
                 ]
             )
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts
 
@@ -951,14 +954,14 @@ class ROMSBuilder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         realm = "seaIce"
         time_dim = "ocean_time"
 
         _nc_info = cls.parse_ncfile(file, time_dim=time_dim)
         nc_infos = _nc_info.explode_iterables()
 
-        ncinfo_dicts: list[dict[str, str]] = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         for nc_info in nc_infos:
             ncinfo_dict = nc_info.to_dict()
@@ -971,7 +974,7 @@ class ROMSBuilder(BaseBuilder):
                     str(ncinfo_dict["file_id"]),
                 ]
             )
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts
 
@@ -1021,7 +1024,7 @@ class WoaBuilder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         """
         Overwrite the parser method to add a grid id to the output dictionary.
         """
@@ -1030,7 +1033,7 @@ class WoaBuilder(BaseBuilder):
         _nc_info = cls.parse_ncfile(file, time_dim="time")
         nc_infos = _nc_info.explode_iterables()
 
-        ncinfo_dicts: list[dict[str, str]] = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         with xr.open_dataset(
             file,
@@ -1048,7 +1051,7 @@ class WoaBuilder(BaseBuilder):
                 [realm, nc_info.frequency, nc_info.file_id, grid_id]
             )
 
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts
 
@@ -1097,7 +1100,7 @@ class Cmip6Builder(BaseBuilder):
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file) -> list[dict[str, str]]:
+    def parser(cls, file) -> set[frozendict[str, str]]:
         """
         No need to do much here - just parse the netCDF file and return the info
         as a dictionary. The realm is obtained from the file metadata following
@@ -1107,7 +1110,7 @@ class Cmip6Builder(BaseBuilder):
         _nc_info = cls.parse_ncfile(file, time_dim="time")
         nc_infos = _nc_info.explode_iterables()
 
-        ncinfo_dicts: list[dict[str, str]] = []
+        ncinfo_dicts: set[frozendict[str, str]] = set()
 
         for nc_info in nc_infos:
             ncinfo_dict = nc_info.to_dict()
@@ -1119,6 +1122,6 @@ class Cmip6Builder(BaseBuilder):
                     str(ncinfo_dict["file_id"]),
                 ]
             )
-            ncinfo_dicts.append(ncinfo_dict)
+            ncinfo_dicts |= {frozendict(ncinfo_dict)}
 
         return ncinfo_dicts

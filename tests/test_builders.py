@@ -330,10 +330,11 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
     to_dict_mock.return_value = {
         "filename": filename.replace("ice", "badrealm").replace("ocean", "badrealm")
     }
-    info = builders.Mom6Builder._parser_catch_invalid(str(test_data / filename))
-    assert INVALID_ASSET in info.keys()
-    assert TRACEBACK in info.keys()
-    assert "ParserError" in info[TRACEBACK]
+    info_list = builders.Mom6Builder._parser_catch_invalid(str(test_data / filename))
+    for info in info_list:
+        assert INVALID_ASSET in info.keys()
+        assert TRACEBACK in info.keys()
+        assert "ParserError" in info[TRACEBACK]
 
 
 @pytest.mark.parametrize(
