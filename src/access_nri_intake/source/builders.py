@@ -209,7 +209,7 @@ class BaseBuilder(Builder, ABC):
             return cls.parser(file)
         except Exception:
             return set(
-                frozendict({INVALID_ASSET: file, TRACEBACK: traceback.format_exc()})
+                [frozendict({INVALID_ASSET: file, TRACEBACK: traceback.format_exc()})]
             )
 
     def validate_parser(self):
