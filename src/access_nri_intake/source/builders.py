@@ -6,6 +6,7 @@
 import multiprocessing
 import re
 import traceback
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 import xarray as xr
@@ -66,13 +67,13 @@ class ParserError(Exception):
     pass
 
 
-class BaseBuilder(Builder):
+class BaseBuilder(Builder, ABC):
     """
     Base class for creating Intake-ESM datastore builders. Not intended for direct use.
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries an empty set, and a GenericParser
+    # Base class carries an empty set
     PATTERNS: list = []
 
     def __init__(
@@ -198,7 +199,7 @@ class BaseBuilder(Builder):
         self._save(name, description, directory, use_parquet)
 
     @classmethod
-    def _parser_catch_invalid(cls, file: str) -> dict:
+    def _parser_catch_invalid(cls, file: str) -> dict[str, str]:
         """
         Catch all exceptions raised when parsing individual files for the Builders.
         These exceptions are later reported to the user in an INVALID_ASSETS file.
@@ -258,7 +259,8 @@ class BaseBuilder(Builder):
         return {column for column, check in has_iterables.items() if check}
 
     @staticmethod
-    def parser(file):
+    @abstractmethod
+    def parser(file) -> list[dict[str, str]]:
         """
         Parse info from a file asset
 
@@ -267,8 +269,7 @@ class BaseBuilder(Builder):
         file: str
             The path to the file
         """
-        # This method should be overwritten
-        raise NotImplementedError
+        pass
 
     @classmethod
     def _generate_file_shape_info(cls, xds: xr.Dataset, time_dim: str = "time") -> str:
