@@ -457,6 +457,7 @@ class AccessOm2Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -530,6 +531,7 @@ class AccessOm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -611,6 +613,7 @@ class Mom6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -679,6 +682,7 @@ class AccessEsm15Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -811,6 +815,7 @@ class AccessCm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -888,6 +893,7 @@ class ROMSBuilder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -950,7 +956,10 @@ class WoaBuilder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
-            groupby_attrs=["file_id"],
+            groupby_attrs=[
+                "file_id",
+                "variable_cell_methods",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -1020,6 +1029,7 @@ class Cmip6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {

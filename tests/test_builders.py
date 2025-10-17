@@ -74,7 +74,7 @@ def test_builder_build(
 
     cat = intake.open_esm_datastore(
         str(tmp_path / "test.json"),
-        columns_with_iterables=builder.columns_with_iterables,
+        read_kwargs={"missing_utf8_is_empty_string": True},
     )
     assert len(cat) == num_datasets
 
