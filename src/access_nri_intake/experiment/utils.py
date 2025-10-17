@@ -250,10 +250,10 @@ def hash_catalog(
     """
     Use yamanifest to hash the files contained in the builder, and then stick that in a
     .$datastore_name.hash file in the catalog_dir. This will be used to check if the datastore
-    is current.
+    is current. Convert via set to remove duplicates.
     """
     cat_files = builder_instance.df.path.tolist()
-    cat_fullfiles = [str(Path(file).resolve()) for file in cat_files]
+    cat_fullfiles = list(set([str(Path(file).resolve()) for file in cat_files]))
 
     mf = Manifest(str(catalog_dir / f".{datastore_name}.hash"), hashes="binhash-xxh")
 

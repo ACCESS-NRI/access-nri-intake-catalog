@@ -8,8 +8,10 @@ import re
 import traceback
 from pathlib import Path
 
+import polars as pl
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
+from intake_esm.utils import MinimalExploder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
@@ -131,6 +133,11 @@ class BaseBuilder(Builder):
 
     def _parse(self):
         super().parse(parsing_func=self._parser_catch_invalid)
+
+        pl_df = pl.from_pandas(self.df)
+        exploded_df = MinimalExploder(pl_df)()
+        self.df = exploded_df.to_pandas()
+        self.entries = exploded_df.to_dicts()
 
     def parse(self):
         """
