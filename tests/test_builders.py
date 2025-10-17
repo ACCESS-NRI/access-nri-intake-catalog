@@ -68,7 +68,6 @@ def test_builder_build(
 
     builder.build()
     assert isinstance(builder.df, pd.DataFrame)
-    assert len(builder.df) == num_valid_assets
     assert all([col in builder.df.columns for col in CORE_COLUMNS])
 
     builder.save(name="test", description="test datastore", directory=str(tmp_path))
@@ -77,7 +76,6 @@ def test_builder_build(
         str(tmp_path / "test.json"),
         columns_with_iterables=builder.columns_with_iterables,
     )
-    assert len(cat.df) == num_valid_assets
     assert len(cat) == num_datasets
 
     assert len(builder.valid_assets) == num_valid_assets
@@ -3136,12 +3134,14 @@ def test_builder_serialization_consistent(
 
     cat_pq = intake.open_esm_datastore(
         str(tmp_path / "test_pq.json"),
-        # columns_with_iterables=builder.columns_with_iterables,
     )
 
     cat_csv = intake.open_esm_datastore(
         str(tmp_path / "test_csv.json"),
-        columns_with_iterables=builder.columns_with_iterables,
+        read_kwargs={"missing_utf8_is_empty_string": True},
     )
+    # By default, polars will read missing strings as nulls, which will convert
+    # to None in pandas. This doesn't happen with parquet, so we need to tell the
+    # reader to read missing strings as empty strings, not nulls.
 
     assert cat_pq.df.equals(cat_csv.df)

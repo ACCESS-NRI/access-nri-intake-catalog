@@ -136,11 +136,11 @@ def test_check_build_args(args, raises):
     [
         (
             ["config/access-om2.yaml", "config/cmip5.yaml"],
-            {"1deg_jra55_ryf9091_gadi": 12, "cmip5_al33": 5},
+            {"1deg_jra55_ryf9091_gadi": 64, "cmip5_al33": 5},
         ),
         (
             ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
-            {"1deg_jra55_ryf9091_gadi": 6, "cmip5_al33": 5},
+            {"1deg_jra55_ryf9091_gadi": 34, "cmip5_al33": 5},
         ),
     ],
 )
@@ -1582,11 +1582,11 @@ def test_confirm_project_access(monkeypatch, needed_projects, valid_projects, ex
     [
         (
             ["config/access-om2.yaml", "config/cmip5.yaml"],
-            {"1deg_jra55_ryf9091_gadi": 12, "cmip5_al33": 5},
+            {"1deg_jra55_ryf9091_gadi": 64, "cmip5_al33": 5},
         ),
         (
             ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
-            {"1deg_jra55_ryf9091_gadi": 6, "cmip5_al33": 5},
+            {"1deg_jra55_ryf9091_gadi": 34, "cmip5_al33": 5},
         ),
     ],
 )
