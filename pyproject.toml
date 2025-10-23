@@ -134,7 +134,6 @@ platforms = ["osx-arm64", "linux-64", "win-64"]
 
 [tool.pixi.environments]
 default = { features = ["dev","py313"], solve-group = "default" }
-e2e = { features = ["e2e"], solve-group = "default" }
 test-py310 = { features = ["py310", "test"] }
 test-py311 = { features = ["py311", "test"] }
 test-py312 = { features = ["py312", "test"] }
@@ -159,18 +158,14 @@ access_nri_intake = { path = ".", editable = false }
 
 [tool.pixi.feature.test.dependencies]
 pytest = ">=8.4.1,<9"
+pytest-ordering = ">=0.6,<0.7"
 coverage = "*"
 
 [tool.pixi.feature.test.tasks]
 test = {cmd = "pytest tests", description = "Run tests"}
 test-cov = {cmd = "coverage run -m --source=access_nri_intake pytest tests && coverage xml", description = "Run tests with coverage and generate xml report"}
-
-[tool.pixi.feature.e2e.tasks]
 test-e2e = {cmd = "pytest --e2e tests", description = "Run tests including e2e tests"}
 
-[tool.pixi.feature.e2e.dependencies]
-pytest = ">=8.4.1,<9"
-pytest-ordering = ">=0.6,<0.7"
 
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
