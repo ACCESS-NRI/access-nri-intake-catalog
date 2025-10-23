@@ -133,7 +133,7 @@ channels = ["conda-forge","accessnri"]
 platforms = ["osx-arm64", "linux-64", "win-64"]
 
 [tool.pixi.environments]
-default = { features = ["dev","test","py313"], solve-group = "default" }
+default = { features = ["dev","py313"], solve-group = "default" }
 test-py310 = { features = ["py310", "test"] }
 test-py311 = { features = ["py311", "test"] }
 test-py312 = { features = ["py312", "test"] }
@@ -144,6 +144,7 @@ access_nri_intake = { path = ".", editable = true }
 
 [tool.pixi.feature.dev.dependencies]
 pre-commit = ">=4.2.0,<5"
+pytest = ">=8.4.2,<9"
 
 [tool.pixi.feature.dev.tasks]
 ruff = { cmd = "ruff check src", description = "Run ruff checks" }
