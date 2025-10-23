@@ -31,6 +31,7 @@ __all__ = [
     "AccessCm3Builder",
     "ROMSBuilder",
     "WoaBuilder",
+    "Cmip6Builder",
 ]
 
 # Frequency translations
@@ -138,7 +139,20 @@ class BaseBuilder(Builder):
         self._parse()
         return self
 
-    def _save(self, name: str, description: str, directory: str | None):
+    def _save(
+        self, name: str, description: str, directory: str | None, use_parquet: bool
+    ) -> None:
+        if use_parquet:
+            kwargs = {
+                "file_format": "parquet",
+                "write_kwargs": {"compression": "snappy"},
+            }
+        else:
+            kwargs = {
+                "file_format": "csv",
+                "write_kwargs": {"compression": None},
+            }
+
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -149,11 +163,16 @@ class BaseBuilder(Builder):
             esmcat_version="0.0.1",
             description=description,
             directory=directory,
-            catalog_type="file",
-            to_csv_kwargs={"compression": None},
+            **kwargs,
         )
 
-    def save(self, name: str, description: str, directory: str | None = None) -> None:
+    def save(
+        self,
+        name: str,
+        description: str,
+        directory: str | None = None,
+        use_parquet: bool = False,
+    ) -> None:
         """
         Save datastore contents to a file.
 
@@ -165,6 +184,10 @@ class BaseBuilder(Builder):
             Detailed multi-line description of the collection.
         directory: str, optional
             The directory to save the datastore to. If None, use the current directory.
+        use_parquet: bool, optional
+            Whether to save the datastore as a parquet file. Defaults to False,
+            which saves as a CSV file. Parquet is both faster and saves space, but
+            unlike CSV is not human-readable.
         """
 
         if self.df.empty:
@@ -172,16 +195,16 @@ class BaseBuilder(Builder):
                 "Intake-ESM datastore has not yet been built. Please run `.build()` first"
             )
 
-        self._save(name, description, directory)
+        self._save(name, description, directory, use_parquet)
 
     @classmethod
-    def _parser_catch_invalid(self, file: str) -> dict:
+    def _parser_catch_invalid(cls, file: str) -> dict:
         """
         Catch all exceptions raised when parsing individual files for the Builders.
         These exceptions are later reported to the user in an INVALID_ASSETS file.
         """
         try:
-            return self.parser(file)
+            return cls.parser(file)
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
@@ -958,6 +981,70 @@ class WoaBuilder(BaseBuilder):
 
         ncinfo_dict["file_id"] = ".".join(
             [realm, nc_info.frequency, nc_info.file_id, grid_id]
+        )
+
+        return ncinfo_dict
+
+
+class Cmip6Builder(BaseBuilder):
+    """Intake-ESM datastore builder for CMIP6 datasets"""
+
+    PATTERNS = [
+        r"^[^_]+_([A-Za-z]+?)(?:mon|day|fx)?_",
+    ]
+    # PATTERNS is mostly unused here - we get the realm from the metadata. Only
+    # using it to match on file names here & should be refactored to be removed. TODO
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a Cmip6Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        kwargs = dict(
+            path=path,
+            depth=1,
+            exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
+            data_format="netcdf",
+            groupby_attrs=[
+                "file_id",
+            ],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "ocean_time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file: str) -> dict:
+        """
+        No need to do much here - just parse the netCDF file and return the info
+        as a dictionary. The realm is obtained from the file metadata following
+        https://github.com/ACCESS-NRI/access-nri-intake-catalog/pull/478.
+        """
+
+        nc_info = cls.parse_ncfile(file, time_dim="time")
+        ncinfo_dict = nc_info.to_dict()
+
+        ncinfo_dict["file_id"] = ".".join(
+            [
+                str(ncinfo_dict["realm"]),
+                str(ncinfo_dict["frequency"]),
+                str(ncinfo_dict["file_id"]),
+            ]
         )
 
         return ncinfo_dict

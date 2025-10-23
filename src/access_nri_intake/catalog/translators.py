@@ -129,7 +129,7 @@ class DefaultTranslator:
         elif column in self.source.metadata:
             val = self.source.metadata[column]
             # Some metadata fields can be a value _or_ array
-            if isinstance(val, (list, tuple, set)):
+            if isinstance(val, list | tuple | set):
                 val = tuple(val)
             elif column in COLUMNS_WITH_ITERABLES:
                 val = (val,)
@@ -704,6 +704,64 @@ class EsmValToolTranslator(DefaultTranslator):
         )
 
 
+class Aus2200Translator(DefaultTranslator):
+    """
+    AUS2200 Translator for translating metadata from the NCI AUS2200 intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise an Aus2200Translator
+
+        Uses default translators for realm, and frequency.
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI CCAM intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+
+        self.set_dispatch(
+            input_name="model_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=self._frequency_translator,
+        )
+
+    @tuplify_series
+    @trace_failure
+    def _frequency_translator(self):
+        """
+        Return frequency, fixing a few issues
+        TODO: It would be preferable to add 10min, etc. to the data spec.
+        """
+
+        AUS200_FREQ_TRANSLATIONS = {
+            "10min": "subhr",
+            "1hrPlev": "1hr",
+            "6hrPlev": "6hr",
+        }
+
+        return self.source.df["frequency"].apply(
+            lambda x: AUS200_FREQ_TRANSLATIONS.get(x, x)
+        )
+
+
 @dataclass
 class _DispatchKeys:
     """
@@ -739,37 +797,3 @@ def _cmip_realm_translator(series) -> pd.Series:
         return tuple(realms)
 
     return series.apply(lambda string: _translate(string))
-
-
-class Aus2200Translator(DefaultTranslator):
-    """
-    AUS2200 Translator for translating metadata from the NCI AUS2200 intake datastores.
-    """
-
-    def __init__(self, source, columns):
-        """
-        Initialise an Aus2200Translator
-
-        Uses default translators for realm, and frequency.
-
-        Parameters
-        ----------
-        source: :py:class:`~intake.DataSource`
-            The NCI CCAM intake-esm datastore
-        columns: list of str
-            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
-        """
-
-        super().__init__(source, columns)
-
-        self.set_dispatch(
-            input_name="model_id",
-            core_colname="model",
-            func=super()._model_translator,
-        )
-
-        self.set_dispatch(
-            input_name="variable_id",
-            core_colname="variable",
-            func=super()._variable_translator,
-        )

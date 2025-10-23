@@ -7,7 +7,7 @@ dependencies:
   - python==3.13
   - access-py-telemetry>=0.1.6
   - cftime
-  - accessnri::ecgtools-access
+  - accessnri::ecgtools-access>=2025.10.7
   - frozendict
   - intake>=2.0.0
   - intake-dataframe-catalog>=0.3.1
@@ -17,6 +17,7 @@ dependencies:
   - pooch
   - pre-commit
   - pytest
+  - pydantic<2.12
   - xarray
   - accessnri::yamanifest>=0.3.12
   - pip

@@ -114,7 +114,9 @@ class CatalogManager:
                 )
 
         builder = builder(path, **kwargs).build()
-        builder.save(name=name, description=description, directory=directory)
+        builder.save(
+            name=name, description=description, directory=directory, use_parquet=True
+        )
 
         self.source, self.source_metadata = _open_and_translate(
             str(json_file),
@@ -123,7 +125,7 @@ class CatalogManager:
             description,
             metadata,
             translator,
-            columns_with_iterables=list(builder.columns_with_iterables),
+            # No longer need columns with iterables, natively handled by parquet
         )
 
         self._add()

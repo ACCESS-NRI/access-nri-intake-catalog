@@ -18,12 +18,14 @@ dynamic = ["version"]
 
 dependencies = [
     "cftime",
-    "ecgtools-access",
+    "ecgtools-access>=2025.10.7",
     "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
     "intake-esm-access",
     "jsonschema",
+    "libcst",
+    "pydantic<2.12",
     "polars>=1.24.0",
     "pooch",
     "xarray",
@@ -100,6 +102,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "versioneer.py",
 ]
 # E402: module level import not at top of file
 # E501: line too long - let black worry about that

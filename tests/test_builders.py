@@ -29,14 +29,18 @@ from access_nri_intake.source.utils import _NCFileInfo
             7,
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
-        (["access-cm3"], "AccessCm3Builder", {}, 31, 30, 12),
+        (["access-cm3"], "AccessCm3Builder", {}, 32, 31, 13),
         (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
         (["woa"], "WoaBuilder", {}, 7, 7, 2),
+        (["cmip6"], "Cmip6Builder", {}, 74, 73, 14),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
+@pytest.mark.filterwarnings("ignore:Unable to parse 4 assets")
+@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_builder_build(
     tmp_path,
     test_data,
@@ -266,14 +270,36 @@ def test_builder_build(
             "seaIce.1mon.nbnd:2.nc:2.ni:2.nj:2.nkaer:2.nkbio:2.nkice:2.nksnow:1",
         ),
         (
+            "access-cm3/1984/access-cm3.mom6.2d.Rd_dx.1mon.mean.1984.nc",
+            "AccessCm3Builder",
+            "ocean",
+            None,
+            "ocean.1mon.nv:2.xh:1440.yh:1142",
+        ),
+        (
             "access-cm3/1981/atmosphere/atmosa.pa-198102-dai.nc",
             "AccessCm3Builder",
             "atmos",
             None,
             "atmos.1day.bnds:2.lat:2.lat_river:2.lat_v:2.lon:2.lon_river:2.lon_u:2.model_rho_level_number:2.model_theta_level_number:2.pressure:2",
         ),
+        (
+            "cmip6/agessc_Omon_ACCESS-ESM1-5_ssp585_r3i1p1f1_2081-2100_av.nc",
+            "Cmip6Builder",
+            "ocean",
+            None,
+            "ocean.20yr.bnds:2.i:2.j:2.lev:2.vertices:2",
+        ),
+        (
+            "cmip6/uas_Amon_ACCESS-ESM1-5_historical_r9i1p1f1_1981-2000_r360x180.nc",
+            "Cmip6Builder",
+            "atmos",
+            None,
+            "atmos.1mon.bnds:2.lat:2.lon:2",
+        ),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     Builder = getattr(builders, builder)
     info = Builder.parser(str(test_data / filename))
@@ -2897,6 +2923,10 @@ def test_parse_filename(builder, filename, expected):
         ),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
+@pytest.mark.filterwarnings(
+    "ignore:The frequency '\\(1, 'mon'\\)' determined from filename"
+)
 def test_parse_access_ncfile(test_data, builder, filename, expected, compare_files):
     """
     Tests for correctness of parser. Note that if we are using intake-esm without
@@ -3014,6 +3044,7 @@ def test_builder_include_exclude_patterns(
         ("om3_realm", True, ["ocean"], 2),  # All files
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
     """
     Tests the OM3 builder with the .nc files in om3_realm.
@@ -3070,3 +3101,47 @@ def test_builder_no_calendar(
 
     if is_monthly:
         assert ncinfo_dict["start_date"] == expected_start_date
+
+
+def test_builder_serialization_consistent(
+    tmp_path,
+    test_data,
+):
+    """
+    Test the various steps of the build process
+    """
+
+    path = [str(test_data / "mom6")]
+    builder = builders.Mom6Builder(path)
+
+    with pytest.raises(ValueError, match="asset list provided is None"):
+        builder.valid_assets
+
+    builder.get_assets()
+
+    builder.build()
+
+    builder.save(
+        name="test_pq",
+        description="test-datastore-pq-serialized",
+        directory=str(tmp_path),
+        use_parquet=True,
+    )
+    builder.save(
+        name="test_csv",
+        description="test-datastore-csv-serialized",
+        directory=str(tmp_path),
+        use_parquet=False,
+    )
+
+    cat_pq = intake.open_esm_datastore(
+        str(tmp_path / "test_pq.json"),
+        # columns_with_iterables=builder.columns_with_iterables,
+    )
+
+    cat_csv = intake.open_esm_datastore(
+        str(tmp_path / "test_csv.json"),
+        columns_with_iterables=builder.columns_with_iterables,
+    )
+
+    assert cat_pq.df.equals(cat_csv.df)
