@@ -7,6 +7,7 @@
 #PBS -l walltime=06:00:00
 #PBS -l mem=192gb
 #PBS -l ncpus=48
+#PBS -l jobfs=10gb
 #PBS -l wd
 #PBS -j oe
 
@@ -26,7 +27,7 @@ if [ ! $# -eq 0 ]; then
 fi
 
 module use /g/data/xp65/public/modules
-module load conda/analysis3-25.05 # THIS NEEDS TO BE UPDATED TO THE LATEST VERSION
+module load conda/analysis3-latest
 module load openmpi
 
 export PYTHONTRACEMALLOC=1
