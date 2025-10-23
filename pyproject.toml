@@ -133,7 +133,7 @@ channels = ["conda-forge","accessnri"]
 platforms = ["osx-arm64", "linux-64", "win-64"]
 
 [tool.pixi.environments]
-default = { features = ["dev","py313"], solve-group = "default" }
+default = { features = ["dev","test","py313"], solve-group = "default" }
 test-py310 = { features = ["py310", "test"] }
 test-py311 = { features = ["py311", "test"] }
 test-py312 = { features = ["py312", "test"] }
