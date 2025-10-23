@@ -150,7 +150,7 @@ ruff = { cmd = "ruff check src", description = "Run ruff checks" }
 black = { cmd = "black src", description = "Format code with black" }
 mypy = { cmd = "mypy src", description = "Run mypy type checks" }
 mypy-setup = { cmd = "mypy --install-types", description = "Install mypy type stubs" }
-pre-commit-install = { cmd = "pre-commit install", description = "Run pre-commit hooks" }
+pre-commit-install = { cmd = "pre-commit install", description = "Install pre-commit hooks" }
 pre-commit = { cmd = "pre-commit run --all-files && pixi lock", description = "Run pre-commit hooks" }
 
 [tool.pixi.feature.test.pypi-dependencies]
