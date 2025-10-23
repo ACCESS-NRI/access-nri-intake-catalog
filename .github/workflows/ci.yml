@@ -27,6 +27,10 @@ jobs:
         environments: ${{ matrix.environment }}
         frozen: true # This seems hacky?
 
+    - name: Clean git workspace
+      run: |
+        git clean -fdx
+        git reset --hard HEAD
 
     - name: Run tests and generate coverage report
       run: |
