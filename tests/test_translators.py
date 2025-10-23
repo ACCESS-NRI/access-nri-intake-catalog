@@ -8,6 +8,7 @@ import pytest
 from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
     FREQUENCY_TRANSLATIONS,
+    Aus2200Translator,
     BarpaTranslator,
     CcamTranslator,
     Cmip5Translator,
@@ -344,6 +345,25 @@ def test_CcamTranslator(test_data, groupby, n_entries):
     esmds.name = "name"
     esmds.description = "description"
     df = CcamTranslator(esmds, CORE_COLUMNS).translate(groupby)
+    assert len(df) == n_entries
+
+
+@pytest.mark.parametrize(
+    "groupby, n_entries",
+    [
+        (None, 26),
+        (["variable"], 23),
+        (["frequency"], 3),
+        (["model"], 1),
+        (["realm"], 2),
+    ],
+)
+def test_Aus2200Translator(test_data, groupby, n_entries):
+    """Test AUS2200 datastore translator"""
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/aus2200-bs94.json")
+    esmds.name = "name"
+    esmds.description = "description"
+    df = Aus2200Translator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries
 
 

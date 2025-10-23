@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+from IPython.testing.globalipapp import get_ipython
 
 here = Path(__file__).parent
 
@@ -12,6 +13,21 @@ here = Path(__file__).parent
 @pytest.fixture(scope="session")
 def test_data():
     return Path(here / "data")
+
+
+@pytest.fixture(scope="session")
+def ipython():
+    from access_nri_intake.ipython_magic.ast import load_ipython_extension
+
+    ip = get_ipython()
+    load_ipython_extension(ip)
+    return ip
+
+
+@pytest.fixture(scope="session")
+def ipython_bare():
+    ip = get_ipython()
+    return ip
 
 
 def metadata_sources():
@@ -40,7 +56,6 @@ def v_num():
 
 @pytest.fixture(scope="function")
 def check_metadata_cwd():
-
     # Run test
     yield
 

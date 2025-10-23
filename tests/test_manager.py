@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from pathlib import Path
 from unittest import mock
 from warnings import warn
 
@@ -46,6 +47,7 @@ def test_CatalogManager_init(tmp_path):
         (AccessOm3Builder, "access-om3", {}),
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to parse 2 assets")
 def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs):
     """Test building and adding an Intake-ESM datastore"""
     path = str(tmp_path / "cat.csv")
@@ -76,6 +78,10 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
     cat.save()
     cat = CatalogManager(path)
     assert cat.mode == "a"
+
+    # Confirm we wrote out parquet, not csv, files
+    assert not (Path(cat.path).parent / "test.csv").exists()
+    assert (Path(cat.path).parent / "test.parquet").exists()
 
 
 @mock.patch("intake_dataframe_catalog.core.DfFileCatalog.__init__")

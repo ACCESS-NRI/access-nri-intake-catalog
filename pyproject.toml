@@ -14,14 +14,18 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+dynamic = ["version"]
+
 dependencies = [
     "cftime",
-    "ecgtools>=2023.7.13",
+    "ecgtools-access>=2025.10.7",
     "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
     "intake-esm-access",
     "jsonschema",
+    "libcst",
+    "pydantic<2.12",
     "polars>=1.24.0",
     "pooch",
     "xarray",
@@ -29,7 +33,6 @@ dependencies = [
     "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
 ]
-dynamic = ["version"]
 
 [project.optional-dependencies]
 test = ["pytest", "tox"]
@@ -78,7 +81,7 @@ omit = [
 ]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 exclude = [
     ".bzr",
     ".direnv",
@@ -99,6 +102,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "versioneer.py",
 ]
 # E402: module level import not at top of file
 # E501: line too long - let black worry about that
@@ -123,3 +127,55 @@ max-complexity = 18
 
 [tool.ruff.isort]
 known-first-party = ["access_nri_intake"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge","accessnri"]
+platforms = ["osx-arm64", "linux-64", "win-64"]
+
+[tool.pixi.environments]
+default = { features = ["dev","py313"], solve-group = "default" }
+test-py310 = { features = ["py310", "test"] }
+test-py311 = { features = ["py311", "test"] }
+test-py312 = { features = ["py312", "test"] }
+test-py313 = { features = ["py313", "test"] }
+
+[tool.pixi.feature.dev.pypi-dependencies]
+access_nri_intake = { path = ".", editable = true }
+
+[tool.pixi.feature.dev.dependencies]
+pre-commit = ">=4.2.0,<5"
+pytest = ">=8.4.2,<9"
+
+[tool.pixi.feature.dev.tasks]
+ruff = { cmd = "ruff check src", description = "Run ruff checks" }
+black = { cmd = "black src", description = "Format code with black" }
+mypy = { cmd = "mypy src", description = "Run mypy type checks" }
+mypy-setup = { cmd = "mypy --install-types", description = "Install mypy type stubs" }
+pre-commit-install = { cmd = "pre-commit install", description = "Install pre-commit hooks" }
+pre-commit = { cmd = "pre-commit run --all-files && pixi lock", description = "Run pre-commit hooks" }
+
+[tool.pixi.feature.test.pypi-dependencies]
+access_nri_intake = { path = ".", editable = false } 
+
+[tool.pixi.feature.test.dependencies]
+pytest = ">=8.4.1,<9"
+pytest-ordering = ">=0.6,<0.7"
+coverage = "*"
+
+[tool.pixi.feature.test.tasks]
+test = {cmd = "pytest tests", description = "Run tests"}
+test-cov = {cmd = "coverage run -m --source=access_nri_intake pytest tests && coverage xml", description = "Run tests with coverage and generate xml report"}
+test-e2e = {cmd = "pytest --e2e tests", description = "Run tests including e2e tests"}
+
+
+[tool.pixi.feature.py310.dependencies]
+python = "3.10.*"
+
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+
+[tool.pixi.feature.py312.dependencies]
+python = "3.12.*"
+
+[tool.pixi.feature.py313.dependencies]
+python = "3.13.*"

@@ -6,9 +6,9 @@ Tools for translating metadata in an intake source into a metadata table to use 
 like the ACCESS-NRI catalog
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
-from typing import Callable
 
 import pandas as pd
 import tlz
@@ -27,6 +27,7 @@ __all__ = [
     "CcamTranslator",
     "NarclimTranslator",
     "EsgfTranslator",
+    "Aus2200Translator",
 ]
 
 FREQUENCY_TRANSLATIONS = {
@@ -128,7 +129,7 @@ class DefaultTranslator:
         elif column in self.source.metadata:
             val = self.source.metadata[column]
             # Some metadata fields can be a value _or_ array
-            if isinstance(val, (list, tuple, set)):
+            if isinstance(val, list | tuple | set):
                 val = tuple(val)
             elif column in COLUMNS_WITH_ITERABLES:
                 val = (val,)
@@ -700,6 +701,64 @@ class EsmValToolTranslator(DefaultTranslator):
 
         return self.source.df["table_id"].apply(
             lambda x: CT11_TABLEID_FREQ_TRANSLATIONS.get(x, "none")
+        )
+
+
+class Aus2200Translator(DefaultTranslator):
+    """
+    AUS2200 Translator for translating metadata from the NCI AUS2200 intake datastores.
+    """
+
+    def __init__(self, source, columns):
+        """
+        Initialise an Aus2200Translator
+
+        Uses default translators for realm, and frequency.
+
+        Parameters
+        ----------
+        source: :py:class:`~intake.DataSource`
+            The NCI CCAM intake-esm datastore
+        columns: list of str
+            The columns to translate to (these are the core columns in the intake-dataframe-catalog)
+        """
+
+        super().__init__(source, columns)
+
+        self.set_dispatch(
+            input_name="model_id",
+            core_colname="model",
+            func=super()._model_translator,
+        )
+
+        self.set_dispatch(
+            input_name="variable_id",
+            core_colname="variable",
+            func=super()._variable_translator,
+        )
+
+        self.set_dispatch(
+            input_name="frequency",
+            core_colname="frequency",
+            func=self._frequency_translator,
+        )
+
+    @tuplify_series
+    @trace_failure
+    def _frequency_translator(self):
+        """
+        Return frequency, fixing a few issues
+        TODO: It would be preferable to add 10min, etc. to the data spec.
+        """
+
+        AUS200_FREQ_TRANSLATIONS = {
+            "10min": "subhr",
+            "1hrPlev": "1hr",
+            "6hrPlev": "6hr",
+        }
+
+        return self.source.df["frequency"].apply(
+            lambda x: AUS200_FREQ_TRANSLATIONS.get(x, x)
         )
 
 

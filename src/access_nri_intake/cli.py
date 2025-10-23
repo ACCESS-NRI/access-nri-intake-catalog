@@ -22,6 +22,7 @@ from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
+from .experiment.colours import f_info, f_path, f_reset
 from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
 from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
@@ -188,17 +189,33 @@ def _get_project_code(path: str | Path):
 
 # Get the project storage flags
 def _get_project(paths: list[str], method: str | None = None) -> set[str]:
-    project = set()
-    if method == "load":
-        # This is a hack but I don't know how else to get the storage from pre-built datastores
-        esm_ds = open_esm_datastore(paths[0])
-        project |= set(esm_ds.df["path"].map(_get_project_code))
-    else:  # I know this isn't formally necessary, but I find it easier to read
-        project |= {_get_project_code(path) for path in paths}
+    projects = set()
 
-    project = {p for p in project if p is not None}
+    for path in paths:
+        # Get the project for the path of the datastore/path itself
+        projects |= {_get_project_code(path)}
 
-    return project
+        # Check the files in the datastore
+        if method == "load":
+            try:
+                esm_ds = open_esm_datastore(path)
+                projects |= set(esm_ds.df["path"].map(_get_project_code))
+            except KeyError as e:
+                # There's no 'path' in the processed source
+                # KeyError left in as a precaution, it's not clear what situations
+                # this protects again - hence raising a hopefully informative error.
+                raise KeyError(
+                    e.args[0] + f" - Unexpected missing 'path' in datastore: {path}"
+                ) from e
+            except FileNotFoundError:
+                # The datastore (likely its project) is not available
+                warnings.warn(
+                    f"Unable to access datastore at {path} - may not be able to ingest."
+                )
+
+    projects = {p for p in projects if p is not None}
+
+    return projects
 
 
 def _confirm_project_access(projects: set[str]) -> tuple[bool, str]:
@@ -499,25 +516,20 @@ def build(argv: Sequence[str] | None = None):
     parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
     _check_build_args([parsed_source[1] for parsed_source in parsed_sources])
 
-    project = set()
+    projects = set()
     # Determine the project list & storage flags for this build
     for method, src_args in parsed_sources:
-        try:
-            project |= _get_project(src_args["path"], method)
-        except KeyError:  # There's no 'path' in the processed source
-            warnings.warn(
-                f"Unable to determine storage flags/projects for {src_args.get('name', '<no name either>')} - may not be able to be ingested"
-            )
+        projects |= _get_project(src_args["path"], method)
 
     base_project = _get_project_code(build_base_path)
     if base_project is not None:
-        project |= {base_project}
+        projects |= {base_project}
     else:
         warnings.warn(f"Unable to determine project for base path {build_base_path}")
 
-    storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in project if proj]))
+    storage_flags = "+".join(sorted([f"gdata/{proj}" for proj in projects if proj]))
 
-    _valid_permissions, _err_msg = _confirm_project_access(project)
+    _valid_permissions, _err_msg = _confirm_project_access(projects)
     if not _valid_permissions:
         raise RuntimeError(_err_msg)
 
@@ -839,8 +851,8 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         type=str,
         help=(
             "Builder to use to create the esm-datastore."
-            " Builders are defined the source.builders module. Currently available options are:"
-            f" {', '.join(builders.__all__)}."
+            f" Builders are defined the {f_path}source.builders{f_reset} module. Currently available options are:"
+            f" {f_info}{', '.join(builders.__all__)}{f_reset}."
             " To build a datastore for a new model, please contact the ACCESS-NRI team."
         ),
         required=False,
@@ -854,7 +866,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         nargs="*",
         help=(
             "Additional keyword arguments to pass to the builder."
-            " Should be in the form of key=value."
+            f" Should be in the form of {f_info}key=value{f_reset}."
         ),
     )
 
@@ -874,7 +886,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         type=str,
         help=(
             "Directory in which to place the catalog.json file."
-            " Defaults to the value of --expt-dir if not set."
+            f" Defaults to the value of {f_info}--expt-dir{f_reset} if not set."
         ),
     )
 
@@ -883,7 +895,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         type=str,
         help=(
             "Name of the datastore to use. If not provided, this will default to"
-            " 'experiment_datastore'."
+            f" {f_info}'experiment_datastore'{f_reset}."
         ),
         default="experiment_datastore",
     )
@@ -893,7 +905,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
         type=str,
         help=(
             "Description of the datastore. If not provided, a default description will be used:"
-            " 'esm_datastore for the model output in {--expt-dir}'"
+            f" 'esm_datastore for the model output in {f_info}{{--expt-dir}}{f_reset}'"
         ),
         default=None,
     )

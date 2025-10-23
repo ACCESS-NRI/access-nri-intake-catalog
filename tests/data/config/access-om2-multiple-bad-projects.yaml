@@ -1,0 +1,13 @@
+builder: AccessOm2Builder
+
+translator: DefaultTranslator
+
+sources:
+
+  - path:
+      - /g/data/badproject1/access-om2
+    metadata_yaml: access-om2/metadata.yaml
+
+  - path:
+      - /g/data/badproject2/access-om2
+    metadata_yaml: access-om2/metadata-duplicate.yaml
