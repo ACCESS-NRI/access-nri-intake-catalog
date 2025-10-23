@@ -462,6 +462,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.10.18-hd6af730_0_cpython.conda
@@ -596,6 +597,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/python-3.10.18-h6cefb37_0_cpython.conda
@@ -729,6 +731,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/python-3.10.18-h8c5b53a_0_cpython.conda
@@ -879,6 +882,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.11.13-h9e4cc4f_0_cpython.conda
@@ -1014,6 +1018,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/python-3.11.13-hc22306f_0_cpython.conda
@@ -1148,6 +1153,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/python-3.11.13-h3f84c4b_0_cpython.conda
@@ -1299,6 +1305,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.12.11-h9e4cc4f_0_cpython.conda
@@ -1432,6 +1439,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/python-3.12.11-hc22306f_0_cpython.conda
@@ -1564,6 +1572,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/python-3.12.11-h3f84c4b_0_cpython.conda
@@ -1712,6 +1721,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.13.5-hec9711d_102_cp313.conda
@@ -1848,6 +1858,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/python-3.13.5-hf3f3da0_102_cp313.conda
@@ -1983,6 +1994,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/python-3.13.5-h7de537c_102_cp313.conda
@@ -2123,8 +2135,8 @@ packages:
   timestamp: 1650670423406
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+11.g2571939.dirty
-  sha256: fb99de0b26015cc6c37e4ad63caee63d4f19707042799abd100f4fe563242c98
+  version: 1.4.1+12.g2d4a3f3.dirty
+  sha256: 45fa44f2a931f1965e3fcb5478e85ab3b432fea8ae5aac8d326586679eeaf061
   requires_dist:
   - cftime
   - ecgtools-access>=2025.10.7
@@ -2149,8 +2161,8 @@ packages:
   editable: true
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+11.g2571939.dirty
-  sha256: fb99de0b26015cc6c37e4ad63caee63d4f19707042799abd100f4fe563242c98
+  version: 1.4.1+12.g2d4a3f3.dirty
+  sha256: 45fa44f2a931f1965e3fcb5478e85ab3b432fea8ae5aac8d326586679eeaf061
   requires_dist:
   - cftime
   - ecgtools-access>=2025.10.7
@@ -7432,6 +7444,21 @@ packages:
   - pkg:pypi/pytest?source=hash-mapping
   size: 276734
   timestamp: 1757011891753
+- conda: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
+  sha256: d0f45586aad48ef604590188c33c83d76e4fc6370ac569ba0900906b24fd6a26
+  md5: 6891acad5e136cb62a8c2ed2679d6528
+  depends:
+  - coverage >=7.10.6
+  - pluggy >=1.2
+  - pytest >=7
+  - python >=3.10
+  - python
+  license: MIT
+  license_family: MIT
+  purls:
+  - pkg:pypi/pytest-cov?source=hash-mapping
+  size: 29016
+  timestamp: 1757612051022
 - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-ordering-0.6-pyhd8ed1ab_1.conda
   sha256: 91a0ea6a9a6ccaebe037d68ac26507290e860331243d6e5d0fbb01e13aa50fee
   md5: b39a694a7cabb2dbf992953971992ca2

@@ -160,12 +160,12 @@ access_nri_intake = { path = ".", editable = false }
 [tool.pixi.feature.test.dependencies]
 pytest = ">=8.4.1,<9"
 pytest-ordering = ">=0.6,<0.7"
-coverage = "*"
 pytest-xdist = ">=3.8.0,<4"
+pytest-cov = ">=7.0.0,<8"
 
 [tool.pixi.feature.test.tasks]
 test = {cmd = "pytest tests", description = "Run tests"}
-test-cov = {cmd = "coverage run -m --source=access_nri_intake pytest -n auto tests && coverage xml", description = "Run tests with coverage and generate xml report"}
+test-cov = {cmd = "pytest --cov=access_nri_intake  --cov-report=xml -n auto tests && coverage xml", description = "Run tests with coverage and generate xml report"}
 test-e2e = {cmd = "pytest --e2e tests", description = "Run tests including e2e tests"}
 
 
