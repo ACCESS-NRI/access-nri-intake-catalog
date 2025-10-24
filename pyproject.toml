@@ -153,7 +153,7 @@ mypy = { cmd = "mypy src", description = "Run mypy type checks" }
 mypy-setup = { cmd = "mypy --install-types", description = "Install mypy type stubs" }
 pre-commit-install = { cmd = "pre-commit install", description = "Install pre-commit hooks" }
 pre-commit = { cmd = "pre-commit run --all-files && pixi lock", description = "Run pre-commit hooks" }
-
+export-conda = { cmd = "pixi workspace export conda-environment | sed 's/name: default/name: access-nri-intake-test/' > environment.yml", description = "Export default environment to environment.yml" }
 [tool.pixi.feature.test.pypi-dependencies]
 access_nri_intake = { path = ".", editable = false } 
 
