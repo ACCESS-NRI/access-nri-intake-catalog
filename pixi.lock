@@ -2099,8 +2099,8 @@ packages:
   timestamp: 1650670423406
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+42.g0bc0d80.dirty
-  sha256: b0dbc2e1424a411e561fefc94503f72b13002089fae78684a5825b7446f83437
+  version: 1.4.1+18.gb4cfbca
+  sha256: b7000193d44512bf197b5ad875ad6f55572c5bf582de5ea0e329bd452006d696
   requires_dist:
   - cftime
   - ecgtools-access>=2025.10.7
@@ -2125,8 +2125,8 @@ packages:
   editable: true
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+42.g0bc0d80.dirty
-  sha256: b0dbc2e1424a411e561fefc94503f72b13002089fae78684a5825b7446f83437
+  version: 1.4.1+18.gb4cfbca.dirty
+  sha256: b7000193d44512bf197b5ad875ad6f55572c5bf582de5ea0e329bd452006d696
   requires_dist:
   - cftime
   - ecgtools-access>=2025.10.7
