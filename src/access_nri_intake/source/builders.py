@@ -19,6 +19,7 @@ from .utils import (
     _NCFileInfo,
     _VarInfo,
     get_timeinfo,
+    cache_xarray_open_dataset,
 )
 
 __all__ = [
@@ -365,9 +366,8 @@ class BaseBuilder(Builder):
 
         filename_frequency = cls.parse_filename_freq(file_path.stem)
 
-        with xr.open_dataset(
+        with cache_xarray_open_dataset(
             file,
-            chunks={},
             decode_cf=False,
             decode_times=False,
             decode_coords=False,
@@ -970,9 +970,8 @@ class WoaBuilder(BaseBuilder):
         ncinfo_dict = nc_info.to_dict()
         ncinfo_dict["realm"] = realm
 
-        with xr.open_dataset(
+        with cache_xarray_open_dataset(
             file,
-            chunks={},
             decode_cf=False,
             decode_times=False,
             decode_coords=False,
@@ -1060,9 +1059,8 @@ class Cmip6Builder(BaseBuilder):
         )
 
         if cls.ensemble:
-            with xr.open_dataset(
+            with cache_xarray_open_dataset(
                 file,
-                chunks={},
                 decode_cf=False,
                 decode_times=False,
                 decode_coords=False,

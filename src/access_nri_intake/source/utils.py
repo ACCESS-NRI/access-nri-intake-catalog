@@ -8,6 +8,7 @@ import warnings
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
+from functools import cache
 from pathlib import Path
 
 import cftime
@@ -435,3 +436,14 @@ def get_timeinfo(
         frequency = frequency[1]
 
     return start_date, end_date, frequency
+
+
+@cache
+def cache_xarray_open_dataset(*args, **kwargs):
+    """
+    Cache xarray open dataset so that multiple opens of the same file can reuse
+    the returned object. As we don't currently access the data variable data then
+    we shouldn't need to worry about xarray's laziness and the Dataset object
+    should have the needed info even if close()ed.
+    """
+    return xr.open_dataset(*args, **kwargs)
