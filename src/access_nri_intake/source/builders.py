@@ -368,7 +368,6 @@ class BaseBuilder(Builder):
 
         with open_dataset_cached(
             file,
-            chunks={},
             decode_cf=False,
             decode_times=False,
             decode_coords=False,
@@ -973,7 +972,6 @@ class WoaBuilder(BaseBuilder):
 
         with open_dataset_cached(
             file,
-            chunks={},
             decode_cf=False,
             decode_times=False,
             decode_coords=False,

@@ -439,7 +439,7 @@ def get_timeinfo(
 
 
 @lru_cache(maxsize=10)
-def cache_xarray_open_dataset(*args, **kwargs):
+def open_dataset_cached(*args, **kwargs):
     """
     Cache xarray open dataset so that multiple opens of the same file can reuse
     the returned object. As we don't currently access the data variable data then
