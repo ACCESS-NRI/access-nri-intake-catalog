@@ -366,7 +366,7 @@ class BaseBuilder(Builder):
 
         filename_frequency = cls.parse_filename_freq(file_path.stem)
 
-        with xr.open_dataset(
+        with open_dataset_cached(
             file,
             chunks={},
             decode_cf=False,
@@ -971,7 +971,7 @@ class WoaBuilder(BaseBuilder):
         ncinfo_dict = nc_info.to_dict()
         ncinfo_dict["realm"] = realm
 
-        with xr.open_dataset(
+        with open_dataset_cached(
             file,
             chunks={},
             decode_cf=False,
@@ -1047,5 +1047,20 @@ class Cmip6Builder(BaseBuilder):
                 str(ncinfo_dict["file_id"]),
             ]
         )
+
+        if cls.ensemble:
+            with open_dataset_cached(
+                file,
+                decode_cf=False,
+                decode_times=False,
+                decode_coords=False,
+            ) as ds:
+                member_id = ds.attrs.get("realization_index", None)
+                if member_id is None:
+                    raise ParserError(
+                        f"Cannot determine member for file {file} - "
+                        "realization_index attribute missing"
+                    )
+                ncinfo_dict["member"] = f"r{int(member_id)}"
 
         return ncinfo_dict
