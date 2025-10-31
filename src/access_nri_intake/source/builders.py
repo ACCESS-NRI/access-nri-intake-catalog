@@ -1046,19 +1046,4 @@ class Cmip6Builder(BaseBuilder):
             ]
         )
 
-        if cls.ensemble:
-            with open_dataset_cached(
-                file,
-                decode_cf=False,
-                decode_times=False,
-                decode_coords=False,
-            ) as ds:
-                member_id = ds.attrs.get("realization_index", None)
-                if member_id is None:
-                    raise ParserError(
-                        f"Cannot determine member for file {file} - "
-                        "realization_index attribute missing"
-                    )
-                ncinfo_dict["member"] = f"r{int(member_id)}"
-
         return ncinfo_dict
