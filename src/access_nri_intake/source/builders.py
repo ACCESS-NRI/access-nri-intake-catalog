@@ -18,8 +18,8 @@ from .utils import (
     HashableIndexes,
     _NCFileInfo,
     _VarInfo,
-    open_dataset_cached,
     get_timeinfo,
+    open_dataset_cached,
 )
 
 __all__ = [
