@@ -35,7 +35,8 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
         (["woa"], "WoaBuilder", {}, 7, 7, 2),
-        (["cmip6"], "Cmip6Builder", {}, 74, 73, 14),
+        (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
+        (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -297,6 +298,13 @@ def test_builder_build(
             None,
             "atmos.1mon.bnds:2.lat:2.lon:2",
         ),
+        (
+            "cmip6/uas_Amon_ACCESS-ESM1-5_historical_r9i1p1f1_1981-2000_r360x180.nc",
+            "Cmip6Builder",
+            "atmos",
+            "r9",
+            "atmos.1mon.bnds:2.lat:2.lon:2",
+        ),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -351,6 +359,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
         "AccessCm2Builder",
         "ROMSBuilder",
         "WoaBuilder",
+        "Cmip6Builder",
     ],
 )
 def test_builder_parser_exception(test_data, filename, builder):
@@ -359,6 +368,18 @@ def test_builder_parser_exception(test_data, filename, builder):
     assert INVALID_ASSET in info.keys()
     assert info[INVALID_ASSET] == str(test_data / filename)
     assert TRACEBACK in info.keys()
+
+
+def test_cmip6_builder_parser_no_ensemble(test_data):
+    builder = builders.Cmip6Builder([str(test_data / "cmip6")], ensemble=True)
+    with pytest.raises(builders.ParserError, match="Cannot determine member"):
+        builder.parser(
+            str(
+                test_data
+                / "cmip6"
+                / "vas_Amon_ACCESS-ESM1-5_historical_r9i1p1f1_1981-2000_r360x180_no_realisation_index.nc"
+            )
+        )
 
 
 def test_builder_columns_with_iterables(test_data):
