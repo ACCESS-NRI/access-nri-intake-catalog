@@ -19,6 +19,7 @@ from .utils import (
     _NCFileInfo,
     _VarInfo,
     get_timeinfo,
+    open_dataset_cached,
 )
 
 __all__ = [
