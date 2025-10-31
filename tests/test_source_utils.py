@@ -3,6 +3,7 @@
 
 
 from pathlib import Path
+from unittest import mock
 
 import cftime
 import pytest
@@ -13,6 +14,7 @@ from access_nri_intake.source.utils import (
     HashableIndexes,
     _guess_start_end_dates,
     get_timeinfo,
+    open_dataset_cached,
 )
 
 
@@ -259,3 +261,39 @@ def test_hashable_indexes_cftime():
     assert h1 ^ h2 == set()
 
     assert h1 & h2 == set(h1.keys())
+
+
+@mock.patch(
+    "access_nri_intake.source.utils.xr.open_dataset",
+)
+@pytest.mark.parametrize(
+    "paths, num_calls",
+    [
+        (["path1.nc", "path2.nc", "path1.nc"], 2),
+        (["path1.nc", "path1.nc", "path1.nc"], 1),
+        (["path1.nc", "path2.nc", "path3.nc"], 3),
+        ([f"path_{i}.nc" for i in range(6)] * 2, 6),
+        ([f"path_{i}.nc" for i in range(100)], 100),
+    ],
+)
+def test_open_dataset_caching(mock_open, paths, num_calls):
+    mock_open.reset_mock()
+    open_dataset_cached.cache_clear()
+    mock_open.side_effect = lambda *args, **kwargs: xr.Dataset(
+        {"data": ("x", [1, 2, 3])}
+    )
+
+    for p in paths:
+        open_dataset_cached(p)
+
+    assert mock_open.call_count == num_calls
+
+    path = "dummy_path.nc"
+    ds1 = open_dataset_cached(path)
+    ds2 = open_dataset_cached(path)
+
+    N_MAX = 11
+    assert open_dataset_cached.cache_info().hits >= 1
+    assert open_dataset_cached.cache_info().currsize < N_MAX
+
+    assert ds1 is ds2  # Should be the same object due to caching
