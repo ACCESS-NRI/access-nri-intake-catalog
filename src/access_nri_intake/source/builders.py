@@ -18,7 +18,7 @@ from .utils import (
     HashableIndexes,
     _NCFileInfo,
     _VarInfo,
-    cache_xarray_open_dataset,
+    open_dataset_cached,
     get_timeinfo,
 )
 
@@ -366,7 +366,7 @@ class BaseBuilder(Builder):
 
         filename_frequency = cls.parse_filename_freq(file_path.stem)
 
-        with cache_xarray_open_dataset(
+        with open_dataset_cached(
             file,
             decode_cf=False,
             decode_times=False,
@@ -970,7 +970,7 @@ class WoaBuilder(BaseBuilder):
         ncinfo_dict = nc_info.to_dict()
         ncinfo_dict["realm"] = realm
 
-        with cache_xarray_open_dataset(
+        with open_dataset_cached(
             file,
             decode_cf=False,
             decode_times=False,
@@ -1059,7 +1059,7 @@ class Cmip6Builder(BaseBuilder):
         )
 
         if cls.ensemble:
-            with cache_xarray_open_dataset(
+            with open_dataset_cached(
                 file,
                 decode_cf=False,
                 decode_times=False,
