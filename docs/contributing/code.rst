@@ -49,6 +49,13 @@ contributions and submitting a pull request.
 
       pixi run $CMD
 
+   Finally, if you wish to create a conda environment file to follow a more classic development workflow, you can do::
+      
+      pixi run dump-conda-env
+
+   This will create a file called :code:`env.yml` in the root of the repository that you can use to create a conda
+   environment from the dependencies defined in the pixi workspace.
+
 #. This project uses :code:`ruff` for linting and :code:`black` to format code . We use :code:`pre-commit` to ensure these 
    have been run. We also use :code:`mypy` for type checking. Please set up commit hooks by running the following. This will
    mean that :code:`ruff` and :code:`black` are run whenever you make a commit::

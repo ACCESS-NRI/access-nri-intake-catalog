@@ -21,6 +21,7 @@ from .utils import (
     _NCFileInfo,
     _VarInfo,
     get_timeinfo,
+    open_dataset_cached,
 )
 
 __all__ = [
@@ -372,9 +373,8 @@ class BaseBuilder(Builder):
 
         filename_frequency = cls.parse_filename_freq(file_path.stem)
 
-        with xr.open_dataset(
+        with open_dataset_cached(
             file,
-            chunks={},
             decode_cf=False,
             decode_times=False,
             decode_coords=False,
@@ -986,9 +986,8 @@ class WoaBuilder(BaseBuilder):
         ncinfo_dict = nc_info.to_dict()
         ncinfo_dict["realm"] = realm
 
-        with xr.open_dataset(
+        with open_dataset_cached(
             file,
-            chunks={},
             decode_cf=False,
             decode_times=False,
             decode_coords=False,
@@ -1010,8 +1009,9 @@ class Cmip6Builder(BaseBuilder):
     ]
     # PATTERNS is mostly unused here - we get the realm from the metadata. Only
     # using it to match on file names here & should be refactored to be removed. TODO
+    ensemble: bool = True
 
-    def __init__(self, path, **kwargs):
+    def __init__(self, path, ensemble: bool, **kwargs):
         """
         Initialise a Cmip6Builder
 
@@ -1043,6 +1043,17 @@ class Cmip6Builder(BaseBuilder):
             ],
         )
 
+        if ensemble:
+            kwargs["aggregations"] += [
+                {
+                    "type": "join_new",
+                    "attribute_name": "member",
+                },
+            ]
+            kwargs["groupby_attrs"] += ["member"]
+
+        Cmip6Builder.ensemble = ensemble
+
         super().__init__(**kwargs)
 
     @classmethod
@@ -1063,5 +1074,20 @@ class Cmip6Builder(BaseBuilder):
                 str(ncinfo_dict["file_id"]),
             ]
         )
+
+        if cls.ensemble:
+            with open_dataset_cached(
+                file,
+                decode_cf=False,
+                decode_times=False,
+                decode_coords=False,
+            ) as ds:
+                member_id = ds.attrs.get("realization_index", None)
+                if member_id is None:
+                    raise ParserError(
+                        f"Cannot determine member for file {file} - "
+                        "realization_index attribute missing"
+                    )
+                ncinfo_dict["member"] = f"r{int(member_id)}"
 
         return ncinfo_dict
