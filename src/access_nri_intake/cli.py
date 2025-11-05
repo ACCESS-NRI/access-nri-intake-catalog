@@ -448,8 +448,8 @@ def build(argv: Sequence[str] | None = None):
     parser.add_argument(
         "--catalog_file",
         type=str,
-        default="metacatalog.csv",
-        help="The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'",
+        default="metacatalog.parquet",
+        help="The name of the intake-dataframe-catalog. Defaults to 'metacatalog.parquet'",
     )
 
     parser.add_argument(
@@ -696,7 +696,7 @@ def _concretize_build(
         Path(build_base_path) if catalog_base_path is None else Path(catalog_base_path)
     )
 
-    # First, 'unhide' paths in the metacatalog.csv file
+    # First, 'unhide' paths in the metacatalog.parquet file
     metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
     pl.scan_csv(metacatalog_path).with_columns(
         pl.col("yaml").str.replace(f".{version}", version, literal=True)

@@ -34,7 +34,7 @@ options:
                         Home directory that contains the data referenced by the input experiment
                         YAMLfiles. Typically only required for testing. Defaults to None.
   --catalog_file CATALOG_FILE
-                        The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'
+                        The name of the intake-dataframe-catalog. Defaults to 'metacatalog.parquet'
   --version VERSION     The version of the catalog to build/add to. Defaults to the current date.
   --no_update           Set this if you don't want to update the access_nri_intake.data (e.g. if
                         running a test)

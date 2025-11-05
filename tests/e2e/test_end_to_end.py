@@ -35,20 +35,20 @@ def metacat(BASE_DIR, config_dir, v_num):
             "--catalog_base_path",
             str(BASE_DIR),
             "--catalog_file",
-            "metacatalog.csv",
+            "metacatalog.parquet",
             "--version",
             v_num,
             "--no_update",
         ]
     )
-    cat_path = Path(BASE_DIR) / v_num / "metacatalog.csv"
+    cat_path = Path(BASE_DIR) / v_num / "metacatalog.parquet"
     metacat = intake.open_df_catalog(cat_path)
     yield metacat
 
 
 @e2e
 def test_catalog_subset_exists(BASE_DIR, v_num, metacat):
-    assert (Path(BASE_DIR) / v_num / "metacatalog.csv").exists()
+    assert (Path(BASE_DIR) / v_num / "metacatalog.parquet").exists()
 
 
 @e2e
