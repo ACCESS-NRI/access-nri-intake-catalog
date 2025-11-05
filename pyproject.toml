@@ -21,7 +21,7 @@ dependencies = [
     "ecgtools-access>=2025.10.7",
     "frozendict",
     "intake>=2.0.0",
-    "intake-dataframe-catalog>=0.3.1",
+    "intake-dataframe-catalog>=0.5.0",
     "intake-esm-access",
     "jsonschema",
     "libcst",
