@@ -2099,31 +2099,6 @@ packages:
   timestamp: 1650670423406
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+13.g053028c
-  sha256: f676d401698910094cde957b90ac560c5e1c8016249df0d479a724965129d244
-  requires_dist:
-  - cftime
-  - ecgtools-access>=2025.10.7
-  - frozendict
-  - intake>=2.0.0
-  - intake-dataframe-catalog>=0.3.1
-  - intake-esm-access
-  - jsonschema
-  - libcst
-  - pydantic<2.12
-  - polars>=1.24.0
-  - pooch
-  - xarray
-  - colorama
-  - yamanifest>=0.3.12
-  - access-py-telemetry>=0.1.6
-  - pytest ; extra == 'test'
-  - tox ; extra == 'test'
-  - pytest ; extra == 'e2e'
-  - pytest-ordering ; extra == 'e2e'
-  requires_python: '>=3.10'
-- pypi: ./
-  name: access-nri-intake
   version: 1.4.1+17.g9441f34
   sha256: f676d401698910094cde957b90ac560c5e1c8016249df0d479a724965129d244
   requires_dist:
@@ -2148,6 +2123,31 @@ packages:
   - pytest-ordering ; extra == 'e2e'
   requires_python: '>=3.10'
   editable: true
+- pypi: ./
+  name: access-nri-intake
+  version: 1.4.1+18.g3543698
+  sha256: f676d401698910094cde957b90ac560c5e1c8016249df0d479a724965129d244
+  requires_dist:
+  - cftime
+  - ecgtools-access>=2025.10.7
+  - frozendict
+  - intake>=2.0.0
+  - intake-dataframe-catalog>=0.3.1
+  - intake-esm-access
+  - jsonschema
+  - libcst
+  - pydantic<2.12
+  - polars>=1.24.0
+  - pooch
+  - xarray
+  - colorama
+  - yamanifest>=0.3.12
+  - access-py-telemetry>=0.1.6
+  - pytest ; extra == 'test'
+  - tox ; extra == 'test'
+  - pytest ; extra == 'e2e'
+  - pytest-ordering ; extra == 'e2e'
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/66/f7/405dd7fe7323893983d79247fe87d23d0d177898a021b34b34c90feb58ba/access_py_telemetry-0.1.9-py3-none-any.whl
   name: access-py-telemetry
   version: 0.1.9
