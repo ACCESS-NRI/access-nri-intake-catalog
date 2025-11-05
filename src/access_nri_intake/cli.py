@@ -698,9 +698,9 @@ def _concretize_build(
 
     # First, 'unhide' paths in the metacatalog.parquet file
     metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
-    pl.scan_csv(metacatalog_path).with_columns(
+    pl.scan_parquet(metacatalog_path).with_columns(
         pl.col("yaml").str.replace(f".{version}", version, literal=True)
-    ).collect().write_csv(metacatalog_path)
+    ).collect().write_parquet(metacatalog_path)
 
     source_files = (Path(build_base_path) / f".{version}" / "source").glob("*.json")
 
