@@ -698,7 +698,17 @@ def _concretize_build(
 
     # First, 'unhide' paths in the metacatalog.parquet file
     metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
-    pl.scan_parquet(metacatalog_path).with_columns(
+    lf = pl.scan_parquet(metacatalog_path)
+    schema = lf.collect_schema()
+
+    # Map null type columns to string to avoid potential issues with replacement
+    # - they'll be caught later by the exception handling. Simplify TODO?
+
+    for col, dtype in schema.items():
+        if dtype == pl.Null:
+            lf = lf.with_columns(pl.col(col).cast(pl.Utf8))
+
+    lf.with_columns(
         pl.col("yaml").str.replace(f".{version}", version, literal=True)
     ).collect().write_parquet(metacatalog_path)
 

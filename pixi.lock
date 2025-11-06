@@ -2099,7 +2099,7 @@ packages:
   timestamp: 1650670423406
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+12.g1624db6.dirty
+  version: 1.4.1+15.g6c1aa29.dirty
   sha256: 73c1d7dd6e628681c9eb0e3b411e9fd53cc9dbfaf63a4f3b2a7ebeeee7bd6852
   requires_dist:
   - cftime
@@ -2125,7 +2125,7 @@ packages:
   editable: true
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+12.g1624db6.dirty
+  version: 1.4.1+15.g6c1aa29.dirty
   sha256: 73c1d7dd6e628681c9eb0e3b411e9fd53cc9dbfaf63a4f3b2a7ebeeee7bd6852
   requires_dist:
   - cftime
