@@ -159,7 +159,7 @@ def test_build(
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             # "--no_update",  # commented out to test brand-new-catalog-versioning
             "--version",
             version,
@@ -178,7 +178,7 @@ def test_build(
         version = f"v{version}"
 
     # Try to open the catalog
-    build_path = Path(build_base_path) / version / "cat.csv"
+    build_path = Path(build_base_path) / version / "cat.parquet"
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
 
@@ -227,7 +227,7 @@ def test_build_bad_version(bad_vers, test_data, tmp_path, fake_project_access):
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--no_update",
                 "--version",
                 bad_vers,
@@ -258,7 +258,7 @@ def test_build_bad_metadata(test_data, tmp_path, fake_project_access):
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -290,7 +290,7 @@ def test_build_bad_metadata_no_metadata_yaml_value(
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -325,7 +325,7 @@ def test_build_no_project_access(mock_confirm_project_access, test_data, tmp_pat
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -355,7 +355,7 @@ def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -373,7 +373,7 @@ def test_build_repeat_nochange(test_data, tmp_path, fake_project_access):
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -423,7 +423,7 @@ def test_build_repeat_overwrite_version(test_data, tmp_path, fake_project_access
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -444,7 +444,7 @@ def test_build_repeat_overwrite_version(test_data, tmp_path, fake_project_access
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -470,7 +470,7 @@ def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -489,7 +489,7 @@ def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -537,7 +537,7 @@ def test_build_project_base_code(
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -590,7 +590,7 @@ def test_build_existing_data(
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -655,7 +655,7 @@ def test_build_existing_data_existing_old_cat(
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -734,7 +734,7 @@ def test_build_separation_between_catalog_and_buildbase(
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -790,7 +790,7 @@ def test_build_repeat_renamecatalogyaml(test_data, min_vers, max_vers, tmp_path)
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -824,7 +824,7 @@ def test_build_repeat_renamecatalogyaml(test_data, min_vers, max_vers, tmp_path)
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -894,7 +894,7 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -921,7 +921,7 @@ def test_build_repeat_altercatalogstruct(test_data, min_vers, max_vers, tmp_path
         [
             *configs,
             "--catalog_file",
-            "new_cat.csv",
+            "new_cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -996,7 +996,7 @@ def test_build_repeat_altercatalogstruct_multivers(
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -1016,7 +1016,7 @@ def test_build_repeat_altercatalogstruct_multivers(
         [
             *configs,
             "--catalog_file",
-            "new_cat.csv",
+            "new_cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -1096,7 +1096,7 @@ def test_build_parse_builddir_failure(
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -1123,7 +1123,7 @@ def test_build_parse_get_project_code_failure(test_data, tmp_path):
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -1194,7 +1194,7 @@ def test_build_missing_project(test_data, tmp_path, config_file, expected_error,
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -1225,7 +1225,7 @@ def test_build_mkdir_failure(mock_mkdir, test_data, tmp_path):
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -1272,7 +1272,7 @@ def test_build_write_catalog_yaml_failure(mock_write_catalog_yaml, test_data, tm
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -1602,7 +1602,7 @@ def test_build_no_concrete(
     no_update,
 ):
     """Test full catalog build process from config files. We turn off concretization,
-    so the catalog should just stick in `.../.{version}/cat.csv`"""
+    so the catalog should just stick in `.../.{version}/cat.parquet`"""
     # Update the config_yaml paths
     build_base_path = str(tmpdir)
 
@@ -1611,7 +1611,7 @@ def test_build_no_concrete(
     arglist = [
         *configs,
         "--catalog_file",
-        "cat.csv",
+        "cat.parquet",
         "--version",
         version,
         "--build_base_path",
@@ -1632,7 +1632,7 @@ def test_build_no_concrete(
         version = f"v{version}"
 
     # Try to open the catalog
-    build_path = Path(build_base_path) / f".{version}" / "cat.csv"
+    build_path = Path(build_base_path) / f".{version}" / "cat.parquet"
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
 
@@ -1674,7 +1674,7 @@ def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_acce
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -1692,7 +1692,7 @@ def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_acce
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -1725,7 +1725,7 @@ def test_build_repeat_second_not_concrete(test_data, tmp_path, fake_project_acce
     concretize(
         [
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--build_base_path",
             build_base_path,
             "--catalog_base_path",
@@ -1775,7 +1775,7 @@ def test_build_repeat_overwrite_version_then_concretize_entrypoints(
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -1796,7 +1796,7 @@ def test_build_repeat_overwrite_version_then_concretize_entrypoints(
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -1862,7 +1862,7 @@ def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
         [
             *configs,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--data_base_path",
             data_base_path,
             "--build_base_path",
@@ -1883,7 +1883,7 @@ def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
             [
                 *configs,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--data_base_path",
                 data_base_path,
                 "--build_base_path",
@@ -1911,7 +1911,7 @@ def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
                 "--version",
                 VERSION,
                 "--catalog_file",
-                "cat.csv",
+                "cat.parquet",
                 "--catalog_base_path",
                 build_base_path,
             ]
@@ -1933,7 +1933,7 @@ def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
             "--version",
             VERSION,
             "--catalog_file",
-            "cat.csv",
+            "cat.parquet",
             "--catalog_base_path",
             build_base_path,
             "--force",
