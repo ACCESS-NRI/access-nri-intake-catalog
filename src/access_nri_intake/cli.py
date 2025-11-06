@@ -708,9 +708,14 @@ def _concretize_build(
         if dtype == pl.Null:
             lf = lf.with_columns(pl.col(col).cast(pl.Utf8))
 
-    lf.with_columns(
+    df = lf.with_columns(
         pl.col("yaml").str.replace(f".{version}", version, literal=True)
-    ).collect().write_parquet(metacatalog_path)
+    ).collect()
+
+    df.write_parquet(metacatalog_path)
+    # Also write to metacatalog.csv for back compatibility. Pre 25.11 environments
+    # can on read df catalogs from .csv
+    df.write_csv(metacatalog_path.with_suffix(".csv"))
 
     source_files = (Path(build_base_path) / f".{version}" / "source").glob("*.json")
 
