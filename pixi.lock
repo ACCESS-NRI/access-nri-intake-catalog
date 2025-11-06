@@ -2099,11 +2099,11 @@ packages:
   timestamp: 1650670423406
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+13.g053028c
-  sha256: f676d401698910094cde957b90ac560c5e1c8016249df0d479a724965129d244
+  version: 1.4.1+13.g7664058
+  sha256: f7697899ad9d244ad4ecb764494a5133e73ed5b0a3bc1f9c3461e3868765ef24
   requires_dist:
   - cftime
-  - ecgtools-access>=2025.10.7
+  - ecgtools-access
   - frozendict
   - intake>=2.0.0
   - intake-dataframe-catalog>=0.3.1
@@ -2125,11 +2125,11 @@ packages:
   editable: true
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+13.g053028c
-  sha256: f676d401698910094cde957b90ac560c5e1c8016249df0d479a724965129d244
+  version: 1.4.1+13.g7664058
+  sha256: f7697899ad9d244ad4ecb764494a5133e73ed5b0a3bc1f9c3461e3868765ef24
   requires_dist:
   - cftime
-  - ecgtools-access>=2025.10.7
+  - ecgtools-access
   - frozendict
   - intake>=2.0.0
   - intake-dataframe-catalog>=0.3.1
