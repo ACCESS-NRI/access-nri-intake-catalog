@@ -36,7 +36,7 @@ def test_alignment(translator_name, live_config_dir, BASE_DIR, v_num):
                 "--catalog_base_path",
                 str(BASE_DIR),
                 "--catalog_file",
-                "metacatalog.csv",
+                "metacatalog.parquet",
                 "--version",
                 v_num,
                 "--no_update",
