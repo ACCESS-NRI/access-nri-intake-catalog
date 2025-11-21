@@ -7,6 +7,7 @@ from pathlib import Path
 
 import intake
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
+from intake_esm import esm_datastore
 from pandas.errors import EmptyDataError
 
 from ..utils import validate_against_schema
@@ -135,6 +136,7 @@ class CatalogManager:
         name: str,
         description: str,
         path: str,
+        directory: str,
         driver: str = "esm_datastore",
         translator=DefaultTranslator,
         metadata: dict | None = None,
@@ -151,6 +153,8 @@ class CatalogManager:
             Description of the contents of the data source
         path: str
             The path to the Intake data source
+        directory: str, optional
+            The directory to save reserialized Intake data source to.
         driver: str
             The name of the Intake driver to use to open the data source
         translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`, optional
@@ -175,6 +179,13 @@ class CatalogManager:
 
         self.source, self.source_metadata = _open_and_translate(
             path, driver, name, description, metadata, translator, **kwargs
+        )
+        self.source: esm_datastore
+        self.source.serialize(
+            name=self.source.name,
+            directory=directory,
+            catalog_type="file",
+            file_format="parquet",
         )
 
         self._add()
@@ -235,11 +246,13 @@ class CatalogManager:
 
 def _open_and_translate(
     file, driver, name, description, metadata, translator, **kwargs
-):
+) -> tuple[esm_datastore, dict]:
     """
     Open an Intake data source, assign name, description and metadata attrs and
     translate using the provided translator
     """
+    if driver != "esm_datastore":
+        raise CatalogManagerError(f"Driver '{driver}' not supported in CatalogManager")
     open_ = getattr(intake, f"open_{driver}")
     source = open_(file, **kwargs)
     source.name = name
@@ -248,4 +261,5 @@ def _open_and_translate(
 
     metadata = translator(source, CORE_COLUMNS).translate(TRANSLATOR_GROUPBY_COLUMNS)
 
+    breakpoint()
     return source, metadata
