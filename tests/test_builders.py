@@ -34,7 +34,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
-        (["woa"], "WoaBuilder", {}, 8, 8, 2),
+        (["woa"], "WoaBuilder", {}, 8, 8, 3),
         (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
     ],
