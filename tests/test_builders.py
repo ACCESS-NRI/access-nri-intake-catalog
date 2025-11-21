@@ -3190,7 +3190,8 @@ def test_builder_year_before_1000(
     issue does not manifest.
     """
     with mock.patch(
-        "access_nri_intake.source.utils._is_glibc_available", return_value=glibc_available
+        "access_nri_intake.source.utils._is_glibc_available",
+        return_value=glibc_available,
     ):
         path = str(test_data / test_file)
         builder = getattr(builders, builder)
