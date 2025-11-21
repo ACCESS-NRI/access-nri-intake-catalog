@@ -286,6 +286,14 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
+def _is_glibc_available():
+    """
+    Returns true is glibc is avilable on this platform and thus the '%4Y' date
+    format can be used.
+    """
+    return platform.libc_ver()[0] == "glibc"
+
+
 def get_timeinfo(
     ds: xr.Dataset,
     filename_frequency: str | None,
@@ -359,7 +367,7 @@ def get_timeinfo(
         return cftime.num2date(t, time_var.units, calendar=cal)
 
     # %Y fails to zero pad years <1000 (may be platform dependent) for python datetimes
-    if platform.libc_ver()[0] == "glibc":
+    if _is_glibc_available():
         # On linux glibc is used and can use %4Y
         time_format = "%4Y-%m-%d, %H:%M:%S"
     else:
