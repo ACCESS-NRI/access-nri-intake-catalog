@@ -4,13 +4,13 @@
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
 import pickle
+import platform
 import warnings
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
-import platform
 
 import cftime
 import numpy as np
@@ -359,7 +359,7 @@ def get_timeinfo(
         return cftime.num2date(t, time_var.units, calendar=cal)
 
     # %Y fails to zero pad years <1000 (may be platform dependent) for python datetimes
-    if platform.libc_ver()[0] == 'glibc':
+    if platform.libc_ver()[0] == "glibc":
         # On linux glibc is used and can use %4Y
         time_format = "%4Y-%m-%d, %H:%M:%S"
     else:

@@ -3167,16 +3167,19 @@ def test_builder_serialization_consistent(
 
     assert cat_pq.df.equals(cat_csv.df)
 
+
 @pytest.mark.parametrize(
     "test_file,builder,expected_startdate_str",
     [
         # get_timeinfo uses cftime for woa13_ts_01_mom01.nc
-        ("woa/woa13_ts_01_mom01.nc", "WoaBuilder", "0001-01-02, 00:00:00"), 
+        ("woa/woa13_ts_01_mom01.nc", "WoaBuilder", "0001-01-02, 00:00:00"),
         # get_timeinfo uses datetime for woa13_decav_ts_01_04v2.nc
         ("woa/woa13_decav_ts_01_04v2.nc", "WoaBuilder", "0001-02-01, 00:00:00"),
-    ]
+    ],
 )
-def test_builder_year_before_1000(test_data, test_file, builder, expected_startdate_str):
+def test_builder_year_before_1000(
+    test_data, test_file, builder, expected_startdate_str
+):
     """
     Test that time values with year<1000 are formatted correctly. In some instances
     if year<1000 then leading zeroes used to be missing. i.e. '1-02-01, 00:00:00' instead
@@ -3189,4 +3192,4 @@ def test_builder_year_before_1000(test_data, test_file, builder, expected_startd
     builder = getattr(builders, builder)
     asset = builder.parser(path)
 
-    assert asset['start_date'] == expected_startdate_str
+    assert asset["start_date"] == expected_startdate_str
