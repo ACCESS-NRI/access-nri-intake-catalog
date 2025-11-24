@@ -4,7 +4,6 @@
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
 import pickle
-import platform
 import warnings
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
@@ -286,14 +285,6 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def _is_glibc_available():
-    """
-    Returns true is glibc is avilable on this platform and thus the '%4Y' date
-    format can be used.
-    """
-    return platform.libc_ver()[0] == "glibc"
-
-
 def get_timeinfo(
     ds: xr.Dataset,
     filename_frequency: str | None,
@@ -366,12 +357,10 @@ def get_timeinfo(
 
         return cftime.num2date(t, time_var.units, calendar=cal)
 
-    # %Y fails to zero pad years <1000 (may be platform dependent) for python datetimes
-    if _is_glibc_available():
-        # On linux glibc is used and can use %4Y
-        time_format = "%4Y-%m-%d, %H:%M:%S"
-    else:
-        time_format = "%Y-%m-%d, %H:%M:%S"
+    # Time format should be yyyy-mm-dd, hh:mm:ss
+    time_format = "%Y-%m-%d, %H:%M:%S"
+    # If year<1000, the leading zeros are usually missing
+    time_str_expected_len = 20
 
     ts = None
     te = None
@@ -438,12 +427,12 @@ def get_timeinfo(
     if ts is None:
         start_date = "none"
     else:
-        start_date = ts.strftime(time_format)
+        start_date = ts.strftime(time_format).rjust(time_str_expected_len, "0")
 
     if te is None:
         end_date = "none"
     else:
-        end_date = te.strftime(time_format)
+        end_date = te.strftime(time_format).rjust(time_str_expected_len, "0")
 
     if frequency[0]:
         frequency = f"{str(frequency[0])}{frequency[1]}"
