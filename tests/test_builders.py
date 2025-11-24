@@ -3169,17 +3169,16 @@ def test_builder_serialization_consistent(
 
 
 @pytest.mark.parametrize(
-    "test_file,builder,expected_startdate_str,glibc_available",
+    "test_file,builder,expected_startdate_str",
     [
         # get_timeinfo uses cftime for woa13_ts_01_mom01.nc
-        ("woa/woa13_ts_01_mom01.nc", "WoaBuilder", "0001-01-02, 00:00:00", True),
-        ("woa/woa13_ts_01_mom01.nc", "WoaBuilder", "0001-01-02, 00:00:00", False),
+        ("woa/woa13_ts_01_mom01.nc", "WoaBuilder", "0001-01-02, 00:00:00"),
         # get_timeinfo uses datetime for woa13_decav_ts_01_04v2.nc
-        ("woa/woa13_decav_ts_01_04v2.nc", "WoaBuilder", "0001-02-01, 00:00:00", True),
+        ("woa/woa13_decav_ts_01_04v2.nc", "WoaBuilder", "0001-02-01, 00:00:00"),
     ],
 )
 def test_builder_year_before_1000(
-    test_data, test_file, builder, expected_startdate_str, glibc_available
+    test_data, test_file, builder, expected_startdate_str
 ):
     """
     Test that time values with year<1000 are formatted correctly. In some instances
@@ -3189,12 +3188,8 @@ def test_builder_year_before_1000(
     If get_timeinfo ends up using a cftime object instead of a python datetime this
     issue does not manifest.
     """
-    with mock.patch(
-        "access_nri_intake.source.utils._is_glibc_available",
-        return_value=glibc_available,
-    ):
-        path = str(test_data / test_file)
-        builder = getattr(builders, builder)
-        asset = builder.parser(path)
+    path = str(test_data / test_file)
+    builder = getattr(builders, builder)
+    asset = builder.parser(path)
 
-        assert asset["start_date"] == expected_startdate_str
+    assert asset["start_date"] == expected_startdate_str
