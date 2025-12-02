@@ -25,9 +25,10 @@ from access_nri_intake.source.builders import (
 from access_nri_intake.utils import load_metadata_yaml
 
 
-def test_CatalogManager_init(tmp_path):
+@pytest.mark.parametrize("cm_fname", ["cat.csv", "cat.parquet"])
+def test_CatalogManager_init(tmp_path, cm_fname):
     """Test that CatalogManager initialising correctly"""
-    path = str(tmp_path / "cat.csv")
+    path = str(tmp_path / cm_fname)
 
     cat = CatalogManager(path)
     assert cat.mode == "w"
@@ -47,10 +48,13 @@ def test_CatalogManager_init(tmp_path):
         (AccessOm3Builder, "access-om3", {}),
     ],
 )
+@pytest.mark.parametrize("cm_fname", ["cat.csv", "cat.parquet"])
 @pytest.mark.filterwarnings("ignore:Unable to parse 2 assets")
-def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs):
+def test_CatalogManager_build_esm(
+    tmp_path, test_data, builder, basedir, kwargs, cm_fname
+):
     """Test building and adding an Intake-ESM datastore"""
-    path = str(tmp_path / "cat.csv")
+    path = str(tmp_path / cm_fname)
     cat = CatalogManager(path)
 
     metadata = load_metadata_yaml(
@@ -106,9 +110,12 @@ def test_CatalogManager_init_exception(DFFileCatalog, e):
         (Cmip6Translator, "cmip6-oi10.json", {}),
     ],
 )
-def test_CatalogManager_load(tmp_path, test_data, translator, datastore, metadata):
+@pytest.mark.parametrize("cm_fname", ["cat.csv", "cat.parquet"])
+def test_CatalogManager_load(
+    tmp_path, test_data, translator, datastore, metadata, cm_fname
+):
     """Test loading and adding an Intake-ESM datastore"""
-    path = str(tmp_path / "cat.csv")
+    path = str(tmp_path / cm_fname)
     cat = CatalogManager(path)
 
     args = dict(
@@ -125,9 +132,10 @@ def test_CatalogManager_load(tmp_path, test_data, translator, datastore, metadat
     assert cat.mode == "a"
 
 
-def test_CatalogManager_load_error(tmp_path, test_data):
+@pytest.mark.parametrize("cm_fname", ["cat.csv", "cat.parquet"])
+def test_CatalogManager_load_error(tmp_path, test_data, cm_fname):
     """Test loading and adding an Intake-ESM datastore"""
-    path = str(tmp_path / "cat.csv")
+    path = str(tmp_path / cm_fname)
     cat = CatalogManager(path)
 
     # Test can load when path is len 1 list
@@ -145,9 +153,10 @@ def test_CatalogManager_load_error(tmp_path, test_data):
     assert "Only a single data source" in str(excinfo.value)
 
 
-def test_CatalogManager_all(tmp_path, test_data):
+@pytest.mark.parametrize("cm_fname", ["cat.csv", "cat.parquet"])
+def test_CatalogManager_all(tmp_path, test_data, cm_fname):
     """Test adding multiple sources"""
-    path = str(tmp_path / "cat.csv")
+    path = str(tmp_path / cm_fname)
     cat = CatalogManager(path)
 
     # Load source
@@ -210,9 +219,10 @@ class Cmip5MockTranslator(Cmip5Translator):
         return self.source.df[self._dispatch_keys.model]
 
 
-def test_CatalogManager_load_non_iterable(tmp_path, test_data):
+@pytest.mark.parametrize("cm_fname", ["cat.csv", "cat.parquet"])
+def test_CatalogManager_load_non_iterable(tmp_path, test_data, cm_fname):
     """Test loading and adding an Intake-ESM datastore"""
-    cat = CatalogManager(tmp_path / "cat.csv")
+    cat = CatalogManager(tmp_path / cm_fname)
 
     # Load source
     load_args = dict(
@@ -239,13 +249,14 @@ def test_CatalogManager_load_non_iterable(tmp_path, test_data):
         )
 
 
-def test_CatalogManager_generic_exception(tmp_path, test_data):
+@pytest.mark.parametrize("cm_fname", ["cat.csv", "cat.parquet"])
+def test_CatalogManager_generic_exception(tmp_path, test_data, cm_fname):
     """Test loading and adding an Intake-ESM datastore"""
     intake_dataframe_err_str = "Generic Exception for the CatalogManager class"
     access_nri_err_str = "Generic Exception for the CatalogManager class"
     cause_str = "None"
 
-    path = str(tmp_path / "cat.csv")
+    path = str(tmp_path / cm_fname)
     cat = CatalogManager(path)
 
     # Test can load when path is len 1 list
