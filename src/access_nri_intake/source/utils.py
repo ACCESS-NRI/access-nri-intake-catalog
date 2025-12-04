@@ -357,7 +357,11 @@ def get_timeinfo(
 
         return cftime.num2date(t, time_var.units, calendar=cal)
 
+    # Time format should be yyyy-mm-dd, hh:mm:ss
     time_format = "%Y-%m-%d, %H:%M:%S"
+    # If year<1000, the leading zeros are usually missing
+    time_str_expected_len = 20
+
     ts = None
     te = None
     frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
@@ -423,12 +427,12 @@ def get_timeinfo(
     if ts is None:
         start_date = "none"
     else:
-        start_date = ts.strftime(time_format)
+        start_date = ts.strftime(time_format).rjust(time_str_expected_len, "0")
 
     if te is None:
         end_date = "none"
     else:
-        end_date = te.strftime(time_format)
+        end_date = te.strftime(time_format).rjust(time_str_expected_len, "0")
 
     if frequency[0]:
         frequency = f"{str(frequency[0])}{frequency[1]}"
