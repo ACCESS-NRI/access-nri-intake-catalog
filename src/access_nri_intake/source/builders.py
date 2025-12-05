@@ -7,7 +7,6 @@ import multiprocessing
 import re
 import traceback
 from pathlib import Path
-from typing import Self
 
 import polars as pl
 import xarray as xr
@@ -133,7 +132,7 @@ class BaseBuilder(Builder):
 
         super().__post_init__()
 
-    def _parse(self: Self) -> None:
+    def _parse(self: "BaseBuilder") -> None:
         super().parse(parsing_func=self._parser_catch_invalid)
 
         pl_df = pl.from_pandas(self.df)  # type: ignore[has-type]
