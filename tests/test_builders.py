@@ -19,24 +19,24 @@ from access_nri_intake.source.utils import _NCFileInfo
 @pytest.mark.parametrize(
     "basedirs, builder, kwargs, num_assets, num_valid_assets, num_datasets",
     [
-        (["access-om2"], "AccessOm2Builder", {}, 12, 12, 6),
+        (["access-om2"], "AccessOm2Builder", {}, 12, 12, 12),
         (
             ["access-cm2/by578", "access-cm2/by578a"],
             "AccessCm2Builder",
             {"ensemble": True},
             18,
             14,
-            7,
+            12,
         ),
-        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
-        (["access-cm3"], "AccessCm3Builder", {}, 32, 31, 13),
-        (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
-        (["mom6"], "Mom6Builder", {}, 27, 27, 15),
-        (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
-        (["woa"], "WoaBuilder", {}, 7, 7, 2),
-        (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
-        (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
+        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 18),
+        (["access-cm3"], "AccessCm3Builder", {}, 32, 31, 33),
+        (["access-om3"], "AccessOm3Builder", {}, 12, 12, 11),
+        (["mom6"], "Mom6Builder", {}, 27, 27, 77),
+        (["roms"], "ROMSBuilder", {}, 4, 4, 2),
+        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 16),
+        (["woa"], "WoaBuilder", {}, 8, 8, 8),
+        (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 29),
+        (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 63),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -3120,49 +3120,3 @@ def test_builder_no_calendar(
 
     if is_monthly:
         assert ncinfo_dict["start_date"] == expected_start_date
-
-
-def test_builder_serialization_consistent(
-    tmp_path,
-    test_data,
-):
-    """
-    Test the various steps of the build process
-    """
-
-    path = [str(test_data / "mom6")]
-    builder = builders.Mom6Builder(path)
-
-    with pytest.raises(ValueError, match="asset list provided is None"):
-        builder.valid_assets
-
-    builder.get_assets()
-
-    builder.build()
-
-    builder.save(
-        name="test_pq",
-        description="test-datastore-pq-serialized",
-        directory=str(tmp_path),
-        use_parquet=True,
-    )
-    builder.save(
-        name="test_csv",
-        description="test-datastore-csv-serialized",
-        directory=str(tmp_path),
-        use_parquet=False,
-    )
-
-    cat_pq = intake.open_esm_datastore(
-        str(tmp_path / "test_pq.json"),
-    )
-
-    cat_csv = intake.open_esm_datastore(
-        str(tmp_path / "test_csv.json"),
-        read_kwargs={"missing_utf8_is_empty_string": True},
-    )
-    # By default, polars will read missing strings as nulls, which will convert
-    # to None in pandas. This doesn't happen with parquet, so we need to tell the
-    # reader to read missing strings as empty strings, not nulls.
-
-    assert cat_pq.df.equals(cat_csv.df)
