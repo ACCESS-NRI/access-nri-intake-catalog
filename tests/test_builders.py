@@ -34,7 +34,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
-        (["woa"], "WoaBuilder", {}, 7, 7, 2),
+        (["woa"], "WoaBuilder", {}, 8, 8, 3),
         (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
     ],
@@ -3122,3 +3122,74 @@ def test_builder_no_calendar(
 
     if is_monthly:
         assert ncinfo_dict["start_date"] == expected_start_date
+
+
+def test_builder_serialization_consistent(
+    tmp_path,
+    test_data,
+):
+    """
+    Test the various steps of the build process
+    """
+
+    path = [str(test_data / "mom6")]
+    builder = builders.Mom6Builder(path)
+
+    with pytest.raises(ValueError, match="asset list provided is None"):
+        builder.valid_assets
+
+    builder.get_assets()
+
+    builder.build()
+
+    builder.save(
+        name="test_pq",
+        description="test-datastore-pq-serialized",
+        directory=str(tmp_path),
+        use_parquet=True,
+    )
+    builder.save(
+        name="test_csv",
+        description="test-datastore-csv-serialized",
+        directory=str(tmp_path),
+        use_parquet=False,
+    )
+
+    cat_pq = intake.open_esm_datastore(
+        str(tmp_path / "test_pq.json"),
+        # columns_with_iterables=builder.columns_with_iterables,
+    )
+
+    cat_csv = intake.open_esm_datastore(
+        str(tmp_path / "test_csv.json"),
+        columns_with_iterables=builder.columns_with_iterables,
+    )
+
+    assert cat_pq.df.equals(cat_csv.df)
+
+
+@pytest.mark.parametrize(
+    "test_file,builder,expected_startdate_str",
+    [
+        # get_timeinfo uses cftime for woa13_ts_01_mom01.nc
+        ("woa/woa13_ts_01_mom01.nc", "WoaBuilder", "0001-01-02, 00:00:00"),
+        # get_timeinfo uses datetime for woa13_decav_ts_01_04v2.nc
+        ("woa/woa13_decav_ts_01_04v2.nc", "WoaBuilder", "0001-02-01, 00:00:00"),
+    ],
+)
+def test_builder_year_before_1000(
+    test_data, test_file, builder, expected_startdate_str
+):
+    """
+    Test that time values with year<1000 are formatted correctly. In some instances
+    if year<1000 then leading zeroes used to be missing. i.e. '1-02-01, 00:00:00' instead
+    of '0001-01-01, 00:00:00'.
+
+    If get_timeinfo ends up using a cftime object instead of a python datetime this
+    issue does not manifest.
+    """
+    path = str(test_data / test_file)
+    builder = getattr(builders, builder)
+    asset = builder.parser(path)
+
+    assert asset["start_date"] == expected_startdate_str
