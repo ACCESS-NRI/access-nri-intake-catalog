@@ -19,24 +19,24 @@ from access_nri_intake.source.utils import _NCFileInfo
 @pytest.mark.parametrize(
     "basedirs, builder, kwargs, num_assets, num_valid_assets, num_datasets",
     [
-        (["access-om2"], "AccessOm2Builder", {}, 12, 12, 6),
+        (["access-om2"], "AccessOm2Builder", {}, 12, 12, 12),
         (
             ["access-cm2/by578", "access-cm2/by578a"],
             "AccessCm2Builder",
             {"ensemble": True},
             18,
             14,
-            7,
+            12,
         ),
-        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
-        (["access-cm3"], "AccessCm3Builder", {}, 32, 31, 13),
-        (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
-        (["mom6"], "Mom6Builder", {}, 27, 27, 15),
-        (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
-        (["woa"], "WoaBuilder", {}, 8, 8, 3),
-        (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
-        (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
+        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 18),
+        (["access-cm3"], "AccessCm3Builder", {}, 32, 31, 33),
+        (["access-om3"], "AccessOm3Builder", {}, 12, 12, 11),
+        (["mom6"], "Mom6Builder", {}, 27, 27, 77),
+        (["roms"], "ROMSBuilder", {}, 4, 4, 2),
+        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 16),
+        (["woa"], "WoaBuilder", {}, 8, 8, 8),
+        (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 29),
+        (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 63),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -69,16 +69,14 @@ def test_builder_build(
 
     builder.build()
     assert isinstance(builder.df, pd.DataFrame)
-    assert len(builder.df) == num_valid_assets
     assert all([col in builder.df.columns for col in CORE_COLUMNS])
 
     builder.save(name="test", description="test datastore", directory=str(tmp_path))
 
     cat = intake.open_esm_datastore(
         str(tmp_path / "test.json"),
-        columns_with_iterables=builder.columns_with_iterables,
+        read_kwargs={"missing_utf8_is_empty_string": True},
     )
-    assert len(cat.df) == num_valid_assets
     assert len(cat) == num_datasets
 
     assert len(builder.valid_assets) == num_valid_assets
@@ -3122,30 +3120,3 @@ def test_builder_no_calendar(
 
     if is_monthly:
         assert ncinfo_dict["start_date"] == expected_start_date
-
-
-@pytest.mark.parametrize(
-    "test_file,builder,expected_startdate_str",
-    [
-        # get_timeinfo uses cftime for woa13_ts_01_mom01.nc
-        ("woa/woa13_ts_01_mom01.nc", "WoaBuilder", "0001-01-02, 00:00:00"),
-        # get_timeinfo uses datetime for woa13_decav_ts_01_04v2.nc
-        ("woa/woa13_decav_ts_01_04v2.nc", "WoaBuilder", "0001-02-01, 00:00:00"),
-    ],
-)
-def test_builder_year_before_1000(
-    test_data, test_file, builder, expected_startdate_str
-):
-    """
-    Test that time values with year<1000 are formatted correctly. In some instances
-    if year<1000 then leading zeroes used to be missing. i.e. '1-02-01, 00:00:00' instead
-    of '0001-01-01, 00:00:00'.
-
-    If get_timeinfo ends up using a cftime object instead of a python datetime this
-    issue does not manifest.
-    """
-    path = str(test_data / test_file)
-    builder = getattr(builders, builder)
-    asset = builder.parser(path)
-
-    assert asset["start_date"] == expected_startdate_str

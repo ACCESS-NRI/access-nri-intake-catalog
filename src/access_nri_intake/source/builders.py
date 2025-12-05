@@ -8,8 +8,10 @@ import re
 import traceback
 from pathlib import Path
 
+import polars as pl
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
+from intake_esm.utils import MinimalExploder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
@@ -130,8 +132,17 @@ class BaseBuilder(Builder):
 
         super().__post_init__()
 
-    def _parse(self):
+    def _parse(self: "BaseBuilder") -> None:
         super().parse(parsing_func=self._parser_catch_invalid)
+
+        pl_df = pl.from_pandas(self.df)  # type: ignore[has-type]
+        exploded_df: pl.DataFrame = MinimalExploder(pl_df)()
+        # Replace empty string in variable_cell_methods with "-" - should avoid nulling issues...?
+        exploded_df = exploded_df.with_columns(
+            pl.col("variable_cell_methods").str.replace("", "-")
+        )
+        self.df = exploded_df.to_pandas()
+        self.entries = exploded_df.to_dicts()
 
     def parse(self):
         """
@@ -428,6 +439,7 @@ class AccessOm2Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -501,6 +513,7 @@ class AccessOm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -582,6 +595,7 @@ class Mom6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -650,6 +664,7 @@ class AccessEsm15Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -782,6 +797,7 @@ class AccessCm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -859,6 +875,7 @@ class ROMSBuilder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
@@ -921,7 +938,10 @@ class WoaBuilder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
-            groupby_attrs=["file_id"],
+            groupby_attrs=[
+                "file_id",
+                "variable_cell_methods",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -991,6 +1011,7 @@ class Cmip6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "variable_cell_methods",
             ],
             aggregations=[
                 {
