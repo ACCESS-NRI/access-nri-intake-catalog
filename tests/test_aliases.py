@@ -32,16 +32,16 @@ class TestAliasedESMCatalog:
         mock_cat = MockESMDatastore()
         wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
         
-        # Test field alias mapping - tas should now map to ACCESS variable fld_s03i236
-        wrapped_cat.search(variable="tas", model="ACCESS-CM2")
+        # Test field alias mapping - CMIP field names should map to ACCESS-NRI field names  
+        wrapped_cat.search(variable_id="tas", source_id="ACCESS-CM2")
         
-        # Should have been called with canonical field names
+        # Should have been called with ACCESS-NRI catalog field names
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert "variable_id" in call_kwargs
-        assert "source_id" in call_kwargs
-        assert call_kwargs["variable_id"] == "fld_s03i236"  # tas maps to ACCESS variable
-        assert call_kwargs["source_id"] == "ACCESS-CM2"
+        assert "variable" in call_kwargs    # variable_id -> variable
+        assert "model" in call_kwargs       # source_id -> model
+        assert call_kwargs["variable"] == "fld_s03i236"  # tas maps to ACCESS variable
+        assert call_kwargs["model"] == "ACCESS-CM2"
         
     def test_value_aliases(self):
         """Test that values are properly aliased"""
@@ -54,7 +54,7 @@ class TestAliasedESMCatalog:
         # Should have been called with canonical values
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert call_kwargs["variable_id"] == "fld_s03i236"
+        assert call_kwargs["variable"] == "fld_s03i236"
 
     def test_combined_aliases(self):
         """Test that field and value aliases work together"""
@@ -67,7 +67,7 @@ class TestAliasedESMCatalog:
         # Should have been called with all canonical names and values
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert call_kwargs["variable_id"] == "fld_s05i269"  # ci -> fld_s05i269 (CMIP to ACCESS mapping)
+        assert call_kwargs["variable"] == "fld_s05i269"  # ci -> fld_s05i269 (CMIP to ACCESS mapping)
         assert call_kwargs["frequency"] == "1day"  # daily -> 1day
         
     def test_list_values(self):
@@ -82,7 +82,7 @@ class TestAliasedESMCatalog:
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
         expected_values = ["fld_s05i269", "fld_s02i261", "fld_s03i236"]  # ci->fld_s05i269, cl->fld_s02i261, tas->fld_s03i236
-        assert call_kwargs["variable_id"] == expected_values
+        assert call_kwargs["variable"] == expected_values
 
     def test_passthrough_unknown_fields(self):
         """Test that unknown fields pass through unchanged"""
@@ -108,7 +108,7 @@ class TestAliasedESMCatalog:
         # Should pass through with canonical field name but original value
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert call_kwargs["variable_id"] == "unknown_variable"
+        assert call_kwargs["variable"] == "unknown_variable"
         
     def test_passthrough_attributes(self):
         """Test that other attributes pass through to the wrapped catalog"""
@@ -139,7 +139,7 @@ class TestAliasedESMCatalog:
             assert _CMIP_TO_ACCESS_MAPPINGS["ci"] == "fld_s05i269"
         
         # Test that CMIP variable aliases are included in VALUE_ALIASES
-        variable_aliases = VALUE_ALIASES.get("variable_id", {})
+        variable_aliases = VALUE_ALIASES.get("variable", {})
         if _CMIP_TO_ACCESS_MAPPINGS:
             # Test specific CMIP variables that should be preserved
             test_vars = ["ci", "rldscs", "rluscs"]  # Should map to fld_s05i269, fld_s02i208, fld_s02i206
@@ -160,7 +160,7 @@ class TestAliasedESMCatalog:
             # Should have been called with the ACCESS model variable name
             assert len(mock_cat.search_calls) == 1
             call_kwargs = mock_cat.search_calls[0]
-            assert call_kwargs["variable_id"] == "fld_s05i269"
+            assert call_kwargs["variable"] == "fld_s05i269"
 
 
 if __name__ == "__main__":

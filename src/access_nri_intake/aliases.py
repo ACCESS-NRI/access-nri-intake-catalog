@@ -164,15 +164,18 @@ _CMIP_TO_ACCESS_MAPPINGS = _load_cmip_mappings()
 
 # Define alias mappings
 FIELD_ALIASES = {
-    # User-facing → actual df column
-    "variable": "variable_id",
-    "model": "source_id",
-    "experiment": "experiment_id",
-    "member": "member_id",
-    "time_range": "time_range",
+    # User-facing → actual df column (based on ACCESS-NRI catalog structure)
+    # The ACCESS-NRI catalog uses: model, variable, realm, frequency, name, yaml
+    # So most fields map to themselves, but we can provide common aliases
+    "source_id": "model",      # CMIP-style field name → ACCESS-NRI field name
+    "variable_id": "variable", # CMIP-style field name → ACCESS-NRI field name
+    "source": "model",         # Alternative alias
+    "var": "variable",         # Short alias
+    # These pass through unchanged
+    "model": "model",
+    "variable": "variable", 
     "realm": "realm",
     "frequency": "frequency",
-    "version": "version",
 }
 
 # Create variable aliases combining manual aliases with CMIP mappings
@@ -186,12 +189,16 @@ _MANUAL_VARIABLE_ALIASES = {
 _VARIABLE_ALIASES_COMBINED = {**_CMIP_TO_ACCESS_MAPPINGS, **_MANUAL_VARIABLE_ALIASES}
 
 VALUE_ALIASES = {
-    "variable_id": _VARIABLE_ALIASES_COMBINED,
-    "source_id": {
-        # ACCESS model aliases
+    # Use ACCESS-NRI catalog field names
+    "variable": _VARIABLE_ALIASES_COMBINED,  # Changed from variable_id
+    "model": {
+        # ACCESS model aliases - maps to ACCESS-NRI catalog's "model" field
+        "ACCESS-ESM1": "ACCESS-ESM1-5",
+        "ACCESS-CM2": "ACCESS-CM2", 
+        "ACCESS-OM2": "ACCESS-OM2",
     },
     "experiment_id": {
-        # Common experiment aliases
+        # Common experiment aliases (if catalog has experiment_id field)
         "historical": "historical",
         "hist": "historical",
         "control": "piControl",
@@ -205,7 +212,7 @@ VALUE_ALIASES = {
         "ssp1-26": "ssp126",
     },
     "frequency": {
-        # Frequency aliases
+        # Frequency aliases - ACCESS-NRI uses frequency field
         "daily": "1day",
         "day": "1day",
         "monthly": "1mon",
@@ -219,7 +226,7 @@ VALUE_ALIASES = {
         "6hourly": "6hr",
     },
     "realm": {
-        # Realm aliases
+        # Realm aliases - ACCESS-NRI uses realm field
         "atmosphere": "atmos",
         "atm": "atmos",
         "ocean": "ocean",
