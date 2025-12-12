@@ -137,23 +137,57 @@ class AliasedDataframeCatalog:
         self.field_aliases = field_aliases or {}
         self.value_aliases = value_aliases or {}
 
+    def _wrap_if_esm_datastore(self, obj):
+        """
+        Wrap an object with AliasedESMCatalog if it appears to be an ESM datastore.
+        """
+        # Check if this is an ESM datastore (has search method and looks like intake-esm)
+        if hasattr(obj, 'search') and hasattr(obj, 'esmcat'):
+            return AliasedESMCatalog(
+                obj,
+                field_aliases=self.field_aliases,
+                value_aliases=self.value_aliases
+            )
+        # Otherwise return as-is
+        return obj
+
+    def __getitem__(self, key):
+        """
+        Handle catalog['entry-name'] access - wrap ESM datastores with aliasing
+        """
+        obj = self._cat[key]
+        return self._wrap_if_esm_datastore(obj)
+
     def __getattr__(self, name):
         """
-        When accessing catalog entries, wrap ESM datastores with AliasedESMCatalog
+        When accessing catalog attributes, wrap ESM datastores with AliasedESMCatalog
         """
         attr = getattr(self._cat, name)
         
-        # If this is an ESM datastore source, wrap it with aliasing
-        if hasattr(attr, 'search') and hasattr(attr, '_captured_init_kwargs'):
-            # This looks like an ESM datastore, wrap it
-            return AliasedESMCatalog(
-                attr,
+        # If this is a callable method, we need to handle it specially
+        if callable(attr):
+            return attr
+        
+        # If this looks like an ESM datastore, wrap it
+        return self._wrap_if_esm_datastore(attr)
+
+    def search(self, **kwargs):
+        """
+        Search the dataframe catalog - apply aliases and wrap results
+        """
+        # For dataframe catalogs, search operates on the catalog metadata
+        # We don't need to alias these searches since they're on the catalog structure
+        result = self._cat.search(**kwargs)
+        
+        # If the result is also a catalog-like object, wrap it too
+        if hasattr(result, '__getitem__') and hasattr(result, '__getattr__'):
+            return AliasedDataframeCatalog(
+                result, 
                 field_aliases=self.field_aliases,
                 value_aliases=self.value_aliases
             )
         
-        # Otherwise return as-is
-        return attr
+        return result
 
     def __dir__(self):
         return sorted(set(dir(self._cat)) | set(self.__dict__.keys()))

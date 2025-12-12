@@ -11,7 +11,7 @@ from access_py_telemetry.cli import configure_telemetry
 from pandas.errors import EmptyDataError
 
 from access_nri_intake.utils import get_catalog_fp
-from access_nri_intake.aliases import AliasedESMCatalog, FIELD_ALIASES, VALUE_ALIASES
+from access_nri_intake.aliases import AliasedDataframeCatalog, FIELD_ALIASES, VALUE_ALIASES
 
 try:
     token = (
@@ -37,7 +37,7 @@ try:
     )  # Get the catalog version number and set it to "latest" if it can't be found
     
     # Wrap the base catalog with aliasing support
-    data = AliasedESMCatalog(
+    data = AliasedDataframeCatalog(
         base_catalog,
         field_aliases=FIELD_ALIASES,
         value_aliases=VALUE_ALIASES,
