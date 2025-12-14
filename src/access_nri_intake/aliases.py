@@ -153,23 +153,9 @@ class AliasedDataframeCatalog:
 
     def __getitem__(self, key):
         """
-        Handle catalog['entry-name'] access - wrap ESM datastores with aliasing
+        Handle catalog['entry-name'] access - delegate to underlying catalog
         """
-        obj = self._cat[key]
-        return self._wrap_if_esm_datastore(obj)
-
-    def __getattr__(self, name):
-        """
-        When accessing catalog attributes, wrap ESM datastores with AliasedESMCatalog
-        """
-        attr = getattr(self._cat, name)
-        
-        # If this is a callable method, we need to handle it specially
-        if callable(attr):
-            return attr
-        
-        # If this looks like an ESM datastore, wrap it
-        return self._wrap_if_esm_datastore(attr)
+        return self._cat[key]
 
     def search(self, **kwargs):
         """
@@ -188,6 +174,28 @@ class AliasedDataframeCatalog:
             )
         
         return result
+
+    def to_source(self, **kwargs):
+        """
+        Get ESM datastore from catalog search result - wrap with aliasing
+        """
+        result = self._cat.to_source(**kwargs)
+        return self._wrap_if_esm_datastore(result)
+
+    def to_source_dict(self, **kwargs):
+        """
+        Get dict of ESM datastores from catalog search result - wrap each with aliasing
+        """
+        result = self._cat.to_source_dict(**kwargs)
+        # Wrap each datastore in the dictionary
+        wrapped_result = {}
+        for key, datastore in result.items():
+            wrapped_result[key] = self._wrap_if_esm_datastore(datastore)
+        return wrapped_result
+
+    # pass-through everything else to underlying catalog
+    def __getattr__(self, name):
+        return getattr(self._cat, name)
 
     def __dir__(self):
         return sorted(set(dir(self._cat)) | set(self.__dict__.keys()))

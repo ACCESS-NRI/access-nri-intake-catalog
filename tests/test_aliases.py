@@ -4,6 +4,7 @@
 """Tests for aliasing functionality"""
 
 import pytest
+from unittest.mock import MagicMock
 
 from access_nri_intake.aliases import AliasedESMCatalog, FIELD_ALIASES, VALUE_ALIASES, _CMIP_TO_ACCESS_MAPPINGS
 
@@ -161,6 +162,108 @@ class TestAliasedESMCatalog:
             assert len(mock_cat.search_calls) == 1
             call_kwargs = mock_cat.search_calls[0]
             assert call_kwargs["variable"] == "fld_s05i269"
+
+
+class TestAliasedDataframeCatalog:
+    """Test the AliasedDataframeCatalog wrapper"""
+    
+    @pytest.fixture  
+    def mock_dataframe_catalog(self):
+        """Create a mock dataframe catalog"""
+        mock_cat = MagicMock()
+        
+        # Mock to_source to return an ESM datastore
+        mock_esm_datastore = MagicMock()
+        mock_esm_datastore.search = MagicMock()
+        mock_esm_datastore.esmcat = MagicMock()
+        mock_cat.to_source.return_value = mock_esm_datastore
+        
+        # Mock to_source_dict to return multiple ESM datastores
+        mock_esm1 = MagicMock()
+        mock_esm1.search = MagicMock()
+        mock_esm1.esmcat = MagicMock()
+        
+        mock_esm2 = MagicMock()
+        mock_esm2.search = MagicMock()
+        mock_esm2.esmcat = MagicMock()
+        
+        mock_cat.to_source_dict.return_value = {
+            "datastore1": mock_esm1,
+            "datastore2": mock_esm2
+        }
+        
+        return mock_cat
+    
+    def test_to_source_wraps_esm_datastore(self, mock_dataframe_catalog):
+        """Test that to_source() properly wraps ESM datastores with aliasing"""
+        from access_nri_intake.aliases import AliasedDataframeCatalog, FIELD_ALIASES, VALUE_ALIASES
+        
+        catalog = AliasedDataframeCatalog(
+            mock_dataframe_catalog,
+            field_aliases=FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES
+        )
+        
+        # Since search() returns the result directly (not wrapped), we need to call to_source on the catalog
+        esm_datastore = catalog.to_source()
+        
+        # Should have called the underlying catalog's to_source
+        mock_dataframe_catalog.to_source.assert_called_once()
+        
+        # The result should be an AliasedESMCatalog wrapping the ESM datastore
+        from access_nri_intake.aliases import AliasedESMCatalog
+        assert isinstance(esm_datastore, AliasedESMCatalog)
+        
+    def test_to_source_dict_wraps_multiple_datastores(self, mock_dataframe_catalog):
+        """Test that to_source_dict() wraps all returned datastores"""
+        from access_nri_intake.aliases import AliasedDataframeCatalog, FIELD_ALIASES, VALUE_ALIASES
+        
+        catalog = AliasedDataframeCatalog(
+            mock_dataframe_catalog,
+            field_aliases=FIELD_ALIASES, 
+            value_aliases=VALUE_ALIASES
+        )
+        
+        # Test to_source_dict() workflow
+        datastores_dict = catalog.to_source_dict()
+        
+        # Should have called the underlying catalog's to_source_dict
+        mock_dataframe_catalog.to_source_dict.assert_called_once()
+        
+        # Should return a dict of AliasedESMCatalog objects
+        from access_nri_intake.aliases import AliasedESMCatalog
+        assert len(datastores_dict) == 2
+        assert isinstance(datastores_dict["datastore1"], AliasedESMCatalog)
+        assert isinstance(datastores_dict["datastore2"], AliasedESMCatalog)
+
+    def test_getitem_passthrough(self, mock_dataframe_catalog):
+        """Test that __getitem__ passes through to underlying catalog without wrapping"""
+        from access_nri_intake.aliases import AliasedDataframeCatalog
+        
+        # Mock a catalog entry 
+        mock_entry = MagicMock()
+        mock_dataframe_catalog.__getitem__.return_value = mock_entry
+        
+        catalog = AliasedDataframeCatalog(mock_dataframe_catalog)
+        result = catalog["some_entry"]
+        
+        # Should return the raw entry, not wrapped
+        assert result is mock_entry
+        mock_dataframe_catalog.__getitem__.assert_called_once_with("some_entry")
+
+    def test_getattr_passthrough(self, mock_dataframe_catalog):
+        """Test that __getattr__ passes through to underlying catalog"""
+        from access_nri_intake.aliases import AliasedDataframeCatalog
+        
+        # Mock an attribute
+        mock_attr = MagicMock()
+        mock_dataframe_catalog.some_attribute = mock_attr
+        
+        catalog = AliasedDataframeCatalog(mock_dataframe_catalog)
+        result = catalog.some_attribute
+        
+        # Should return the raw attribute, not wrapped
+        assert result is mock_attr
 
 
 if __name__ == "__main__":
