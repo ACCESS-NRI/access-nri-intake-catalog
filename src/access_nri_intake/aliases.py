@@ -206,18 +206,7 @@ _CMIP_TO_ACCESS_MAPPINGS = _load_cmip_mappings()
 
 # Define alias mappings
 FIELD_ALIASES = {
-    # User-facing → actual df column (based on ACCESS-NRI catalog structure)
-    # The ACCESS-NRI catalog uses: model, variable, realm, frequency, name, yaml
-    # So most fields map to themselves, but we can provide common aliases
-    "source_id": "model",      # CMIP-style field name → ACCESS-NRI field name
-    "variable_id": "variable", # CMIP-style field name → ACCESS-NRI field name
-    "source": "model",         # Alternative alias
-    "var": "variable",         # Short alias
-    # These pass through unchanged
-    "model": "model",
-    "variable": "variable", 
-    "realm": "realm",
-    "frequency": "frequency",
+
 }
 
 # Create variable aliases combining manual aliases with CMIP mappings
