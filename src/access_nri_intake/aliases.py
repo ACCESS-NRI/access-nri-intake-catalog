@@ -165,8 +165,8 @@ class AliasedDataframeCatalog:
         # We don't need to alias these searches since they're on the catalog structure
         result = self._cat.search(**kwargs)
         
-        # If the result is also a catalog-like object, wrap it too
-        if hasattr(result, '__getitem__') and hasattr(result, '__getattr__'):
+        # If the result has to_source method (i.e., it's a searchable catalog result), wrap it
+        if hasattr(result, 'to_source'):
             return AliasedDataframeCatalog(
                 result, 
                 field_aliases=self.field_aliases,

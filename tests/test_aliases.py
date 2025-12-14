@@ -265,6 +265,41 @@ class TestAliasedDataframeCatalog:
         # Should return the raw attribute, not wrapped
         assert result is mock_attr
 
+    def test_search_wraps_result_with_to_source(self, mock_dataframe_catalog):
+        """Test that search() wraps results that have to_source method"""
+        from access_nri_intake.aliases import AliasedDataframeCatalog, FIELD_ALIASES, VALUE_ALIASES
+        
+        # Mock search result that has to_source method (like real dataframe catalog search results)
+        mock_search_result = MagicMock()
+        mock_search_result.to_source = MagicMock()
+        
+        # Mock ESM datastore returned by to_source
+        mock_esm_datastore = MagicMock()
+        mock_esm_datastore.search = MagicMock()
+        mock_esm_datastore.esmcat = MagicMock()
+        mock_search_result.to_source.return_value = mock_esm_datastore
+        
+        mock_dataframe_catalog.search.return_value = mock_search_result
+        
+        catalog = AliasedDataframeCatalog(
+            mock_dataframe_catalog,
+            field_aliases=FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES
+        )
+        
+        # Test the user workflow: catalog.search(...).to_source()
+        search_result = catalog.search(name="bx944")
+        
+        # Search result should be wrapped
+        assert isinstance(search_result, AliasedDataframeCatalog)
+        
+        # Now call to_source on the wrapped result  
+        esm_datastore = search_result.to_source()
+        
+        # Should be an aliased ESM datastore
+        from access_nri_intake.aliases import AliasedESMCatalog
+        assert isinstance(esm_datastore, AliasedESMCatalog)
+
 
 if __name__ == "__main__":
     pytest.main([__file__])
