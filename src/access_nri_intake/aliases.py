@@ -6,26 +6,26 @@ Aliasing support for intake catalogs to provide user-friendly field names and va
 
 RATIONALE
 ---------
-This module provides aliasing functionality to make ACCESS-NRI data more discoverable by 
-researchers familiar with CMIP vocabularies and conventions. The primary goal is to enable 
-users who typically work with CMIP data to find raw ACCESS model outputs using familiar 
+This module provides aliasing functionality to make ACCESS-NRI data more discoverable by
+researchers familiar with CMIP vocabularies and conventions. The primary goal is to enable
+users who typically work with CMIP data to find raw ACCESS model outputs using familiar
 variable names, model names, and other CMIP-standard terminology.
 
 For example:
-- CMIP users searching for "ci" (convection time fraction) will find the corresponding 
+- CMIP users searching for "ci" (convection time fraction) will find the corresponding
   raw ACCESS model variables (e.g., "fld_s05i269" in ACCESS-ESM1.6)
-- Users searching for "tas" (near-surface air temperature) will find the corresponding 
-  raw ACCESS model temperature fields 
-- Users familiar with CMIP standard names can also search using intuitive aliases like 
+- Users searching for "tas" (near-surface air temperature) will find the corresponding
+  raw ACCESS model temperature fields
+- Users familiar with CMIP standard names can also search using intuitive aliases like
   "temp", "temperature", or "air_temperature" - all of which map to find "tas" variables
-- Users familiar with CMIP model names can use shortcuts like "ACCESS-ESM1" to find 
+- Users familiar with CMIP model names can use shortcuts like "ACCESS-ESM1" to find
   "ACCESS-ESM1-5" model data
 - Frequency specifications can use human-readable terms like "daily" instead of "1day"
 
-This bridging functionality allows CMIP users to leverage their existing vocabulary knowledge 
+This bridging functionality allows CMIP users to leverage their existing vocabulary knowledge
 to discover raw ACCESS model data, while maintaining full backward compatibility with existing workflows.
 
-The aliasing works in both directions - field name aliasing (e.g., "variable" → "variable_id") 
+The aliasing works in both directions - field name aliasing (e.g., "variable" → "variable_id")
 and value aliasing (e.g., "temp" → "tas") - allowing for flexible and intuitive data discovery.
 The system also includes CMIP-to-ACCESS variable mappings that allow users to search for CMIP
 variable names and find the corresponding native ACCESS model variable names.
@@ -33,17 +33,16 @@ variable names and find the corresponding native ACCESS model variable names.
 
 import json
 import warnings
-from pathlib import Path
 from importlib import resources as rsr
 
 
 def _load_cmip_mappings():
     """
     Load CMIP to ACCESS variable mappings from the data sources.
-    This allows users to search for CMIP standard names (like "ci") and 
-    find the corresponding ACCESS model variables (like "fld_s05i269") 
+    This allows users to search for CMIP standard names (like "ci") and
+    find the corresponding ACCESS model variables (like "fld_s05i269")
     that are actually stored in the catalog.
-    
+
     Returns
     -------
     dict
@@ -51,13 +50,15 @@ def _load_cmip_mappings():
     """
     try:
         # Try to load from the package data sources
-        mapping_file = rsr.files("access_nri_intake").joinpath("data/mappings/access-esm1-6-cmip-mappings.json")
+        mapping_file = rsr.files("access_nri_intake").joinpath(
+            "data/mappings/access-esm1-6-cmip-mappings.json"
+        )
         with mapping_file.open(mode="r") as f:
             mappings = json.load(f)
-        
+
         # Extract CMIP variable -> ACCESS model variable mappings
         cmip_to_access = {}
-        
+
         for component in ["atmosphere", "land", "ocean"]:
             if component in mappings:
                 for cmip_var, details in mappings[component].items():
@@ -66,10 +67,10 @@ def _load_cmip_mappings():
                         # If multiple model variables, take the first one
                         access_var = details["model_variables"][0]
                         cmip_to_access[cmip_var] = access_var
-        
+
         return cmip_to_access
-        
-    except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+
+    except (FileNotFoundError, json.JSONDecodeError, KeyError):
         # If loading fails, return empty dict - aliasing will still work with manual aliases
         return {}
 
@@ -79,18 +80,19 @@ class AliasedESMCatalog:
     Thin wrapper around an intake-esm ESMDataStore that:
       - maps public field names → canonical fields (FIELD_ALIASES)
       - maps value aliases → canonical values per field (VALUE_ALIASES)
-      
+
     Parameters
     ----------
     cat : ESMDataStore
         The underlying ESM datastore to wrap
     field_aliases : dict, optional
         Mapping of user-facing field names to canonical field names
-    value_aliases : dict, optional  
+    value_aliases : dict, optional
         Mapping of field names to value alias dictionaries
     show_warnings : bool, default True
         Whether to show warnings when aliasing occurs
     """
+
     def __init__(self, cat, field_aliases=None, value_aliases=None, show_warnings=True):
         self._cat = cat
         self.field_aliases = field_aliases or {}
@@ -103,9 +105,9 @@ class AliasedESMCatalog:
         canonical = self.field_aliases.get(field, field)
         if canonical != field and self.show_warnings:
             warnings.warn(
-                f"Field name aliasing: '{field}' → '{canonical}'", 
-                UserWarning, 
-                stacklevel=4
+                f"Field name aliasing: '{field}' → '{canonical}'",
+                UserWarning,
+                stacklevel=4,
             )
         return canonical
 
@@ -118,9 +120,9 @@ class AliasedESMCatalog:
             normalized = aliases_for_field.get(value, value)
             if normalized != value and self.show_warnings:
                 warnings.warn(
-                    f"Value aliasing: {field}='{value}' → {field}='{normalized}'", 
-                    UserWarning, 
-                    stacklevel=4
+                    f"Value aliasing: {field}='{value}' → {field}='{normalized}'",
+                    UserWarning,
+                    stacklevel=4,
                 )
             return normalized
 
@@ -131,9 +133,9 @@ class AliasedESMCatalog:
                 normalized = aliases_for_field.get(v, v)
                 if normalized != v and self.show_warnings:
                     warnings.warn(
-                        f"Value aliasing: {field}='{v}' → {field}='{normalized}'", 
-                        UserWarning, 
-                        stacklevel=4
+                        f"Value aliasing: {field}='{v}' → {field}='{normalized}'",
+                        UserWarning,
+                        stacklevel=4,
                     )
                 out.append(normalized)
             return type(value)(out)
@@ -167,7 +169,7 @@ class AliasedDataframeCatalog:
     """
     Wrapper around an intake dataframe catalog that provides alias support
     for catalog entries that are ESM datastores.
-    
+
     Parameters
     ----------
     cat : DataframeCatalog
@@ -179,6 +181,7 @@ class AliasedDataframeCatalog:
     show_warnings : bool, default True
         Whether to show warnings when aliasing occurs in ESM datastores
     """
+
     def __init__(self, cat, field_aliases=None, value_aliases=None, show_warnings=True):
         self._cat = cat
         self.field_aliases = field_aliases or {}
@@ -191,12 +194,12 @@ class AliasedDataframeCatalog:
         ESM datastores should use their native field names, not field aliases.
         """
         # Check if this is an ESM datastore (has search method and looks like intake-esm)
-        if hasattr(obj, 'search') and hasattr(obj, 'esmcat'):
+        if hasattr(obj, "search") and hasattr(obj, "esmcat"):
             return AliasedESMCatalog(
                 obj,
                 field_aliases=ESM_FIELD_ALIASES,  # Empty - use native field names
                 value_aliases=self.value_aliases,
-                show_warnings=self.show_warnings
+                show_warnings=self.show_warnings,
             )
         # Otherwise return as-is
         return obj
@@ -214,16 +217,16 @@ class AliasedDataframeCatalog:
         # For dataframe catalogs, search operates on the catalog metadata
         # We don't need to alias these searches since they're on the catalog structure
         result = self._cat.search(**kwargs)
-        
+
         # If the result has to_source method (i.e., it's a searchable catalog result), wrap it
-        if hasattr(result, 'to_source'):
+        if hasattr(result, "to_source"):
             return AliasedDataframeCatalog(
-                result, 
+                result,
                 field_aliases=self.field_aliases,
                 value_aliases=self.value_aliases,
-                show_warnings=self.show_warnings
+                show_warnings=self.show_warnings,
             )
-        
+
         return result
 
     def to_source(self, **kwargs):
@@ -259,21 +262,20 @@ _CMIP_TO_ACCESS_MAPPINGS = _load_cmip_mappings()
 # ESM datastores use their native field names (variable_id, variable, etc.)
 DATAFRAME_FIELD_ALIASES = {
     # User-facing → ACCESS-NRI dataframe catalog column names
-    "source_id": "model",      # CMIP-style field name → ACCESS-NRI field name
-    "variable_id": "variable", # CMIP-style field name → ACCESS-NRI field name  
-    "table_id": "realm",       # CMIP-style field name → ACCESS-NRI field name
-    "member_id": "ensemble",   # CMIP-style field name → ACCESS-NRI field name
-    "experiment_id": "experiment", # CMIP-style field name → ACCESS-NRI field name
-    "source": "model",         # Alternative alias
-    "var": "variable",         # Short alias
+    "source_id": "model",  # CMIP-style field name → ACCESS-NRI field name
+    "variable_id": "variable",  # CMIP-style field name → ACCESS-NRI field name
+    "table_id": "realm",  # CMIP-style field name → ACCESS-NRI field name
+    "member_id": "ensemble",  # CMIP-style field name → ACCESS-NRI field name
+    "experiment_id": "experiment",  # CMIP-style field name → ACCESS-NRI field name
+    "source": "model",  # Alternative alias
+    "var": "variable",  # Short alias
 }
 
 # ESM datastores should NOT use field aliases - they use native field names
-ESM_FIELD_ALIASES = {}
+ESM_FIELD_ALIASES: dict[str, str] = {}
 
 # Create variable aliases combining manual aliases with CMIP mappings
-_MANUAL_VARIABLE_ALIASES = {
-}
+_MANUAL_VARIABLE_ALIASES: dict[str, str] = {}
 
 # Create combined variable aliases with CMIP mappings and manual aliases
 # CMIP variables (like ci) map to ACCESS model variables (like fld_s05i269)
@@ -283,19 +285,19 @@ _VARIABLE_ALIASES_COMBINED = {**_CMIP_TO_ACCESS_MAPPINGS, **_MANUAL_VARIABLE_ALI
 
 VALUE_ALIASES = {
     # Variable aliases - support both ACCESS-NRI and CMIP field names
-    "variable": _VARIABLE_ALIASES_COMBINED,     # ACCESS-NRI catalog field name
+    "variable": _VARIABLE_ALIASES_COMBINED,  # ACCESS-NRI catalog field name
     "variable_id": _VARIABLE_ALIASES_COMBINED,  # CMIP/ESM datastore field name
     # Model aliases - support both ACCESS-NRI and CMIP field names
     "model": {
         # ACCESS model aliases - maps to ACCESS-NRI catalog's "model" field
         "ACCESS-ESM1": "ACCESS-ESM1-5",
-        "ACCESS-CM2": "ACCESS-CM2", 
+        "ACCESS-CM2": "ACCESS-CM2",
         "ACCESS-OM2": "ACCESS-OM2",
     },
     "source_id": {
         # CMIP/ESM datastore field name - same aliases as model
         "ACCESS-ESM1": "ACCESS-ESM1-5",
-        "ACCESS-CM2": "ACCESS-CM2", 
+        "ACCESS-CM2": "ACCESS-CM2",
         "ACCESS-OM2": "ACCESS-OM2",
     },
     "experiment_id": {
@@ -305,11 +307,11 @@ VALUE_ALIASES = {
         "control": "piControl",
         "pi-control": "piControl",
         "pre-industrial": "piControl",
-        "rcp85": "ssp585", 
+        "rcp85": "ssp585",
         "rcp45": "ssp245",
         "rcp26": "ssp126",
         "ssp5-85": "ssp585",
-        "ssp2-45": "ssp245", 
+        "ssp2-45": "ssp245",
         "ssp1-26": "ssp126",
     },
     "frequency": {
@@ -331,11 +333,11 @@ VALUE_ALIASES = {
         "atmosphere": "atmos",
         "atm": "atmos",
         "ocean": "ocean",
-        "oceanic": "ocean", 
+        "oceanic": "ocean",
         "land": "land",
         "terrestrial": "land",
         "ice": "seaIce",
         "sea_ice": "seaIce",
         "sea-ice": "seaIce",
-    }
+    },
 }

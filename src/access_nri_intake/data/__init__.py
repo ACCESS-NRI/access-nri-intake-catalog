@@ -10,8 +10,12 @@ from access_py_telemetry.api import ApiHandler, ProductionToggle
 from access_py_telemetry.cli import configure_telemetry
 from pandas.errors import EmptyDataError
 
+from access_nri_intake.aliases import (
+    DATAFRAME_FIELD_ALIASES,
+    VALUE_ALIASES,
+    AliasedDataframeCatalog,
+)
 from access_nri_intake.utils import get_catalog_fp
-from access_nri_intake.aliases import AliasedDataframeCatalog, DATAFRAME_FIELD_ALIASES, ESM_FIELD_ALIASES, VALUE_ALIASES
 
 try:
     token = (
@@ -35,7 +39,7 @@ try:
     cat_version = base_catalog._captured_init_kwargs.get("metadata", {}).get(
         "version", "latest"
     )  # Get the catalog version number and set it to "latest" if it can't be found
-    
+
     # Wrap the base catalog with aliasing support
     data = AliasedDataframeCatalog(
         base_catalog,
@@ -82,4 +86,3 @@ finally:
         args=[],
         kwargs={"version": cat_version},
     )
-
