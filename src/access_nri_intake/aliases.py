@@ -32,6 +32,7 @@ variable names and find the corresponding native ACCESS model variable names.
 """
 
 import json
+import warnings
 from pathlib import Path
 from importlib import resources as rsr
 
@@ -78,16 +79,35 @@ class AliasedESMCatalog:
     Thin wrapper around an intake-esm ESMDataStore that:
       - maps public field names → canonical fields (FIELD_ALIASES)
       - maps value aliases → canonical values per field (VALUE_ALIASES)
+      
+    Parameters
+    ----------
+    cat : ESMDataStore
+        The underlying ESM datastore to wrap
+    field_aliases : dict, optional
+        Mapping of user-facing field names to canonical field names
+    value_aliases : dict, optional  
+        Mapping of field names to value alias dictionaries
+    show_warnings : bool, default True
+        Whether to show warnings when aliasing occurs
     """
-    def __init__(self, cat, field_aliases=None, value_aliases=None):
+    def __init__(self, cat, field_aliases=None, value_aliases=None, show_warnings=True):
         self._cat = cat
         self.field_aliases = field_aliases or {}
         self.value_aliases = value_aliases or {}
+        self.show_warnings = show_warnings
 
     # ---- alias helpers -------------------------------------------------
     def _canonical_field(self, field):
         """Convert user-facing field name to canonical field name"""
-        return self.field_aliases.get(field, field)
+        canonical = self.field_aliases.get(field, field)
+        if canonical != field and self.show_warnings:
+            warnings.warn(
+                f"Field name aliasing: '{field}' → '{canonical}'", 
+                UserWarning, 
+                stacklevel=4
+            )
+        return canonical
 
     def _normalise_value(self, field, value):
         """Convert user-facing value to canonical value for a given field"""
@@ -95,11 +115,27 @@ class AliasedESMCatalog:
 
         # scalar string
         if isinstance(value, str):
-            return aliases_for_field.get(value, value)
+            normalized = aliases_for_field.get(value, value)
+            if normalized != value and self.show_warnings:
+                warnings.warn(
+                    f"Value aliasing: {field}='{value}' → {field}='{normalized}'", 
+                    UserWarning, 
+                    stacklevel=4
+                )
+            return normalized
 
         # list/tuple/set of strings
         if isinstance(value, (list, tuple, set)):
-            out = [aliases_for_field.get(v, v) for v in value]
+            out = []
+            for v in value:
+                normalized = aliases_for_field.get(v, v)
+                if normalized != v and self.show_warnings:
+                    warnings.warn(
+                        f"Value aliasing: {field}='{v}' → {field}='{normalized}'", 
+                        UserWarning, 
+                        stacklevel=4
+                    )
+                out.append(normalized)
             return type(value)(out)
 
         # anything else (regex, callable, etc.) – leave untouched
@@ -131,22 +167,36 @@ class AliasedDataframeCatalog:
     """
     Wrapper around an intake dataframe catalog that provides alias support
     for catalog entries that are ESM datastores.
+    
+    Parameters
+    ----------
+    cat : DataframeCatalog
+        The underlying dataframe catalog to wrap
+    field_aliases : dict, optional
+        Mapping of user-facing field names to canonical field names (for dataframe level)
+    value_aliases : dict, optional
+        Mapping of field names to value alias dictionaries
+    show_warnings : bool, default True
+        Whether to show warnings when aliasing occurs in ESM datastores
     """
-    def __init__(self, cat, field_aliases=None, value_aliases=None):
+    def __init__(self, cat, field_aliases=None, value_aliases=None, show_warnings=True):
         self._cat = cat
         self.field_aliases = field_aliases or {}
         self.value_aliases = value_aliases or {}
+        self.show_warnings = show_warnings
 
     def _wrap_if_esm_datastore(self, obj):
         """
         Wrap an object with AliasedESMCatalog if it appears to be an ESM datastore.
+        ESM datastores should use their native field names, not field aliases.
         """
         # Check if this is an ESM datastore (has search method and looks like intake-esm)
         if hasattr(obj, 'search') and hasattr(obj, 'esmcat'):
             return AliasedESMCatalog(
                 obj,
-                field_aliases=self.field_aliases,
-                value_aliases=self.value_aliases
+                field_aliases=ESM_FIELD_ALIASES,  # Empty - use native field names
+                value_aliases=self.value_aliases,
+                show_warnings=self.show_warnings
             )
         # Otherwise return as-is
         return obj
@@ -170,7 +220,8 @@ class AliasedDataframeCatalog:
             return AliasedDataframeCatalog(
                 result, 
                 field_aliases=self.field_aliases,
-                value_aliases=self.value_aliases
+                value_aliases=self.value_aliases,
+                show_warnings=self.show_warnings
             )
         
         return result
@@ -204,10 +255,21 @@ class AliasedDataframeCatalog:
 # Load CMIP to ACCESS variable mappings
 _CMIP_TO_ACCESS_MAPPINGS = _load_cmip_mappings()
 
-# Define alias mappings
-FIELD_ALIASES = {
-
+# Field aliases - only used at dataframe catalog level, not for ESM datastores
+# ESM datastores use their native field names (variable_id, variable, etc.)
+DATAFRAME_FIELD_ALIASES = {
+    # User-facing → ACCESS-NRI dataframe catalog column names
+    "source_id": "model",      # CMIP-style field name → ACCESS-NRI field name
+    "variable_id": "variable", # CMIP-style field name → ACCESS-NRI field name  
+    "table_id": "realm",       # CMIP-style field name → ACCESS-NRI field name
+    "member_id": "ensemble",   # CMIP-style field name → ACCESS-NRI field name
+    "experiment_id": "experiment", # CMIP-style field name → ACCESS-NRI field name
+    "source": "model",         # Alternative alias
+    "var": "variable",         # Short alias
 }
+
+# ESM datastores should NOT use field aliases - they use native field names
+ESM_FIELD_ALIASES = {}
 
 # Create variable aliases combining manual aliases with CMIP mappings
 _MANUAL_VARIABLE_ALIASES = {
@@ -220,10 +282,18 @@ _MANUAL_VARIABLE_ALIASES = {
 _VARIABLE_ALIASES_COMBINED = {**_CMIP_TO_ACCESS_MAPPINGS, **_MANUAL_VARIABLE_ALIASES}
 
 VALUE_ALIASES = {
-    # Use ACCESS-NRI catalog field names
-    "variable": _VARIABLE_ALIASES_COMBINED,  # Changed from variable_id
+    # Variable aliases - support both ACCESS-NRI and CMIP field names
+    "variable": _VARIABLE_ALIASES_COMBINED,     # ACCESS-NRI catalog field name
+    "variable_id": _VARIABLE_ALIASES_COMBINED,  # CMIP/ESM datastore field name
+    # Model aliases - support both ACCESS-NRI and CMIP field names
     "model": {
         # ACCESS model aliases - maps to ACCESS-NRI catalog's "model" field
+        "ACCESS-ESM1": "ACCESS-ESM1-5",
+        "ACCESS-CM2": "ACCESS-CM2", 
+        "ACCESS-OM2": "ACCESS-OM2",
+    },
+    "source_id": {
+        # CMIP/ESM datastore field name - same aliases as model
         "ACCESS-ESM1": "ACCESS-ESM1-5",
         "ACCESS-CM2": "ACCESS-CM2", 
         "ACCESS-OM2": "ACCESS-OM2",

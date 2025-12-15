@@ -6,7 +6,13 @@
 import pytest
 from unittest.mock import MagicMock
 
-from access_nri_intake.aliases import AliasedESMCatalog, FIELD_ALIASES, VALUE_ALIASES, _CMIP_TO_ACCESS_MAPPINGS
+from access_nri_intake.aliases import (
+    AliasedESMCatalog, 
+    DATAFRAME_FIELD_ALIASES, 
+    ESM_FIELD_ALIASES, 
+    VALUE_ALIASES, 
+    _CMIP_TO_ACCESS_MAPPINGS
+)
 
 
 class MockESMDatastore:
@@ -28,26 +34,24 @@ class MockESMDatastore:
 class TestAliasedESMCatalog:
     """Test the AliasedESMCatalog wrapper"""
     
-    def test_field_aliases(self):
-        """Test that field names are properly aliased"""
+    def test_no_field_aliases_for_esm(self):
+        """Test that ESM datastores use native field names (no field aliasing)"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
         
-        # Test field alias mapping - CMIP field names should map to ACCESS-NRI field names  
-        wrapped_cat.search(variable_id="tas", source_id="ACCESS-CM2")
+        # Test that field names pass through unchanged - ESM datastores use native names
+        wrapped_cat.search(variable_id="tos")  # Use native ESM field name
         
-        # Should have been called with ACCESS-NRI catalog field names
+        # Should have been called with the same field name (no field mapping)
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert "variable" in call_kwargs    # variable_id -> variable
-        assert "model" in call_kwargs       # source_id -> model
-        assert call_kwargs["variable"] == "fld_s03i236"  # tas maps to ACCESS variable
-        assert call_kwargs["model"] == "ACCESS-CM2"
+        assert "variable_id" in call_kwargs  # Field name unchanged
+        assert call_kwargs["variable_id"] == "surface_temp"  # But value should be aliased (tos -> surface_temp)
         
     def test_value_aliases(self):
         """Test that values are properly aliased"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
 
         # Test value alias mapping - using CMIP variable that maps to ACCESS variable
         wrapped_cat.search(variable="tas")  # CMIP variable should map to ACCESS "fld_s03i236"
@@ -60,7 +64,7 @@ class TestAliasedESMCatalog:
     def test_combined_aliases(self):
         """Test that field and value aliases work together"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
         
         # Test combined field and value aliases - using CMIP variable names and frequency aliases
         wrapped_cat.search(variable="ci", frequency="daily")
@@ -74,7 +78,7 @@ class TestAliasedESMCatalog:
     def test_list_values(self):
         """Test that lists of values are properly aliased"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
 
         # Test list of values - using CMIP variable names that are in our mappings
         wrapped_cat.search(variable=["ci", "cl", "tas"])
@@ -88,7 +92,7 @@ class TestAliasedESMCatalog:
     def test_passthrough_unknown_fields(self):
         """Test that unknown fields pass through unchanged"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
         
         # Test unknown field
         wrapped_cat.search(unknown_field="unknown_value")
@@ -101,7 +105,7 @@ class TestAliasedESMCatalog:
     def test_passthrough_unknown_values(self):
         """Test that unknown values pass through unchanged"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
         
         # Test unknown value for known field
         wrapped_cat.search(variable="unknown_variable")
@@ -114,7 +118,7 @@ class TestAliasedESMCatalog:
     def test_passthrough_attributes(self):
         """Test that other attributes pass through to the wrapped catalog"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
         
         # Test accessing attributes that aren't search
         assert wrapped_cat._captured_init_kwargs == mock_cat._captured_init_kwargs
@@ -122,7 +126,7 @@ class TestAliasedESMCatalog:
     def test_dir_includes_wrapper_and_wrapped_attrs(self):
         """Test that dir() includes both wrapper and wrapped catalog attributes"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
         
         # Test __dir__ method
         dir_attrs = dir(wrapped_cat)
@@ -152,7 +156,7 @@ class TestAliasedESMCatalog:
     def test_cmip_variable_search(self):
         """Test that CMIP variables can be found and return ACCESS variables"""
         mock_cat = MockESMDatastore()
-        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=FIELD_ALIASES, value_aliases=VALUE_ALIASES)
+        wrapped_cat = AliasedESMCatalog(mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES)
         
         # Test CMIP variable search (if mappings are available)
         if _CMIP_TO_ACCESS_MAPPINGS and "ci" in _CMIP_TO_ACCESS_MAPPINGS:
@@ -196,11 +200,11 @@ class TestAliasedDataframeCatalog:
     
     def test_to_source_wraps_esm_datastore(self, mock_dataframe_catalog):
         """Test that to_source() properly wraps ESM datastores with aliasing"""
-        from access_nri_intake.aliases import AliasedDataframeCatalog, FIELD_ALIASES, VALUE_ALIASES
+        from access_nri_intake.aliases import AliasedDataframeCatalog, DATAFRAME_FIELD_ALIASES, VALUE_ALIASES
         
         catalog = AliasedDataframeCatalog(
             mock_dataframe_catalog,
-            field_aliases=FIELD_ALIASES,
+            field_aliases=DATAFRAME_FIELD_ALIASES,
             value_aliases=VALUE_ALIASES
         )
         
@@ -216,11 +220,11 @@ class TestAliasedDataframeCatalog:
         
     def test_to_source_dict_wraps_multiple_datastores(self, mock_dataframe_catalog):
         """Test that to_source_dict() wraps all returned datastores"""
-        from access_nri_intake.aliases import AliasedDataframeCatalog, FIELD_ALIASES, VALUE_ALIASES
+        from access_nri_intake.aliases import AliasedDataframeCatalog, DATAFRAME_FIELD_ALIASES, VALUE_ALIASES
         
         catalog = AliasedDataframeCatalog(
             mock_dataframe_catalog,
-            field_aliases=FIELD_ALIASES, 
+            field_aliases=DATAFRAME_FIELD_ALIASES, 
             value_aliases=VALUE_ALIASES
         )
         
@@ -267,7 +271,7 @@ class TestAliasedDataframeCatalog:
 
     def test_search_wraps_result_with_to_source(self, mock_dataframe_catalog):
         """Test that search() wraps results that have to_source method"""
-        from access_nri_intake.aliases import AliasedDataframeCatalog, FIELD_ALIASES, VALUE_ALIASES
+        from access_nri_intake.aliases import AliasedDataframeCatalog, DATAFRAME_FIELD_ALIASES, VALUE_ALIASES
         
         # Mock search result that has to_source method (like real dataframe catalog search results)
         mock_search_result = MagicMock()
@@ -283,7 +287,7 @@ class TestAliasedDataframeCatalog:
         
         catalog = AliasedDataframeCatalog(
             mock_dataframe_catalog,
-            field_aliases=FIELD_ALIASES,
+            field_aliases=DATAFRAME_FIELD_ALIASES,
             value_aliases=VALUE_ALIASES
         )
         
