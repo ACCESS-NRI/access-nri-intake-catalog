@@ -48,7 +48,6 @@ scaffold-catalog-entry = "access_nri_intake.cli:scaffold_catalog_entry"
 
 [project.entry-points."intake.catalogs"]
 access_nri = "access_nri_intake.data:data"
-access_nri_raw = "access_nri_intake.data:data_raw"
 
 [build-system]
 build-backend = "setuptools.build_meta"

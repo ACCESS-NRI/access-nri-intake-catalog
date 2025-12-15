@@ -83,10 +83,3 @@ finally:
         kwargs={"version": cat_version},
     )
 
-
-def data_raw():
-    """
-    Function that returns the raw (unwrapped) catalog without alias support.
-    This is for users who want direct access to the original catalog.
-    """
-    return intake.open_catalog(get_catalog_fp()).access_nri
