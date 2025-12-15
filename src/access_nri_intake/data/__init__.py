@@ -15,7 +15,6 @@ from access_nri_intake.aliases import (
     VALUE_ALIASES,
     AliasedDataframeCatalog,
 )
-
 from access_nri_intake.utils import get_catalog_fp
 
 try:
