@@ -10,6 +10,11 @@ from access_py_telemetry.api import ApiHandler, ProductionToggle
 from access_py_telemetry.cli import configure_telemetry
 from pandas.errors import EmptyDataError
 
+from access_nri_intake.aliases import (
+    DATAFRAME_FIELD_ALIASES,
+    VALUE_ALIASES,
+    AliasedDataframeCatalog,
+)
 from access_nri_intake.utils import get_catalog_fp
 
 try:
@@ -30,10 +35,17 @@ CATALOG_NAME_FORMAT = r"^\.?v(?P<yr>2[0-9]{3})\-(?P<mon>1[0-2]|0[1-9])\-(?P<day>
 
 
 try:
-    data = intake.open_catalog(get_catalog_fp()).access_nri
-    cat_version = data._captured_init_kwargs.get("metadata", {}).get(
+    base_catalog = intake.open_catalog(get_catalog_fp()).access_nri
+    cat_version = base_catalog._captured_init_kwargs.get("metadata", {}).get(
         "version", "latest"
     )  # Get the catalog version number and set it to "latest" if it can't be found
+
+    # Wrap the base catalog with aliasing support
+    data = AliasedDataframeCatalog(
+        base_catalog,
+        field_aliases=DATAFRAME_FIELD_ALIASES,
+        value_aliases=VALUE_ALIASES,
+    )
 except FileNotFoundError:
     warnings.warn(
         "Unable to access a default catalog location. Calling intake.cat.access_nri will not work.",
