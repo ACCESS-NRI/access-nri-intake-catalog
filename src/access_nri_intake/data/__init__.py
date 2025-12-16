@@ -34,10 +34,11 @@ try:
     cat_version = data._captured_init_kwargs.get("metadata", {}).get(
         "version", "latest"
     )  # Get the catalog version number and set it to "latest" if it can't be found
-    
+
     # Auto-enable ACCESS-MOPPy plugin when catalog is loaded
     try:
         from ..plugins.moppy import enable_moppy_plugin
+
         enable_moppy_plugin()
     except ImportError:
         # Plugin dependencies not available, skip silently
