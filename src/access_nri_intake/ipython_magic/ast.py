@@ -39,12 +39,12 @@ def check_permissions(
     esm_datastore, method_name: str, err: Exception | None = None
 ) -> None:
     """
-    Use an IPython cell magic to listen for calls to `.to_dask`, `.to_dataset_dict()` or `to_datatree`, and
+    Use an IPython cell magic to listen for calls to `.to_dask`, `.to_dataset_dict()`, `to_datatree`, or `.to_cmip()`, and
     inspect the list of paths attached to the associated esm_datastore. If we find any paths that we don't
     have the relevant permissions for, then emit a warning
     """
 
-    if method_name not in ["to_dask", "to_dataset_dict", "to_datatree"]:
+    if method_name not in ["to_dask", "to_dataset_dict", "to_datatree", "to_cmip"]:
         return None
 
     project_codes = set(esm_datastore.df["path"].map(_get_project_code))
@@ -147,8 +147,8 @@ class CallListener(cst.CSTVisitor):
 
     def visit_Call(self, node: cst.Call) -> None:
         """
-        Listen for calls that match anything of the form `esm_datastore.to_dask()`, `esm_datastore.to_dataset_dict()`, or
-        `esm_datastore.to_datatree()`.
+        Listen for calls that match anything of the form `esm_datastore.to_dask()`, `esm_datastore.to_dataset_dict()`,
+        `esm_datastore.to_datatree()`, or `esm_datastore.to_cmip()`.
         """
         match node:
             case cst.Call(
