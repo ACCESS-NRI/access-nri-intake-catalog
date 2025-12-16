@@ -4,6 +4,7 @@
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
 import pickle
+import re
 import warnings
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
@@ -72,6 +73,21 @@ class _NCFileInfo:
     variable_cell_methods: list[str]
     variable_units: list[str]
     realm: str = ""
+    time_aggregation: str = field(default_factory=str)
+
+    def __post_init__(self):
+        """
+        Take the `variable_cell_methods` list and turn it into the time_aggregation
+        string by looking for known time aggregation methods.
+
+        Variable cell methods may look like:
+        'time: mean', 'time: sum', 'area: mean time: mean', etc.
+
+        the `time_aggregation` string should be a comma-separated list of unique
+        time aggregation methods found in the `variable_cell_methods` list.
+        """
+
+        self.time_aggregation = _parse_variable_cell_methods(self.variable_cell_methods)
 
     def to_dict(self) -> dict[str, str | list[str]]:
         """
@@ -451,3 +467,26 @@ def open_dataset_cached(*args, **kwargs) -> xr.Dataset:
     should have the needed info even if close()ed.
     """
     return xr.open_dataset(*args, **kwargs)
+
+
+def _parse_variable_cell_methods(cell_methods: list[str]) -> str:
+    """
+    Take the `variable_cell_methods` list and turn it into the time_aggregation
+    string by looking for known time aggregation methods.
+
+    Variable cell methods may look like:
+    'time: mean', 'time: sum', 'area: mean time: mean', etc.
+
+    the `time_aggregation` string should be a comma-separated list of unique
+    time aggregation methods found in the `variable_cell_methods` list.
+    """
+    time_aggs = set()
+
+    for cell_method in cell_methods:
+        # Match pattern: "time: <method>" where method is one or more word characters
+        matches = re.findall(r"\btime:\s*(\w+)", cell_method)
+        time_aggs.update(matches)
+
+    # Join unique aggregation methods, sorted for consistency
+    ret = ",".join(sorted(time_aggs)) if time_aggs else "unknown"
+    return ret

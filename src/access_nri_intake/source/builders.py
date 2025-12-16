@@ -428,6 +428,7 @@ class AccessOm2Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "time_aggregation",
             ],
             aggregations=[
                 {
@@ -501,6 +502,7 @@ class AccessOm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "time_aggregation",
             ],
             aggregations=[
                 {
@@ -582,6 +584,7 @@ class Mom6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "time_aggregation",
             ],
             aggregations=[
                 {
@@ -650,6 +653,7 @@ class AccessEsm15Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "time_aggregation",
             ],
             aggregations=[
                 {
@@ -782,6 +786,7 @@ class AccessCm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "time_aggregation",
             ],
             aggregations=[
                 {
@@ -859,6 +864,7 @@ class ROMSBuilder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "time_aggregation",
             ],
             aggregations=[
                 {
@@ -921,7 +927,10 @@ class WoaBuilder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
-            groupby_attrs=["file_id"],
+            groupby_attrs=[
+                "file_id",
+                "time_aggregation",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -991,6 +1000,7 @@ class Cmip6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "time_aggregation",
             ],
             aggregations=[
                 {
