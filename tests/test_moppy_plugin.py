@@ -161,7 +161,7 @@ class TestMOPPyPlugin:
             # Since we mocked CMOR_AVAILABLE to be True, this should not raise
             # but will still hit the placeholder code that just returns the original dataset
             with warnings.catch_warnings(record=True) as w:
-                result = mock_datastore.to_cmip()
+                mock_datastore.to_cmip()
                 # Should get the warning about not being implemented yet
                 assert len(w) == 1
                 assert "not yet implemented" in str(w[0].message)
