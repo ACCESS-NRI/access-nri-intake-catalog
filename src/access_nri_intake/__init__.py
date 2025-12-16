@@ -9,11 +9,3 @@ __version__ = _version.get_versions()["version"]
 
 CATALOG_LOCATION = "/g/data/xp65/public/apps/access-nri-intake-catalog/catalog.yaml"
 USER_CATALOG_LOCATION = str(Path.home() / ".access_nri_intake_catalog/catalog.yaml")
-
-# Auto-enable ACCESS-MOPPy plugin if available
-try:
-    from .plugins.moppy import enable_moppy_plugin
-    enable_moppy_plugin()
-except ImportError:
-    # Plugin dependencies not available, skip silently
-    pass
