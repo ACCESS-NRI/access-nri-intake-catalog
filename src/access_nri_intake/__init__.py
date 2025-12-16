@@ -13,6 +13,7 @@ USER_CATALOG_LOCATION = str(Path.home() / ".access_nri_intake_catalog/catalog.ya
 # Auto-enable ACCESS-MOPPy plugin if available
 try:
     from .plugins.moppy import enable_moppy_plugin
+
     enable_moppy_plugin()
 except ImportError:
     # Plugin dependencies not available, skip silently
