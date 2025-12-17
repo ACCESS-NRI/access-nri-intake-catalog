@@ -483,8 +483,8 @@ def _parse_variable_cell_methods(cell_methods: list[str]) -> str:
     time_aggs = set()
 
     for cell_method in cell_methods:
-        # Match pattern: "time: <method>" where method is one or more word characters
-        matches = re.findall(r"\btime:\s*(\w+)", cell_method)
+        # Match pattern: "time: <method>" where method includes parentheses and other characters
+        matches = re.findall(r"\btime:\s*(\S+)", cell_method)
         time_aggs.update(matches)
 
     # Join unique aggregation methods, sorted for consistency

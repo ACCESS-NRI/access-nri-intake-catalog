@@ -328,6 +328,7 @@ def test_open_dataset_caching(mock_open, paths, num_calls):
         (["area: mean", "lat: sum"], "unknown"),
         # Mix of time and non-time methods
         (["area: mean", "time: point"], "point"),
+        (["", "time: mean", "time: mean_pow(02)"], "mean,mean_pow(02)"),
     ],
 )
 def test_parse_variable_cell_methods(cell_methods, expected):
