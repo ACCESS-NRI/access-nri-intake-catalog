@@ -13,6 +13,7 @@ from access_nri_intake.source.utils import (
     EmptyFileError,
     HashableIndexes,
     _guess_start_end_dates,
+    _parse_variable_cell_methods,
     get_timeinfo,
     open_dataset_cached,
 )
@@ -297,3 +298,39 @@ def test_open_dataset_caching(mock_open, paths, num_calls):
     assert open_dataset_cached.cache_info().currsize < N_MAX
 
     assert ds1 is ds2  # Should be the same object due to caching
+
+
+@pytest.mark.parametrize(
+    "cell_methods, expected",
+    [
+        # Empty list
+        ([], "unknown"),
+        # Single method
+        (["time: mean"], "mean"),
+        # Single method and an empty string
+        (["time: mean", ""], "mean"),
+        # Multiple different methods
+        (["time: mean", "time: sum"], "mean,sum"),
+        # Duplicate methods (should be deduplicated)
+        (["time: mean", "time: mean", "time: mean"], "mean"),
+        # Mix of empty and non-empty
+        (["", "time: mean", "", "time: sum"], "mean,sum"),
+        # Methods with area operations
+        (["area: mean time: mean", "time: sum"], "mean,sum"),
+        # Complex cell methods
+        (
+            ["area: mean time: maximum", "time: mean", "area: sum time: minimum"],
+            "maximum,mean,minimum",
+        ),
+        # Only empty strings
+        (["", "", ""], "unknown"),
+        # Methods without time (should return unknown)
+        (["area: mean", "lat: sum"], "unknown"),
+        # Mix of time and non-time methods
+        (["area: mean", "time: point"], "point"),
+        (["", "time: mean", "time: mean_pow(02)"], "mean,mean_pow(02)"),
+    ],
+)
+def test_parse_variable_cell_methods(cell_methods, expected):
+    result = _parse_variable_cell_methods(cell_methods)
+    assert result == expected
