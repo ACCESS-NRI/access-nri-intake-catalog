@@ -428,7 +428,7 @@ class AccessOm2Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
-                "time_aggregation",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -502,7 +502,7 @@ class AccessOm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
-                "time_aggregation",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -584,7 +584,7 @@ class Mom6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
-                "time_aggregation",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -653,7 +653,7 @@ class AccessEsm15Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
-                "time_aggregation",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -786,7 +786,7 @@ class AccessCm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
-                "time_aggregation",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -864,7 +864,7 @@ class ROMSBuilder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
-                "time_aggregation",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -929,7 +929,7 @@ class WoaBuilder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
-                "time_aggregation",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -1000,7 +1000,7 @@ class Cmip6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
-                "time_aggregation",
+                "temporal_label",
             ],
             aggregations=[
                 {

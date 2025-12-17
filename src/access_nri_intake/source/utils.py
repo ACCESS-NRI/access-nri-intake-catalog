@@ -73,7 +73,7 @@ class _NCFileInfo:
     variable_cell_methods: list[str]
     variable_units: list[str]
     realm: str = ""
-    time_aggregation: str = field(default_factory=str)
+    temporal_label: str = field(default_factory=str)
 
     def __post_init__(self):
         """
@@ -87,7 +87,7 @@ class _NCFileInfo:
         time aggregation methods found in the `variable_cell_methods` list.
         """
 
-        self.time_aggregation = _parse_variable_cell_methods(self.variable_cell_methods)
+        self.temporal_label = _parse_variable_cell_methods(self.variable_cell_methods)
 
     def to_dict(self) -> dict[str, str | list[str]]:
         """
