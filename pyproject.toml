@@ -64,6 +64,8 @@ access_nri_intake = [
     "data/catalog.yaml",
     "data/metadata_schema_experiment.json",
     "data/metadata_schema_file.json",
+    "data/mappings/*.json",
+    "data/mappings/*.md",
 ]
 
 [tool.versioneer]
