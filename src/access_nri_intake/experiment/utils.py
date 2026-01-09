@@ -260,7 +260,6 @@ def hash_catalog(
     mf.add(cat_fullfiles, hashfn="binhash-xxh")
 
     mf.dump()
-    return None
 
 
 def find_experiment_files(
@@ -362,5 +361,3 @@ def validate_args(builder: Builder, builder_kwargs: dict[str, Any]) -> None:
             raise TypeError(
                 f"Builder kwarg {key} must be of type {expected_type}, not {type(val)}."
             )
-
-    return None

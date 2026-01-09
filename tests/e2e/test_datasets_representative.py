@@ -1,7 +1,7 @@
 import pytest
 import yaml
 
-import access_nri_intake.catalog.translators as translators
+from access_nri_intake.catalog import translators
 from access_nri_intake.cli import build
 
 from . import e2e
