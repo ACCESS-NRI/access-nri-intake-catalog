@@ -229,6 +229,10 @@ def test_hashable_indexes(test_data):
     ):
         h1 & [1, 2, 3]
 
+    # Test the __hash__ of HashableIndexes with a set
+    s = set(h1, h1, h2)
+    assert len(s) == 2
+
 
 def test_hashable_indexes_cftime():
     ds = xr.Dataset(
