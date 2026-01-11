@@ -76,7 +76,7 @@ class BaseBuilder(Builder):
     # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         path: str | list[str],
         depth: int = 0,

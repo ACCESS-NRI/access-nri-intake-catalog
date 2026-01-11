@@ -218,6 +218,9 @@ class HashableIndexes:
             return True
         return False
 
+    def __hash__(self):
+        return self.xxh
+
     def __and__(self, other) -> set:
         """
         Return all keys which are:
@@ -301,7 +304,7 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def get_timeinfo(
+def get_timeinfo(  # noqa: PLR0912, PLR0915
     ds: xr.Dataset,
     filename_frequency: str | None,
     time_dim: str,
@@ -412,15 +415,15 @@ def get_timeinfo(
 
             dt = t1 - ts
             # TODO: This is not a very good way to get the frequency
-            if dt.days >= 365:
+            if dt.days >= 365: # noqa: PLR2004
                 years = round(dt.days / 365)
                 frequency = (years, "yr")
-            elif dt.days >= 28:
+            elif dt.days >= 28: # noqa: PLR2004
                 months = round(dt.days / 30)
                 frequency = (months, "mon")
             elif dt.days >= 1:
                 frequency = (dt.days, "day")
-            elif dt.seconds >= 3600:
+            elif dt.seconds >= 3600: # noqa: PLR2004
                 hours = round(dt.seconds / 3600)
                 frequency = (hours, "hr")
             else:
