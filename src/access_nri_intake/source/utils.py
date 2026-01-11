@@ -219,7 +219,7 @@ class HashableIndexes:
         return False
 
     def __hash__(self):
-        return self.xxh
+        return int(self.xxh, 16)
 
     def __and__(self, other) -> set:
         """
