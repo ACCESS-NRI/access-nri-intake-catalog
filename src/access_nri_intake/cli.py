@@ -392,7 +392,7 @@ def _compute_previous_versions(
     return yaml_dict
 
 
-def build(argv: Sequence[str] | None = None): # noqa: PLR0912, PLR0915
+def build(argv: Sequence[str] | None = None):  # noqa: PLR0912, PLR0915
     """
     Build an intake-dataframe-catalog from YAML configuration file(s).
     """
