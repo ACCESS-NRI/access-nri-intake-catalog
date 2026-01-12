@@ -383,8 +383,8 @@ def _compute_previous_versions(
         if len(existing_vers) > 1:
             yaml_dict = _set_catalog_yaml_version_bounds(
                 yaml_dict,
-                min(min(existing_vers), version),
-                max(max(existing_vers), version),
+                min(*existing_vers, version),
+                max(*existing_vers, version),
             )
         else:
             yaml_dict = _set_catalog_yaml_version_bounds(yaml_dict, version, version)
@@ -392,7 +392,9 @@ def _compute_previous_versions(
     return yaml_dict
 
 
-def build(argv: Sequence[str] | None = None):
+def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
+    argv: Sequence[str] | None = None,
+):
     """
     Build an intake-dataframe-catalog from YAML configuration file(s).
     """
@@ -654,7 +656,7 @@ def concretize(argv: Sequence[str] | None = None):
         ) from e
 
 
-def _concretize_build(
+def _concretize_build(  # noqa: PLR0913 # Allow this func to have many arguments
     build_base_path: str | Path,
     version: str,
     catalog_file: str,
@@ -820,11 +822,10 @@ def metadata_template(argv: Sequence[str] | None = None) -> None:
     for name, descr in EXP_JSONSCHEMA["properties"].items():
         if "const" in descr.keys():
             description = descr["const"]
+        elif name in EXP_JSONSCHEMA["required"]:
+            description = f"<REQUIRED {descr['description']}>"
         else:
-            if name in EXP_JSONSCHEMA["required"]:
-                description = f"<REQUIRED {descr['description']}>"
-            else:
-                description = f"<{descr['description']}>"
+            description = f"<{descr['description']}>"
 
         if _can_be_array(descr):
             description = [description]  # type: ignore
