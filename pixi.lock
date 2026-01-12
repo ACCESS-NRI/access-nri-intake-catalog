@@ -2335,8 +2335,8 @@ packages:
   timestamp: 1650670423406
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+39.g8616820.dirty
-  sha256: b252de81c56bee3fbea14ebb398c7a5051fed25e6f36828427d88a1951028367
+  version: 1.4.1+54.ga0ecefa
+  sha256: e6acca817c88d961dbd7936e58b67f5a2af779f4485f555e10c901d3677271be
   requires_dist:
   - cftime
   - ecgtools-access
