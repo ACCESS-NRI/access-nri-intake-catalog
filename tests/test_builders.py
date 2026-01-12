@@ -1,6 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+import dataclasses
 from pathlib import Path
 from unittest import mock
 
@@ -82,6 +83,10 @@ def test_builder_build(
     assert len(cat) == num_datasets
 
     assert len(builder.valid_assets) == num_valid_assets
+
+    # Make sure NCFileInfo fields are in dataframe
+    for field in dataclasses.fields(_NCFileInfo):
+        assert hasattr(builder.df, field.name)
 
 
 @pytest.mark.parametrize(
