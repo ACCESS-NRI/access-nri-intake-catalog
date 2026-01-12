@@ -8,7 +8,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-from numpy import show_config
 
 from access_nri_intake.aliases import (
     _CMIP_TO_ACCESS_MAPPINGS,
