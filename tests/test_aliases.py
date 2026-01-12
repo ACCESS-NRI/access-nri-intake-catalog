@@ -8,6 +8,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from numpy import show_config
 
 from access_nri_intake.aliases import (
     _CMIP_TO_ACCESS_MAPPINGS,
@@ -218,21 +219,26 @@ class TestAliasedESMCatalog:
                         variable_aliases[cmip_var] == _CMIP_TO_ACCESS_MAPPINGS[cmip_var]
                     )
 
-    def test_cmip_variable_search(self):
+    @pytest.mark.parametrize("show_warnings", [True, False])
+    @pytest.mark.parametrize("search, sent", [("ci", "fld_s05i269"), ("ci.*", "ci.*")])
+    def test_cmip_variable_search(self, show_warnings, search, sent):
         """Test that CMIP variables can be found and return ACCESS variables"""
         mock_cat = MockESMDatastore()
         wrapped_cat = AliasedESMCatalog(
-            mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
+            mock_cat,
+            field_aliases=ESM_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+            show_warnings=show_warnings,
         )
 
         # Test CMIP variable search (if mappings are available)
         if _CMIP_TO_ACCESS_MAPPINGS and "ci" in _CMIP_TO_ACCESS_MAPPINGS:
-            wrapped_cat.search(variable="ci")
+            wrapped_cat.search(variable=search)
 
             # Should have been called with the ACCESS model variable name
             assert len(mock_cat.search_calls) == 1
             call_kwargs = mock_cat.search_calls[0]
-            assert call_kwargs["variable"] == "fld_s05i269"
+            assert call_kwargs["variable"] == sent
 
 
 class TestAliasedDataframeCatalog:
