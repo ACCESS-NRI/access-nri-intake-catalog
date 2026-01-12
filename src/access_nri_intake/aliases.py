@@ -33,10 +33,17 @@ variable names and find the corresponding native ACCESS model variable names.
 
 import json
 import warnings
+from collections.abc import Collection
 from importlib import resources as rsr
+from typing import Any, TypeVar
+
+from intake_dataframe_catalog.core import DfFileCatalog
+from intake_esm.core import esm_datastore
+
+T = TypeVar("T", esm_datastore, Any)
 
 
-def _load_cmip_mappings():
+def _load_cmip_mappings() -> dict[str, str]:
     """
     Load CMIP to ACCESS variable mappings from the data sources.
     This allows users to search for CMIP standard names (like "ci") and
@@ -53,11 +60,11 @@ def _load_cmip_mappings():
         mapping_file = rsr.files("access_nri_intake").joinpath(
             "data/mappings/access-esm1-6-cmip-mappings.json"
         )
-        with mapping_file.open(mode="r") as f:
+        with mapping_file.open() as f:
             mappings = json.load(f)
 
         # Extract CMIP variable -> ACCESS model variable mappings
-        cmip_to_access = {}
+        cmip_to_access: dict[str, Any] = {}
 
         for component in ["atmosphere", "land", "ocean"]:
             if component in mappings:
@@ -93,14 +100,19 @@ class AliasedESMCatalog:
         Whether to show warnings when aliasing occurs
     """
 
-    def __init__(self, cat, field_aliases=None, value_aliases=None, show_warnings=True):
+    def __init__(
+        self,
+        cat: esm_datastore,
+        field_aliases: dict[str, str] | None = None,
+        value_aliases: dict[str, Any] | None = None,
+        show_warnings: bool = True,
+    ):
         self._cat = cat
         self.field_aliases = field_aliases or {}
         self.value_aliases = value_aliases or {}
         self.show_warnings = show_warnings
 
-    # ---- alias helpers -------------------------------------------------
-    def _canonical_field(self, field):
+    def _canonical_field(self, field: str) -> str:
         """Convert user-facing field name to canonical field name"""
         canonical = self.field_aliases.get(field, field)
         if canonical != field and self.show_warnings:
@@ -111,8 +123,15 @@ class AliasedESMCatalog:
             )
         return canonical
 
-    def _normalise_value(self, field, value):
-        """Convert user-facing value to canonical value for a given field"""
+    def _normalise_value(self, field: str, value: str | Collection[str] | Any) -> Any:
+        """
+        Convert user-facing value to canonical value for a given field
+
+        Value can be:
+            - scalar string
+            - Collection of strings (list, tuple, set)
+            - anything else (regex, callable, etc.) – leave untouched
+        """
         aliases_for_field = self.value_aliases.get(field, {})
 
         # scalar string
@@ -127,7 +146,7 @@ class AliasedESMCatalog:
             return normalized
 
         # list/tuple/set of strings
-        if isinstance(value, (list, tuple, set)):
+        if isinstance(value, (list | tuple | set)):
             out = []
             for v in value:
                 normalized = aliases_for_field.get(v, v)
@@ -143,7 +162,7 @@ class AliasedESMCatalog:
         # anything else (regex, callable, etc.) – leave untouched
         return value
 
-    def _normalise_kwargs(self, kwargs):
+    def _normalise_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         """Normalise all kwargs by applying field and value aliases"""
         norm = {}
         for field, value in kwargs.items():
@@ -151,17 +170,16 @@ class AliasedESMCatalog:
             norm[canon_field] = self._normalise_value(canon_field, value)
         return norm
 
-    # ---- public API ----------------------------------------------------
-    def search(self, **kwargs):
+    def search(self, **kwargs) -> esm_datastore:
         """Search the catalog with aliased field names and values"""
-        norm = self._normalise_kwargs(kwargs)
+        norm: dict[str, Any] = self._normalise_kwargs(kwargs)
         return self._cat.search(**norm)
 
     # pass-through everything else to underlying catalog
     def __getattr__(self, name):
         return getattr(self._cat, name)
 
-    def __dir__(self):
+    def __dir__(self) -> list[str]:
         return sorted(set(dir(self._cat)) | set(self.__dict__.keys()))
 
 
@@ -182,13 +200,19 @@ class AliasedDataframeCatalog:
         Whether to show warnings when aliasing occurs in ESM datastores
     """
 
-    def __init__(self, cat, field_aliases=None, value_aliases=None, show_warnings=True):
+    def __init__(
+        self,
+        cat: DfFileCatalog,
+        field_aliases: dict[str, Any] | None = None,
+        value_aliases: dict[str, Any] | None = None,
+        show_warnings: bool = True,
+    ):
         self._cat = cat
         self.field_aliases = field_aliases or {}
         self.value_aliases = value_aliases or {}
         self.show_warnings = show_warnings
 
-    def _wrap_if_esm_datastore(self, obj):
+    def _wrap_if_esm_datastore(self, obj: T) -> AliasedESMCatalog | T:
         """
         Wrap an object with AliasedESMCatalog if it appears to be an ESM datastore.
         ESM datastores should use their native field names, not field aliases.
@@ -204,7 +228,7 @@ class AliasedDataframeCatalog:
         # Otherwise return as-is
         return obj
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """
         Handle catalog['entry-name'] access - delegate to underlying catalog
         """
@@ -251,16 +275,16 @@ class AliasedDataframeCatalog:
     def __getattr__(self, name):
         return getattr(self._cat, name)
 
-    def __dir__(self):
+    def __dir__(self) -> list[str]:
         return sorted(set(dir(self._cat)) | set(self.__dict__.keys()))
 
 
 # Load CMIP to ACCESS variable mappings
-_CMIP_TO_ACCESS_MAPPINGS = _load_cmip_mappings()
+_CMIP_TO_ACCESS_MAPPINGS: dict[str, str] = _load_cmip_mappings()
 
 # Field aliases - only used at dataframe catalog level, not for ESM datastores
 # ESM datastores use their native field names (variable_id, variable, etc.)
-DATAFRAME_FIELD_ALIASES = {
+DATAFRAME_FIELD_ALIASES: dict[str, str] = {
     # User-facing → ACCESS-NRI dataframe catalog column names
     "source_id": "model",  # CMIP-style field name → ACCESS-NRI field name
     "variable_id": "variable",  # CMIP-style field name → ACCESS-NRI field name
