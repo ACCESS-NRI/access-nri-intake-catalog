@@ -304,7 +304,7 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def get_timeinfo(  # noqa: PLR0912, PLR0915
+def get_timeinfo(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     ds: xr.Dataset,
     filename_frequency: str | None,
     time_dim: str,
@@ -415,15 +415,15 @@ def get_timeinfo(  # noqa: PLR0912, PLR0915
 
             dt = t1 - ts
             # TODO: This is not a very good way to get the frequency
-            if dt.days >= 365:  # noqa: PLR2004
+            if dt.days >= 365:  # noqa: PLR2004 # Allow magic number here
                 years = round(dt.days / 365)
                 frequency = (years, "yr")
-            elif dt.days >= 28:  # noqa: PLR2004
+            elif dt.days >= 28:  # noqa: PLR2004 # Allow magic number here
                 months = round(dt.days / 30)
                 frequency = (months, "mon")
             elif dt.days >= 1:
                 frequency = (dt.days, "day")
-            elif dt.seconds >= 3600:  # noqa: PLR2004
+            elif dt.seconds >= 3600:  # noqa: PLR2004 # Allow magic number here
                 hours = round(dt.seconds / 3600)
                 frequency = (hours, "hr")
             else:

@@ -392,7 +392,7 @@ def _compute_previous_versions(
     return yaml_dict
 
 
-def build(argv: Sequence[str] | None = None):  # noqa: PLR0912, PLR0915
+def build(argv: Sequence[str] | None = None):  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     """
     Build an intake-dataframe-catalog from YAML configuration file(s).
     """
@@ -654,7 +654,7 @@ def concretize(argv: Sequence[str] | None = None):
         ) from e
 
 
-def _concretize_build(  # noqa: PLR0913
+def _concretize_build(  # noqa: PLR0913 # Allow this func to have many arguments
     build_base_path: str | Path,
     version: str,
     catalog_file: str,
