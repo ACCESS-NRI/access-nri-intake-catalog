@@ -195,6 +195,12 @@ def test_hashable_indexes(test_data):
 
     h2 = HashableIndexes(_indexes=ds._indexes)
 
+    ds2 = xr.open_dataset(
+        Path(test_data) / "access-om2/output000/ocean/ocean_month.nc",
+    )
+
+    h3 = HashableIndexes(ds=ds2)
+
     assert h1.xxh == "7f9556036b3d01ba"  # Example hash value
 
     h1_repr = repr(h1)
@@ -228,6 +234,11 @@ def test_hashable_indexes(test_data):
         TypeError, match="Cannot compare HashableIndexes with type list"
     ):
         h1 & [1, 2, 3]
+
+    # Test the __hash__ of HashableIndexes with a set
+    # h1 & h2 result in the same hash
+    s = set([h1, h1, h2, h3])
+    assert len(s) == 2
 
 
 def test_hashable_indexes_cftime():

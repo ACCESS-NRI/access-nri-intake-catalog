@@ -62,7 +62,7 @@ class CatalogManager:
         self.source = None
         self.source_metadata = None
 
-    def build_esm(
+    def build_esm(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
         name: str,
         description: str,
@@ -128,7 +128,7 @@ class CatalogManager:
 
         self._add()
 
-    def load(
+    def load(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
         name: str,
         description: str,
@@ -231,7 +231,7 @@ class CatalogManager:
         self.dfcat.save(**kwargs)
 
 
-def _open_and_translate(
+def _open_and_translate(  # noqa: PLR0913 # Allow this func to have many arguments
     file, driver, name, description, metadata, translator, **kwargs
 ):
     """
