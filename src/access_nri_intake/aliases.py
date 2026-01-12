@@ -29,6 +29,9 @@ The aliasing works in both directions - field name aliasing (e.g., "variable" �
 and value aliasing (e.g., "temp" → "tas") - allowing for flexible and intuitive data discovery.
 The system also includes CMIP-to-ACCESS variable mappings that allow users to search for CMIP
 variable names and find the corresponding native ACCESS model variable names.
+
+Bottom value returns (ie. `return obj`) if no conditions are met have been flagged with pragma: no cover
+to avoid creating unhelpful tests.
 """
 
 import json
@@ -160,7 +163,7 @@ class AliasedESMCatalog:
             return type(value)(out)
 
         # anything else (regex, callable, etc.) – leave untouched
-        return value
+        return value  # pragma: no cover
 
     def _normalise_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         """Normalise all kwargs by applying field and value aliases"""
@@ -228,7 +231,7 @@ class AliasedDataframeCatalog:
                 show_warnings=self.show_warnings,
             )
         # Otherwise return as-is
-        return obj
+        return obj  # pragma: no cover
 
     def __getitem__(self, key: str) -> Any:
         """

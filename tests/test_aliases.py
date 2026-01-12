@@ -81,6 +81,31 @@ class TestAliasedESMCatalog:
         call_kwargs = mock_cat.search_calls[0]
         assert call_kwargs["variable"] == "fld_s03i236"
 
+    @pytest.mark.parametrize("show_warnings", [True, False])
+    def test_field_aliases(self, show_warnings):
+        """Test that fields are properly aliased"""
+        mock_cat = MockESMDatastore()
+        wrapped_cat = AliasedESMCatalog(
+            mock_cat,
+            field_aliases={"varname": "variable_id"},
+            value_aliases=VALUE_ALIASES,
+            show_warnings=show_warnings,
+        )
+
+        # Test field alias mapping - using CMIP field names that should map to canonical names
+        # Since ESM_FIELD_ALIASES is empty in the actual code, this tests the passthrough behavior
+        wrapped_cat.search(
+            varname="tas"
+        )  # Should pass through as-is since no field aliases are defined for ESM
+
+        # Should have been called with the same field name (no aliasing for ESM catalogs)
+        assert len(mock_cat.search_calls) == 1
+        call_kwargs = mock_cat.search_calls[0]
+        assert "variable_id" in call_kwargs
+        assert (
+            call_kwargs["variable_id"] == "fld_s03i236"
+        )  # Value should still be aliased
+
     def test_combined_aliases(self):
         """Test that field and value aliases work together"""
         mock_cat = MockESMDatastore()
