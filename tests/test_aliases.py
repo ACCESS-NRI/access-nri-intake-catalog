@@ -3,6 +3,8 @@
 
 """Tests for aliasing functionality"""
 
+import json
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
@@ -35,11 +37,15 @@ class MockESMDatastore:
 class TestAliasedESMCatalog:
     """Test the AliasedESMCatalog wrapper"""
 
-    def test_no_field_aliases_for_esm(self):
+    @pytest.mark.parametrize("show_warnings", [True, False])
+    def test_no_field_aliases_for_esm(self, show_warnings):
         """Test that ESM datastores use native field names (no field aliasing)"""
         mock_cat = MockESMDatastore()
         wrapped_cat = AliasedESMCatalog(
-            mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
+            mock_cat,
+            field_aliases=ESM_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+            show_warnings=show_warnings,
         )
 
         # Test that field names pass through unchanged - ESM datastores use native names
@@ -53,11 +59,15 @@ class TestAliasedESMCatalog:
             call_kwargs["variable_id"] == "surface_temp"
         )  # But value should be aliased (tos -> surface_temp)
 
-    def test_value_aliases(self):
+    @pytest.mark.parametrize("show_warnings", [True, False])
+    def test_value_aliases(self, show_warnings):
         """Test that values are properly aliased"""
         mock_cat = MockESMDatastore()
         wrapped_cat = AliasedESMCatalog(
-            mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
+            mock_cat,
+            field_aliases=ESM_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+            show_warnings=show_warnings,
         )
 
         # Test value alias mapping - using CMIP variable that maps to ACCESS variable
@@ -107,6 +117,28 @@ class TestAliasedESMCatalog:
             "fld_s03i236",
         ]  # ci->fld_s05i269, cl->fld_s02i261, tas->fld_s03i236
         assert call_kwargs["variable"] == expected_values
+
+    def test_regex_values(self):
+        """Test that a regex value is passed through untouched"""
+        mock_cat = MockESMDatastore()
+        wrapped_cat = AliasedESMCatalog(
+            mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
+        )
+
+        # Test list of values - using CMIP variable names that are in our mappings. The lsit is passed
+        # through as a chain of regex 'OR'
+        wrapped_cat.search(variable="ci|cl|tas")
+
+        # Should *not* have been called with aliased list - it's a regex
+        assert len(mock_cat.search_calls) == 1
+        call_kwargs = mock_cat.search_calls[0]
+        expected_values = [
+            "fld_s05i269",
+            "fld_s02i261",
+            "fld_s03i236",
+        ]  # ci->fld_s05i269, cl->fld_s02i261, tas->fld_s03i236
+        assert call_kwargs["variable"] != expected_values
+        assert call_kwargs["variable"] == "ci|cl|tas"
 
     def test_passthrough_unknown_fields(self):
         """Test that unknown fields pass through unchanged"""
@@ -233,6 +265,14 @@ class TestAliasedDataframeCatalog:
 
         return mock_cat
 
+    @pytest.fixture
+    def mock_dfcat_no_source(self):
+        """Create a mock dataframe catalog a to_source_metho"""
+        mock_cat = MagicMock()
+        mock_cat.search.return_value = "random string"
+
+        return mock_cat
+
     def test_to_source_wraps_esm_datastore(self, mock_dataframe_catalog):
         """Test that to_source() properly wraps ESM datastores with aliasing"""
         from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog
@@ -342,6 +382,32 @@ class TestAliasedDataframeCatalog:
 
         assert isinstance(esm_datastore, AliasedESMCatalog)
 
+    def test_search_doesnt_wrap_result_without_to_source(self, mock_dfcat_no_source):
+        """Test that search doesn't wrap result without to_source"""
+        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog
 
-if __name__ == "__main__":
-    pytest.main([__file__])
+        catalog = AliasedDataframeCatalog(
+            mock_dfcat_no_source,
+            field_aliases=DATAFRAME_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+        )
+        search_result = catalog.search(name="bx944")
+        assert not isinstance(search_result, AliasedDataframeCatalog)
+
+
+@pytest.mark.parametrize(
+    "mock_target,side_effect",
+    [
+        ("access_nri_intake.aliases.rsr.files", FileNotFoundError()),
+        ("access_nri_intake.aliases.json.load", json.JSONDecodeError("", "", 0)),
+        ("access_nri_intake.aliases.json.load", KeyError("test")),
+    ],
+)
+def test_load_cmip_mappings_errors(mock_target, side_effect):
+    from access_nri_intake.aliases import _load_cmip_mappings
+
+    with mock.patch(mock_target, side_effect=side_effect):
+        cmip_to_access = _load_cmip_mappings()
+
+    assert isinstance(cmip_to_access, dict)
+    assert len(cmip_to_access) == 0

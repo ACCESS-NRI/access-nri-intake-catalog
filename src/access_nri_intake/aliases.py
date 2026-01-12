@@ -180,7 +180,9 @@ class AliasedESMCatalog:
         return getattr(self._cat, name)
 
     def __dir__(self) -> list[str]:
-        return sorted(set(dir(self._cat)) | set(self.__dict__.keys()))
+        return sorted(
+            set(dir(self._cat)) | set(self.__dict__.keys())
+        )  # pragma: no cover
 
 
 class AliasedDataframeCatalog:
