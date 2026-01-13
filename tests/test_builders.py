@@ -31,7 +31,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
         (["access-cm3"], "AccessCm3Builder", {}, 32, 31, 13),
-        (["access-om3"], "AccessOm3Builder", {}, 14, 14, 8),
+        (["access-om3"], "AccessOm3Builder", {}, 14, 14, 7),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
