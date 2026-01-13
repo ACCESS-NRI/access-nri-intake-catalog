@@ -8999,7 +8999,6 @@ packages:
   - python >=3.10
   - python
   license: MIT
-  license_family: MIT
   purls:
   - pkg:pypi/tomli?source=compressed-mapping
   size: 21453
@@ -9399,7 +9398,6 @@ packages:
   - python >=3.10
   - typing_extensions >=4.13.2
   license: MIT
-  license_family: MIT
   purls:
   - pkg:pypi/virtualenv?source=hash-mapping
   size: 4404318
