@@ -18,7 +18,7 @@ dynamic = ["version"]
 
 dependencies = [
     "cftime",
-    "ecgtools-access>=2025.10.7",
+    "ecgtools-access",
     "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
@@ -103,14 +103,19 @@ exclude = [
     "node_modules",
     "venv",
     "versioneer.py",
+    "_version.py",
+    "*.ipynb",
+    "tests",
 ]
 # E402: module level import not at top of file
 # E501: line too long - let black worry about that
-ignore = [
+lint.ignore = [
     "E402",
     "E501",
 ]
-select = [
+lint.select = [
+    # PyLint
+    "PL",
     # Pyflakes
     "F",
     # Pycodestyle
@@ -122,10 +127,10 @@ select = [
     "UP",
 ]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 18
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["access_nri_intake"]
 
 [tool.pixi.workspace]
@@ -154,6 +159,7 @@ mypy = { cmd = "mypy src", description = "Run mypy type checks" }
 mypy-setup = { cmd = "mypy --install-types", description = "Install mypy type stubs" }
 pre-commit-install = { cmd = "pre-commit install", description = "Install pre-commit hooks" }
 pre-commit = { cmd = "pre-commit run --all-files && pixi lock", description = "Run pre-commit hooks" }
+dump-conda-env = { cmd = "pixi workspace export conda-environment --name access-nri-intake-test > env.yml", description = "Dump conda environment to env.yml" }
 
 [tool.pixi.feature.test.pypi-dependencies]
 access_nri_intake = { path = ".", editable = false } 

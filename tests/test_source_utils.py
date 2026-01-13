@@ -13,6 +13,7 @@ from access_nri_intake.source.utils import (
     EmptyFileError,
     HashableIndexes,
     _guess_start_end_dates,
+    _parse_variable_cell_methods,
     get_timeinfo,
     open_dataset_cached,
 )
@@ -194,6 +195,12 @@ def test_hashable_indexes(test_data):
 
     h2 = HashableIndexes(_indexes=ds._indexes)
 
+    ds2 = xr.open_dataset(
+        Path(test_data) / "access-om2/output000/ocean/ocean_month.nc",
+    )
+
+    h3 = HashableIndexes(ds=ds2)
+
     assert h1.xxh == "7f9556036b3d01ba"  # Example hash value
 
     h1_repr = repr(h1)
@@ -227,6 +234,11 @@ def test_hashable_indexes(test_data):
         TypeError, match="Cannot compare HashableIndexes with type list"
     ):
         h1 & [1, 2, 3]
+
+    # Test the __hash__ of HashableIndexes with a set
+    # h1 & h2 result in the same hash
+    s = set([h1, h1, h2, h3])
+    assert len(s) == 2
 
 
 def test_hashable_indexes_cftime():
@@ -297,3 +309,39 @@ def test_open_dataset_caching(mock_open, paths, num_calls):
     assert open_dataset_cached.cache_info().currsize < N_MAX
 
     assert ds1 is ds2  # Should be the same object due to caching
+
+
+@pytest.mark.parametrize(
+    "cell_methods, expected",
+    [
+        # Empty list
+        ([], "unknown"),
+        # Single method
+        (["time: mean"], "mean"),
+        # Single method and an empty string
+        (["time: mean", ""], "mean"),
+        # Multiple different methods
+        (["time: mean", "time: sum"], "mean,sum"),
+        # Duplicate methods (should be deduplicated)
+        (["time: mean", "time: mean", "time: mean"], "mean"),
+        # Mix of empty and non-empty
+        (["", "time: mean", "", "time: sum"], "mean,sum"),
+        # Methods with area operations
+        (["area: mean time: mean", "time: sum"], "mean,sum"),
+        # Complex cell methods
+        (
+            ["area: mean time: maximum", "time: mean", "area: sum time: minimum"],
+            "maximum,mean,minimum",
+        ),
+        # Only empty strings
+        (["", "", ""], "unknown"),
+        # Methods without time (should return unknown)
+        (["area: mean", "lat: sum"], "unknown"),
+        # Mix of time and non-time methods
+        (["area: mean", "time: point"], "point"),
+        (["", "time: mean", "time: mean_pow(02)"], "mean,mean_pow(02)"),
+    ],
+)
+def test_parse_variable_cell_methods(cell_methods, expected):
+    result = _parse_variable_cell_methods(cell_methods)
+    assert result == expected

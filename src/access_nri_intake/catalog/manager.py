@@ -62,7 +62,7 @@ class CatalogManager:
         self.source = None
         self.source_metadata = None
 
-    def build_esm(
+    def build_esm(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
         name: str,
         description: str,
@@ -114,9 +114,7 @@ class CatalogManager:
                 )
 
         builder = builder(path, **kwargs).build()
-        builder.save(
-            name=name, description=description, directory=directory, use_parquet=True
-        )
+        builder.save(name=name, description=description, directory=directory)
 
         self.source, self.source_metadata = _open_and_translate(
             str(json_file),
@@ -125,12 +123,12 @@ class CatalogManager:
             description,
             metadata,
             translator,
-            # No longer need columns with iterables, natively handled by parquet
+            columns_with_iterables=list(builder.columns_with_iterables),
         )
 
         self._add()
 
-    def load(
+    def load(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
         name: str,
         description: str,
@@ -233,7 +231,7 @@ class CatalogManager:
         self.dfcat.save(**kwargs)
 
 
-def _open_and_translate(
+def _open_and_translate(  # noqa: PLR0913 # Allow this func to have many arguments
     file, driver, name, description, metadata, translator, **kwargs
 ):
     """

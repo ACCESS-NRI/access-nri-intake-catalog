@@ -76,7 +76,7 @@ class BaseBuilder(Builder):
     # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 # Allow this func to have many agruments
         self,
         path: str | list[str],
         depth: int = 0,
@@ -140,20 +140,7 @@ class BaseBuilder(Builder):
         self._parse()
         return self
 
-    def _save(
-        self, name: str, description: str, directory: str | None, use_parquet: bool
-    ) -> None:
-        if use_parquet:
-            kwargs = {
-                "file_format": "parquet",
-                "write_kwargs": {"compression": "snappy"},
-            }
-        else:
-            kwargs = {
-                "file_format": "csv",
-                "write_kwargs": {"compression": None},
-            }
-
+    def _save(self, name: str, description: str, directory: str | None):
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -164,16 +151,11 @@ class BaseBuilder(Builder):
             esmcat_version="0.0.1",
             description=description,
             directory=directory,
-            **kwargs,
+            catalog_type="file",
+            to_csv_kwargs={"compression": None},
         )
 
-    def save(
-        self,
-        name: str,
-        description: str,
-        directory: str | None = None,
-        use_parquet: bool = False,
-    ) -> None:
+    def save(self, name: str, description: str, directory: str | None = None) -> None:
         """
         Save datastore contents to a file.
 
@@ -185,10 +167,6 @@ class BaseBuilder(Builder):
             Detailed multi-line description of the collection.
         directory: str, optional
             The directory to save the datastore to. If None, use the current directory.
-        use_parquet: bool, optional
-            Whether to save the datastore as a parquet file. Defaults to False,
-            which saves as a CSV file. Parquet is both faster and saves space, but
-            unlike CSV is not human-readable.
         """
 
         if self.df.empty:
@@ -196,7 +174,7 @@ class BaseBuilder(Builder):
                 "Intake-ESM datastore has not yet been built. Please run `.build()` first"
             )
 
-        self._save(name, description, directory, use_parquet)
+        self._save(name, description, directory)
 
     @classmethod
     def _parser_catch_invalid(cls, file: str) -> dict:
@@ -450,6 +428,7 @@ class AccessOm2Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -523,6 +502,7 @@ class AccessOm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -549,10 +529,9 @@ class AccessOm3Builder(BaseBuilder):
             realm = "wave"
         elif "cice" in ncinfo_dict["filename"]:
             realm = "seaIce"
-        else:
-            # Default/missing value for realm is "" which is Falsy
-            if not (realm := output_nc_info.realm):
-                raise ParserError(f"Cannot determine realm for file {file}")
+        # Default/missing value for realm is "" which is Falsy
+        elif not (realm := output_nc_info.realm):
+            raise ParserError(f"Cannot determine realm for file {file}")
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
@@ -604,6 +583,7 @@ class Mom6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -672,6 +652,7 @@ class AccessEsm15Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -804,6 +785,7 @@ class AccessCm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -833,13 +815,12 @@ class AccessCm3Builder(BaseBuilder):
             realm = "seaIce"
         elif "atmos" in ncinfo_dict["filename"]:
             realm = "atmos"
-        else:
-            # Default/missing value for realm is "" which is Falsy.
-            # We don't cover these lines as they're a generic catch-all for unexpected errors
-            if not (realm := output_nc_info.realm):  # pragma: no cover
-                raise ParserError(
-                    f"Cannot determine realm for file {file}"
-                )  # pragma: no cover
+        # Default/missing value for realm is "" which is Falsy.
+        # We don't cover these lines as they're a generic catch-all for unexpected errors
+        elif not (realm := output_nc_info.realm):  # pragma: no cover
+            raise ParserError(
+                f"Cannot determine realm for file {file}"
+            )  # pragma: no cover
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
@@ -881,6 +862,7 @@ class ROMSBuilder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -943,7 +925,10 @@ class WoaBuilder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
-            groupby_attrs=["file_id"],
+            groupby_attrs=[
+                "file_id",
+                "temporal_label",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -1013,6 +998,7 @@ class Cmip6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
