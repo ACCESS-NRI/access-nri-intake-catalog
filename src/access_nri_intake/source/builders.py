@@ -524,7 +524,10 @@ class AccessOm3Builder(BaseBuilder):
         output_nc_info = cls.parse_ncfile(file)
         ncinfo_dict = output_nc_info.to_dict()
 
-        if "mom6" in ncinfo_dict["filename"] or "ocean.stats" in ncinfo_dict["filename"]:
+        if (
+            "mom6" in ncinfo_dict["filename"]
+            or "ocean.stats" in ncinfo_dict["filename"]
+        ):
             realm = "ocean"
         elif "ww3" in ncinfo_dict["filename"]:
             realm = "wave"
