@@ -1284,6 +1284,9 @@ def test_build_write_catalog_yaml_failure(mock_write_catalog_yaml, test_data, tm
             ]
         )
 
+def test__write_catalog_yaml_add_pqsection():
+    """ We need to be able to add a parquet section smoothly to a catalog that doesn't have that
+    section"""
 
 def test_metadata_validate(test_data):
     """Test metadata_validate"""

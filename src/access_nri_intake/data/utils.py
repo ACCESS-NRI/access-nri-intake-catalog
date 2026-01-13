@@ -6,11 +6,14 @@ import warnings
 from pathlib import Path
 
 import yaml
+from xxhash import VERSION
 
 from ..utils import get_catalog_fp
 from . import CATALOG_NAME_FORMAT
 
 CATALOG_PATH_REGEX = r"^(?P<rootpath>.*?)\{\{version\}\}.*?$"
+
+VERSION = "version_pq"  # Define as a constant so we can mock in tests
 
 
 def _get_catalog_root():
@@ -40,6 +43,15 @@ def available_versions(pretty: bool = True) -> list[str] | None:
     """
     Report the available versions of the `intake.cat.access_nri` catalog.
 
+    Note this uses the `version_pq` parameter from the catalog metadata to determine the available versions.
+    Old versions of the software still deployed will read the `version` parameter - allowing the two
+    to coexist peacefully. When these are retired, we can revert to `version`.
+
+    *We do not* make the choice of 'version' or 'version_pq' configurable - that is determined by the
+    users environment (ie. the version of this package they are using.) Build serialisation *is* configurable,
+    on the other hand, because we might need to build a new version of the catalog for an old version
+    of the software
+
     Parameters
     ---------
     pretty : bool, optional
@@ -57,6 +69,7 @@ def available_versions(pretty: bool = True) -> list[str] | None:
         output. These catalogs require the user to place the necessary catalog
         file in their home directory.
     """
+
     # Work out where the catalogs are stored
     base_path = _get_catalog_root()
 
@@ -64,9 +77,9 @@ def available_versions(pretty: bool = True) -> list[str] | None:
     try:
         with open(get_catalog_fp()) as cat_file:
             cat_yaml = yaml.safe_load(cat_file)
-            vers_min = cat_yaml["sources"]["access_nri"]["parameters"]["version"]["min"]
-            vers_max = cat_yaml["sources"]["access_nri"]["parameters"]["version"]["max"]
-            vers_def = cat_yaml["sources"]["access_nri"]["parameters"]["version"][
+            vers_min = cat_yaml["sources"]["access_nri"]["parameters"][VERSION]["min"]
+            vers_max = cat_yaml["sources"]["access_nri"]["parameters"][VERSION]["max"]
+            vers_def = cat_yaml["sources"]["access_nri"]["parameters"][VERSION][
                 "default"
             ]
     except FileNotFoundError:
@@ -115,13 +128,13 @@ def available_versions(pretty: bool = True) -> list[str] | None:
                 with open(catalog_loc / cat) as old_cat_file:
                     old_cat_yaml = yaml.safe_load(old_cat_file)
                     vers_min = old_cat_yaml["sources"]["access_nri"]["parameters"][
-                        "version"
+                        VERSION
                     ]["min"]
                     vers_max = old_cat_yaml["sources"]["access_nri"]["parameters"][
-                        "version"
+                        VERSION
                     ]["max"]
                     vers_def = old_cat_yaml["sources"]["access_nri"]["parameters"][
-                        "version"
+                        VERSION
                     ]["default"]
             except FileNotFoundError:
                 warnings.warn(

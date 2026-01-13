@@ -248,12 +248,17 @@ def _write_catalog_yaml(
     version: str,
 ) -> dict:
     """
-    Write the catalog details out to YAML.
+    Write the catalog details out to YAML. If we have `cm.use_parquet` set to True, we will write out
+    into a separate `version_pq` namespace to handle versioning. This allows us to point newer versions
+    of the software at these versions, whilst maintaining back-compatibility for older versions which
+    don't support parquet *or know about the `version_pq` namespace*.
     """
     cat = cm.dfcat
     cat.name = "access_nri"
     cat.description = "ACCESS-NRI intake catalog"
     yaml_dict = yaml.safe_load(cat.yaml())
+
+    VERSION = "version_pq" if cm.use_parquet else "version"
 
     yaml_dict["sources"]["access_nri"]["args"]["path"] = str(
         Path(build_base_path) / "{{version}}" / catalog_file
@@ -264,7 +269,7 @@ def _write_catalog_yaml(
         "storage": storage_flags,
     }
     yaml_dict["sources"]["access_nri"]["parameters"] = {
-        "version": {"description": "Catalog version", "type": "str", "default": version}
+        VERSION: {"description": "Catalog version", "type": "str", "default": version}
     }
 
     # Save the catalog
@@ -481,6 +486,13 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         ),
     )
 
+    parser.add_argument(
+        "--use_parquet",
+        default=False,
+        action="store_true",
+        help=("Set this if you want to use parquet files instead of csv files"),
+    )
+
     args = parser.parse_args(argv)
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
@@ -490,6 +502,7 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     version = args.version
     update = not args.no_update
     concretize = not args.no_concretize
+    use_pq = args.use_parquet
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -544,7 +557,7 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         )
 
     # Build the catalog
-    cm = CatalogManager(path=metacatalog_path)
+    cm = CatalogManager(path=metacatalog_path, use_parquet=use_pq)
     for method, src_args in parsed_sources:
         _add_source_to_catalog(cm, method, src_args, metacatalog_path, logger=logger)
 

@@ -42,8 +42,9 @@ class CatalogManager:
         path: str
             The path to the intake-dataframe-catalog
         use_parquet: bool
-            Whether to use parquet files instead of csv files. This will also use the `_pq` suffix
-            for catalog fields & versions.
+            Whether to use parquet files instead of csv files. This will also save version info into
+            the `parameters::version_pq` namespace, allowing us to separately track parquet & csv
+            catalog versions, maintaining backwards compatibility with existing catalogs.
         """
         path = Path(path)
 

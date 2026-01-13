@@ -32,8 +32,10 @@ CATALOG_NAME_FORMAT = r"^\.?v(?P<yr>2[0-9]{3})\-(?P<mon>1[0-2]|0[1-9])\-(?P<day>
 try:
     data = intake.open_catalog(get_catalog_fp()).access_nri
     cat_version = data._captured_init_kwargs.get("metadata", {}).get(
-        "version", "latest"
+        "version_pq", "latest"
     )  # Get the catalog version number and set it to "latest" if it can't be found
+    # We use `version_pq` to grab the latest parquet version - older deployed versions of the software
+    # will still grab `version`, allowing both to coexist happily.
 except FileNotFoundError:
     warnings.warn(
         "Unable to access a default catalog location. Calling intake.cat.access_nri will not work.",
