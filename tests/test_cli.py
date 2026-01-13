@@ -1296,8 +1296,9 @@ def test_build_write_catalog_yaml_failure(mock_write_catalog_yaml, test_data, tm
             ]
         )
 
+
 def test__write_catalog_yaml_add_pqsection(test_data, tmp_path):
-    """ Make sure that adding a `version_pq` section to a catalog works correctly."""
+    """Make sure that adding a `version_pq` section to a catalog works correctly."""
 
     catalog_file_no_pq: Path = test_data / "catalog" / "catalog-no-pq.yaml"
 
@@ -1305,7 +1306,7 @@ def test__write_catalog_yaml_add_pqsection(test_data, tmp_path):
     catalog_file_no_pq_copy = tmp_path / catalog_file_no_pq.name
     shutil.copy(catalog_file_no_pq, catalog_file_no_pq_copy)
 
-    with open(catalog_file_no_pq_copy, 'r') as f:
+    with open(catalog_file_no_pq_copy, "r") as f:
         yaml_dict_init = yaml.safe_load(f)
 
     with pytest.raises(KeyError):
@@ -1313,14 +1314,18 @@ def test__write_catalog_yaml_add_pqsection(test_data, tmp_path):
 
     cm = NoInitCatalogManager(use_parquet=True)
 
-    yaml_dict = _write_catalog_yaml(cm = cm,
+    yaml_dict = _write_catalog_yaml(
+        cm=cm,
         build_base_path=str(tmp_path),
         storage_flags="gdata/xp65",
         catalog_file="metacat.csv",
-        version="test_version", # No version format checks in this function - keep it simple
+        version="test_version",  # No version format checks in this function - keep it simple
     )
 
-    assert yaml_dict["sources"]["access_nri"]["parameters"]["version_pq"]["default"] == "test_version"
+    assert (
+        yaml_dict["sources"]["access_nri"]["parameters"]["version_pq"]["default"]
+        == "test_version"
+    )
 
 
 def test_metadata_validate(test_data):
