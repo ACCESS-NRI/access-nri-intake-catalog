@@ -2335,7 +2335,7 @@ packages:
   timestamp: 1650670423406
 - pypi: ./
   name: access-nri-intake
-  version: 1.4.1+28.g0767cc4.dirty
+  version: 1.4.1+29.g1868109
   sha256: ece505402f7e02f75b31ec1c60023c533e649f9e335ecc1fbfa2b2e252b30fde
   requires_dist:
   - cftime
@@ -3785,6 +3785,7 @@ packages:
   - libgcc >=14
   - libstdcxx >=14
   license: MIT
+  license_family: MIT
   purls: []
   size: 12728445
   timestamp: 1767969922681
@@ -3794,6 +3795,7 @@ packages:
   depends:
   - __osx >=11.0
   license: MIT
+  license_family: MIT
   purls: []
   size: 12358010
   timestamp: 1767970350308
