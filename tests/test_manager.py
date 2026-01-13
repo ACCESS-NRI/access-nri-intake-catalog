@@ -4,6 +4,7 @@
 
 from unittest import mock
 from warnings import warn
+from pathlib import Path
 
 import pytest
 from intake_dataframe_catalog.core import DfFileCatalogError
@@ -47,10 +48,11 @@ def test_CatalogManager_init(tmp_path):
     ],
 )
 @pytest.mark.filterwarnings("ignore:Unable to parse 2 assets")
-def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs):
+@pytest.mark.parametrize("use_parquet", [True, False])
+def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs, use_parquet):
     """Test building and adding an Intake-ESM datastore"""
     path = str(tmp_path / "cat.csv")
-    cat = CatalogManager(path)
+    cat = CatalogManager(path, use_parquet=use_parquet)
 
     metadata = load_metadata_yaml(
         str(test_data / basedir / "metadata.yaml"), EXP_JSONSCHEMA
@@ -77,6 +79,10 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
     cat.save()
     cat = CatalogManager(path)
     assert cat.mode == "a"
+
+    # Confirm we wrote out parquet, not csv, files
+    assert (Path(cat.path).parent / "test.csv").exists() != use_parquet
+    assert (Path(cat.path).parent / "test.parquet").exists() == use_parquet
 
 
 @mock.patch("intake_dataframe_catalog.core.DfFileCatalog.__init__")

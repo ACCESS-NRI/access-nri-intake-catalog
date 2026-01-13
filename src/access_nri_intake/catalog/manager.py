@@ -8,6 +8,7 @@ from pathlib import Path
 import intake
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
 from pandas.errors import EmptyDataError
+from pyarrow import TransformInputStream
 
 from ..utils import validate_against_schema
 from . import (
@@ -32,7 +33,7 @@ class CatalogManager:
     Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
-    def __init__(self, path: Path | str):
+    def __init__(self, path: Path | str, use_parquet: bool = False):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog like the ACCESS-NRI catalog
@@ -41,10 +42,14 @@ class CatalogManager:
         ----------
         path: str
             The path to the intake-dataframe-catalog
+        use_parquet: bool
+            Whether to use parquet files instead of csv files. This will also use the `_pq` suffix
+            for catalog fields & versions.
         """
         path = Path(path)
 
         self.path = str(path)
+        self.use_parquet = use_parquet
 
         self.mode = "a" if path.exists() else "w"
 
@@ -114,17 +119,27 @@ class CatalogManager:
                 )
 
         builder = builder(path, **kwargs).build()
-        builder.save(name=name, description=description, directory=directory)
+        builder.save(
+            name=name,
+            description=description,
+            directory=directory,
+            use_parquet=self.use_parquet,
+        )
 
-        self.source, self.source_metadata = _open_and_translate(
-            str(json_file),
-            "esm_datastore",
-            name,
-            description,
-            metadata,
-            translator,
+        open_translate_kwargs = dict(
+            file=str(json_file),
+            driver="esm_datastore",
+            name=name,
+            description=description,
+            metadata=metadata,
+            translator=translator,
             columns_with_iterables=list(builder.columns_with_iterables),
         )
+        if self.use_parquet:
+            # Don't need to specify columns_with_iterables for parquet - serialised into format
+            open_translate_kwargs.pop("columns_with_iterables")
+
+        self.source, self.source_metadata = _open_and_translate(**open_translate_kwargs)
 
         self._add()
 

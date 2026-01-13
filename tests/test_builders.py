@@ -3154,3 +3154,46 @@ def test_builder_year_before_1000(
     asset = builder.parser(path)
 
     assert asset["start_date"] == expected_startdate_str
+
+def test_builder_serialization_consistent(
+    tmp_path,
+    test_data,
+):
+    """
+    Test the various steps of the build process
+    """
+
+    path = [str(test_data / "mom6")]
+    builder = builders.Mom6Builder(path)
+
+    with pytest.raises(ValueError, match="asset list provided is None"):
+        builder.valid_assets
+
+    builder.get_assets()
+
+    builder.build()
+
+    builder.save(
+        name="test_pq",
+        description="test-datastore-pq-serialized",
+        directory=str(tmp_path),
+        use_parquet=True,
+    )
+    builder.save(
+        name="test_csv",
+        description="test-datastore-csv-serialized",
+        directory=str(tmp_path),
+        use_parquet=False,
+    )
+
+    cat_pq = intake.open_esm_datastore(
+        str(tmp_path / "test_pq.json"),
+        # columns_with_iterables=builder.columns_with_iterables,
+    )
+
+    cat_csv = intake.open_esm_datastore(
+        str(tmp_path / "test_csv.json"),
+        columns_with_iterables=builder.columns_with_iterables,
+    )
+
+    assert cat_pq.df.equals(cat_csv.df)

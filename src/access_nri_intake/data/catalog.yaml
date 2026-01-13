@@ -2,10 +2,10 @@ sources:
   access_nri:
     args:
       columns_with_iterables:
-      - model
-      - realm
-      - frequency
-      - variable
+        - model
+        - realm
+        - frequency
+        - variable
       mode: r
       name_column: name
       path: /g/data/xp65/public/apps/access-nri-intake-catalog/{{version}}/metacatalog.csv
@@ -14,9 +14,10 @@ sources:
     driver: intake_dataframe_catalog.core.DfFileCatalog
     metadata:
       storage: gdata/al33+gdata/cj50+gdata/dk92+gdata/fs38+gdata/ik11+gdata/oi10+gdata/p73+gdata/rr3+gdata/xp65
-      version: '{{version}}'
+      version: "{{version}}"
     parameters:
       version:
         default: latest0
+        default_pq: latest1
         description: Catalog version
         type: str
