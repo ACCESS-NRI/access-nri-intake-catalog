@@ -23,8 +23,10 @@ sources:
         description: Catalog version
         type: str
       version_pq:
-        min: v2019-02-02
-        max: v2024-06-19
-        default: v2025-02-28 # Check default outside range is returned
+        # Note we have incremented version_pq dates by a year from version, so we should miss the
+        # v2019-02-02 cat in tests
+        min: v2020-02-02
+        max: v2025-06-19
+        default: v2026-02-28 # Check default outside range is returned
         description: Catalog version
         type: str
