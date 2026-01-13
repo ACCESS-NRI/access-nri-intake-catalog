@@ -142,6 +142,13 @@ def test_builder_build(
             "ocean.1day.nv:2.xh:1.yh:1",
         ),
         (
+            "access-om3/output000/ocean.stats.nc",
+            "AccessOm3Builder",
+            "ocean",
+            None,
+            "ocean.fx.",
+        ),
+        (
             "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
             "AccessOm3Builder",
             "seaIce",
