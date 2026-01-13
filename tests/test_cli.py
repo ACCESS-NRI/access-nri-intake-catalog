@@ -3,12 +3,15 @@
 
 import glob
 import os
+from posix import access
 import shutil
 from pathlib import Path, PosixPath
 from unittest import mock
 
 import intake
+from numpy.polynomial import test
 import pytest
+from unittest.mock import MagicMock
 import yaml
 
 import access_nri_intake
@@ -17,6 +20,7 @@ from access_nri_intake.cli import (
     DirectoryExistsError,
     MetadataCheckError,
     _add_source_to_catalog,
+    _write_catalog_yaml,
     _check_build_args,
     _confirm_project_access,
     build,
@@ -1239,8 +1243,15 @@ def test_build_mkdir_failure(mock_mkdir, test_data, tmp_path):
 
 
 class NoInitCatalogManager(CatalogManager):
-    def __init__(self):
-        pass
+    def __init__(self, use_parquet: bool = False):
+        """
+        Fill in just enough properties to allow _write_catalog_yaml to work
+        """
+        self.use_parquet = use_parquet
+        self.dfcat = MagicMock()
+        self.dfcat.name = "access_nri"
+        self.dfcat.description = "ACCESS-NRI intake catalog"
+        self.dfcat.yaml.return_value = 'sources:\n   access_nri:\n     args:\n       columns with iterables:\n         - model\n         - realm\n         - frequency\n         - variable\n       mode: r\n       name column: name\n       path: /g/data/xp65/public/apps/access-nri-intake-catalog/{{version}}/metacatalog.csv\n       yaml column: yaml\n     description: ACCESS-NRI intake catalog\n     driver: intake dataframe catalog.core.DfFileCatalog\n     metadata:\n       storage: gdata/al33+gdata/cj50+gdata/dk92+gdata/fs38+gdata/ik11+gdata/oi10+gdata/p73+gdata/rr3+gdata/xp65\n       version: "{{version}}"\n     parameters:\n       version:\n         min: v2019-02-02\n         max: v2024-06-19\n         default: v2025-02-28 # Check default outside range is returned\n         description: Catalog version\n         type: str'
 
 
 @pytest.mark.parametrize("method", ["load", "build_esm"])
@@ -1284,9 +1295,32 @@ def test_build_write_catalog_yaml_failure(mock_write_catalog_yaml, test_data, tm
             ]
         )
 
-def test__write_catalog_yaml_add_pqsection():
-    """ We need to be able to add a parquet section smoothly to a catalog that doesn't have that
-    section"""
+def test__write_catalog_yaml_add_pqsection(test_data, tmp_path):
+    """ Make sure that adding a `version_pq` section to a catalog works correctly """
+
+    catalog_file_no_pq: Path = test_data / "catalog" / "catalog-no-pq.yaml"
+
+    # Copy catalog file into tmp_path
+    catalog_file_no_pq_copy = tmp_path / catalog_file_no_pq.name
+    shutil.copy(catalog_file_no_pq, catalog_file_no_pq_copy)
+
+    with open(catalog_file_no_pq_copy, 'r') as f:
+        yaml_dict_init = yaml.safe_load(f)
+
+    with pytest.raises(KeyError):
+        yaml_dict_init["sources"]["access_nri"]["parameters"]["version_pq"]
+
+    cm = NoInitCatalogManager(use_parquet=True)
+
+    yaml_dict = _write_catalog_yaml(cm = cm,
+        build_base_path=str(tmp_path),
+        storage_flags="gdata/xp65",
+        catalog_file="metacat.csv",
+        version="test_version", # No version format checks in this function - keep it simple
+    )
+
+    assert yaml_dict["sources"]["access_nri"]["parameters"]["version_pq"]["default"] == "test_version"
+
 
 def test_metadata_validate(test_data):
     """Test metadata_validate"""

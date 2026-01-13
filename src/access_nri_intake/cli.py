@@ -12,6 +12,7 @@ import traceback
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 import jsonschema
 import polars as pl
@@ -246,12 +247,25 @@ def _write_catalog_yaml(
     storage_flags: str,
     catalog_file: str,
     version: str,
-) -> dict:
+) -> dict[str, Any]:
     """
     Write the catalog details out to YAML. If we have `cm.use_parquet` set to True, we will write out
     into a separate `version_pq` namespace to handle versioning. This allows us to point newer versions
     of the software at these versions, whilst maintaining back-compatibility for older versions which
     don't support parquet *or know about the `version_pq` namespace*.
+
+    Parameters
+    ----------
+    cm: CatalogManager
+        The catalog manager instance.
+    build_base_path: str | Path
+        The base path for building the catalog.
+    storage_flags: str
+        The storage flags.
+    catalog_file: str
+        The catalog file name.
+    version: str
+        The version number to populate the catalog.yaml with.
     """
     cat = cm.dfcat
     cat.name = "access_nri"
