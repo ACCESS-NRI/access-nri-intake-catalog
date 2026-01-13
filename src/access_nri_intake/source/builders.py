@@ -524,14 +524,12 @@ class AccessOm3Builder(BaseBuilder):
         output_nc_info = cls.parse_ncfile(file)
         ncinfo_dict = output_nc_info.to_dict()
 
-        if "mom6" in ncinfo_dict["filename"]:
+        if "mom6" in ncinfo_dict["filename"] or "ocean.stats" in ncinfo_dict["filename"]:
             realm = "ocean"
         elif "ww3" in ncinfo_dict["filename"]:
             realm = "wave"
         elif "cice" in ncinfo_dict["filename"]:
             realm = "seaIce"
-        elif "ocean.stats" in ncinfo_dict["filename"]:
-            realm = "ocean"
         # Default/missing value for realm is "" which is Falsy
         elif not (realm := output_nc_info.realm):
             raise ParserError(f"Cannot determine realm for file {file}")
