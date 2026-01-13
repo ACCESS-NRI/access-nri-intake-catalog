@@ -49,7 +49,9 @@ def test_CatalogManager_init(tmp_path):
 )
 @pytest.mark.filterwarnings("ignore:Unable to parse 2 assets")
 @pytest.mark.parametrize("use_parquet", [True, False])
-def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs, use_parquet):
+def test_CatalogManager_build_esm(
+    tmp_path, test_data, builder, basedir, kwargs, use_parquet
+):
     """Test building and adding an Intake-ESM datastore"""
     path = str(tmp_path / "cat.csv")
     cat = CatalogManager(path, use_parquet=use_parquet)

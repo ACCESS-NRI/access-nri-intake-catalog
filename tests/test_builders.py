@@ -3155,6 +3155,7 @@ def test_builder_year_before_1000(
 
     assert asset["start_date"] == expected_startdate_str
 
+
 def test_builder_serialization_consistent(
     tmp_path,
     test_data,

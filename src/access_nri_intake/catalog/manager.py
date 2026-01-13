@@ -8,7 +8,6 @@ from pathlib import Path
 import intake
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
 from pandas.errors import EmptyDataError
-from pyarrow import TransformInputStream
 
 from ..utils import validate_against_schema
 from . import (
