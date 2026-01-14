@@ -512,15 +512,16 @@ class AccessOm3Builder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=2,
-            exclude_patterns=kwargs.get("exclude_patterns")
-            or [
-                "*restart*",
-                "*MOM_IC.nc",
-                "*ocean_geometry.nc",
-                "*ocean.stats.nc",
-                "*Vertical_coordinate.nc",
-            ],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get(
+                "exclude_patterns",
+                [
+                    "*restart*",
+                    "*MOM_IC.nc",
+                    "*ocean_geometry.nc",
+                    "*Vertical_coordinate.nc",
+                ],
+            ),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -545,7 +546,10 @@ class AccessOm3Builder(BaseBuilder):
         output_nc_info = cls.parse_ncfile(file)
         ncinfo_dict = output_nc_info.to_dict()
 
-        if "mom6" in ncinfo_dict["filename"]:
+        if (
+            "mom6" in ncinfo_dict["filename"]
+            or "ocean.stats" in ncinfo_dict["filename"]
+        ):
             realm = "ocean"
         elif "ww3" in ncinfo_dict["filename"]:
             realm = "wave"

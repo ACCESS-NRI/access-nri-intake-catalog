@@ -55,7 +55,7 @@ def test__get_catalog_root_runtime_errors(mock_get_catalog_fp, test_data, cat):
 def test_available_versions(mock_get_catalog_fp, mock__get_catalog_root, test_data, version_const, expected):
     mock__get_catalog_root.return_value = test_data / "catalog/catalog-dirs"
     mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
-    with mock.patch("access_nri_intake.data.utils.VERSION",version_const):
+    with mock.patch("access_nri_intake.data.utils.VERSION", version_const):
         cats = available_versions(pretty=False)
     assert cats == expected, "Did not get expected catalog list"
 
@@ -74,17 +74,19 @@ def test_available_versions(mock_get_catalog_fp, mock__get_catalog_root, test_da
 )
 @pytest.mark.xfail(reason="FIXME - expected values seem sketchy")
 def test_available_versions_pretty(
-    mock_get_catalog_fp, mock__get_catalog_root, test_data, capfd, version_const, expected
+    mock_get_catalog_fp,
+    mock__get_catalog_root,
+    test_data,
+    capfd,
+    version_const,
+    expected,
 ):
     mock__get_catalog_root.return_value = test_data / "catalog/catalog-dirs"
     mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
-    with mock.patch("access_nri_intake.data.utils.VERSION",version_const):
+    with mock.patch("access_nri_intake.data.utils.VERSION", version_const):
         available_versions(pretty=True)
     captured, _ = capfd.readouterr()
-    assert (
-        captured
-        == expected
-    ), "Did not get expected catalog printout"
+    assert captured == expected, "Did not get expected catalog printout"
 
 
 @mock.patch("access_nri_intake.data.utils._get_catalog_root")
