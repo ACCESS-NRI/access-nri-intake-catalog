@@ -53,13 +53,17 @@ class CatalogManager:
 
         self.mode = "a" if path.exists() else "w"
 
+        columns_with_iterables = (
+            COLUMNS_WITH_ITERABLES if not Path.suffix == ".parquet" else None
+        )
+
         try:
             self.dfcat = DfFileCatalog(
                 path=self.path,
                 yaml_column=YAML_COLUMN,
                 name_column=NAME_COLUMN,
                 mode=self.mode,
-                columns_with_iterables=COLUMNS_WITH_ITERABLES,
+                columns_with_iterables=columns_with_iterables,
             )
         except (EmptyDataError, DfFileCatalogError) as e:
             raise Exception(str(e) + f": {self.path}") from e

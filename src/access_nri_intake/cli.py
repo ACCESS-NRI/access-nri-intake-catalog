@@ -12,12 +12,14 @@ import traceback
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from termios import VERASE
+from typing import Any, Literal
 
 import jsonschema
 import polars as pl
 import yaml
 from intake import open_esm_datastore
+from joblib.externals.cloudpickle.cloudpickle import v
 
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
@@ -296,6 +298,7 @@ def _compute_previous_versions(
     catalog_base_path: str | Path,
     build_base_path: Path,
     version: str,
+    use_pq: bool,
 ) -> dict:
     """Calculate previous version information for a new catalog build.
 
@@ -309,6 +312,9 @@ def _compute_previous_versions(
         The catalog build base path.
     version : str
         The current version of the catalog (this has yet to enter `yaml_dict`).
+    use_pq : bool
+        Whether to use Parquet format for the catalog. If so, 'version_pq` will be used,
+        not 'version'.
 
     Returns
     -------
@@ -332,6 +338,8 @@ def _compute_previous_versions(
     cat_loc = get_catalog_fp(basepath=catalog_base_path)
     existing_cat = Path(cat_loc).exists()
 
+    VERSION_STR = "version_pq" if use_pq else "version"
+
     # See if there's an existing catalog
     if existing_cat:
         with Path(cat_loc).open(mode="r") as fobj:
@@ -352,8 +360,8 @@ def _compute_previous_versions(
             yaml_old["sources"]["access_nri"]["driver"],
         )
         vmin_old, vmax_old = (
-            yaml_old["sources"]["access_nri"]["parameters"]["version"].get("min"),
-            yaml_old["sources"]["access_nri"]["parameters"]["version"].get("max"),
+            yaml_old["sources"]["access_nri"]["parameters"][VERSION_STR].get("min"),
+            yaml_old["sources"]["access_nri"]["parameters"][VERSION_STR].get("max"),
         )
         storage_new, storage_old = (
             yaml_dict["sources"]["access_nri"]["metadata"]["storage"],
@@ -372,7 +380,9 @@ def _compute_previous_versions(
             else:
                 vers_str = f"{vmin_old}-{vmax_old}"
             Path(cat_loc).rename(Path(cat_loc).parent / f"catalog-{vers_str}.yaml")
-            yaml_dict = _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+            yaml_dict = _set_catalog_yaml_version_bounds(
+                yaml_dict, version, version, version_str=VERSION_STR
+            )
         elif storage_new != storage_old:
             yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
                 _combine_storage_flags(storage_new, storage_old)
@@ -381,13 +391,14 @@ def _compute_previous_versions(
         # Set the minimum and maximum catalog versions, if they're not set already
         # in the 'new catalog' if statement above
         if (
-            yaml_dict["sources"]["access_nri"]["parameters"]["version"].get("min")
+            yaml_dict["sources"]["access_nri"]["parameters"][VERSION_STR].get("min")
             is None
         ):
             yaml_dict = _set_catalog_yaml_version_bounds(
                 yaml_dict,
                 min(version, vmin_old if vmin_old is not None else version),
                 max(version, vmax_old if vmax_old is not None else version),
+                VERSION_STR,
             )
 
     if (not existing_cat) or (vmin_old is None and vmax_old is None):
@@ -404,9 +415,12 @@ def _compute_previous_versions(
                 yaml_dict,
                 min(*existing_vers, version),
                 max(*existing_vers, version),
+                VERSION_STR,
             )
         else:
-            yaml_dict = _set_catalog_yaml_version_bounds(yaml_dict, version, version)
+            yaml_dict = _set_catalog_yaml_version_bounds(
+                yaml_dict, version, version, VERSION_STR
+            )
 
     return yaml_dict
 
@@ -469,8 +483,8 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     parser.add_argument(
         "--catalog_file",
         type=str,
-        default="metacatalog.csv",
-        help="The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv'",
+        default=None,
+        help="The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv' if `use_parquet` is False, or `metacatalog.parquet` if `use_parquet` is True",
     )
 
     parser.add_argument(
@@ -517,6 +531,9 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     update = not args.no_update
     concretize = not args.no_concretize
     use_pq = args.use_parquet
+
+    if catalog_file is None:
+        catalog_file = "metacatalog.parquet" if use_pq else "metacatalog.csv"
 
     if not version.startswith("v"):
         version = f"v{version}"
@@ -586,7 +603,7 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
 
     if update:
         yaml_dict = _compute_previous_versions(
-            yaml_dict, catalog_base_path, build_base_path, version
+            yaml_dict, catalog_base_path, build_base_path, version, use_pq
         )
     catalog_tmp_path = Path(build_base_path) / f".{version}"
 
@@ -727,9 +744,15 @@ def _concretize_build(  # noqa: PLR0913 # Allow this func to have many arguments
 
     # First, 'unhide' paths in the metacatalog.csv file
     metacatalog_path = Path(build_base_path) / f".{version}" / catalog_file
-    pl.scan_csv(metacatalog_path).with_columns(
-        pl.col("yaml").str.replace(f".{version}", version, literal=True)
-    ).collect().write_csv(metacatalog_path)
+
+    if metacatalog_path.suffix[1:] == "csv":
+        pl.scan_csv(metacatalog_path).with_columns(
+            pl.col("yaml").str.replace(f".{version}", version, literal=True)
+        ).collect().write_csv(metacatalog_path)
+    else:
+        pl.scan_parquet(metacatalog_path).with_columns(
+            pl.col("yaml").str.replace(f".{version}", version, literal=True)
+        ).collect().write_parquet(metacatalog_path)
 
     source_files = (Path(build_base_path) / f".{version}" / "source").glob("*.json")
 
@@ -763,12 +786,14 @@ def _concretize_build(  # noqa: PLR0913 # Allow this func to have many arguments
         catalog_src.rename(catalog_dst)
 
 
-def _set_catalog_yaml_version_bounds(d: dict, bl: str, bu: str) -> dict:
+def _set_catalog_yaml_version_bounds(
+    d: dict, bl: str, bu: str, version_str: Literal["version", "version_pq"]
+) -> dict:
     """
     Set the version boundaries for the access_nri_intake_catalog.
     """
-    d["sources"]["access_nri"]["parameters"]["version"]["min"] = bl
-    d["sources"]["access_nri"]["parameters"]["version"]["max"] = bu
+    d["sources"]["access_nri"]["parameters"][version_str]["min"] = bl
+    d["sources"]["access_nri"]["parameters"][version_str]["max"] = bu
 
     return d
 
