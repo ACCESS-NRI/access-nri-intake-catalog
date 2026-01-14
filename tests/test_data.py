@@ -48,11 +48,16 @@ def test__get_catalog_root_runtime_errors(mock_get_catalog_fp, test_data, cat):
 
 @mock.patch("access_nri_intake.data.utils._get_catalog_root")
 @mock.patch("access_nri_intake.data.utils.get_catalog_fp")
-@pytest.mark.parametrize("version_const, expected", [
-    ("version",["v2025-02-28", "v2024-06-19", "v2024-01-01", "v2019-02-02"]),
-    ("version_pq",["v2025-02-28", "v2024-06-19", "v2024-01-01"])
-])
-def test_available_versions(mock_get_catalog_fp, mock__get_catalog_root, test_data, version_const, expected):
+@pytest.mark.parametrize(
+    "version_const, expected",
+    [
+        ("version", ["v2025-02-28", "v2024-06-19", "v2024-01-01", "v2019-02-02"]),
+        ("version_pq", ["v2025-02-28", "v2024-06-19", "v2024-01-01"]),
+    ],
+)
+def test_available_versions(
+    mock_get_catalog_fp, mock__get_catalog_root, test_data, version_const, expected
+):
     mock__get_catalog_root.return_value = test_data / "catalog/catalog-dirs"
     mock_get_catalog_fp.return_value = test_data / "catalog/catalog-versions.yaml"
     with mock.patch("access_nri_intake.data.utils.VERSION", version_const):
@@ -68,9 +73,15 @@ def test_available_versions(mock_get_catalog_fp, mock__get_catalog_root, test_da
 @pytest.mark.parametrize(
     "version_const, expected",
     [
-        ("version", "v2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n\nDeprecated catalog catalog-no-pq.yaml:\nv2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02\n\nDeprecated catalog catalog-versions-old.yaml:\nv2016-12-31*\nv2016-06-15\nv2016-01-01\n"),
-        ("version_pq", "v2026-02-28*\nv2024-06-19\nv2024-01-01\n\nDeprecated catalog catalog-versions-old.yaml:\nv2016-12-31*\nv2016-06-15\nv2016-01-01\n")
-    ]
+        (
+            "version",
+            "v2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02(-->vN.N.N)\n\nDeprecated catalog catalog-no-pq.yaml:\nv2025-02-28*\nv2024-06-19\nv2024-01-01\nv2019-02-02\n\nDeprecated catalog catalog-versions-old.yaml:\nv2016-12-31*\nv2016-06-15\nv2016-01-01\n",
+        ),
+        (
+            "version_pq",
+            "v2026-02-28*\nv2024-06-19\nv2024-01-01\n\nDeprecated catalog catalog-versions-old.yaml:\nv2016-12-31*\nv2016-06-15\nv2016-01-01\n",
+        ),
+    ],
 )
 @pytest.mark.xfail(reason="FIXME - expected values seem sketchy")
 def test_available_versions_pretty(
