@@ -6,7 +6,6 @@ import warnings
 from pathlib import Path
 
 import yaml
-from xxhash import VERSION
 
 from ..utils import get_catalog_fp
 from . import CATALOG_NAME_FORMAT
