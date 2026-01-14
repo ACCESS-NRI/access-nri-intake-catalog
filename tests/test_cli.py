@@ -223,9 +223,18 @@ def test_build(
 )
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 @pytest.mark.filterwarnings("ignore:Unable to parse 32 assets")
-@pytest.mark.parametrize("use_pq, build_fname", [(True, "metacatalog.parquet"), (False, "metacatalog.csv")])
+@pytest.mark.parametrize(
+    "use_pq, build_fname", [(True, "metacatalog.parquet"), (False, "metacatalog.csv")]
+)
 def test_build_default_catalog_filename(
-    version, input_list, expected_size, test_data, tmpdir, fake_project_access, use_pq, build_fname
+    version,
+    input_list,
+    expected_size,
+    test_data,
+    tmpdir,
+    fake_project_access,
+    use_pq,
+    build_fname,
 ):
     """Test full catalog build process from config files. Just looking to make sure that
     metacatalog.csv or metacatalog.parquet is being correctly configured here."""
@@ -235,17 +244,17 @@ def test_build_default_catalog_filename(
     configs = [str(test_data / fname) for fname in input_list]
 
     argv = [
-            *configs,
-            # "--no_update",  # commented out to test brand-new-catalog-versioning
-            "--version",
-            version,
-            "--build_base_path",
-            build_base_path,
-            "--catalog_base_path",
-            build_base_path,
-            "--data_base_path",
-            str(test_data),
-        ]
+        *configs,
+        # "--no_update",  # commented out to test brand-new-catalog-versioning
+        "--version",
+        version,
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+    ]
 
     if use_pq:
         argv.append("--use_parquet")

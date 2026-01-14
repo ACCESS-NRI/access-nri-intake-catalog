@@ -37,6 +37,7 @@ def test_CatalogManager_init(tmp_path):
         cat._add()
     assert "first load or build the source" in str(excinfo.value)
 
+
 def test_CatalogManager_init_parquet(tmp_path):
     """Test that CatalogManager initialising correctly"""
     path = str(tmp_path / "cat.parquet")
@@ -45,12 +46,11 @@ def test_CatalogManager_init_parquet(tmp_path):
     assert cat.mode == "w"
     assert hasattr(cat, "dfcat")
 
-    assert cat.dfcat.format == 'parquet'
+    assert cat.dfcat.format == "parquet"
 
     with pytest.raises(CatalogManagerError) as excinfo:
         cat._add()
     assert "first load or build the source" in str(excinfo.value)
-
 
 
 @pytest.mark.parametrize(

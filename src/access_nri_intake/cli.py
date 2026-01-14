@@ -12,14 +12,12 @@ import traceback
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
-from termios import VERASE
 from typing import Any, Literal
 
 import jsonschema
 import polars as pl
 import yaml
 from intake import open_esm_datastore
-from joblib.externals.cloudpickle.cloudpickle import v
 
 from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
@@ -338,7 +336,9 @@ def _compute_previous_versions(
     cat_loc = get_catalog_fp(basepath=catalog_base_path)
     existing_cat = Path(cat_loc).exists()
 
-    VERSION_STR = "version_pq" if use_pq else "version"
+    VERSION_STR: Literal["version_pq", "version"] = (
+        "version_pq" if use_pq else "version"
+    )
 
     # See if there's an existing catalog
     if existing_cat:
