@@ -291,7 +291,7 @@ def _write_catalog_yaml(
     return yaml_dict
 
 
-def _compute_previous_versions(
+def _compute_previous_versions(  # noqa: PLR0912, PLR0913
     yaml_dict: dict,
     catalog_base_path: str | Path,
     build_base_path: Path,
