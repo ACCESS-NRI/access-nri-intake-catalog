@@ -297,7 +297,7 @@ def _compute_previous_versions(
     build_base_path: Path,
     version: str,
     use_pq: bool,
-) -> dict:
+) -> dict[str, Any]:
     """Calculate previous version information for a new catalog build.
 
     Parameters
@@ -316,7 +316,7 @@ def _compute_previous_versions(
 
     Returns
     -------
-    dict
+    dict[str, Any]
         An updated YAML dict describing the new catalog, including current/min/max version.
 
     Notes
@@ -359,10 +359,22 @@ def _compute_previous_versions(
             yaml_dict["sources"]["access_nri"]["driver"],
             yaml_old["sources"]["access_nri"]["driver"],
         )
-        vmin_old, vmax_old = (
-            yaml_old["sources"]["access_nri"]["parameters"][VERSION_STR].get("min"),
-            yaml_old["sources"]["access_nri"]["parameters"][VERSION_STR].get("max"),
-        )
+        try:
+            vmin_old, vmax_old = (
+                yaml_old["sources"]["access_nri"]["parameters"][VERSION_STR].get("min"),
+                yaml_old["sources"]["access_nri"]["parameters"][VERSION_STR].get("max"),
+            )
+        except KeyError:
+            vmin_old, vmax_old = (
+                yaml_old["sources"]["access_nri"]["parameters"]["version"].get("min"),
+                yaml_old["sources"]["access_nri"]["parameters"]["version"].get("max"),
+            )
+            # this try/except might seem wacky - it's purely so that in cases where we have
+            # previous csv versions, we can pick them up and translate them into parquet version (this
+            # works *this way only* because the implementation is back compatible). We can't easily use
+            # .get() here, because we need the whole of the dict indexed by 'version', not just the default
+            # key ('version')
+
         storage_new, storage_old = (
             yaml_dict["sources"]["access_nri"]["metadata"]["storage"],
             yaml_old["sources"]["access_nri"]["metadata"]["storage"],
@@ -373,16 +385,26 @@ def _compute_previous_versions(
             and vmin_old is not None
             and vmax_old is not None
         ):
-            # Move the old catalog out of the way
-            # New catalog.yaml will have restricted version bounds
-            if vmin_old == vmax_old:
-                vers_str = vmin_old
-            else:
-                vers_str = f"{vmin_old}-{vmax_old}"
-            Path(cat_loc).rename(Path(cat_loc).parent / f"catalog-{vers_str}.yaml")
-            yaml_dict = _set_catalog_yaml_version_bounds(
-                yaml_dict, version, version, version_str=VERSION_STR
-            )
+            # First check that we haven't just renamed `$CAT.csv` => `$CAT.parquet`
+            _args_old, _args_new = args_old.copy(), args_new.copy()
+            p_old, p_new = Path(_args_old.pop("path")), Path(_args_new.pop("path"))
+            if not (
+                p_old.stem == p_new.stem
+                and p_old.parent == p_new.parent
+                and p_old.suffix == ".csv"
+                and p_new.suffix == ".parquet"
+            ):
+                if vmin_old == vmax_old:
+                    # Move the old catalog out of the way
+                    # New catalog.yaml will have restricted version bounds
+                    vers_str = vmin_old
+                else:
+                    vers_str = f"{vmin_old}-{vmax_old}"
+
+                Path(cat_loc).rename(Path(cat_loc).parent / f"catalog-{vers_str}.yaml")
+                yaml_dict = _set_catalog_yaml_version_bounds(
+                    yaml_dict, version, version, version_str=VERSION_STR
+                )
         elif storage_new != storage_old:
             yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
                 _combine_storage_flags(storage_new, storage_old)
@@ -421,6 +443,21 @@ def _compute_previous_versions(
             yaml_dict = _set_catalog_yaml_version_bounds(
                 yaml_dict, version, version, VERSION_STR
             )
+
+    # Finally, copy the `version` details from the old to the new, if they're not there. Since we
+    # must then be operating on a parquet catalog, we don't update versons at all. Similary, if we
+    # don't find version_pq, we need to copy that over
+    #
+
+    for VERSION in ["version", "version_pq"]:
+        if (
+            existing_cat
+            and yaml_old["sources"]["access_nri"]["parameters"].get(VERSION, False)
+            and not yaml_dict["sources"]["access_nri"]["parameters"].get(VERSION, False)
+        ):
+            yaml_dict["sources"]["access_nri"]["parameters"][VERSION] = yaml_old[
+                "sources"
+            ]["access_nri"]["parameters"][VERSION]
 
     return yaml_dict
 
@@ -788,7 +825,7 @@ def _concretize_build(  # noqa: PLR0913 # Allow this func to have many arguments
 
 def _set_catalog_yaml_version_bounds(
     d: dict, bl: str, bu: str, version_str: Literal["version", "version_pq"]
-) -> dict:
+) -> dict[str, Any]:
     """
     Set the version boundaries for the access_nri_intake_catalog.
     """
