@@ -597,6 +597,7 @@ def test_build_repeat_adddata(test_data, tmp_path, fake_project_access):
     ), f"Default version {cat_yaml['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
     assert cat_yaml["sources"]["access_nri"]["metadata"]["storage"] == "gdata/al33"
 
+
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_first_parquet(test_data, tmp_path, fake_project_access):
     """
@@ -647,7 +648,7 @@ def test_build_repeat_first_parquet(test_data, tmp_path, fake_project_access):
             build_base_path,
             "--version",
             NEW_VERSION,
-            "--use_parquet"
+            "--use_parquet",
         ]
     )
 
@@ -671,13 +672,14 @@ def test_build_repeat_first_parquet(test_data, tmp_path, fake_project_access):
 
     _common_new = cat_yaml_new
     _common_old = cat_yaml_old
-    _common_new['sources']['access_nri']['args'].pop('path')
-    _common_old['sources']['access_nri']['args'].pop('path')
-    params_pq = _common_new['sources']['access_nri'].pop('parameters')
-    params_csv = _common_old['sources']['access_nri'].pop('parameters')
+    _common_new["sources"]["access_nri"]["args"].pop("path")
+    _common_old["sources"]["access_nri"]["args"].pop("path")
+    params_pq = _common_new["sources"]["access_nri"].pop("parameters")
+    params_csv = _common_old["sources"]["access_nri"].pop("parameters")
 
     assert _common_new == _common_old
-    assert params_pq.get('version', None) == params_csv.get('version')
+    assert params_pq.get("version", None) == params_csv.get("version")
+
 
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access):
@@ -713,7 +715,7 @@ def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access
     # see just a version number change in the yaml
     with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
         cat_yaml_old = yaml.safe_load(fobj)
-    frozen_old= frozendict(copy.deepcopy(cat_yaml_old))
+    frozen_old = frozendict(copy.deepcopy(cat_yaml_old))
 
     # Update the version number and have another crack at building
     NEW_VERSION = "v2024-01-02"
@@ -730,7 +732,7 @@ def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access
             build_base_path,
             "--version",
             NEW_VERSION,
-            "--use_parquet"
+            "--use_parquet",
         ]
     )
 
@@ -754,13 +756,13 @@ def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access
     ), f"Default version {cat_yaml_new['sources']['access_nri']['parameters']['version_pq'].get('default')} does not match expected v2024-01-02"
 
     # This section mutates the cat_yamls - hence the frozendicts
-    cat_yaml_new['sources']['access_nri']['args'].pop('path')
-    cat_yaml_old['sources']['access_nri']['args'].pop('path')
-    params_pq = cat_yaml_new['sources']['access_nri'].pop('parameters')
-    params_csv = cat_yaml_old['sources']['access_nri'].pop('parameters')
+    cat_yaml_new["sources"]["access_nri"]["args"].pop("path")
+    cat_yaml_old["sources"]["access_nri"]["args"].pop("path")
+    params_pq = cat_yaml_new["sources"]["access_nri"].pop("parameters")
+    params_csv = cat_yaml_old["sources"]["access_nri"].pop("parameters")
 
     assert cat_yaml_new == cat_yaml_old
-    assert params_pq.get('version', None) == params_csv.get('version')
+    assert params_pq.get("version", None) == params_csv.get("version")
 
     # Now we build a new csv catalog. We're expecting to see changes to the `version` but not `version_pq`
 
@@ -789,7 +791,6 @@ def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access
         cat_yaml_newest = yaml.safe_load(fobj)
         frozen_newest = frozendict(copy.deepcopy(cat_yaml_newest))
 
-
     assert (
         cat_yaml_newest["sources"]["access_nri"]["parameters"]["version"].get("min")
         == "v2024-01-01"
@@ -803,12 +804,13 @@ def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access
         == "v2025-01-02"
     ), f"Default version {cat_yaml_newest['sources']['access_nri']['parameters']['version_pq'].get('default')} does not match expected v2024-01-02"
 
-    cat_yaml_newest['sources']['access_nri']['args'].pop('path')
-    params_csv_newest = cat_yaml_newest['sources']['access_nri'].pop('parameters')
+    cat_yaml_newest["sources"]["access_nri"]["args"].pop("path")
+    params_csv_newest = cat_yaml_newest["sources"]["access_nri"].pop("parameters")
 
     assert cat_yaml_newest == cat_yaml_old
 
-    assert params_csv_newest['version_pq'] == params_pq['version_pq']
+    assert params_csv_newest["version_pq"] == params_pq["version_pq"]
+
 
 @mock.patch("access_nri_intake.cli._get_project", return_value=set())
 @mock.patch("access_nri_intake.cli._get_project_code", return_value="aa99")
