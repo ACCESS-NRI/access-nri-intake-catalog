@@ -291,59 +291,92 @@ def _write_catalog_yaml(
     return yaml_dict
 
 
-def _compute_previous_versions(  # noqa: PLR0912, PLR0913
-    yaml_dict: dict,
-    catalog_base_path: str | Path,
-    build_base_path: Path,
-    version: str,
-    use_pq: bool,
-) -> dict[str, Any]:
-    """Calculate previous version information for a new catalog build.
-
-    Parameters
-    ----------
-    yaml_dict : dict
-        The existing YAML dictionary describing the new catalog
-    catalog_base_path : str | Path
-        The catalog base path.
-    build_base_path : Path
-        The catalog build base path.
-    version : str
-        The current version of the catalog (this has yet to enter `yaml_dict`).
-    use_pq : bool
-        Whether to use Parquet format for the catalog. If so, 'version_pq` will be used,
-        not 'version'.
-
-    Returns
-    -------
-    dict[str, Any]
-        An updated YAML dict describing the new catalog, including current/min/max version.
-
-    Notes
-    -----
-    The logic for determining the min/max catalog version is as follows:
-    - If there are no existing catalogs, then min=max=current.
-    - If there are existing catalogs, the following happens:
-      - If the `args` or `driver` parts of the catalog YAML are changing in the
-        new version, the versions are incompatible. The existing catalog.yaml
-        will be moved aside to a new filename, labelled with its min and max
-        version numbers. (An exception to this rule is legacy catalogs without
-        a min or max version will have their storage flags retained.)
-      - If existing catalogs are otherwise compatible with the new catalog, their
-        min and max versions will be incorporated in with the new catalog and the
-        existing catalog.yaml will be overwritten.
+class VersionHandler:
     """
-    cat_loc = get_catalog_fp(basepath=catalog_base_path)
-    existing_cat = Path(cat_loc).exists()
+    Version handler that breaks some up of the complexity contained by _compute_previous_versions.
+    """
 
-    VERSION_STR: Literal["version_pq", "version"] = (
-        "version_pq" if use_pq else "version"
-    )
+    def __init__(
+        self,
+        yaml_dict: dict,
+        catalog_base_path: str | Path,
+        build_base_path: Path,
+        version: str,
+        use_pq: bool,
+    ):
+        """Calculate previous version information for a new catalog build.
 
-    # See if there's an existing catalog
-    if existing_cat:
-        with Path(cat_loc).open(mode="r") as fobj:
-            yaml_old = yaml.safe_load(fobj)
+        Parameters
+        ----------
+        yaml_dict : dict
+            The existing YAML dictionary describing the new catalog
+        catalog_base_path : str | Path
+            The catalog base path.
+        build_base_path : Path
+            The catalog build base path.
+        version : str
+            The current version of the catalog (this has yet to enter `yaml_dict`).
+        use_pq : bool
+            Whether to use Parquet format for the catalog. If so, 'version_pq` will be used,
+            not 'version'.
+
+        Returns
+        -------
+        dict[str, Any]
+            An updated YAML dict describing the new catalog, including current/min/max version.
+
+        Notes
+        -----
+        The logic for determining the min/max catalog version is as follows:
+        - If there are no existing catalogs, then min=max=current.
+        - If there are existing catalogs, the following happens:
+        - If the `args` or `driver` parts of the catalog YAML are changing in the
+            new version, the versions are incompatible. The existing catalog.yaml
+            will be moved aside to a new filename, labelled with its min and max
+            version numbers. (An exception to this rule is legacy catalogs without
+            a min or max version will have their storage flags retained.)
+        - If existing catalogs are otherwise compatible with the new catalog, their
+            min and max versions will be incorporated in with the new catalog and the
+            existing catalog.yaml will be overwritten.
+        """
+        self.yaml_dict = yaml_dict
+        self.catalog_base_path = catalog_base_path
+        self.build_base_path = build_base_path
+        self.version = version
+        self.use_pq = use_pq
+
+        # This is ugly
+        if self.existing_cat:
+            with Path(self.cat_loc).open(mode="r") as fobj:
+                self.yaml_old = yaml.safe_load(fobj)
+
+    @property
+    def version_str(self) -> Literal["version", "version_pq"]:
+        return "version_pq" if self.use_pq else "version"
+
+    @property
+    def cat_loc(self) -> Path | str:
+        return get_catalog_fp(basepath=self.catalog_base_path)
+
+    @property
+    def existing_cat(self) -> bool:
+        return Path(self.cat_loc).exists()
+
+    def __call__(
+        self,
+    ) -> dict[str, Any]:
+        return self._compute_previous_versions(
+            self.yaml_dict,
+            self.catalog_base_path,
+            self.build_base_path,
+            self.version,
+        )
+
+    def _update_existing_catalog(self) -> tuple[dict[str, Any], Any, Any]:
+        yaml_old = self.yaml_old
+        yaml_dict = self.yaml_dict
+        cat_loc = self.cat_loc
+        version = self.version
 
         # Check to see what has changed. We care if the following keys
         # have changed (ignoring the sources.access_nri at the head
@@ -361,8 +394,12 @@ def _compute_previous_versions(  # noqa: PLR0912, PLR0913
         )
         try:
             vmin_old, vmax_old = (
-                yaml_old["sources"]["access_nri"]["parameters"][VERSION_STR].get("min"),
-                yaml_old["sources"]["access_nri"]["parameters"][VERSION_STR].get("max"),
+                yaml_old["sources"]["access_nri"]["parameters"][self.version_str].get(
+                    "min"
+                ),
+                yaml_old["sources"]["access_nri"]["parameters"][self.version_str].get(
+                    "max"
+                ),
             )
         except KeyError:
             vmin_old, vmax_old = (
@@ -403,7 +440,7 @@ def _compute_previous_versions(  # noqa: PLR0912, PLR0913
 
                 Path(cat_loc).rename(Path(cat_loc).parent / f"catalog-{vers_str}.yaml")
                 yaml_dict = _set_catalog_yaml_version_bounds(
-                    yaml_dict, version, version, version_str=VERSION_STR
+                    yaml_dict, version, version, version_str=self.version_str
                 )
         elif storage_new != storage_old:
             yaml_dict["sources"]["access_nri"]["metadata"]["storage"] = (
@@ -413,53 +450,110 @@ def _compute_previous_versions(  # noqa: PLR0912, PLR0913
         # Set the minimum and maximum catalog versions, if they're not set already
         # in the 'new catalog' if statement above
         if (
-            yaml_dict["sources"]["access_nri"]["parameters"][VERSION_STR].get("min")
+            yaml_dict["sources"]["access_nri"]["parameters"][self.version_str].get(
+                "min"
+            )
             is None
         ):
             yaml_dict = _set_catalog_yaml_version_bounds(
                 yaml_dict,
                 min(version, vmin_old if vmin_old is not None else version),
                 max(version, vmax_old if vmax_old is not None else version),
-                VERSION_STR,
+                self.version_str,
             )
 
-    if (not existing_cat) or (vmin_old is None and vmax_old is None):
-        # No existing catalog, so set min = max = current version,
-        # unless there are folders with the right names in the write
-        # directory
-        existing_vers = [
-            v.name.lstrip(".")
-            for v in build_base_path.iterdir()
-            if re.match(CATALOG_NAME_FORMAT, v.name)
-        ]
-        if len(existing_vers) > 1:
-            yaml_dict = _set_catalog_yaml_version_bounds(
-                yaml_dict,
-                min(*existing_vers, version),
-                max(*existing_vers, version),
-                VERSION_STR,
-            )
-        else:
-            yaml_dict = _set_catalog_yaml_version_bounds(
-                yaml_dict, version, version, VERSION_STR
-            )
+        return yaml_dict, vmin_old, vmax_old
 
-    # Finally, copy the `version` details from the old to the new, if they're not there. Since we
-    # must then be operating on a parquet catalog, we don't update versons at all. Similary, if we
-    # don't find version_pq, we need to copy that over
-    #
+    def _compute_previous_versions(  # noqa: PLR0912, PLR0913
+        self,
+        yaml_dict: dict,
+        catalog_base_path: str | Path,
+        build_base_path: Path,
+        version: str,
+    ) -> dict[str, Any]:
+        """Calculate previous version information for a new catalog build.
 
-    for VERSION in ["version", "version_pq"]:
-        if (
-            existing_cat
-            and yaml_old["sources"]["access_nri"]["parameters"].get(VERSION, False)
-            and not yaml_dict["sources"]["access_nri"]["parameters"].get(VERSION, False)
-        ):
-            yaml_dict["sources"]["access_nri"]["parameters"][VERSION] = yaml_old[
-                "sources"
-            ]["access_nri"]["parameters"][VERSION]
+        Parameters
+        ----------
+        yaml_dict : dict
+            The existing YAML dictionary describing the new catalog
+        catalog_base_path : str | Path
+            The catalog base path.
+        build_base_path : Path
+            The catalog build base path.
+        version : str
+            The current version of the catalog (this has yet to enter `yaml_dict`).
+        use_pq : bool
+            Whether to use Parquet format for the catalog. If so, 'version_pq` will be used,
+            not 'version'.
 
-    return yaml_dict
+        Returns
+        -------
+        dict[str, Any]
+            An updated YAML dict describing the new catalog, including current/min/max version.
+
+        Notes
+        -----
+        The logic for determining the min/max catalog version is as follows:
+        - If there are no existing catalogs, then min=max=current.
+        - If there are existing catalogs, the following happens:
+        - If the `args` or `driver` parts of the catalog YAML are changing in the
+            new version, the versions are incompatible. The existing catalog.yaml
+            will be moved aside to a new filename, labelled with its min and max
+            version numbers. (An exception to this rule is legacy catalogs without
+            a min or max version will have their storage flags retained.)
+        - If existing catalogs are otherwise compatible with the new catalog, their
+            min and max versions will be incorporated in with the new catalog and the
+            existing catalog.yaml will be overwritten.
+        """
+        existing_cat = self.existing_cat
+
+        # See if there's an existing catalog
+        if self.existing_cat:
+            yaml_dict, vmin_old, vmax_old = self._update_existing_catalog()
+
+        # assert self.existing_cat == existing_cat # WTF! This fails! Something must be mutating something somewhere...
+        if (not existing_cat) or (vmin_old is None and vmax_old is None):
+            # No existing catalog, so set min = max = current version,
+            # unless there are folders with the right names in the write
+            # directory
+            existing_vers = [
+                v.name.lstrip(".")
+                for v in build_base_path.iterdir()
+                if re.match(CATALOG_NAME_FORMAT, v.name)
+            ]
+            if len(existing_vers) > 1:
+                yaml_dict = _set_catalog_yaml_version_bounds(
+                    yaml_dict,
+                    min(*existing_vers, version),
+                    max(*existing_vers, version),
+                    self.version_str,
+                )
+            else:
+                yaml_dict = _set_catalog_yaml_version_bounds(
+                    yaml_dict, version, version, self.version_str
+                )
+
+        if self.existing_cat:
+            yaml_dict = self._populate_missing_versions(yaml_dict, self.yaml_old)
+
+        return yaml_dict
+
+    def _populate_missing_versions(
+        self, yaml_dict: dict[str, Any], yaml_old: dict[str, Any]
+    ):
+        """
+        If we have updated a catalog with both `version_pq` and `version` fields,
+        then we need to ensure that missing version fields are populated unchanged
+        from the old catalog.
+        """
+        params_old = yaml_old["sources"]["access_nri"]["parameters"]
+        params_new = yaml_dict["sources"]["access_nri"]["parameters"]
+
+        for VERSION in ["version", "version_pq"]:
+            if params_old.get(VERSION, False) and not params_new.get(VERSION, False):
+                params_new[VERSION] = params_old[VERSION]
+        return yaml_dict
 
 
 def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
@@ -639,9 +733,9 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         raise RuntimeError(f"Catalog save failed: {str(e)}")
 
     if update:
-        yaml_dict = _compute_previous_versions(
+        yaml_dict = VersionHandler(
             yaml_dict, catalog_base_path, build_base_path, version, use_pq
-        )
+        )()
     catalog_tmp_path = Path(build_base_path) / f".{version}"
 
     with Path(get_catalog_fp(basepath=catalog_tmp_path)).open(mode="w") as fobj:
