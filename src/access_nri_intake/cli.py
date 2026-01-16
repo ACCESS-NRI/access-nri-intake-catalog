@@ -491,7 +491,7 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     parser.add_argument(
         "--catalog_file",
         type=str,
-        default="metacatalog.csv",
+        default=None,
         help="The name of the intake-dataframe-catalog. Defaults to 'metacatalog.csv' if `use_parquet` is False, or `metacatalog.parquet` if `use_parquet` is True",
     )
 
@@ -539,6 +539,9 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     update = not args.no_update
     concretize = not args.no_concretize
     use_parquet = args.use_parquet
+
+    if catalog_file is None:
+        catalog_file = "metacatalog.parquet" if use_parquet else "metacatalog.csv"
 
     if not version.startswith("v"):
         version = f"v{version}"
