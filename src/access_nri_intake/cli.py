@@ -253,6 +253,7 @@ def _write_catalog_yaml(
     """
     Write the catalog details out to YAML.
     """
+
     cat_name: T_catname = "access_nri" if not cm.use_parquet else "access_nri_pq"
 
     cat = cm.dfcat
@@ -277,7 +278,7 @@ def _write_catalog_yaml(
     return yaml_dict
 
 
-def _compute_previous_versions(
+def _compute_previous_versions(  # noqa: PLR0912
     yaml_dict: dict,
     catalog_base_path: str | Path,
     build_base_path: Path,
@@ -285,6 +286,9 @@ def _compute_previous_versions(
     use_parquet: bool = False,
 ) -> dict:
     """Calculate previous version information for a new catalog build.
+
+    TODO: Desparately needs refactoring, there is far too much state in here and
+    this function has become impossible to reason about.
 
     Parameters
     ----------
@@ -323,11 +327,13 @@ def _compute_previous_versions(
     `use_parquet` flag. The other catalog will be retained as-is.
     TODO: Storage flag combination probably needs updating, but implement in a
     separate PR to manage complexity.
+
     """
     cat_loc = get_catalog_fp(basepath=catalog_base_path)
     existing_cat = Path(cat_loc).exists()
 
     cat_name: T_catname = "access_nri" if not use_parquet else "access_nri_pq"
+    alt_name = "access_nri" if cat_name == "access_nri_pq" else "access_nri_pq"
 
     # See if there's an existing catalog
     if existing_cat:
@@ -340,10 +346,12 @@ def _compute_previous_versions(
         # - args (all parts - mode should never change)
         # - driver
         if not yaml_old["sources"].get(cat_name):
-            alt_name = "access_nri" if cat_name == "access_nri_pq" else "access_nri_pq"
             vmin_old, vmax_old = None, None
             yaml_dict["sources"][alt_name] = yaml_old["sources"][alt_name]
         else:
+            if len(yaml_old["sources"]) == 2:  # noqa: PLR2004
+                yaml_dict["sources"][alt_name] = yaml_old["sources"][alt_name]
+
             args_new, args_old = (
                 yaml_dict["sources"][cat_name]["args"],
                 yaml_old["sources"][cat_name]["args"],
@@ -398,6 +406,14 @@ def _compute_previous_versions(
         # No existing catalog, so set min = max = current version,
         # unless there are folders with the right names in the write
         # directory
+
+        if existing_cat and len(yaml_dict["sources"]) == 2:  # noqa: PLR2004
+            # First parquet catalog - don't update versions
+            yaml_dict = _set_catalog_yaml_version_bounds(
+                yaml_dict, version, version, use_parquet
+            )
+            return yaml_dict
+
         existing_vers = [
             v.name.lstrip(".")
             for v in build_base_path.iterdir()
