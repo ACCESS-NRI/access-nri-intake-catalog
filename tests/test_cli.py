@@ -2170,3 +2170,73 @@ def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access
         cat_yaml_newest["sources"]["access_nri"]["parameters"]["version"].get("default")
         == "v2025-01-02"
     ), f"Default version {cat_yaml_newest['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "v2024-01-01",
+        "2024-01-01",
+    ],
+)
+@pytest.mark.parametrize(
+    "input_list, expected_size",
+    [
+        (
+            ["config/access-om2.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 12, "cmip5_al33": 5},
+        ),
+        (
+            ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 6, "cmip5_al33": 5},
+        ),
+    ],
+)
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+@pytest.mark.filterwarnings("ignore:Unable to parse 32 assets")
+@pytest.mark.parametrize(
+    "use_pq, build_fname", [(True, "metacatalog.parquet"), (False, "metacatalog.csv")]
+)
+def test_build_default_catalog_filename(
+    version,
+    input_list,
+    expected_size,
+    test_data,
+    tmpdir,
+    fake_project_access,
+    use_pq,
+    build_fname,
+):
+    """Test full catalog build process from config files. Just looking to make sure that
+    metacatalog.csv or metacatalog.parquet is being correctly configured here."""
+    # Update the config_yaml paths
+    build_base_path = str(tmpdir)
+
+    configs = [str(test_data / fname) for fname in input_list]
+
+    argv = [
+        *configs,
+        # "--no_update",  # commented out to test brand-new-catalog-versioning
+        "--version",
+        version,
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+    ]
+
+    if use_pq:
+        argv.append("--use_parquet")
+
+    build(argv)
+
+    # manually fix the version so we can correctly build the test path: build
+    # will do this for us so we need to replicate it here
+    if not version.startswith("v"):
+        version = f"v{version}"
+
+    # Try to open the catalog
+    build_path = Path(build_base_path) / version / build_fname
+    cat = intake.open_df_catalog(build_path)
+    assert len(cat) == 2
