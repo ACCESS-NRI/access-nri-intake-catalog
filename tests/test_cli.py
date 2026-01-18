@@ -2171,6 +2171,7 @@ def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access
         == "v2025-01-02"
     ), f"Default version {cat_yaml_newest['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
 
+
 @pytest.mark.parametrize(
     "version",
     [
