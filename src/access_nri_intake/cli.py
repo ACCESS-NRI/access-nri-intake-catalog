@@ -202,10 +202,6 @@ class VersionHandler:
                 min(*existing_vers, self.version),
                 max(*existing_vers, self.version),
             )
-        if not _multiple_existing_versions():
-            self.yaml_dict = self._set_catalog_yaml_version_bounds(
-                self.yaml_dict, self.version, self.version
-            )
 
         return None
 
