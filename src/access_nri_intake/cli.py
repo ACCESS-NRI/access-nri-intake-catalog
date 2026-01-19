@@ -244,7 +244,7 @@ class VersionHandler:
         if not yaml_old["sources"].get(self.cat_name):
             return self._pass_through_alt_catalog(yaml_old)
 
-        if set(self.yaml_dict["sources"].keys()) == self.CSV_AND_PQ_SOURCES:
+        if set(yaml_old["sources"].keys()) == self.CSV_AND_PQ_SOURCES:
             self._pass_through_alt_catalog(yaml_old)
 
         fragment_new = self.yaml_dict["sources"][self.cat_name]
