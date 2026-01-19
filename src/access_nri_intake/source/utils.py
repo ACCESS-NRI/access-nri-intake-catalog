@@ -4,6 +4,7 @@
 """Shared utilities for writing Intake-ESM builders and their parsers"""
 
 import pickle
+import re
 import warnings
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
@@ -72,6 +73,21 @@ class _NCFileInfo:
     variable_cell_methods: list[str]
     variable_units: list[str]
     realm: str = ""
+    temporal_label: str = field(default_factory=str)
+
+    def __post_init__(self):
+        """
+        Take the `variable_cell_methods` list and turn it into the time_aggregation
+        string by looking for known time aggregation methods.
+
+        Variable cell methods may look like:
+        'time: mean', 'time: sum', 'area: mean time: mean', etc.
+
+        the `time_aggregation` string should be a comma-separated list of unique
+        time aggregation methods found in the `variable_cell_methods` list.
+        """
+
+        self.temporal_label = _parse_variable_cell_methods(self.variable_cell_methods)
 
     def to_dict(self) -> dict[str, str | list[str]]:
         """
@@ -202,6 +218,9 @@ class HashableIndexes:
             return True
         return False
 
+    def __hash__(self):
+        return int(self.xxh, 16)
+
     def __and__(self, other) -> set:
         """
         Return all keys which are:
@@ -285,7 +304,7 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def get_timeinfo(
+def get_timeinfo(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     ds: xr.Dataset,
     filename_frequency: str | None,
     time_dim: str,
@@ -357,7 +376,11 @@ def get_timeinfo(
 
         return cftime.num2date(t, time_var.units, calendar=cal)
 
+    # Time format should be yyyy-mm-dd, hh:mm:ss
     time_format = "%Y-%m-%d, %H:%M:%S"
+    # If year<1000, the leading zeros are usually missing
+    time_str_expected_len = 20
+
     ts = None
     te = None
     frequency: str | tuple[int | None, str] = FREQUENCY_STATIC
@@ -392,15 +415,15 @@ def get_timeinfo(
 
             dt = t1 - ts
             # TODO: This is not a very good way to get the frequency
-            if dt.days >= 365:
+            if dt.days >= 365:  # noqa: PLR2004 # Allow magic number here
                 years = round(dt.days / 365)
                 frequency = (years, "yr")
-            elif dt.days >= 28:
+            elif dt.days >= 28:  # noqa: PLR2004 # Allow magic number here
                 months = round(dt.days / 30)
                 frequency = (months, "mon")
             elif dt.days >= 1:
                 frequency = (dt.days, "day")
-            elif dt.seconds >= 3600:
+            elif dt.seconds >= 3600:  # noqa: PLR2004 # Allow magic number here
                 hours = round(dt.seconds / 3600)
                 frequency = (hours, "hr")
             else:
@@ -423,12 +446,12 @@ def get_timeinfo(
     if ts is None:
         start_date = "none"
     else:
-        start_date = ts.strftime(time_format)
+        start_date = ts.strftime(time_format).rjust(time_str_expected_len, "0")
 
     if te is None:
         end_date = "none"
     else:
-        end_date = te.strftime(time_format)
+        end_date = te.strftime(time_format).rjust(time_str_expected_len, "0")
 
     if frequency[0]:
         frequency = f"{str(frequency[0])}{frequency[1]}"
@@ -447,3 +470,26 @@ def open_dataset_cached(*args, **kwargs) -> xr.Dataset:
     should have the needed info even if close()ed.
     """
     return xr.open_dataset(*args, **kwargs)
+
+
+def _parse_variable_cell_methods(cell_methods: list[str]) -> str:
+    """
+    Take the `variable_cell_methods` list and turn it into the time_aggregation
+    string by looking for known time aggregation methods.
+
+    Variable cell methods may look like:
+    'time: mean', 'time: sum', 'area: mean time: mean', etc.
+
+    the `time_aggregation` string should be a comma-separated list of unique
+    time aggregation methods found in the `variable_cell_methods` list.
+    """
+    time_aggs = set()
+
+    for cell_method in cell_methods:
+        # Match pattern: "time: <method>" where method includes parentheses and other characters
+        matches = re.findall(r"\btime:\s*(\S+)", cell_method)
+        time_aggs.update(matches)
+
+    # Join unique aggregation methods, sorted for consistency
+    ret = ",".join(sorted(time_aggs)) if time_aggs else "unknown"
+    return ret

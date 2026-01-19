@@ -76,7 +76,7 @@ class BaseBuilder(Builder):
     # Base class carries an empty set, and a GenericParser
     PATTERNS: list = []
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 # Allow this func to have many agruments
         self,
         path: str | list[str],
         depth: int = 0,
@@ -153,7 +153,6 @@ class BaseBuilder(Builder):
                 "file_format": "csv",
                 "write_kwargs": {"compression": None},
             }
-
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -450,6 +449,7 @@ class AccessOm2Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -511,18 +511,20 @@ class AccessOm3Builder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=2,
-            exclude_patterns=kwargs.get("exclude_patterns")
-            or [
-                "*restart*",
-                "*MOM_IC.nc",
-                "*ocean_geometry.nc",
-                "*ocean.stats.nc",
-                "*Vertical_coordinate.nc",
-            ],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get(
+                "exclude_patterns",
+                [
+                    "*restart*",
+                    "*MOM_IC.nc",
+                    "*ocean_geometry.nc",
+                    "*Vertical_coordinate.nc",
+                ],
+            ),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -543,16 +545,18 @@ class AccessOm3Builder(BaseBuilder):
         output_nc_info = cls.parse_ncfile(file)
         ncinfo_dict = output_nc_info.to_dict()
 
-        if "mom6" in ncinfo_dict["filename"]:
+        if (
+            "mom6" in ncinfo_dict["filename"]
+            or "ocean.stats" in ncinfo_dict["filename"]
+        ):
             realm = "ocean"
         elif "ww3" in ncinfo_dict["filename"]:
             realm = "wave"
         elif "cice" in ncinfo_dict["filename"]:
             realm = "seaIce"
-        else:
-            # Default/missing value for realm is "" which is Falsy
-            if not (realm := output_nc_info.realm):
-                raise ParserError(f"Cannot determine realm for file {file}")
+        # Default/missing value for realm is "" which is Falsy
+        elif not (realm := output_nc_info.realm):
+            raise ParserError(f"Cannot determine realm for file {file}")
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
@@ -604,6 +608,7 @@ class Mom6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -672,6 +677,7 @@ class AccessEsm15Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -804,6 +810,7 @@ class AccessCm3Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -833,13 +840,12 @@ class AccessCm3Builder(BaseBuilder):
             realm = "seaIce"
         elif "atmos" in ncinfo_dict["filename"]:
             realm = "atmos"
-        else:
-            # Default/missing value for realm is "" which is Falsy.
-            # We don't cover these lines as they're a generic catch-all for unexpected errors
-            if not (realm := output_nc_info.realm):  # pragma: no cover
-                raise ParserError(
-                    f"Cannot determine realm for file {file}"
-                )  # pragma: no cover
+        # Default/missing value for realm is "" which is Falsy.
+        # We don't cover these lines as they're a generic catch-all for unexpected errors
+        elif not (realm := output_nc_info.realm):  # pragma: no cover
+            raise ParserError(
+                f"Cannot determine realm for file {file}"
+            )  # pragma: no cover
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
@@ -881,6 +887,7 @@ class ROMSBuilder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {
@@ -943,7 +950,10 @@ class WoaBuilder(BaseBuilder):
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
-            groupby_attrs=["file_id"],
+            groupby_attrs=[
+                "file_id",
+                "temporal_label",
+            ],
             aggregations=[
                 {
                     "type": "join_existing",
@@ -1013,6 +1023,7 @@ class Cmip6Builder(BaseBuilder):
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
+                "temporal_label",
             ],
             aggregations=[
                 {

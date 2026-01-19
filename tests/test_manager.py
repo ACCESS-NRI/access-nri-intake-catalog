@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from pathlib import Path
 from unittest import mock
 from warnings import warn
 
 import pytest
 from intake_dataframe_catalog.core import DfFileCatalogError
 from pandas.errors import EmptyDataError
+from pathlib import Path
 
 from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerError
@@ -38,6 +38,21 @@ def test_CatalogManager_init(tmp_path):
     assert "first load or build the source" in str(excinfo.value)
 
 
+def test_CatalogManager_init_parquet(tmp_path):
+    """Test that CatalogManager initialising correctly"""
+    path = str(tmp_path / "cat.parquet")
+
+    cat = CatalogManager(path)
+    assert cat.mode == "w"
+    assert hasattr(cat, "dfcat")
+
+    assert cat.dfcat.format == "parquet"
+
+    with pytest.raises(CatalogManagerError) as excinfo:
+        cat._add()
+    assert "first load or build the source" in str(excinfo.value)
+
+
 @pytest.mark.parametrize(
     "builder, basedir, kwargs",
     [
@@ -47,11 +62,14 @@ def test_CatalogManager_init(tmp_path):
         (AccessOm3Builder, "access-om3", {}),
     ],
 )
+@pytest.mark.parametrize("use_parquet", [True, False])
 @pytest.mark.filterwarnings("ignore:Unable to parse 2 assets")
-def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs):
+def test_CatalogManager_build_esm(
+    tmp_path, test_data, builder, basedir, kwargs, use_parquet
+):
     """Test building and adding an Intake-ESM datastore"""
     path = str(tmp_path / "cat.csv")
-    cat = CatalogManager(path)
+    cat = CatalogManager(path, use_parquet)
 
     metadata = load_metadata_yaml(
         str(test_data / basedir / "metadata.yaml"), EXP_JSONSCHEMA
@@ -78,10 +96,9 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
     cat.save()
     cat = CatalogManager(path)
     assert cat.mode == "a"
-
     # Confirm we wrote out parquet, not csv, files
-    assert not (Path(cat.path).parent / "test.csv").exists()
-    assert (Path(cat.path).parent / "test.parquet").exists()
+    assert (Path(cat.path).parent / "test.csv").exists() != use_parquet
+    assert (Path(cat.path).parent / "test.parquet").exists() == use_parquet
 
 
 @mock.patch("intake_dataframe_catalog.core.DfFileCatalog.__init__")

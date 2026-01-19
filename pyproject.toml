@@ -18,7 +18,7 @@ dynamic = ["version"]
 
 dependencies = [
     "cftime",
-    "ecgtools-access>=2025.10.7",
+    "ecgtools-access",
     "frozendict",
     "intake>=2.0.0",
     "intake-dataframe-catalog>=0.3.1",
@@ -103,14 +103,19 @@ exclude = [
     "node_modules",
     "venv",
     "versioneer.py",
+    "_version.py",
+    "*.ipynb",
+    "tests",
 ]
 # E402: module level import not at top of file
 # E501: line too long - let black worry about that
-ignore = [
+lint.ignore = [
     "E402",
     "E501",
 ]
-select = [
+lint.select = [
+    # PyLint
+    "PL",
     # Pyflakes
     "F",
     # Pycodestyle
@@ -122,10 +127,10 @@ select = [
     "UP",
 ]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 18
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["access_nri_intake"]
 
 [tool.pixi.workspace]
@@ -141,6 +146,7 @@ test-py313 = { features = ["py313", "test"] }
 
 [tool.pixi.feature.dev.pypi-dependencies]
 access_nri_intake = { path = ".", editable = true }
+pdbpp = ">=0.11.7,<0.12"
 
 [tool.pixi.feature.dev.dependencies]
 pre-commit = ">=4.2.0,<5"
@@ -156,7 +162,7 @@ pre-commit = { cmd = "pre-commit run --all-files && pixi lock", description = "R
 dump-conda-env = { cmd = "pixi workspace export conda-environment --name access-nri-intake-test > env.yml", description = "Dump conda environment to env.yml" }
 
 [tool.pixi.feature.test.pypi-dependencies]
-access_nri_intake = { path = ".", editable = false } 
+access_nri_intake = { path = ".", editable = false }
 
 [tool.pixi.feature.test.dependencies]
 pytest = ">=8.4.1,<9"

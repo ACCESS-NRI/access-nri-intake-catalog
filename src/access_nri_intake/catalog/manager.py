@@ -33,7 +33,7 @@ class CatalogManager:
     Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
-    def __init__(self, path: Path | str):
+    def __init__(self, path: Path | str, use_parquet: bool = False):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog like the ACCESS-NRI catalog
@@ -42,12 +42,21 @@ class CatalogManager:
         ----------
         path: str
             The path to the intake-dataframe-catalog
+        use_parquet: bool
+            Whether to use parquet files instead of csv files. This will also save version info into
+            the `parameters::version_pq` namespace, allowing us to separately track parquet & csv
+            catalog versions, maintaining backwards compatibility with existing catalogs.
         """
         path = Path(path)
 
         self.path = str(path)
+        self.use_parquet = use_parquet
 
         self.mode = "a" if path.exists() else "w"
+
+        columns_with_iterables = (
+            COLUMNS_WITH_ITERABLES if not Path.suffix == ".parquet" else None
+        )
 
         try:
             self.dfcat = DfFileCatalog(
@@ -55,7 +64,7 @@ class CatalogManager:
                 yaml_column=YAML_COLUMN,
                 name_column=NAME_COLUMN,
                 mode=self.mode,
-                columns_with_iterables=COLUMNS_WITH_ITERABLES,
+                columns_with_iterables=columns_with_iterables,
             )
         except (EmptyDataError, DfFileCatalogError) as e:
             raise Exception(str(e) + f": {self.path}") from e
@@ -63,7 +72,7 @@ class CatalogManager:
         self.source = None
         self.source_metadata = None
 
-    def build_esm(
+    def build_esm(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
         name: str,
         description: str,
@@ -116,22 +125,30 @@ class CatalogManager:
 
         builder = builder(path, **kwargs).build()
         builder.save(
-            name=name, description=description, directory=directory, use_parquet=True
+            name=name,
+            description=description,
+            directory=directory,
+            use_parquet=self.use_parquet,
         )
 
-        self.source, self.source_metadata = _open_and_translate(
-            str(json_file),
-            "esm_datastore",
-            name,
-            description,
-            metadata,
-            translator,
-            # No longer need columns with iterables, natively handled by parquet
+        open_translate_kwargs = dict(
+            file=str(json_file),
+            driver="esm_datastore",
+            name=name,
+            description=description,
+            metadata=metadata,
+            translator=translator,
+            columns_with_iterables=list(builder.columns_with_iterables),
         )
+        if self.use_parquet:
+            # Don't need to specify columns_with_iterables for parquet - serialised into format
+            open_translate_kwargs.pop("columns_with_iterables")
+
+        self.source, self.source_metadata = _open_and_translate(**open_translate_kwargs)
 
         self._add()
 
-    def load(
+    def load(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
         name: str,
         description: str,
@@ -244,7 +261,7 @@ class CatalogManager:
         self.dfcat.save(**kwargs)
 
 
-def _open_and_translate(
+def _open_and_translate(  # noqa: PLR0913 # Allow this func to have many arguments
     file, driver, name, description, metadata, translator, **kwargs
 ) -> tuple[esm_datastore, dict]:
     """

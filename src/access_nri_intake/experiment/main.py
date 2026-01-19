@@ -23,7 +23,7 @@ warnings.simplefilter(
 )  # This will emit warnings from the command line - this is intentional
 
 
-def use_datastore(
+def use_datastore(  # noqa: PLR0913 # Allow this func to have many agruments
     experiment_dir: Path | str,
     builder: Builder | None = None,
     catalog_dir: Path | str | None = None,

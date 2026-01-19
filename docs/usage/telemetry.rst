@@ -13,7 +13,7 @@ A typical telemetry record is shown below:
 
    {
        "timestamp": "2025-04-01T01:07:53.146786Z",
-       "name": "unknown",
+       "name": "ct1163",
        "function": "esm_datastore.search",
        "args": [],
        "kwargs": {
@@ -37,9 +37,6 @@ The other data collected are:
 
 - :code:`name` 
    A name identifier which may in future be used to connect usage to a particular user. 
-   Presently, we do not collect any identifying information about users, such as usernames, and so this
-   field is always :code:`unknown`. In future, we may collect fully anonymised identifiers relating to 
-   users, but this will be communicated to users in advance.
 
 - :code:`function`
    The function that was called, in this case :code:`.search`. We collect this in 
@@ -78,9 +75,10 @@ Below is a list of frequently asked questions and accompanying answers:
    functionality. An up to date list of these functions can be found 
    `here <https://github.com/ACCESS-NRI/access-py-telemetry/blob/main/src/access_py_telemetry/config.yaml>`_.
 
-   No data that could identify a specific user is collected. In future, we may begin to collect fully anonymised
-   identifiers relating to users, but this will be communicated to users in advance, and will follow 
-   industry best practices to ensure that this data not, nor could be used to, identify users.
+   The telemetry we collect does contain Gadi User ID's.  However, these are not used to collect any specific
+   information about personal usage patterns, and are anonymised prior to any data use. All potentially
+   identifiable data will be handled following industry best practices to ensure that this does data not, nor
+   could be used to, identify users.
 
 .. topic:: Can I disable telemetry?
 
