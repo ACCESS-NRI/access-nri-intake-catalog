@@ -140,7 +140,19 @@ class BaseBuilder(Builder):
         self._parse()
         return self
 
-    def _save(self, name: str, description: str, directory: str | None):
+    def _save(
+        self, name: str, description: str, directory: str | None, use_parquet: bool
+    ) -> None:
+        if use_parquet:
+            kwargs = {
+                "file_format": "parquet",
+                "write_kwargs": {"compression": "snappy"},
+            }
+        else:
+            kwargs = {
+                "file_format": "csv",
+                "write_kwargs": {"compression": None},
+            }
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -151,11 +163,16 @@ class BaseBuilder(Builder):
             esmcat_version="0.0.1",
             description=description,
             directory=directory,
-            catalog_type="file",
-            to_csv_kwargs={"compression": None},
+            **kwargs,
         )
 
-    def save(self, name: str, description: str, directory: str | None = None) -> None:
+    def save(
+        self,
+        name: str,
+        description: str,
+        directory: str | None = None,
+        use_parquet: bool = False,
+    ) -> None:
         """
         Save datastore contents to a file.
 
@@ -167,6 +184,10 @@ class BaseBuilder(Builder):
             Detailed multi-line description of the collection.
         directory: str, optional
             The directory to save the datastore to. If None, use the current directory.
+        use_parquet: bool, optional
+            Whether to save the datastore as a parquet file. Defaults to False,
+            which saves as a CSV file. Parquet is both faster and saves space, but
+            unlike CSV is not human-readable.
         """
 
         if self.df.empty:
@@ -174,7 +195,7 @@ class BaseBuilder(Builder):
                 "Intake-ESM datastore has not yet been built. Please run `.build()` first"
             )
 
-        self._save(name, description, directory)
+        self._save(name, description, directory, use_parquet)
 
     @classmethod
     def _parser_catch_invalid(cls, file: str) -> dict:
