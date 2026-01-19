@@ -169,7 +169,7 @@ class VersionHandler:
                 min(*existing_vers, self.version),
                 max(*existing_vers, self.version),
             )
-        if not _multiple_existing_versions():
+        else:
             self.yaml_dict = self._set_catalog_yaml_version_bounds(
                 self.yaml_dict, self.version, self.version
             )
@@ -641,10 +641,6 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     version = args.version
     update = not args.no_update
     concretize = not args.no_concretize
-    use_parquet = args.use_parquet
-
-    if catalog_file is None:
-        catalog_file = "metacatalog.parquet" if use_parquet else "metacatalog.csv"
     use_parquet = args.use_parquet
 
     if catalog_file is None:
