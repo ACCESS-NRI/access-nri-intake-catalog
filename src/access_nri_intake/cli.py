@@ -96,7 +96,7 @@ class VersionHandler:
                 return yaml.safe_load(fobj)
         return None
 
-    def __call__(self):
+    def __call__(self) -> dict[str, Any]:
         """
         Dispatch to the version computation method.
         """
@@ -138,23 +138,20 @@ class VersionHandler:
             vmin_old, vmax_old = self._compute_prev_existing()
 
         if not self.existing_cat:
-            self._mystery_branch_part_1()
+            self.set_versions_no_existing_cat()
             return self.yaml_dict
 
         if vmin_old is None and vmax_old is None:
-            self._mystery_branch_part_2()
+            self.set_versions_no_prev_vmin_vmax()
 
         return self.yaml_dict
 
-    def _mystery_branch_part_1(self):
+    def set_versions_no_existing_cat(self) -> None:
         """
-        I have no idea what this is doing... Even the conditional that triggers
-        it is hard to follow.
+        No existing catalog, so set min = max = current version,
+        unless there are folders with the right names in the write
+        directory
         """
-
-        # No existing catalog, so set min = max = current version,
-        # unless there are folders with the right names in the write
-        # directory
 
         def _multiple_existing_versions() -> bool:
             """Only here for readability in conditionals below."""
@@ -177,15 +174,10 @@ class VersionHandler:
                 self.yaml_dict, self.version, self.version
             )
 
-    def _mystery_branch_part_2(self):
+    def set_versions_no_prev_vmin_vmax(self) -> dict[str, Any] | None:
         """
-        I have no idea what this is doing... Even the conditional that triggers
-        it is hard to follow.
+        Still not really sure what exactly this should be called.
         """
-
-        # No existing catalog, so set min = max = current version,
-        # unless there are folders with the right names in the write
-        # directory
 
         def _multiple_existing_versions() -> bool:
             """Only here for readability in conditional below."""
@@ -215,17 +207,22 @@ class VersionHandler:
                 self.yaml_dict, self.version, self.version
             )
 
+        return None
+
     def _pass_through_alt_catalog(self, yaml_old: dict) -> tuple[None, None]:
         """
         If we are computing previous versions, but we don't have a previous version
         for our current source, then we need to pass through the alternate catalog,
         by mutating yaml_old, and then return our previous versions - which are
-        going to be `(None, None)`. We also call this to pass through the alternate
-        catalog when we have an existing catalog for our source to update, but
-        don't need to do anything with the version numbers there.
+        going to be `(None, None)`.
+
+        We also call this to pass through the alternate catalog when we have an
+        existing catalog for our source to update, but don't need to do anything
+        with the version numbers there.
         """
-        vmin_old, vmax_old = None, None
         self.yaml_dict["sources"][self.alt_name] = yaml_old["sources"][self.alt_name]
+
+        vmin_old, vmax_old = None, None
         return vmin_old, vmax_old
 
     def _compute_prev_existing(self) -> tuple[str | None, str | None]:
@@ -275,16 +272,15 @@ class VersionHandler:
         if (_changed_args or _changed_driver) and _previous_vlims:
             # Move the old catalog out of the way
             # New catalog.yaml will have restricted version bounds
-            if vmin_old == vmax_old:
-                vers_str = vmin_old
-            else:
-                vers_str = f"{vmin_old}-{vmax_old}"
+            vers_str = vmin_old if vmin_old == vmax_old else f"{vmin_old}-{vmax_old}"
+
             Path(self.cat_loc).rename(
                 Path(self.cat_loc).parent / f"catalog-{vers_str}.yaml"
             )
             self.yaml_dict = self._set_catalog_yaml_version_bounds(
                 self.yaml_dict, self.version, self.version
             )
+
         elif _changed_storage:
             self.yaml_dict["sources"][self.cat_name]["metadata"]["storage"] = (
                 _combine_storage_flags(storage_new, storage_old)

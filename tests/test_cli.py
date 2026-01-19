@@ -18,6 +18,7 @@ from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
     DirectoryExistsError,
     MetadataCheckError,
+    VersionHandler,
     _add_source_to_catalog,
     _check_build_args,
     _confirm_project_access,
@@ -2241,3 +2242,16 @@ def test_build_default_catalog_filename(
     build_path = Path(build_base_path) / version / build_fname
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
+
+
+def test_VersionHandler_no_yaml_old(tmpdir):
+    """Test VersionHandler when there is no old catalog.yaml present"""
+    vh = VersionHandler(
+        yaml_dict={},
+        build_base_path=Path(tmpdir),
+        catalog_base_path=Path(tmpdir),
+        version="v2024-01-01",
+        use_parquet=False,
+    )
+
+    assert vh.yaml_old is None
