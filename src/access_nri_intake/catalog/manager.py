@@ -4,6 +4,7 @@
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
 from pathlib import Path
+from typing import Any
 
 import intake
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
@@ -69,8 +70,8 @@ class CatalogManager:
         except (EmptyDataError, DfFileCatalogError) as e:
             raise Exception(str(e) + f": {self.path}") from e
 
-        self.source = None
-        self.source_metadata = None
+        self.source: esm_datastore | None = None
+        self.source_metadata: dict[str, Any] | None = None
 
     def build_esm(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
@@ -153,7 +154,7 @@ class CatalogManager:
         name: str,
         description: str,
         path: str,
-        directory: str,
+        directory: str | None = None,
         driver: str = "esm_datastore",
         translator=DefaultTranslator,
         metadata: dict | None = None,
@@ -171,7 +172,8 @@ class CatalogManager:
         path: str
             The path to the Intake data source
         directory: str, optional
-            The directory to save reserialized Intake data source to.
+            The directory to save reserialized Intake data source to. Defaults to
+            Path(path).parent
         driver: str
             The name of the Intake driver to use to open the data source
         translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`, optional
@@ -192,14 +194,18 @@ class CatalogManager:
                 )
             path = path[0]
 
+        directory = directory or str(Path(path).parent)
         metadata = metadata or {}
 
-        self.source, self.source_metadata = _open_and_translate(
+        source, source_metadata = _open_and_translate(
             path, driver, name, description, metadata, translator, **kwargs
         )
-        self.source: esm_datastore
+
+        self.source, self.source_metadata = source, source_metadata
+
+        breakpoint()
         self.source.serialize(
-            name=self.source.name,
+            name=source.name,
             directory=directory,
             catalog_type="file",
             file_format="parquet",
@@ -234,6 +240,7 @@ class CatalogManager:
         overwrite = True
         for _, row in self.source_metadata.iterrows():
             try:
+                breakpoint()
                 self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
             except DfFileCatalogError as exc:
                 # If we have 'iterable metadata' in the error message, it likely relates to
