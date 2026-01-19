@@ -47,6 +47,272 @@ class DirectoryExistsError(Exception):
     pass
 
 
+class VersionHandler:
+    CSV_AND_PQ_SOURCES = {"access_nri", "access_nri_pq"}
+
+    def __init__(
+        self,
+        yaml_dict: dict,
+        catalog_base_path: str | Path,
+        build_base_path: Path,
+        version: str,
+        use_parquet: bool = False,
+    ):
+        self.yaml_dict = yaml_dict
+        self.catalog_base_path = catalog_base_path
+        self.build_base_path = build_base_path
+        self.version = version
+        self.use_parquet = use_parquet
+
+        self._existing_cat: bool | None = None
+
+    @property
+    def cat_name(self) -> T_catname:
+        return "access_nri" if not self.use_parquet else "access_nri_pq"
+
+    @property
+    def alt_name(self) -> T_catname:
+        return "access_nri" if self.cat_name == "access_nri_pq" else "access_nri_pq"
+
+    @property
+    def cat_loc(self) -> Path:
+        return Path(get_catalog_fp(basepath=self.catalog_base_path))
+
+    @property
+    def existing_cat(self) -> bool:
+        """
+        Memo-ised property to check for existing catalog file. If we don't memoize,
+        then we run into mutation issues - because __call__ will write a new catalog
+        partway through its execution, invaliding the checks.
+        """
+        if self._existing_cat is None:
+            self._existing_cat = Path(self.cat_loc).exists()
+        return self._existing_cat
+
+    @property
+    def yaml_old(self) -> dict | None:
+        if self.existing_cat:
+            with Path(self.cat_loc).open(mode="r") as fobj:
+                return yaml.safe_load(fobj)
+        return None
+
+    def __call__(self):
+        """
+        Dispatch to the version computation method.
+        """
+        return self._compute_previous_versions()
+
+    def _compute_previous_versions(  # noqa: PLR0912
+        self,
+    ) -> dict[str, Any]:
+        """Calculate previous version information for a new catalog build.
+
+        Returns
+        -------
+        dict
+            An updated YAML dict describing the new catalog, including current/min/max version.
+
+        Notes
+        -----
+        The logic for determining the min/max catalog version is as follows:
+        - If there are no existing catalogs, then min=max=current.
+        - If there are existing catalogs, the following happens:
+        - If the `args` or `driver` parts of the catalog YAML are changing in the
+            new version, the versions are incompatible. The existing catalog.yaml
+            will be moved aside to a new filename, labelled with its min and max
+            version numbers. (An exception to this rule is legacy catalogs without
+            a min or max version will have their storage flags retained.)
+        - If existing catalogs are otherwise compatible with the new catalog, their
+            min and max versions will be incorporated in with the new catalog and the
+            existing catalog.yaml will be overwritten.
+        - If we have switched from csv to parquet or vice versa, the existing catalog
+            will be retained as-is, and the new catalog will be added alongside it.
+        - Whether we update `access_nri` or `access_nri_pq` is determined by the
+        `use_parquet` flag. The other catalog will be retained as-is.
+        TODO: Storage flag combination probably needs updating, but implement in a
+        separate PR to manage complexity.
+
+        """
+
+        if self.existing_cat:
+            vmin_old, vmax_old = self._compute_prev_existing()
+
+        if not self.existing_cat:
+            self._mystery_branch_part_1()
+            return self.yaml_dict
+
+        if vmin_old is None and vmax_old is None:
+            self._mystery_branch_part_2()
+
+        return self.yaml_dict
+
+    def _mystery_branch_part_1(self):
+        """
+        I have no idea what this is doing... Even the conditional that triggers
+        it is hard to follow.
+        """
+
+        # No existing catalog, so set min = max = current version,
+        # unless there are folders with the right names in the write
+        # directory
+
+        def _multiple_existing_versions() -> bool:
+            """Only here for readability in conditionals below."""
+            return len(existing_vers) > 1
+
+        existing_vers = [
+            v.name.lstrip(".")
+            for v in self.build_base_path.iterdir()
+            if re.match(CATALOG_NAME_FORMAT, v.name)
+        ]
+
+        if _multiple_existing_versions():
+            self.yaml_dict = self._set_catalog_yaml_version_bounds(
+                self.yaml_dict,
+                min(*existing_vers, self.version),
+                max(*existing_vers, self.version),
+            )
+        if not _multiple_existing_versions():
+            self.yaml_dict = self._set_catalog_yaml_version_bounds(
+                self.yaml_dict, self.version, self.version
+            )
+
+    def _mystery_branch_part_2(self):
+        """
+        I have no idea what this is doing... Even the conditional that triggers
+        it is hard to follow.
+        """
+
+        # No existing catalog, so set min = max = current version,
+        # unless there are folders with the right names in the write
+        # directory
+
+        def _multiple_existing_versions() -> bool:
+            """Only here for readability in conditional below."""
+            return len(existing_vers) > 1
+
+        if set(self.yaml_dict["sources"].keys()) == self.CSV_AND_PQ_SOURCES:
+            # First parquet catalog - don't update versions
+            self.yaml_dict = self._set_catalog_yaml_version_bounds(
+                self.yaml_dict, self.version, self.version
+            )
+            return self.yaml_dict
+
+        existing_vers = [
+            v.name.lstrip(".")
+            for v in self.build_base_path.iterdir()
+            if re.match(CATALOG_NAME_FORMAT, v.name)
+        ]
+
+        if _multiple_existing_versions():
+            self.yaml_dict = self._set_catalog_yaml_version_bounds(
+                self.yaml_dict,
+                min(*existing_vers, self.version),
+                max(*existing_vers, self.version),
+            )
+        if not _multiple_existing_versions():
+            self.yaml_dict = self._set_catalog_yaml_version_bounds(
+                self.yaml_dict, self.version, self.version
+            )
+
+    def _pass_through_alt_catalog(self, yaml_old: dict) -> tuple[None, None]:
+        """
+        If we are computing previous versions, but we don't have a previous version
+        for our current source, then we need to pass through the alternate catalog,
+        by mutating yaml_old, and then return our previous versions - which are
+        going to be `(None, None)`. We also call this to pass through the alternate
+        catalog when we have an existing catalog for our source to update, but
+        don't need to do anything with the version numbers there.
+        """
+        vmin_old, vmax_old = None, None
+        self.yaml_dict["sources"][self.alt_name] = yaml_old["sources"][self.alt_name]
+        return vmin_old, vmax_old
+
+    def _compute_prev_existing(self) -> tuple[str | None, str | None]:
+        """
+        Handle the branch where we have an existing catalog.
+        """
+        yaml_old = self.yaml_old
+
+        if yaml_old is None:  # Here to keep mypy happy - we can't test this easily
+            raise RuntimeError(  # pragma: no cover
+                "Invalid state encountered: `yaml_old` is None when `existing_cat` is True."
+            )
+
+        # Check to see what has changed. We care if the following keys
+        # have changed (ignoring the sources.access_nri at the head
+        # of each dict path):
+        # - args (all parts - mode should never change)
+        # - driver
+        if not yaml_old["sources"].get(self.cat_name):
+            return self._pass_through_alt_catalog(yaml_old)
+
+        if set(self.yaml_dict["sources"].keys()) == self.CSV_AND_PQ_SOURCES:
+            self._pass_through_alt_catalog(yaml_old)
+
+        fragment_new = self.yaml_dict["sources"][self.cat_name]
+        fragment_old = yaml_old["sources"][self.cat_name]
+
+        args_new, args_old = (fragment_new["args"], fragment_old["args"])
+        driver_new, driver_old = (fragment_new["driver"], fragment_old["driver"])
+
+        vmin_old, vmax_old = (
+            fragment_old["parameters"]["version"].get("min", None),
+            fragment_old["parameters"]["version"].get("max", None),
+        )  # Nones are redundant here but help with readability
+
+        storage_new, storage_old = (
+            fragment_new["metadata"]["storage"],
+            fragment_old["metadata"]["storage"],
+        )
+
+        _changed_args = args_new != args_old
+        _changed_driver = driver_new != driver_old
+        _changed_storage = storage_new != storage_old
+
+        _previous_vlims = vmin_old is not None and vmax_old is not None
+
+        if (_changed_args or _changed_driver) and _previous_vlims:
+            # Move the old catalog out of the way
+            # New catalog.yaml will have restricted version bounds
+            if vmin_old == vmax_old:
+                vers_str = vmin_old
+            else:
+                vers_str = f"{vmin_old}-{vmax_old}"
+            Path(self.cat_loc).rename(
+                Path(self.cat_loc).parent / f"catalog-{vers_str}.yaml"
+            )
+            self.yaml_dict = self._set_catalog_yaml_version_bounds(
+                self.yaml_dict, self.version, self.version
+            )
+        elif _changed_storage:
+            self.yaml_dict["sources"][self.cat_name]["metadata"]["storage"] = (
+                _combine_storage_flags(storage_new, storage_old)
+            )
+
+        if fragment_new["parameters"]["version"].get("min", None) is not None:
+            return vmin_old, vmax_old
+
+        # Set the minimum and maximum catalog versions, if they're not set already
+        # in the 'new catalog' if statement above
+        self.yaml_dict = self._set_catalog_yaml_version_bounds(
+            self.yaml_dict,
+            min(self.version, vmin_old or self.version),
+            max(self.version, vmax_old or self.version),
+        )
+        return vmin_old, vmax_old
+
+    def _set_catalog_yaml_version_bounds(self, d: dict, bl: str, bu: str) -> dict:
+        """
+        Set the version boundaries for the access_nri_intake_catalog.
+        """
+
+        d["sources"][self.cat_name]["parameters"]["version"]["min"] = bl
+        d["sources"][self.cat_name]["parameters"]["version"]["max"] = bu
+
+        return d
+
+
 def _parse_build_inputs(
     config_yamls: list[str | Path], build_path: str | Path, data_base_path: str | Path
 ) -> list[tuple[str, dict]]:
@@ -276,222 +542,6 @@ def _write_catalog_yaml(
     # Save the catalog
     cm.save()
     return yaml_dict
-
-
-class VersionHandler:
-    CSV_AND_PQ_SOURCES = 2
-
-    def __init__(
-        self,
-        yaml_dict: dict,
-        catalog_base_path: str | Path,
-        build_base_path: Path,
-        version: str,
-        use_parquet: bool = False,
-    ):
-        self.yaml_dict = yaml_dict
-        self.catalog_base_path = catalog_base_path
-        self.build_base_path = build_base_path
-        self.version = version
-        self.use_parquet = use_parquet
-
-    @property
-    def cat_name(self) -> T_catname:
-        return "access_nri" if not self.use_parquet else "access_nri_pq"
-
-    @property
-    def alt_name(self) -> T_catname:
-        return "access_nri" if self.cat_name == "access_nri_pq" else "access_nri_pq"
-
-    @property
-    def cat_loc(self) -> Path:
-        return Path(get_catalog_fp(basepath=self.catalog_base_path))
-
-    @property
-    def existing_cat(self) -> bool:
-        cat_loc = get_catalog_fp(basepath=self.catalog_base_path)
-        return Path(cat_loc).exists()
-
-    @property
-    def yaml_old(self) -> dict | None:
-        if self.existing_cat:
-            with Path(self.cat_loc).open(mode="r") as fobj:
-                return yaml.safe_load(fobj)
-        return None
-
-    def __call__(self):
-        """
-        Dispatch to the version computation method.
-        """
-        return self._compute_previous_versions()
-
-    def _compute_previous_versions(  # noqa: PLR0912
-        self,
-    ) -> dict:
-        """Calculate previous version information for a new catalog build.
-
-        Returns
-        -------
-        dict
-            An updated YAML dict describing the new catalog, including current/min/max version.
-
-        Notes
-        -----
-        The logic for determining the min/max catalog version is as follows:
-        - If there are no existing catalogs, then min=max=current.
-        - If there are existing catalogs, the following happens:
-        - If the `args` or `driver` parts of the catalog YAML are changing in the
-            new version, the versions are incompatible. The existing catalog.yaml
-            will be moved aside to a new filename, labelled with its min and max
-            version numbers. (An exception to this rule is legacy catalogs without
-            a min or max version will have their storage flags retained.)
-        - If existing catalogs are otherwise compatible with the new catalog, their
-            min and max versions will be incorporated in with the new catalog and the
-            existing catalog.yaml will be overwritten.
-        - If we have switched from csv to parquet or vice versa, the existing catalog
-            will be retained as-is, and the new catalog will be added alongside it.
-        - Whether we update `access_nri` or `access_nri_pq` is determined by the
-        `use_parquet` flag. The other catalog will be retained as-is.
-        TODO: Storage flag combination probably needs updating, but implement in a
-        separate PR to manage complexity.
-
-        """
-        _existing_cat = Path(
-            self.cat_loc
-        ).exists()  # Need to keep this around for a while
-
-        # See if there's an existing catalog
-        if self.existing_cat:
-            vmin_old, vmax_old = self._compute_prev_existing()
-
-        # refactoring this to self.existing_cat breaks a bunch of tests! WTF!
-        if (not _existing_cat) or (vmin_old is None and vmax_old is None):
-            self._mystery_branch()
-        return self.yaml_dict
-
-    def _mystery_branch(self):
-        """
-        I have no idea what this is doing... Even the conditional that triggers
-        it is hard to follow.
-        """
-        # No existing catalog, so set min = max = current version,
-        # unless there are folders with the right names in the write
-        # directory
-
-        if (
-            self.existing_cat
-            and len(self.yaml_dict["sources"]) == self.CSV_AND_PQ_SOURCES
-        ):
-            # First parquet catalog - don't update versions
-            self.yaml_dict = _set_catalog_yaml_version_bounds(
-                self.yaml_dict, self.version, self.version, self.use_parquet
-            )
-            return self.yaml_dict
-
-        existing_vers = [
-            v.name.lstrip(".")
-            for v in self.build_base_path.iterdir()
-            if re.match(CATALOG_NAME_FORMAT, v.name)
-        ]
-        if len(existing_vers) > 1:
-            self.yaml_dict = _set_catalog_yaml_version_bounds(
-                self.yaml_dict,
-                min(*existing_vers, self.version),
-                max(*existing_vers, self.version),
-                self.use_parquet,
-            )
-        else:
-            self.yaml_dict = _set_catalog_yaml_version_bounds(
-                self.yaml_dict, self.version, self.version, self.use_parquet
-            )
-
-    def _compute_prev_existing(self) -> tuple[str | None, str | None]:
-        """
-        Handle the branch where we have an existing catalog.
-        """
-        yaml_old = self.yaml_old
-
-        if yaml_old is None:
-            raise RuntimeError(
-                "Invalid state encountered: `yaml_old` is None when `existing_cat` is True."
-            )
-
-        # Check to see what has changed. We care if the following keys
-        # have changed (ignoring the sources.access_nri at the head
-        # of each dict path):
-        # - args (all parts - mode should never change)
-        # - driver
-        if not yaml_old["sources"].get(self.cat_name):
-            vmin_old, vmax_old = None, None
-            self.yaml_dict["sources"][self.alt_name] = yaml_old["sources"][
-                self.alt_name
-            ]
-        else:
-            if len(yaml_old["sources"]) == self.CSV_AND_PQ_SOURCES:
-                self.yaml_dict["sources"][self.alt_name] = yaml_old["sources"][
-                    self.alt_name
-                ]
-
-            args_new, args_old = (
-                self.yaml_dict["sources"][self.cat_name]["args"],
-                yaml_old["sources"][self.cat_name]["args"],
-            )
-            driver_new, driver_old = (
-                self.yaml_dict["sources"][self.cat_name]["driver"],
-                yaml_old["sources"][self.cat_name]["driver"],
-            )
-            vmin_old, vmax_old = (
-                yaml_old["sources"][self.cat_name]["parameters"]["version"].get("min"),
-                yaml_old["sources"][self.cat_name]["parameters"]["version"].get("max"),
-            )
-            storage_new, storage_old = (
-                self.yaml_dict["sources"][self.cat_name]["metadata"]["storage"],
-                yaml_old["sources"][self.cat_name]["metadata"]["storage"],
-            )
-
-            if (
-                (args_new != args_old or driver_new != driver_old)
-                and vmin_old is not None
-                and vmax_old is not None
-            ):
-                # Move the old catalog out of the way
-                # New catalog.yaml will have restricted version bounds
-                if vmin_old == vmax_old:
-                    vers_str = vmin_old
-                else:
-                    vers_str = f"{vmin_old}-{vmax_old}"
-                Path(self.cat_loc).rename(
-                    Path(self.cat_loc).parent / f"catalog-{vers_str}.yaml"
-                )
-                self.yaml_dict = _set_catalog_yaml_version_bounds(
-                    self.yaml_dict, self.version, self.version, self.use_parquet
-                )
-            elif storage_new != storage_old:
-                self.yaml_dict["sources"][self.cat_name]["metadata"]["storage"] = (
-                    _combine_storage_flags(storage_new, storage_old)
-                )
-
-            # Set the minimum and maximum catalog versions, if they're not set already
-            # in the 'new catalog' if statement above
-            if (
-                self.yaml_dict["sources"][self.cat_name]["parameters"]["version"].get(
-                    "min"
-                )
-                is None
-            ):
-                self.yaml_dict = _set_catalog_yaml_version_bounds(
-                    self.yaml_dict,
-                    min(
-                        self.version,
-                        vmin_old if vmin_old is not None else self.version,
-                    ),
-                    max(
-                        self.version,
-                        vmax_old if vmax_old is not None else self.version,
-                    ),
-                    self.use_parquet,
-                )
-        return vmin_old, vmax_old
 
 
 def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
@@ -853,20 +903,6 @@ def _concretize_build(  # noqa: PLR0913 # Allow this func to have many arguments
         catalog_src = Path(catalog_base_path) / version / "catalog.yaml"
         catalog_dst = Path(catalog_base_path) / "catalog.yaml"
         catalog_src.rename(catalog_dst)
-
-
-def _set_catalog_yaml_version_bounds(
-    d: dict, bl: str, bu: str, use_parquet: bool = False
-) -> dict:
-    """
-    Set the version boundaries for the access_nri_intake_catalog.
-    """
-    cat_name: T_catname = "access_nri" if not use_parquet else "access_nri_pq"
-
-    d["sources"][cat_name]["parameters"]["version"]["min"] = bl
-    d["sources"][cat_name]["parameters"]["version"]["max"] = bu
-
-    return d
 
 
 def _combine_storage_flags(a: str, b: str) -> str:
