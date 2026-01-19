@@ -351,7 +351,7 @@ class VersionHandler:
         existing_cat = Path(cat_loc).exists()
 
         # See if there's an existing catalog
-        if existing_cat:
+        if self.existing_cat:
             with Path(cat_loc).open(mode="r") as fobj:
                 yaml_old = yaml.safe_load(fobj)
 
