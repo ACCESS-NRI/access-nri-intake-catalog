@@ -302,15 +302,19 @@ class VersionHandler:
         return "access_nri" if self.cat_name == "access_nri_pq" else "access_nri_pq"
 
     @property
+    def cat_loc(self) -> Path:
+        return Path(get_catalog_fp(basepath=self.catalog_base_path))
+
+    @property
     def existing_cat(self) -> bool:
         cat_loc = get_catalog_fp(basepath=self.catalog_base_path)
         return Path(cat_loc).exists()
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self):
         """
         Dispatch to the version computation method.
         """
-        return self._compute_previous_versions(*args, **kwargs)
+        return self._compute_previous_versions()
 
     def _compute_previous_versions(  # noqa: PLR0912
         self,
@@ -347,12 +351,58 @@ class VersionHandler:
         separate PR to manage complexity.
 
         """
-        cat_loc = get_catalog_fp(basepath=self.catalog_base_path)
-        existing_cat = Path(cat_loc).exists()
+        _existing_cat = Path(
+            self.cat_loc
+        ).exists()  # Need to keep this around for a while
 
         # See if there's an existing catalog
         if self.existing_cat:
-            with Path(cat_loc).open(mode="r") as fobj:
+            vmin_old, vmax_old = self._compute_prev_existing()
+
+        # refactoring this to self.existing_cat breaks a bunch of tests! WTF!
+        if (not _existing_cat) or (vmin_old is None and vmax_old is None):
+            self._mystery_branch()
+        return self.yaml_dict
+
+    def _mystery_branch(self):
+        """
+        I have no idea what this is doing... Even the conditional that triggers
+        it is hard to follow.
+        """
+        # No existing catalog, so set min = max = current version,
+        # unless there are folders with the right names in the write
+        # directory
+
+        if self.existing_cat and len(self.yaml_dict["sources"]) == 2:  # noqa: PLR2004
+            # First parquet catalog - don't update versions
+            self.yaml_dict = _set_catalog_yaml_version_bounds(
+                self.yaml_dict, self.version, self.version, self.use_parquet
+            )
+            return self.yaml_dict
+
+        existing_vers = [
+            v.name.lstrip(".")
+            for v in self.build_base_path.iterdir()
+            if re.match(CATALOG_NAME_FORMAT, v.name)
+        ]
+        if len(existing_vers) > 1:
+            self.yaml_dict = _set_catalog_yaml_version_bounds(
+                self.yaml_dict,
+                min(*existing_vers, self.version),
+                max(*existing_vers, self.version),
+                self.use_parquet,
+            )
+        else:
+            self.yaml_dict = _set_catalog_yaml_version_bounds(
+                self.yaml_dict, self.version, self.version, self.use_parquet
+            )
+
+    def _compute_prev_existing(self) -> tuple[str | None, str | None]:
+        """
+        Handle the branch where we have an existing catalog.
+        """
+        if self.existing_cat:
+            with Path(self.cat_loc).open(mode="r") as fobj:
                 yaml_old = yaml.safe_load(fobj)
 
             # Check to see what has changed. We care if the following keys
@@ -403,8 +453,8 @@ class VersionHandler:
                         vers_str = vmin_old
                     else:
                         vers_str = f"{vmin_old}-{vmax_old}"
-                    Path(cat_loc).rename(
-                        Path(cat_loc).parent / f"catalog-{vers_str}.yaml"
+                    Path(self.cat_loc).rename(
+                        Path(self.cat_loc).parent / f"catalog-{vers_str}.yaml"
                     )
                     self.yaml_dict = _set_catalog_yaml_version_bounds(
                         self.yaml_dict, self.version, self.version, self.use_parquet
@@ -434,36 +484,7 @@ class VersionHandler:
                         ),
                         self.use_parquet,
                     )
-
-        if (not existing_cat) or (vmin_old is None and vmax_old is None):
-            # No existing catalog, so set min = max = current version,
-            # unless there are folders with the right names in the write
-            # directory
-
-            if existing_cat and len(self.yaml_dict["sources"]) == 2:  # noqa: PLR2004
-                # First parquet catalog - don't update versions
-                self.yaml_dict = _set_catalog_yaml_version_bounds(
-                    self.yaml_dict, self.version, self.version, self.use_parquet
-                )
-                return self.yaml_dict
-
-            existing_vers = [
-                v.name.lstrip(".")
-                for v in self.build_base_path.iterdir()
-                if re.match(CATALOG_NAME_FORMAT, v.name)
-            ]
-            if len(existing_vers) > 1:
-                self.yaml_dict = _set_catalog_yaml_version_bounds(
-                    self.yaml_dict,
-                    min(*existing_vers, self.version),
-                    max(*existing_vers, self.version),
-                    self.use_parquet,
-                )
-            else:
-                self.yaml_dict = _set_catalog_yaml_version_bounds(
-                    self.yaml_dict, self.version, self.version, self.use_parquet
-                )
-        return self.yaml_dict
+        return vmin_old, vmax_old
 
 
 def _compute_previous_versions(  # noqa: PLR0912
