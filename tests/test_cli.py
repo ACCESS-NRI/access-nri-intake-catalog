@@ -8,6 +8,8 @@ from pathlib import Path, PosixPath
 from unittest import mock
 from frozendict import frozendict
 import copy
+from frozendict import frozendict
+import copy
 
 import intake
 import pytest

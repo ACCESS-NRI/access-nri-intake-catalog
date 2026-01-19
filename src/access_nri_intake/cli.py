@@ -645,6 +645,10 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
 
     if catalog_file is None:
         catalog_file = "metacatalog.parquet" if use_parquet else "metacatalog.csv"
+    use_parquet = args.use_parquet
+
+    if catalog_file is None:
+        catalog_file = "metacatalog.parquet" if use_parquet else "metacatalog.csv"
 
     if not version.startswith("v"):
         version = f"v{version}"
