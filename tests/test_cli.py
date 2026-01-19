@@ -2285,5 +2285,3 @@ def test_VersionHandler_no_existing_cat_single_version(tmpdir):
         vh.yaml_dict["sources"]["access_nri"]["parameters"]["version"]["max"]
         == "v2024-01-02"
     )
-
-    assert False
