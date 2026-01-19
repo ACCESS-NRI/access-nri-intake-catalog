@@ -30,9 +30,9 @@ CATALOG_NAME_FORMAT = r"^\.?v(?P<yr>2[0-9]{3})\-(?P<mon>1[0-2]|0[1-9])\-(?P<day>
 
 
 """
-Try/except here attempts to access `access_nri_pq`. Previous versions used the 
+Try/except here attempts to access `access_nri_pq`. Previous versions used the
 `access_nri` attribute. This is set up so that previous versions of the software
-will hit `sources::access_nri` in the yaml, but that this version (and future) 
+will hit `sources::access_nri` in the yaml, but that this version (and future)
 will hit `sources::access_nri_pq`. This allows us to maintain seamless backward
 compatibility while transitioning to the new Parquet-based catalog.
 
