@@ -278,5 +278,4 @@ def _open_and_translate(  # noqa: PLR0913 # Allow this func to have many argumen
 
     metadata = translator(source, CORE_COLUMNS).translate(TRANSLATOR_GROUPBY_COLUMNS)
 
-    breakpoint()
     return source, metadata
