@@ -8,6 +8,8 @@ from pathlib import Path, PosixPath
 from unittest import mock
 from frozendict import frozendict
 import copy
+from frozendict import frozendict
+import copy
 
 import intake
 import pytest
@@ -18,6 +20,7 @@ from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
     DirectoryExistsError,
     MetadataCheckError,
+    VersionHandler,
     _add_source_to_catalog,
     _check_build_args,
     _confirm_project_access,
@@ -2241,3 +2244,46 @@ def test_build_default_catalog_filename(
     build_path = Path(build_base_path) / version / build_fname
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
+
+
+def test_VersionHandler_no_yaml_old(tmpdir):
+    """Test VersionHandler when there is no old catalog.yaml present"""
+    vh = VersionHandler(
+        yaml_dict={},
+        build_base_path=Path(tmpdir),
+        catalog_base_path=Path(tmpdir),
+        version="v2024-01-01",
+        use_parquet=False,
+    )
+
+    assert vh.yaml_old is None
+
+
+def test_VersionHandler_no_existing_cat_single_version(tmpdir):
+    """Test VersionHandler when there's no existing catalog but a single version directory exists"""
+    # Create a single version directory to trigger the not _multiple_existing_versions() branch
+    version_dir = Path(tmpdir) / "v2024-01-01"
+    version_dir.mkdir()
+
+    yaml_dict = {"sources": {"access_nri": {"parameters": {"version": {}}}}}
+
+    vh = VersionHandler(
+        yaml_dict=yaml_dict,
+        build_base_path=Path(tmpdir),
+        catalog_base_path=Path(tmpdir),
+        version="v2024-01-02",
+        use_parquet=False,
+    )
+
+    # Call set_versions_no_existing_cat to trigger the branch
+    vh.set_versions_no_existing_cat()
+
+    # Verify that min and max are both set to the current version (not _multiple_existing_versions branch)
+    assert (
+        vh.yaml_dict["sources"]["access_nri"]["parameters"]["version"]["min"]
+        == "v2024-01-02"
+    )
+    assert (
+        vh.yaml_dict["sources"]["access_nri"]["parameters"]["version"]["max"]
+        == "v2024-01-02"
+    )
