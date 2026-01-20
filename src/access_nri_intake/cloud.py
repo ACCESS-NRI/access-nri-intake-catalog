@@ -1,73 +1,61 @@
+import argparse
+import sys
+from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
 
+import openstack
 import polars as pl
 import swiftclient
-from django.core.management.base import BaseCommand, CommandError
 from fabric import Connection
 
+from access_nri_intake.experiment.colours import (
+    f_info,
+    f_path,
+    f_reset,
+    f_success,
+    f_warn,
+)
 
-class Command(BaseCommand):
-    help = "Mirror the intake catalog to the datalake."
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class CatalogMirror:
+    """Mirror the intake catalog to the datalake."""
+
+    def __init__(self):
         self.bucket_name = "access-nri-intake-catalog"
         self.json_files = []
         self.local_mirror_path = Path("~/scratch/intake-mirror/").expanduser()
         self.metacat_path = self.local_mirror_path / "metacatalog.parquet"
+        self.basedir = Path("/g/data/xp65/public/apps/access-nri-intake-catalog/")
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--catalog-version",
-            type=lambda d: date.fromisoformat(d),
-            default=date.today(),
-            help="The version date of the intake catalog to mirror (YYYY-MM-DD). Defaults to today's date.",
-        )
-        parser.add_argument(
-            "--hidden",
-            action="store_true",
-            help="Whether to mirror a hidden version of the catalog (prefixed with a dot). Defaults to False.",
-        )
+        # if we are on Gadi, we can use a local mirror path
+        self.use_local_mirror = self.basedir.exists()
 
-    def handle(self, *args, **kwargs):
-        catalog_version = kwargs.get("catalog_version", date.today())
-        hidden = kwargs.get("hidden", False)
+    def run(self, catalog_version: date, hidden: bool):
+        """Main execution method."""
 
         try:
             self.mirror_intake_catalog(catalog_version=catalog_version, hidden=hidden)
-            self.stdout.write(
-                self.style.SUCCESS("Successfully mirrored intake catalog.")
-            )
+            print(f"{f_success}Successfully mirrored intake catalog.{f_reset}")
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Error mirroring intake catalog: {e}"))
-            self.stdout.write(self.style.WARNING("\nUsage examples:"))
-            self.stdout.write("  python manage.py mirror_catalog")
-            self.stdout.write("  python manage.py mirror_catalog --version 2025-11-01")
-            self.stdout.write("  python manage.py mirror_catalog --hidden")
-            self.stdout.write(
-                "  python manage.py mirror_catalog --version 2025-11-01 --hidden"
+            print(
+                f"{f_warn}Error mirroring intake catalog: {e}{f_reset}", file=sys.stderr
             )
-            raise CommandError(f"Command failed: {e}")
+            print(f"\n{f_warn}Usage examples:{f_reset}", file=sys.stderr)
+            print("  python cloud.py")
+            print("  python cloud.py --catalog-version 2025-11-01")
+            print("  python cloud.py --hidden")
+            print("  python cloud.py --catalog-version 2025-11-01 --hidden")
+            sys.exit(1)
 
-        self.stdout.write(
-            self.style.MIGRATE_HEADING("Restructuring metacatalog parquet file...")
-        )
+        print(f"{f_info}Restructuring metacatalog parquet file...{f_reset}")
         self.restructure_metacat()
-        self.stdout.write(self.style.SUCCESS("Metacatalog restructured successfully."))
-        self.stdout.write(
-            self.style.MIGRATE_HEADING(
-                "Updating ESM datastore parquet file path fields..."
-            )
-        )
+        print(f"{f_success}Metacatalog restructured successfully.{f_reset}")
+        print(f"{f_info}Updating ESM datastore parquet file path fields...{f_reset}")
         self.update_esm_datastores()
 
-        self.stdout.write(
-            self.style.SUCCESS("ESM datastore parquet files updated successfully.")
-        )
-        self.stdout.write(
-            self.style.MIGRATE_HEADING("Writing mirrored catalog to object storage...")
-        )
+        print(f"{f_success}ESM datastore parquet files updated successfully.{f_reset}")
+        print(f"{f_info}Writing mirrored catalog to object storage...{f_reset}")
         self.write_to_object_storage()
 
     def mirror_intake_catalog(
@@ -96,26 +84,20 @@ class Command(BaseCommand):
         """
         conn = Connection("gadi")
 
-        basedir = Path("/g/data/xp65/public/apps/access-nri-intake-catalog/")
-
         dotstr = "." if hidden else ""
         version_dir = f"{dotstr}v{catalog_version.isoformat()}"
 
-        remote_path = basedir / version_dir
-        source_dir = basedir / version_dir / "source"
+        remote_path = self.basedir / version_dir
+        source_dir = self.basedir / version_dir / "source"
 
-        self.stdout.write(
-            self.style.HTTP_INFO(
-                f"Mirroring intake catalog from {remote_path} to {self.local_mirror_path}"
-            )
+        print(
+            f"{f_info}Mirroring intake catalog from {f_path}{remote_path}{f_reset}{f_info} to {f_path}{self.local_mirror_path}{f_reset}"
         )
 
-        metacat_file = basedir / version_dir / "metacatalog.parquet"
+        metacat_file = self.basedir / version_dir / "metacatalog.parquet"
 
-        self.stdout.write(
-            self.style.HTTP_INFO(
-                f"Downloading metacatalog file: {metacat_file} to {self.local_mirror_path}"
-            )
+        print(
+            f"{f_info}Downloading metacatalog file: {f_path}{metacat_file}{f_reset}{f_info} to {f_path}{self.local_mirror_path}{f_reset}"
         )
 
         conn.get(
@@ -124,13 +106,13 @@ class Command(BaseCommand):
             preserve_mode=False,
         )
 
-        self.stdout.write(
-            self.style.SUCCESS("Metacatalog file transferred sucessfully!")
-        )
+        print(f"{f_success}Metacatalog file transferred sucessfully!{f_reset}")
 
         sftp = conn.sftp()
 
-        print(f"sftp initiated: listing {source_dir} contents")
+        print(
+            f"{f_info}sftp initiated: listing {f_path}{source_dir}{f_reset}{f_info} contents{f_reset}"
+        )
         sourcedir_contents = sftp.listdir(str(source_dir))
 
         pq_files = [f for f in sourcedir_contents if Path(f).suffix == ".parquet"]
@@ -141,7 +123,9 @@ class Command(BaseCommand):
                 "Mismatch between number of parquet and json files in source directory."
             )
 
-        print(f"Found {len(pq_files)} esm-datastores in source directory.")
+        print(
+            f"{f_info}Found {len(pq_files)} esm-datastores in source directory.{f_reset}"
+        )
 
         Path(self.local_mirror_path / "source").mkdir(parents=True, exist_ok=True)
 
@@ -149,10 +133,8 @@ class Command(BaseCommand):
             remote_file_path = source_dir / pq_file
             local_file_path = self.local_mirror_path / "source" / Path(pq_file).name
 
-            self.stdout.write(
-                self.style.HTTP_INFO(
-                    f"Transferring file {idx + 1}/{2 * len(pq_files)}: {remote_file_path.name}"
-                )
+            print(
+                f"{f_info}Transferring file {idx + 1}/{2 * len(pq_files)}: {f_path}{remote_file_path.name}{f_reset}"
             )
             conn.get(
                 str(remote_file_path),
@@ -160,18 +142,14 @@ class Command(BaseCommand):
                 preserve_mode=False,
             )
 
-        self.stdout.write(
-            self.style.SUCCESS("All parquet files transferred successfully!")
-        )
+        print(f"{f_success}All parquet files transferred successfully!{f_reset}")
 
         for idx, json_file in enumerate(json_files):
             remote_file_path = source_dir / json_file
             local_file_path = self.local_mirror_path / "source" / Path(json_file).name
 
-            self.stdout.write(
-                self.style.HTTP_INFO(
-                    f"Transferring file {idx + len(json_files) + 1}/{2 * len(json_files)}: {remote_file_path.name}"
-                )
+            print(
+                f"{f_info}Transferring file {idx + len(json_files) + 1}/{2 * len(json_files)}: {f_path}{remote_file_path.name}{f_reset}"
             )
             conn.get(
                 str(remote_file_path),
@@ -207,7 +185,8 @@ class Command(BaseCommand):
         """
         We need to go into each of the esm-datastore parquet files and make a few
         changes. Most important, we need to change the `catalog_file` field to
-        point to the one next door to it.
+        point to the one next door to it. We'll also make sure all parquet files
+        are snappy-compressed.
         """
 
         for file in self.json_files:
@@ -224,25 +203,14 @@ class Command(BaseCommand):
 
     def write_to_object_storage(self):
         """
-        The credentials below can be obtained by doing the following:
-
-        1. Start a bash shell
-        2. run `source `~/access-nri-store-openrc.sh`
-        3. run `swift auth
-        4. Copy the OS_STORAGE_URL and OS_AUTH_TOKEN values from the output
-
-        Absolute mess of a process & will need to be fixed into something functional!
-
-        N.B I have tried following the docs here
-        https://tutorials.rc.nectar.org.au/object-storage/03-object-storage-cli
-        and gotten nowhere.
+        How do we get our hands on these credentials? Ask @jo-basevi is the
+        current best guess... That's how I did it originally!
         """
-        import openstack
 
         cloud = openstack.connect(cloud="openstack")
 
         # Get storage URL and token from the session
-        auth = cloud.session.get_auth_headers()
+        # auth = cloud.session.get_auth_headers()
         storage_url = cloud.session.get_endpoint(service_type="object-store")
         token = cloud.session.get_token()
 
@@ -271,12 +239,31 @@ class Command(BaseCommand):
                     contents=f,
                 )
             # Add progress feedback
-            self.stdout.write(
-                self.style.HTTP_INFO(f"{idx}/{n_objs}: Uploaded {rel_path}")
-            )
+            print(f"{f_info}{idx}/{n_objs}: Uploaded {f_path}{rel_path}{f_reset}")
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Successfully uploaded {len(objects)} files to object storage"
-            )
+        print(
+            f"{f_success}Successfully uploaded {len(objects)} files to object storage{f_reset}"
         )
+
+
+def mirror_catalog(argv: Sequence[str] | None = None) -> None:
+    """CLI entry point for mirroring the intake catalog."""
+    parser = argparse.ArgumentParser(
+        description="Mirror the intake catalog to the datalake."
+    )
+    parser.add_argument(
+        "--catalog-version",
+        type=lambda d: date.fromisoformat(d),
+        default=date.today(),
+        help="The version date of the intake catalog to mirror (YYYY-MM-DD). Defaults to today's date.",
+    )
+    parser.add_argument(
+        "--hidden",
+        action="store_true",
+        help="Whether to mirror a hidden version of the catalog (prefixed with a dot). Defaults to False.",
+    )
+
+    args = parser.parse_args(argv)
+
+    mirror = CatalogMirror()
+    mirror.run(catalog_version=args.catalog_version, hidden=args.hidden)

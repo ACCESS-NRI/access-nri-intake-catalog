@@ -32,6 +32,9 @@ dependencies = [
     "colorama",
     "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
+    "python-openstackclient",
+    "python-swiftclient",
+    "fabric",
 ]
 
 [project.optional-dependencies]
@@ -45,6 +48,7 @@ metadata-validate = "access_nri_intake.cli:metadata_validate"
 metadata-template = "access_nri_intake.cli:metadata_template"
 build-esm-datastore = "access_nri_intake.cli:use_esm_datastore"
 scaffold-catalog-entry = "access_nri_intake.cli:scaffold_catalog_entry"
+mirror-to-cloud = "access_nri_intake.cloud:mirror_catalog"
 
 [project.entry-points."intake.catalogs"]
 access_nri = "access_nri_intake.data:data"
