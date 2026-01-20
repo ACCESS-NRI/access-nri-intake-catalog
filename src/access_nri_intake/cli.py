@@ -330,6 +330,7 @@ def _parse_build_inputs(
             config_args["overwrite"] = True
         else:
             method = "load"
+            config_args["directory"] = str(build_path)
 
         for kwargs in sources:
             source_args = config_args

@@ -161,7 +161,9 @@ class CatalogManager:
         **kwargs,
     ):
         """
-        Load an existing data source using Intake and add it to the catalog
+        Load an existing data source using Intake and add it to the catalog. If
+        it's an NCI datastore, reserialize it into the build directory as parquet,
+        if we've specified a parquet build.
 
         Parameters
         ----------
@@ -173,7 +175,7 @@ class CatalogManager:
             The path to the Intake data source
         directory: str, optional
             The directory to save reserialized Intake data source to. Defaults to
-            Path(path).parent
+            `Path(self.path).parent`
         driver: str
             The name of the Intake driver to use to open the data source
         translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`, optional
@@ -194,7 +196,7 @@ class CatalogManager:
                 )
             path = path[0]
 
-        directory = directory or str(Path(path).parent)
+        directory = directory or str(Path(self.path).parent)
         metadata = metadata or {}
 
         source, source_metadata = _open_and_translate(
@@ -203,14 +205,25 @@ class CatalogManager:
 
         self.source, self.source_metadata = source, source_metadata
 
-        breakpoint()
-        self.source.serialize(
-            name=source.name,
-            directory=directory,
-            catalog_type="file",
-            file_format="parquet",
-        )
+        if self.use_parquet:
+            self.source.serialize(
+                name=source.name,
+                directory=directory,
+                catalog_type="file",
+                file_format="parquet",
+            )
 
+            reserialized_path = str(Path(directory) / f"{source.name}.json")
+
+            self.source, self.source_metadata = _open_and_translate(
+                reserialized_path,
+                driver,
+                name,
+                description,
+                metadata,
+                translator,
+                **kwargs,
+            )
         self._add()
 
     def _add(self):
@@ -240,7 +253,6 @@ class CatalogManager:
         overwrite = True
         for _, row in self.source_metadata.iterrows():
             try:
-                breakpoint()
                 self.dfcat.add(self.source, row.to_dict(), overwrite=overwrite)
             except DfFileCatalogError as exc:
                 # If we have 'iterable metadata' in the error message, it likely relates to

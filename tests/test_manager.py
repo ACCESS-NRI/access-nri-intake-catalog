@@ -4,6 +4,7 @@
 
 from unittest import mock
 from warnings import warn
+import yaml
 
 import pytest
 from intake_dataframe_catalog.core import DfFileCatalogError
@@ -272,6 +273,7 @@ def test_CatalogManager_generic_exception(tmp_path, test_data):
         name="cmip5-al33",
         description="cmip5-al33",
         path=str(test_data / "esm_datastore/cmip5-al33.json"),
+        directory=str(tmp_path),
         translator=Cmip5Translator,
     )
 
@@ -285,3 +287,45 @@ def test_CatalogManager_generic_exception(tmp_path, test_data):
 
     assert access_nri_err_str in str(excinfo.value)
     assert cause_str in str(excinfo.value.__cause__)
+
+
+@pytest.mark.parametrize(
+    "translator, datastore, metadata",
+    [
+        (Cmip5Translator, "cmip5-al33.json", {}),
+        (Cmip6Translator, "cmip6-oi10.json", {}),
+    ],
+)
+def test_CatalogManager_load_pq(tmp_path, test_data, translator, datastore, metadata):
+    """Test loading and adding an Intake-ESM datastore"""
+    path = str(tmp_path / "cat.parquet")
+    cat = CatalogManager(path, use_parquet=True)
+
+    args = dict(
+        name="test",
+        description="test",
+        path=str(test_data / f"esm_datastore/{datastore}"),
+        translator=translator,
+        metadata=metadata,
+    )
+    cat.load(**args)
+    cat.save()
+
+    assert Path(tmp_path / "cat.parquet").exists()
+    assert Path(tmp_path / "test.parquet").exists()
+    assert Path(tmp_path / "test.json").exists()
+    assert not Path(tmp_path / "test.csv").exists()
+
+    df = cat.dfcat.df
+
+    yamls = df["yaml"].tolist()
+    assert all(yaml == yamls[0] for yaml in yamls), "YAML representations differ!"
+
+    yaml_dict = yaml.safe_load(yamls[0])
+
+    assert yaml_dict["sources"]["test"]["args"]["obj"] == str(
+        Path(tmp_path) / "test.json"
+    )
+
+    cat = CatalogManager(path)
+    assert cat.mode == "a"
