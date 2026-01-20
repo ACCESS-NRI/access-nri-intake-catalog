@@ -224,12 +224,10 @@ class BaseBuilder(Builder):
                 validate_against_schema(info, ESM_JSONSCHEMA)
                 return self
 
-        raise ParserError(
-            f"""Parser returns no valid assets.
+        raise ParserError(f"""Parser returns no valid assets.
             Try parsing a single file with Builder.parser(file)
             Last failed asset: {asset}
-            Asset parser return: {info}"""
-        )
+            Asset parser return: {info}""")
 
     def build(self):
         """
