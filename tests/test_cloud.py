@@ -19,8 +19,6 @@ import access_nri_intake
 from access_nri_intake.cloud import CatalogMirror
 
 
-
-
 def test_entrypoint():
     """
     Check that entry point works

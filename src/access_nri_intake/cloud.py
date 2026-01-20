@@ -1,3 +1,6 @@
+# Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
 import sys
 from collections.abc import Sequence
@@ -19,7 +22,13 @@ from access_nri_intake.experiment.colours import (
 
 
 class CatalogMirror:
-    """Mirror the intake catalog to the datalake."""
+    """Mirror the intake catalog to the datalake.
+
+    TODO:
+    - [ ] Can we do this asynchronously without upsetting NCI
+    - [ ] Logging
+    - [ ] Fault tolerant transfer/ resume/ yadda yadda
+    """
 
     def __init__(self):
         self.bucket_name = "access-nri-intake-catalog"
