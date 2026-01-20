@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import glob
+import json
 import os
 import shutil
 from pathlib import Path, PosixPath
@@ -215,6 +216,27 @@ def test_build(
     assert cat_info["sources"][cat_name]["parameters"]["version"]["default"] == version
     assert cat_info["sources"][cat_name]["parameters"]["version"]["min"] == version
     assert cat_info["sources"][cat_name]["parameters"]["version"]["max"] == version
+
+    if use_parquet:
+        df = cat.df[cat.df["name"] == "cmip5_al33"]
+
+        yamls = df["yaml"].tolist()
+        assert all(yaml == yamls[0] for yaml in yamls), "YAML representations differ!"
+
+        yaml_dict = yaml.safe_load(yamls[0])
+
+        esm_ds_fhandle = Path(build_base_path) / version / "source" / "cmip5_al33.json"
+        esm_ds_pq_fhandle = (
+            Path(build_base_path) / version / "source" / "cmip5_al33.parquet"
+        )
+
+        assert yaml_dict["sources"]["cmip5_al33"]["args"]["obj"] == str(esm_ds_fhandle)
+        assert esm_ds_pq_fhandle.exists()
+
+        with open(esm_ds_fhandle, "r") as fobj:
+            esm_ds_json = json.load(fobj)
+        # 7: - Strip off "file://"
+        assert esm_ds_json["catalog_file"][7:] == str(esm_ds_pq_fhandle)
 
 
 @pytest.mark.parametrize(
