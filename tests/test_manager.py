@@ -12,7 +12,11 @@ from pandas.errors import EmptyDataError
 from pathlib import Path
 
 from access_nri_intake.catalog import EXP_JSONSCHEMA
-from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerError
+from access_nri_intake.catalog.manager import (
+    CatalogManager,
+    CatalogManagerError,
+    _open_and_translate,
+)
 from access_nri_intake.catalog.translators import (
     Cmip5Translator,
     Cmip6Translator,
@@ -329,3 +333,20 @@ def test_CatalogManager_load_pq(tmp_path, test_data, translator, datastore, meta
 
     cat = CatalogManager(path)
     assert cat.mode == "a"
+
+
+def test__open_and_translate_bad_driver(
+    tmp_path,
+    test_data,
+):
+    """Test the _open_and_translate function"""
+    path = str(test_data / "esm_datastore/cmip5-al33.json")
+    translator = Cmip5Translator
+    metadata = {}
+    driver = "bad_driver"
+    description = "yolo"
+    name = "nope"
+    with pytest.raises(CatalogManagerError) as excinfo:
+        _open_and_translate(path, driver, name, description, metadata, translator)
+
+    assert "Driver 'bad_driver' not supported in CatalogManager" in str(excinfo.value)
