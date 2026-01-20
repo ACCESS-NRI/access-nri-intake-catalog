@@ -140,7 +140,19 @@ class BaseBuilder(Builder):
         self._parse()
         return self
 
-    def _save(self, name: str, description: str, directory: str | None):
+    def _save(
+        self, name: str, description: str, directory: str | None, use_parquet: bool
+    ) -> None:
+        if use_parquet:
+            kwargs = {
+                "file_format": "parquet",
+                "write_kwargs": {"compression": "snappy"},
+            }
+        else:
+            kwargs = {
+                "file_format": "csv",
+                "write_kwargs": {"compression": None},
+            }
         super().save(
             name=name,
             path_column_name=PATH_COLUMN,
@@ -151,11 +163,16 @@ class BaseBuilder(Builder):
             esmcat_version="0.0.1",
             description=description,
             directory=directory,
-            catalog_type="file",
-            to_csv_kwargs={"compression": None},
+            **kwargs,
         )
 
-    def save(self, name: str, description: str, directory: str | None = None) -> None:
+    def save(
+        self,
+        name: str,
+        description: str,
+        directory: str | None = None,
+        use_parquet: bool = False,
+    ) -> None:
         """
         Save datastore contents to a file.
 
@@ -167,6 +184,10 @@ class BaseBuilder(Builder):
             Detailed multi-line description of the collection.
         directory: str, optional
             The directory to save the datastore to. If None, use the current directory.
+        use_parquet: bool, optional
+            Whether to save the datastore as a parquet file. Defaults to False,
+            which saves as a CSV file. Parquet is both faster and saves space, but
+            unlike CSV is not human-readable.
         """
 
         if self.df.empty:
@@ -174,7 +195,7 @@ class BaseBuilder(Builder):
                 "Intake-ESM datastore has not yet been built. Please run `.build()` first"
             )
 
-        self._save(name, description, directory)
+        self._save(name, description, directory, use_parquet)
 
     @classmethod
     def _parser_catch_invalid(cls, file: str) -> dict:
@@ -203,12 +224,10 @@ class BaseBuilder(Builder):
                 validate_against_schema(info, ESM_JSONSCHEMA)
                 return self
 
-        raise ParserError(
-            f"""Parser returns no valid assets.
+        raise ParserError(f"""Parser returns no valid assets.
             Try parsing a single file with Builder.parser(file)
             Last failed asset: {asset}
-            Asset parser return: {info}"""
-        )
+            Asset parser return: {info}""")
 
     def build(self):
         """
@@ -490,15 +509,16 @@ class AccessOm3Builder(BaseBuilder):
         kwargs = dict(
             path=path,
             depth=2,
-            exclude_patterns=kwargs.get("exclude_patterns")
-            or [
-                "*restart*",
-                "*MOM_IC.nc",
-                "*ocean_geometry.nc",
-                "*ocean.stats.nc",
-                "*Vertical_coordinate.nc",
-            ],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get(
+                "exclude_patterns",
+                [
+                    "*restart*",
+                    "*MOM_IC.nc",
+                    "*ocean_geometry.nc",
+                    "*Vertical_coordinate.nc",
+                ],
+            ),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -523,7 +543,10 @@ class AccessOm3Builder(BaseBuilder):
         output_nc_info = cls.parse_ncfile(file)
         ncinfo_dict = output_nc_info.to_dict()
 
-        if "mom6" in ncinfo_dict["filename"]:
+        if (
+            "mom6" in ncinfo_dict["filename"]
+            or "ocean.stats" in ncinfo_dict["filename"]
+        ):
             realm = "ocean"
         elif "ww3" in ncinfo_dict["filename"]:
             realm = "wave"

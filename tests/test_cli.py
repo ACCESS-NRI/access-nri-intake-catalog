@@ -2,10 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import glob
+import json
 import os
 import shutil
 from pathlib import Path, PosixPath
 from unittest import mock
+from frozendict import frozendict
+import copy
+from frozendict import frozendict
+import copy
 
 import intake
 import pytest
@@ -16,6 +21,7 @@ from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.cli import (
     DirectoryExistsError,
     MetadataCheckError,
+    VersionHandler,
     _add_source_to_catalog,
     _check_build_args,
     _confirm_project_access,
@@ -124,6 +130,8 @@ def test_check_build_args(args, raises):
         _check_build_args(args)
 
 
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+@pytest.mark.filterwarnings("ignore:Unable to parse 32 assets")
 @pytest.mark.parametrize(
     "version",
     [
@@ -144,10 +152,15 @@ def test_check_build_args(args, raises):
         ),
     ],
 )
-@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
-@pytest.mark.filterwarnings("ignore:Unable to parse 32 assets")
+@pytest.mark.parametrize("use_parquet", [True, False])
 def test_build(
-    version, input_list, expected_size, test_data, tmpdir, fake_project_access
+    version,
+    input_list,
+    expected_size,
+    test_data,
+    tmpdir,
+    use_parquet,
+    fake_project_access,
 ):
     """Test full catalog build process from config files"""
     # Update the config_yaml paths
@@ -155,22 +168,32 @@ def test_build(
 
     configs = [str(test_data / fname) for fname in input_list]
 
-    build(
-        [
-            *configs,
-            "--catalog_file",
-            "cat.csv",
-            # "--no_update",  # commented out to test brand-new-catalog-versioning
-            "--version",
-            version,
-            "--build_base_path",
-            build_base_path,
-            "--catalog_base_path",
-            build_base_path,
-            "--data_base_path",
-            str(test_data),
-        ]
-    )
+    if use_parquet:
+        cat_name = "access_nri_pq"
+        catfile = "cat.parquet"
+    else:
+        cat_name = "access_nri"
+        catfile = "cat.csv"
+
+    argv = [
+        *configs,
+        "--catalog_file",
+        catfile,
+        # "--no_update",  # commented out to test brand-new-catalog-versioning
+        "--version",
+        version,
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+    ]
+
+    if use_parquet:
+        argv.append("--use_parquet")
+
+    build(argv)
 
     # manually fix the version so we can correctly build the test path: build
     # will do this for us so we need to replicate it here
@@ -178,7 +201,7 @@ def test_build(
         version = f"v{version}"
 
     # Try to open the catalog
-    build_path = Path(build_base_path) / version / "cat.csv"
+    build_path = Path(build_base_path) / version / catfile
     cat = intake.open_df_catalog(build_path)
     assert len(cat) == 2
 
@@ -190,11 +213,30 @@ def test_build(
     metacat = Path(build_base_path) / "catalog.yaml"
     with metacat.open(mode="r") as fobj:
         cat_info = yaml.safe_load(fobj)
-    assert (
-        cat_info["sources"]["access_nri"]["parameters"]["version"]["default"] == version
-    )
-    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["min"] == version
-    assert cat_info["sources"]["access_nri"]["parameters"]["version"]["max"] == version
+    assert cat_info["sources"][cat_name]["parameters"]["version"]["default"] == version
+    assert cat_info["sources"][cat_name]["parameters"]["version"]["min"] == version
+    assert cat_info["sources"][cat_name]["parameters"]["version"]["max"] == version
+
+    if use_parquet:
+        df = cat.df[cat.df["name"] == "cmip5_al33"]
+
+        yamls = df["yaml"].tolist()
+        assert all(yaml == yamls[0] for yaml in yamls), "YAML representations differ!"
+
+        yaml_dict = yaml.safe_load(yamls[0])
+
+        esm_ds_fhandle = Path(build_base_path) / version / "source" / "cmip5_al33.json"
+        esm_ds_pq_fhandle = (
+            Path(build_base_path) / version / "source" / "cmip5_al33.parquet"
+        )
+
+        assert yaml_dict["sources"]["cmip5_al33"]["args"]["obj"] == str(esm_ds_fhandle)
+        assert esm_ds_pq_fhandle.exists()
+
+        with open(esm_ds_fhandle, "r") as fobj:
+            esm_ds_json = json.load(fobj)
+        # 7: - Strip off "file://"
+        assert esm_ds_json["catalog_file"][7:] == str(esm_ds_pq_fhandle)
 
 
 @pytest.mark.parametrize(
@@ -1952,3 +1994,318 @@ def test_build_repeat_overwrite_version_then_concretize_no_entrypoints(
     assert not (
         tmp_path / f".tmp-old-{VERSION}"
     ).is_dir(), f"Expected directory {tmp_path / f'.tmp-old-{VERSION}'} to not exist, but it does."
+
+
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+def test_build_repeat_first_parquet(test_data, tmp_path, fake_project_access):
+    """
+    Test if the intelligent versioning works correctly when there is no significant change to the
+    underlying catalogue, other than updating the serialization to use parquet
+    """
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
+
+    # There is no change between catalogs, so we should be able to
+    # see just a version number change in the yaml
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml_old = yaml.safe_load(fobj)
+
+    # Update the version number and have another crack at building
+    NEW_VERSION = "v2024-01-02"
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.parquet",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+            "--use_parquet",
+        ]
+    )
+
+    # There is no change between catalogs, so we should be able to
+    # see just a version number change in the yaml
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml_new = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml_old["sources"]["access_nri"] == cat_yaml_new["sources"]["access_nri"]
+    ), "Catalog source 'access_nri' has changed unexpectedly between builds"
+
+    assert (
+        cat_yaml_new["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f"Min version {cat_yaml_new['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml_new["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2024-01-01"
+    ), f"Max version {cat_yaml_new['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml_new["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2024-01-01"
+    ), f"Default version {cat_yaml_new['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
+
+    assert (
+        cat_yaml_new["sources"]["access_nri_pq"]["parameters"]["version"].get("min")
+        == "v2024-01-02"
+    ), f"Min version {cat_yaml_new['sources']['access_nri_pq']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml_new["sources"]["access_nri_pq"]["parameters"]["version"].get("max")
+        == "v2024-01-02"
+    ), f"Max version {cat_yaml_new['sources']['access_nri_pq']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml_new["sources"]["access_nri_pq"]["parameters"]["version"].get("default")
+        == "v2024-01-02"
+    ), f"Default version {cat_yaml_new['sources']['access_nri_pq']['parameters']['version'].get('default')} does not match expected v2024-01-02"
+
+
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+def test_build_repeat_csv_after_parquet(test_data, tmp_path, fake_project_access):
+    """
+    More or less mirrors `test_build_repeat_first_parquet`, but tests that if we have both parquet
+    and csv formatted catalogs, we
+    """
+
+    configs = [
+        str(test_data / "config/access-om2.yaml"),
+        str(test_data / "config/cmip5.yaml"),
+    ]
+    data_base_path = str(test_data)
+    build_base_path = str(tmp_path)
+
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            "v2024-01-01",
+        ]
+    )
+
+    # There is no change between catalogs, so we should be able to
+    # see just a version number change in the yaml
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml_old = yaml.safe_load(fobj)
+
+    # Update the version number and have another crack at building
+    NEW_VERSION = "v2024-01-02"
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.parquet",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEW_VERSION,
+            "--use_parquet",
+        ]
+    )
+
+    # There is no change between catalogs, so we should be able to
+    # see just a version number change in the yaml
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml_new = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml_new["sources"]["access_nri_pq"]["parameters"]["version"].get("min")
+        == "v2024-01-02"
+    ), f"Min version {cat_yaml_new['sources']['access_nri_pq']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml_new["sources"]["access_nri_pq"]["parameters"]["version"].get("max")
+        == "v2024-01-02"
+    ), f"Max version {cat_yaml_new['sources']['access_nri_pq']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml_new["sources"]["access_nri_pq"]["parameters"]["version"].get("default")
+        == "v2024-01-02"
+    ), f"Default version {cat_yaml_new['sources']['access_nri_pq']['parameters']['version'].get('default')} does not match expected v2024-01-02"
+
+    # Now we build a new csv catalog. We're expecting to see changes to the `version` but not `version_pq`
+    # Update the version number and have another crack at building, this time csv again
+    NEWEST_VERSION = "v2025-01-02"
+    build(
+        [
+            *configs,
+            "--catalog_file",
+            "cat.csv",
+            "--data_base_path",
+            data_base_path,
+            "--build_base_path",
+            build_base_path,
+            "--catalog_base_path",
+            build_base_path,
+            "--version",
+            NEWEST_VERSION,
+            # "--use_parquet"
+        ]
+    )
+
+    # There is no change between catalogs, so we should be able to
+    # see just a version number change in the yaml
+    with (tmp_path / "catalog.yaml").open(mode="r") as fobj:
+        cat_yaml_newest = yaml.safe_load(fobj)
+
+    assert (
+        cat_yaml_newest["sources"]["access_nri"]["parameters"]["version"].get("min")
+        == "v2024-01-01"
+    ), f"Min version {cat_yaml_newest['sources']['access_nri']['parameters']['version'].get('min')} does not match expected v2024-01-01"
+    assert (
+        cat_yaml_newest["sources"]["access_nri"]["parameters"]["version"].get("max")
+        == "v2025-01-02"
+    ), f"Max version {cat_yaml_newest['sources']['access_nri']['parameters']['version'].get('max')} does not match expected v2024-01-02"
+    assert (
+        cat_yaml_newest["sources"]["access_nri"]["parameters"]["version"].get("default")
+        == "v2025-01-02"
+    ), f"Default version {cat_yaml_newest['sources']['access_nri']['parameters']['version'].get('default')} does not match expected v2024-01-02"
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "v2024-01-01",
+        "2024-01-01",
+    ],
+)
+@pytest.mark.parametrize(
+    "input_list, expected_size",
+    [
+        (
+            ["config/access-om2.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 12, "cmip5_al33": 5},
+        ),
+        (
+            ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
+            {"1deg_jra55_ryf9091_gadi": 6, "cmip5_al33": 5},
+        ),
+    ],
+)
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+@pytest.mark.filterwarnings("ignore:Unable to parse 32 assets")
+@pytest.mark.parametrize(
+    "use_pq, build_fname", [(True, "metacatalog.parquet"), (False, "metacatalog.csv")]
+)
+def test_build_default_catalog_filename(
+    version,
+    input_list,
+    expected_size,
+    test_data,
+    tmpdir,
+    fake_project_access,
+    use_pq,
+    build_fname,
+):
+    """Test full catalog build process from config files. Just looking to make sure that
+    metacatalog.csv or metacatalog.parquet is being correctly configured here."""
+    # Update the config_yaml paths
+    build_base_path = str(tmpdir)
+
+    configs = [str(test_data / fname) for fname in input_list]
+
+    argv = [
+        *configs,
+        # "--no_update",  # commented out to test brand-new-catalog-versioning
+        "--version",
+        version,
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+    ]
+
+    if use_pq:
+        argv.append("--use_parquet")
+
+    build(argv)
+
+    # manually fix the version so we can correctly build the test path: build
+    # will do this for us so we need to replicate it here
+    if not version.startswith("v"):
+        version = f"v{version}"
+
+    # Try to open the catalog
+    build_path = Path(build_base_path) / version / build_fname
+    cat = intake.open_df_catalog(build_path)
+    assert len(cat) == 2
+
+
+def test_VersionHandler_no_yaml_old(tmpdir):
+    """Test VersionHandler when there is no old catalog.yaml present"""
+    vh = VersionHandler(
+        yaml_dict={},
+        build_base_path=Path(tmpdir),
+        catalog_base_path=Path(tmpdir),
+        version="v2024-01-01",
+        use_parquet=False,
+    )
+
+    assert vh.yaml_old is None
+
+
+def test_VersionHandler_no_existing_cat_single_version(tmpdir):
+    """Test VersionHandler when there's no existing catalog but a single version directory exists"""
+    # Create a single version directory to trigger the not _multiple_existing_versions() branch
+    version_dir = Path(tmpdir) / "v2024-01-01"
+    version_dir.mkdir()
+
+    yaml_dict = {"sources": {"access_nri": {"parameters": {"version": {}}}}}
+
+    vh = VersionHandler(
+        yaml_dict=yaml_dict,
+        build_base_path=Path(tmpdir),
+        catalog_base_path=Path(tmpdir),
+        version="v2024-01-02",
+        use_parquet=False,
+    )
+
+    # Call set_versions_no_existing_cat to trigger the branch
+    vh.set_versions_no_existing_cat()
+
+    # Verify that min and max are both set to the current version (not _multiple_existing_versions branch)
+    assert (
+        vh.yaml_dict["sources"]["access_nri"]["parameters"]["version"]["min"]
+        == "v2024-01-02"
+    )
+    assert (
+        vh.yaml_dict["sources"]["access_nri"]["parameters"]["version"]["max"]
+        == "v2024-01-02"
+    )
