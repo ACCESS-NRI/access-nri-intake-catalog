@@ -45,6 +45,18 @@ CONFIGS=( cmip5.yaml cmip6.yaml access-om2.yaml access-cm2.yaml access-esm1-5.ya
 
 config_paths=( "${CONFIGS[@]/#/${CONFIG_DIR}/}" )
 
+# Check the xp65 config matches that in the repo 
+for conf in ${CONFIGS[@]}; do
+    xp65_conf=$CONFIG_DIR/$conf
+    repo_conf=$(git rev-parse --show-toplevel)/config/$conf
+    if ! diff $xp65_conf $repo_conf; then
+        echo "Repo and xp65 config yaml are not identical for $conf"
+        echo $xp65_conf
+        echo $repo_conf
+        exit 1
+    fi
+done
+
 if [ -z "$version" ]; then
     catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} ${config_paths[@]}
 else
