@@ -25,7 +25,7 @@ dependencies = [
     "intake-esm-access",
     "jsonschema",
     "libcst",
-    "pydantic<2.12",
+    "pydantic",
     "polars>=1.24.0",
     "pooch",
     "xarray",
@@ -143,6 +143,7 @@ test-py310 = { features = ["py310", "test"] }
 test-py311 = { features = ["py311", "test"] }
 test-py312 = { features = ["py312", "test"] }
 test-py313 = { features = ["py313", "test"] }
+test-py314 = { features = ["py314", "test"] }
 
 [tool.pixi.feature.dev.pypi-dependencies]
 access_nri_intake = { path = ".", editable = true }
@@ -186,3 +187,6 @@ python = "3.12.*"
 
 [tool.pixi.feature.py313.dependencies]
 python = "3.13.*"
+
+[tool.pixi.feature.py314.dependencies]
+python = "3.14.*"
