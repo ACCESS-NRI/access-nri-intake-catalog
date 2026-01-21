@@ -3,6 +3,7 @@
 
 import argparse
 import sys
+import tempfile
 from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
@@ -20,6 +21,35 @@ from access_nri_intake.experiment.colours import (
     f_warn,
 )
 
+"""
+Partition table for various datasets. Used to determine how to partition the
+parquet files for efficient querying - we want to have fast page loads.
+"""
+PARTITION_TABLE = {
+    "cmip6_oi10": ["realm", "table_id"],
+    "cmip6_fs38": ["realm", "table_id"],
+    "cmip5_rr3": ["realm", "table"],
+    "cmip5_al33": ["realm", "table"],
+    "narclim2_zz63": ["experiment_id", "frequency"],
+    "barpa_py18": ["source_id", "domain_id", "freq"],
+    "cordex_ig45": ["experiment_id", "frequency"],
+    "era5_rt52": ["product", "levtype"],
+    "rcm_ccam_hq89": ["experiment_id", "version"],
+    "01deg_jra55v140_iaf_cycle4": ["frequency"],
+    "cj877": ["realm", "frequency"],
+    "bz687": ["realm", "frequency"],
+    "01deg_jra55v140_iaf": ["realm", "frequency"],
+    "01deg_jra55v140_iaf_cycle2": ["realm", "frequency"],
+    "01deg_jra55v140_iaf_cycle3": ["realm", "frequency"],
+    "PI_GWL_B2060": ["realm"],
+    "PI_GWL_B2055": ["realm"],
+    "PI_GWL_B2045": ["realm"],
+    "PI_GWL_B2035": ["realm"],
+    "PI_GWL_B2050": ["realm"],
+    "PI_GWL_B2040": ["realm"],
+    "cmip-forcing-qv56": ["realm"],
+}
+
 
 class CatalogMirror:
     """Mirror the intake catalog to the datalake.
@@ -28,12 +58,18 @@ class CatalogMirror:
     - [ ] Can we do this asynchronously without upsetting NCI
     - [ ] Logging
     - [ ] Fault tolerant transfer/ resume/ yadda yadda
+    - [ ] Sidecar files
+    - [ ] Do we really need to copy everything to local first?
     """
 
-    def __init__(self):
+    def __init__(self, use_permanent: bool = True) -> None:
         self.bucket_name = "access-nri-intake-catalog"
-        self.json_files = []
-        self.local_mirror_path = Path("~/scratch/intake-mirror/").expanduser()
+        self.local_json_files: list[Path] = []
+        self.local_pq_files: list[Path] = []
+        if not use_permanent:
+            self.local_mirror_path = Path(tempfile.TemporaryDirectory().name)
+        else:
+            self.local_mirror_path = Path("~/scratch/intake-mirror/").expanduser()
         self.metacat_path = self.local_mirror_path / "metacatalog.parquet"
         self.basedir = Path("/g/data/xp65/public/apps/access-nri-intake-catalog/")
 
@@ -60,12 +96,23 @@ class CatalogMirror:
         print(f"{f_info}Restructuring metacatalog parquet file...{f_reset}")
         self.restructure_metacat()
         print(f"{f_success}Metacatalog restructured successfully.{f_reset}")
+
         print(f"{f_info}Updating ESM datastore parquet file path fields...{f_reset}")
         self.update_esm_datastores()
-
         print(f"{f_success}ESM datastore parquet files updated successfully.{f_reset}")
-        print(f"{f_info}Writing mirrored catalog to object storage...{f_reset}")
-        self.write_to_object_storage()
+
+        print(f"{f_info}Creating sidecar files for ESM datastores...{f_reset}")
+        self.create_sidecar_files()
+        print(f"{f_success}ESM datastore sidecar files created successfully.{f_reset}")
+
+        print(f"{f_info}Partitioning ESM datastore parquet files...{f_reset}")
+        self.partition_parquet_files()
+        print(
+            f"{f_success}ESM datastore parquet files partitioned successfully.{f_reset}"
+        )
+
+        # print(f"{f_info}Writing mirrored catalog to object storage...{f_reset}")
+        # self.write_to_object_storage()
 
     def mirror_intake_catalog(
         self, catalog_version: date = date.today(), hidden: bool = False
@@ -141,6 +188,7 @@ class CatalogMirror:
         for idx, pq_file in enumerate(pq_files):
             remote_file_path = source_dir / pq_file
             local_file_path = self.local_mirror_path / "source" / Path(pq_file).name
+            self.local_pq_files.append(local_file_path.absolute())
 
             print(
                 f"{f_info}Transferring file {idx + 1}/{2 * len(pq_files)}: {f_path}{remote_file_path.name}{f_reset}"
@@ -163,9 +211,9 @@ class CatalogMirror:
             conn.get(
                 str(remote_file_path),
                 local=str(local_file_path),
-                preserve_mode=False,
+                preserve_mode=True,
             )
-            self.json_files.append(local_file_path)
+            self.local_json_files.append(local_file_path)
 
     def restructure_metacat(self):
         """
@@ -198,17 +246,110 @@ class CatalogMirror:
         are snappy-compressed.
         """
 
-        for file in self.json_files:
-            pl.read_json(file).with_columns(
-                pl.concat_str(
-                    [
-                        pl.lit(
-                            "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog/source/"
-                        ),
-                        pl.col("catalog_file").str.split("/").list.last(),
-                    ]
-                ).alias("catalog_file")
-            ).write_ndjson(file)
+        for file in self.local_json_files:
+            try:
+                pl.read_json(file).with_columns(
+                    pl.concat_str(
+                        [
+                            pl.lit(
+                                "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog/source/"
+                            ),
+                            pl.col("catalog_file").str.split("/").list.last(),
+                        ]
+                    ).alias("catalog_file")
+                ).write_ndjson(file)
+            except Exception as e:
+                print(
+                    f"{f_warn}Error updating JSON file {f_path}{file}{f_reset}: {e}{f_reset}",
+                    file=sys.stderr,
+                )
+
+    def create_sidecar_files(self):
+        """
+        Create sidecar files for each of the esm-datastore parquet files. These
+
+        """
+
+        self.sidecar_files: list[Path] = []
+
+        for fhandle in self.local_pq_files:
+            sidecar_fname = fhandle.parent / f"{fhandle.stem}_uniqs.pq"
+            schema = pl.read_parquet_schema(fhandle)
+
+            lf = pl.scan_parquet(fhandle)
+            lf.select(
+                [
+                    *[  # Uniques in non-list string columns
+                        pl.col(colname).unique().implode()
+                        for colname, dtype in schema.items()
+                        if colname != "path" and dtype == pl.Utf8
+                    ],
+                    *[  # Uniques in list columns
+                        pl.col(colname).explode().unique().implode()
+                        for colname, dtype in schema.items()
+                        if colname != "path" and dtype == pl.List
+                    ],
+                ]
+            ).sink_parquet(sidecar_fname)
+
+            self.sidecar_files.append(sidecar_fname)
+
+    def partition_parquet_files(self):
+        """
+        Take each of the esm-datastore parquet files and partition them according
+        to the PARTITION_TABLE above, before sorting non-partitioned columns using
+        their cardinality
+        """
+        self.local_pq_files = [
+            f for f in Path(self.local_mirror_path).rglob("*") if f.is_file()
+        ]
+        for fhandle in self.local_pq_files:
+            try:
+                datastore_name = fhandle.stem
+                partition_cols = PARTITION_TABLE.get(datastore_name, False)
+
+                if not partition_cols:
+                    print(
+                        f"{f_warn}No partitioning information for datastore {f_path}{datastore_name}{f_reset}, skipping partitioning."
+                    )
+                    continue
+                else:
+                    print(
+                        f"{f_info}Partitioning datastore {f_path}{datastore_name}{f_reset}"
+                    )
+
+                schema = pl.read_parquet_schema(fhandle)
+                lf = pl.scan_parquet(fhandle)
+
+                sort_cols = [
+                    col
+                    for col, dtype in schema.items()
+                    if col not in partition_cols and dtype == pl.Utf8
+                ]
+                cardinalities = (
+                    lf.select(
+                        pl.col(colname).unique().implode().list.len()
+                        for colname in sort_cols
+                    )
+                    .collect()
+                    .to_dicts()[0]
+                )
+
+                sort_on = sorted(cardinalities.keys(), key=lambda k: -cardinalities[k])[
+                    :3
+                ]
+
+                df = lf.sort(sort_on).collect()  # Collect before unlinking
+
+                Path(fhandle).unlink()
+                Path(fhandle).mkdir(parents=True, exist_ok=True)
+
+                df.write_parquet(fhandle, partition_by=partition_cols)
+            except Exception as e:
+                print(
+                    f"{f_warn}Error partitioning parquet file {f_path}{fhandle}{f_reset}: {e}{f_reset}",
+                    file=sys.stderr,
+                )
 
     def write_to_object_storage(self):
         """
