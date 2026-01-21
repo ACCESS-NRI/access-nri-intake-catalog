@@ -14,6 +14,7 @@ import swiftclient
 from fabric import Connection
 
 from access_nri_intake.experiment.colours import (
+    f_err,
     f_info,
     f_path,
     f_reset,
@@ -66,6 +67,9 @@ class CatalogMirror:
         self.bucket_name = "access-nri-intake-catalog"
         self.local_json_files: list[Path] = []
         self.local_pq_files: list[Path] = []
+
+        self.failed_json_files: list[Path] = []
+        self.failed_pq_files: list[Path] = []
         if not use_permanent:
             self.local_mirror_path = Path(tempfile.TemporaryDirectory().name)
         else:
@@ -111,8 +115,22 @@ class CatalogMirror:
             f"{f_success}ESM datastore parquet files partitioned successfully.{f_reset}"
         )
 
-        # print(f"{f_info}Writing mirrored catalog to object storage...{f_reset}")
-        # self.write_to_object_storage()
+        if self.failed_pq_files:
+            print(f"{f_info}Failed parquet files:{f_reset}")
+            for f in self.failed_pq_files:
+                print(f" - {f}")
+        else:
+            print(f"{f_success}No failed parquet files.{f_reset}")
+
+        if self.failed_json_files:
+            print(f"{f_info}Failed JSON files:{f_reset}")
+            for f in self.failed_json_files:
+                print(f" - {f}")
+        else:
+            print(f"{f_success}No failed JSON files.{f_reset}")
+
+        print(f"{f_info}Writing mirrored catalog to object storage...{f_reset}")
+        self.write_to_object_storage()
 
     def mirror_intake_catalog(
         self, catalog_version: date = date.today(), hidden: bool = False
@@ -260,9 +278,10 @@ class CatalogMirror:
                 ).write_ndjson(file)
             except Exception as e:
                 print(
-                    f"{f_warn}Error updating JSON file {f_path}{file}{f_reset}: {e}{f_reset}",
+                    f"{f_err}Error updating JSON file {f_path}{file}{f_reset}: {e}{f_reset}",
                     file=sys.stderr,
                 )
+                self.failed_json_files.append(str(file))
 
     def create_sidecar_files(self):
         """
@@ -300,9 +319,6 @@ class CatalogMirror:
         to the PARTITION_TABLE above, before sorting non-partitioned columns using
         their cardinality
         """
-        self.local_pq_files = [
-            f for f in Path(self.local_mirror_path).rglob("*") if f.is_file()
-        ]
         for fhandle in self.local_pq_files:
             try:
                 datastore_name = fhandle.stem
@@ -347,9 +363,10 @@ class CatalogMirror:
                 df.write_parquet(fhandle, partition_by=partition_cols)
             except Exception as e:
                 print(
-                    f"{f_warn}Error partitioning parquet file {f_path}{fhandle}{f_reset}: {e}{f_reset}",
+                    f"{f_err}Error partitioning parquet file {f_path}{fhandle}{f_reset}: {e}{f_reset}",
                     file=sys.stderr,
                 )
+                self.failed_pq_files.append(str(fhandle))
 
     def write_to_object_storage(self):
         """
