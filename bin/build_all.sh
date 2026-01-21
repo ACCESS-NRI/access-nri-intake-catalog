@@ -50,7 +50,6 @@ for conf in ${CONFIGS[@]}; do
     xp65_conf=$CONFIG_DIR/$conf
     repo_conf=$(git rev-parse --show-toplevel)/config/$conf
     if ! diff $xp65_conf $repo_conf; then
-        # If diff returns something then it's not identical
         echo "Repo and xp65 config yaml are not identical for $conf"
         echo $xp65_conf
         echo $repo_conf
