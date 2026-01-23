@@ -63,7 +63,7 @@ class CatalogMirror:
     - [ ] Do we really need to copy everything to local first?
     """
 
-    def __init__(self, use_permanent: bool = True) -> None:
+    def __init__(self, use_permanent: bool = False) -> None:
         self.bucket_name = "access-nri-intake-catalog"
         self.local_json_files: list[Path] = []
         self.local_pq_files: list[Path] = []
@@ -233,7 +233,7 @@ class CatalogMirror:
             )
             self.local_json_files.append(local_file_path)
 
-    def restructure_metacat(self):
+    def restructure_metacat(self) -> None:
         """
         We need to go into the parquet files we've just mirrrored and make a few
         changes.
@@ -256,7 +256,7 @@ class CatalogMirror:
             .write_parquet(self.metacat_path, compression="snappy")
         )
 
-    def update_esm_datastores(self):
+    def update_esm_datastores(self) -> None:
         """
         We need to go into each of the esm-datastore parquet files and make a few
         changes. Most important, we need to change the `catalog_file` field to
@@ -283,7 +283,7 @@ class CatalogMirror:
                 )
                 self.failed_json_files.append(str(file))
 
-    def create_sidecar_files(self):
+    def create_sidecar_files(self) -> None:
         """
         Create sidecar files for each of the esm-datastore parquet files. These
 
@@ -292,7 +292,7 @@ class CatalogMirror:
         self.sidecar_files: list[Path] = []
 
         for fhandle in self.local_pq_files:
-            sidecar_fname = fhandle.parent / f"{fhandle.stem}_uniqs.pq"
+            sidecar_fname = fhandle.parent / f"{fhandle.stem}_uniqs.parquet"
             schema = pl.read_parquet_schema(fhandle)
 
             lf = pl.scan_parquet(fhandle)
@@ -313,7 +313,7 @@ class CatalogMirror:
 
             self.sidecar_files.append(sidecar_fname)
 
-    def partition_parquet_files(self):
+    def partition_parquet_files(self) -> None:
         """
         Take each of the esm-datastore parquet files and partition them according
         to the PARTITION_TABLE above, before sorting non-partitioned columns using
@@ -392,6 +392,8 @@ class CatalogMirror:
                 "X-Container-Read": ".r:*",
                 "X-Container-Meta-Access-Control-Allow-Origin": "*",
                 "X-Container-Meta-Access-Control-Allow-Methods": "GET, HEAD",
+                "X-Container-Meta-Access-Control-Allow-Headers": "Range",
+                "X-Container-Meta-Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
             },
         )
 
