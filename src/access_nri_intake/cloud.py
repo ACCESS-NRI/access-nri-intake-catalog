@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import json
 import sys
 import tempfile
 from collections.abc import Sequence
@@ -109,6 +110,10 @@ class CatalogMirror:
         self.create_sidecar_files()
         print(f"{f_success}ESM datastore sidecar files created successfully.{f_reset}")
 
+        print(f"{f_info}Writing metadata json files...{f_reset}")
+        self._create_datastore_metadata()
+        print(f"{f_success}Metadata json sucessfully written!.{f_reset}")
+
         print(f"{f_info}Partitioning ESM datastore parquet files...{f_reset}")
         self.partition_parquet_files()
         print(
@@ -118,7 +123,7 @@ class CatalogMirror:
         if self.failed_pq_files:
             print(f"{f_info}Failed parquet files:{f_reset}")
             for f in self.failed_pq_files:
-                print(f" - {f}")
+                print(f" - {str(f)}")
         else:
             print(f"{f_success}No failed parquet files.{f_reset}")
 
@@ -313,6 +318,28 @@ class CatalogMirror:
 
             self.sidecar_files.append(sidecar_fname)
 
+    def _create_datastore_metadata(self) -> None:
+        """
+        Add project metadata to our parquet files and set the row_group_size to 10,000
+
+        First, we update our local parquet files list - we've partitioned a bunch of stuff, so we'll
+        need to account for that.
+        """
+
+        for fhandle in self.local_pq_files:
+            lf = pl.scan_parquet(fhandle)
+            project_id = self._get_project_id(lf)
+            num_records = lf.collect().height
+
+            metadata_json = {
+                "project_id": project_id,
+                "num_records": num_records,
+            }
+
+            fname = f"{fhandle.stem}_metadata.json"
+            with open(fhandle.parent / fname, "w") as f:
+                json.dump(metadata_json, f)
+
     def partition_parquet_files(self) -> None:
         """
         Take each of the esm-datastore parquet files and partition them according
@@ -322,11 +349,16 @@ class CatalogMirror:
         for fhandle in self.local_pq_files:
             try:
                 datastore_name = fhandle.stem
-                partition_cols = PARTITION_TABLE.get(datastore_name, False)
+                partition_cols = PARTITION_TABLE.get(datastore_name, [])
 
                 if not partition_cols:
                     print(
                         f"{f_warn}No partitioning information for datastore {f_path}{datastore_name}{f_reset}, skipping partitioning."
+                    )
+                    print(f"{f_info}Changing row group size to 10,000")
+                    pl.scan_parquet(fhandle).collect().write_parquet(
+                        fhandle,
+                        row_group_size=10_000,
                     )
                     continue
                 else:
@@ -363,14 +395,22 @@ class CatalogMirror:
                 df.write_parquet(
                     fhandle,
                     partition_by=partition_cols,
-                    row_group_size=10_000,  # Small row group size - faster API access
+                    row_group_size=10_000,
                 )
             except Exception as e:
                 print(
                     f"{f_err}Error partitioning parquet file {f_path}{fhandle}{f_reset}: {e}{f_reset}",
                     file=sys.stderr,
                 )
-                self.failed_pq_files.append(str(fhandle))
+                self.failed_pq_files.append(fhandle)
+
+    def _get_project_id(self, lf: pl.LazyFrame) -> str:
+        """
+        Our df will always have a path column, containing something like `/g/data/xp65/...`. We are
+        gonna grab that and return eg. `{'project_id': 'xp65'}`
+        """
+
+        return lf.head(1).collect().get_column("path").str.split("/").list.get(3)[0]
 
     def write_to_object_storage(self):
         """
