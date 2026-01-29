@@ -190,3 +190,7 @@ python = "3.12.*"
 
 [tool.pixi.feature.py313.dependencies]
 python = "3.13.*"
+
+[tool.pixi.dependencies]
+requests = ">=2.32.5,<3"
+aiohttp = ">=3.13.3,<4"

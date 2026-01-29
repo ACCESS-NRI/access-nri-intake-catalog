@@ -360,7 +360,11 @@ class CatalogMirror:
                 Path(fhandle).unlink()
                 Path(fhandle).mkdir(parents=True, exist_ok=True)
 
-                df.write_parquet(fhandle, partition_by=partition_cols)
+                df.write_parquet(
+                    fhandle,
+                    partition_by=partition_cols,
+                    row_group_size=10_000,  # Small row group size - faster API access
+                )
             except Exception as e:
                 print(
                     f"{f_err}Error partitioning parquet file {f_path}{fhandle}{f_reset}: {e}{f_reset}",
