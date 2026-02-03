@@ -11,6 +11,7 @@ from pathlib import Path
 
 import openstack
 import polars as pl
+import pyarrow.parquet as pq
 import swiftclient
 from fabric import Connection
 
@@ -301,6 +302,8 @@ class CatalogMirror:
             schema = pl.read_parquet_schema(fhandle)
 
             lf = pl.scan_parquet(fhandle)
+
+            n_rows: int = lf.select(pl.len()).collect()[0, 0]
             lf.select(
                 [
                     *[  # Uniques in non-list string columns
@@ -315,6 +318,17 @@ class CatalogMirror:
                     ],
                 ]
             ).sink_parquet(sidecar_fname)
+
+            # Then open the sidecarfile with arrow and add a num_records metadata field
+            schema = pq.read_schema(sidecar_fname)
+            table = pq.read_table(sidecar_fname)
+
+            metadata = schema.metadata or {}
+            metadata[b"num_records"] = str(n_rows).encode("utf8")
+
+            table = table.replace_schema_metadata(metadata)
+
+            pq.write_table(table, sidecar_fname)
 
             self.sidecar_files.append(sidecar_fname)
 
