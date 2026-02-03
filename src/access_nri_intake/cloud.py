@@ -287,7 +287,7 @@ class CatalogMirror:
                     f"{f_err}Error updating JSON file {f_path}{file}{f_reset}: {e}{f_reset}",
                     file=sys.stderr,
                 )
-                self.failed_json_files.append(str(file))
+                self.failed_json_files.append(file)
 
     def create_sidecar_files(self) -> None:
         """
