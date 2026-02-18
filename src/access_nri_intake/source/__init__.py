@@ -3,7 +3,6 @@
 
 """Tools for generating Intake-ESM catalogs"""
 
-
 from ..utils import get_jsonschema
 
 CORE_COLUMNS = [

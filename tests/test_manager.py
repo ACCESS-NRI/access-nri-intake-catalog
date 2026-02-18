@@ -4,13 +4,19 @@
 
 from unittest import mock
 from warnings import warn
+import yaml
 
 import pytest
 from intake_dataframe_catalog.core import DfFileCatalogError
 from pandas.errors import EmptyDataError
+from pathlib import Path
 
 from access_nri_intake.catalog import EXP_JSONSCHEMA
-from access_nri_intake.catalog.manager import CatalogManager, CatalogManagerError
+from access_nri_intake.catalog.manager import (
+    CatalogManager,
+    CatalogManagerError,
+    _open_and_translate,
+)
 from access_nri_intake.catalog.translators import (
     Cmip5Translator,
     Cmip6Translator,
@@ -37,6 +43,21 @@ def test_CatalogManager_init(tmp_path):
     assert "first load or build the source" in str(excinfo.value)
 
 
+def test_CatalogManager_init_parquet(tmp_path):
+    """Test that CatalogManager initialising correctly"""
+    path = str(tmp_path / "cat.parquet")
+
+    cat = CatalogManager(path)
+    assert cat.mode == "w"
+    assert hasattr(cat, "dfcat")
+
+    assert cat.dfcat.format == "parquet"
+
+    with pytest.raises(CatalogManagerError) as excinfo:
+        cat._add()
+    assert "first load or build the source" in str(excinfo.value)
+
+
 @pytest.mark.parametrize(
     "builder, basedir, kwargs",
     [
@@ -46,11 +67,14 @@ def test_CatalogManager_init(tmp_path):
         (AccessOm3Builder, "access-om3", {}),
     ],
 )
+@pytest.mark.parametrize("use_parquet", [True, False])
 @pytest.mark.filterwarnings("ignore:Unable to parse 2 assets")
-def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs):
+def test_CatalogManager_build_esm(
+    tmp_path, test_data, builder, basedir, kwargs, use_parquet
+):
     """Test building and adding an Intake-ESM datastore"""
     path = str(tmp_path / "cat.csv")
-    cat = CatalogManager(path)
+    cat = CatalogManager(path, use_parquet)
 
     metadata = load_metadata_yaml(
         str(test_data / basedir / "metadata.yaml"), EXP_JSONSCHEMA
@@ -77,6 +101,9 @@ def test_CatalogManager_build_esm(tmp_path, test_data, builder, basedir, kwargs)
     cat.save()
     cat = CatalogManager(path)
     assert cat.mode == "a"
+    # Confirm we wrote out parquet, not csv, files
+    assert (Path(cat.path).parent / "test.csv").exists() != use_parquet
+    assert (Path(cat.path).parent / "test.parquet").exists() == use_parquet
 
 
 @mock.patch("intake_dataframe_catalog.core.DfFileCatalog.__init__")
@@ -250,6 +277,7 @@ def test_CatalogManager_generic_exception(tmp_path, test_data):
         name="cmip5-al33",
         description="cmip5-al33",
         path=str(test_data / "esm_datastore/cmip5-al33.json"),
+        directory=str(tmp_path),
         translator=Cmip5Translator,
     )
 
@@ -263,3 +291,62 @@ def test_CatalogManager_generic_exception(tmp_path, test_data):
 
     assert access_nri_err_str in str(excinfo.value)
     assert cause_str in str(excinfo.value.__cause__)
+
+
+@pytest.mark.parametrize(
+    "translator, datastore, metadata",
+    [
+        (Cmip5Translator, "cmip5-al33.json", {}),
+        (Cmip6Translator, "cmip6-oi10.json", {}),
+    ],
+)
+def test_CatalogManager_load_pq(tmp_path, test_data, translator, datastore, metadata):
+    """Test loading and adding an Intake-ESM datastore"""
+    path = str(tmp_path / "cat.parquet")
+    cat = CatalogManager(path, use_parquet=True)
+
+    args = dict(
+        name="test",
+        description="test",
+        path=str(test_data / f"esm_datastore/{datastore}"),
+        translator=translator,
+        metadata=metadata,
+    )
+    cat.load(**args)
+    cat.save()
+
+    assert Path(tmp_path / "cat.parquet").exists()
+    assert Path(tmp_path / "test.parquet").exists()
+    assert Path(tmp_path / "test.json").exists()
+    assert not Path(tmp_path / "test.csv").exists()
+
+    df = cat.dfcat.df
+
+    yamls = df["yaml"].tolist()
+    assert all(yaml == yamls[0] for yaml in yamls), "YAML representations differ!"
+
+    yaml_dict = yaml.safe_load(yamls[0])
+
+    assert yaml_dict["sources"]["test"]["args"]["obj"] == str(
+        Path(tmp_path) / "test.json"
+    )
+
+    cat = CatalogManager(path)
+    assert cat.mode == "a"
+
+
+def test__open_and_translate_bad_driver(
+    tmp_path,
+    test_data,
+):
+    """Test the _open_and_translate function"""
+    path = str(test_data / "esm_datastore/cmip5-al33.json")
+    translator = Cmip5Translator
+    metadata = {}
+    driver = "bad_driver"
+    description = "yolo"
+    name = "nope"
+    with pytest.raises(CatalogManagerError) as excinfo:
+        _open_and_translate(path, driver, name, description, metadata, translator)
+
+    assert "Driver 'bad_driver' not supported in CatalogManager" in str(excinfo.value)
