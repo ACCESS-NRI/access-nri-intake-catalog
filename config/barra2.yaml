@@ -1,0 +1,9 @@
+builder: null
+
+translator: BarpaTranslator
+
+sources:
+
+  - metadata_yaml: /g/data/xp65/admin/access-nri-intake-catalog/config/metadata_sources/barra2-ob53/metadata.yaml
+    path:
+      - /g/data/ob53/catalog/v2/esm/catalog.json
