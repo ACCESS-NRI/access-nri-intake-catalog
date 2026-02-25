@@ -7,6 +7,8 @@ import json
 from unittest import mock
 from unittest.mock import MagicMock
 
+from intake_esm.core import esm_datastore
+from typing import Self, Any
 import pytest
 
 from access_nri_intake.aliases import (
@@ -18,19 +20,27 @@ from access_nri_intake.aliases import (
 )
 
 
-class MockESMDatastore:
-    """Mock ESM datastore for testing"""
+class SpyEsmDatastore(esm_datastore):
+    """Real ESMDataStore that records search calls across chains."""
 
-    def __init__(self):
-        self.search_calls = []
+    def __init__(self, *args, search_calls: list[Any] | None = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.search_calls = search_calls or []
         self._captured_init_kwargs = {"metadata": {"version": "test"}}
 
-    def search(self, **kwargs):
-        """Record search calls for testing"""
+    def search(self, require_all_on: str | list[str] | None = None, **kwargs) -> Self:
         self.search_calls.append(kwargs)
-        return self
 
-    def to_dask(self):
+        result = super().search(require_all_on, **kwargs)
+        if isinstance(result, esm_datastore):
+            result = self.__class__(
+                result.esmcat,
+                search_calls=self.search_calls,
+            )
+
+        return result
+
+    def to_dask(self, **kwargs):
         return None
 
 
@@ -38,9 +48,9 @@ class TestAliasedESMCatalog:
     """Test the AliasedESMCatalog wrapper"""
 
     @pytest.mark.parametrize("show_warnings", [True, False])
-    def test_no_field_aliases_for_esm(self, show_warnings):
+    def test_no_field_aliases_for_esm(self, sample_datastore, show_warnings):
         """Test that ESM datastores use native field names (no field aliasing)"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat,
             field_aliases=ESM_FIELD_ALIASES,
@@ -60,9 +70,9 @@ class TestAliasedESMCatalog:
         )  # But value should be aliased (tos -> surface_temp)
 
     @pytest.mark.parametrize("show_warnings", [True, False])
-    def test_value_aliases(self, show_warnings):
+    def test_value_aliases(self, sample_datastore, show_warnings):
         """Test that values are properly aliased"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat,
             field_aliases=ESM_FIELD_ALIASES,
@@ -81,9 +91,9 @@ class TestAliasedESMCatalog:
         assert call_kwargs["variable"] == "fld_s03i236"
 
     @pytest.mark.parametrize("show_warnings", [True, False])
-    def test_field_aliases(self, show_warnings):
+    def test_field_aliases(self, sample_datastore, show_warnings):
         """Test that fields are properly aliased"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat,
             field_aliases={"varname": "variable_id"},
@@ -105,9 +115,9 @@ class TestAliasedESMCatalog:
             call_kwargs["variable_id"] == "fld_s03i236"
         )  # Value should still be aliased
 
-    def test_combined_aliases(self):
+    def test_combined_aliases(self, sample_datastore):
         """Test that field and value aliases work together"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
         )
@@ -123,9 +133,9 @@ class TestAliasedESMCatalog:
         )  # ci -> fld_s05i269 (CMIP to ACCESS mapping)
         assert call_kwargs["frequency"] == "1day"  # daily -> 1day
 
-    def test_list_values(self):
+    def test_list_values(self, sample_datastore):
         """Test that lists of values are properly aliased"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
         )
@@ -143,9 +153,9 @@ class TestAliasedESMCatalog:
         ]  # ci->fld_s05i269, cl->fld_s02i261, tas->fld_s03i236
         assert call_kwargs["variable"] == expected_values
 
-    def test_regex_values(self):
+    def test_regex_values(self, sample_datastore):
         """Test that a regex value is passed through untouched"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
         )
@@ -165,9 +175,9 @@ class TestAliasedESMCatalog:
         assert call_kwargs["variable"] != expected_values
         assert call_kwargs["variable"] == "ci|cl|tas"
 
-    def test_passthrough_unknown_fields(self):
+    def test_passthrough_unknown_fields(self, sample_datastore):
         """Test that unknown fields pass through unchanged"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
         )
@@ -180,9 +190,9 @@ class TestAliasedESMCatalog:
         call_kwargs = mock_cat.search_calls[0]
         assert call_kwargs["unknown_field"] == "unknown_value"
 
-    def test_passthrough_unknown_values(self):
+    def test_passthrough_unknown_values(self, sample_datastore):
         """Test that unknown values pass through unchanged"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
         )
@@ -195,9 +205,9 @@ class TestAliasedESMCatalog:
         call_kwargs = mock_cat.search_calls[0]
         assert call_kwargs["variable"] == "unknown_variable"
 
-    def test_passthrough_attributes(self):
+    def test_passthrough_attributes(self, sample_datastore):
         """Test that other attributes pass through to the wrapped catalog"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
         )
@@ -205,9 +215,9 @@ class TestAliasedESMCatalog:
         # Test accessing attributes that aren't search
         assert wrapped_cat._captured_init_kwargs == mock_cat._captured_init_kwargs
 
-    def test_dir_includes_wrapper_and_wrapped_attrs(self):
+    def test_dir_includes_wrapper_and_wrapped_attrs(self, sample_datastore):
         """Test that dir() includes both wrapper and wrapped catalog attributes"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat, field_aliases=ESM_FIELD_ALIASES, value_aliases=VALUE_ALIASES
         )
@@ -245,9 +255,9 @@ class TestAliasedESMCatalog:
 
     @pytest.mark.parametrize("show_warnings", [True, False])
     @pytest.mark.parametrize("search, sent", [("ci", "fld_s05i269"), ("ci.*", "ci.*")])
-    def test_cmip_variable_search(self, show_warnings, search, sent):
+    def test_cmip_variable_search(self, show_warnings, search, sent, sample_datastore):
         """Test that CMIP variables can be found and return ACCESS variables"""
-        mock_cat = MockESMDatastore()
+        mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat,
             field_aliases=ESM_FIELD_ALIASES,
