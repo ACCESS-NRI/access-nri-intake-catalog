@@ -26,6 +26,7 @@ dependencies = [
     "jsonschema",
     "libcst",
     "pydantic",
+    "pandas<3.0.0",
     "polars>=1.24.0",
     "pooch",
     "xarray",
