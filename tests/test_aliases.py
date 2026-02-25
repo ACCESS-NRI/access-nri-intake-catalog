@@ -6,6 +6,7 @@
 import json
 from unittest import mock
 from unittest.mock import MagicMock
+from pydantic_core import ValidationError
 
 from intake_esm.core import esm_datastore
 from typing import Self, Any
@@ -59,14 +60,14 @@ class TestAliasedESMCatalog:
         )
 
         # Test that field names pass through unchanged - ESM datastores use native names
-        wrapped_cat.search(variable_id="tos")  # Use native ESM field name
+        wrapped_cat.search(variable="tos")  # Use native ESM field name
 
         # Should have been called with the same field name (no field mapping)
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert "variable_id" in call_kwargs  # Field name unchanged
+        assert "variable" in call_kwargs  # Field name unchanged
         assert (
-            call_kwargs["variable_id"] == "surface_temp"
+            call_kwargs["variable"] == "surface_temp"
         )  # But value should be aliased (tos -> surface_temp)
 
     @pytest.mark.parametrize("show_warnings", [True, False])
@@ -96,7 +97,7 @@ class TestAliasedESMCatalog:
         mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
             mock_cat,
-            field_aliases={"varname": "variable_id"},
+            field_aliases={"varname": "variable"},
             value_aliases=VALUE_ALIASES,
             show_warnings=show_warnings,
         )
@@ -110,10 +111,8 @@ class TestAliasedESMCatalog:
         # Should have been called with the same field name (no aliasing for ESM catalogs)
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert "variable_id" in call_kwargs
-        assert (
-            call_kwargs["variable_id"] == "fld_s03i236"
-        )  # Value should still be aliased
+        assert "variable" in call_kwargs
+        assert call_kwargs["variable"] == "fld_s03i236"  # Value should still be aliased
 
     def test_combined_aliases(self, sample_datastore):
         """Test that field and value aliases work together"""
@@ -183,12 +182,10 @@ class TestAliasedESMCatalog:
         )
 
         # Test unknown field
-        wrapped_cat.search(unknown_field="unknown_value")
-
-        # Should pass through unchanged
-        assert len(mock_cat.search_calls) == 1
-        call_kwargs = mock_cat.search_calls[0]
-        assert call_kwargs["unknown_field"] == "unknown_value"
+        with pytest.raises(
+            ValidationError, match="Column unknown_field not in columns"
+        ):
+            wrapped_cat.search(unknown_field="unknown_value")
 
     def test_passthrough_unknown_values(self, sample_datastore):
         """Test that unknown values pass through unchanged"""
