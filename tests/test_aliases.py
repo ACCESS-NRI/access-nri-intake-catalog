@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 from pydantic_core import ValidationError
 
 from intake_esm.core import esm_datastore
-from typing import Self, Any
+from typing import Any
 import pytest
 
 from access_nri_intake.aliases import (
@@ -29,7 +29,7 @@ class SpyEsmDatastore(esm_datastore):
         self.search_calls = search_calls or []
         self._captured_init_kwargs = {"metadata": {"version": "test"}}
 
-    def search(self, require_all_on: str | list[str] | None = None, **kwargs) -> Self:
+    def search(self, require_all_on: str | list[str] | None = None, **kwargs):
         self.search_calls.append(kwargs)
 
         result = super().search(require_all_on, **kwargs)
