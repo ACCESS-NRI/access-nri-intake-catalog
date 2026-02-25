@@ -795,4 +795,4 @@ def _cmip_realm_translator(series) -> pd.Series:
             realms |= {translations.get(realm, realm)}
         return tuple(realms)
 
-    return series.apply(lambda string: _translate(string))
+    return series.apply(_translate)
