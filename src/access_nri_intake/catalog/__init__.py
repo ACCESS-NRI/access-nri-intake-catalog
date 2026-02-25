@@ -3,7 +3,6 @@
 
 """Tools for managing intake-dataframe-catalogs like the ACCESS-NRI catalog"""
 
-
 from ..utils import _can_be_array, get_jsonschema
 
 CORE_COLUMNS = [

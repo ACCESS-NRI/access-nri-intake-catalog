@@ -198,7 +198,7 @@ class HashableIndexes:
         self.dict = frozendict(
             {
                 key: val.index.values
-                for key, val in _indexes.items()  # type:ignore[union-attr]
+                for key, val in _indexes.items()  # type: ignore[union-attr]
                 if not is_object_dtype(val.coord_dtype) and key not in drop_indices
             }
         )

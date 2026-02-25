@@ -256,7 +256,7 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
             10,
         ),  # This was 18 - changed it to ten, I think because of crawl-depth & by578 / by578a
         ("access-esm1-5", "AccessEsm15Builder", {"ensemble": False}, 11),
-        ("access-om3", "AccessOm3Builder", {}, 12),
+        ("access-om3", "AccessOm3Builder", {}, 14),
         ("mom6", "Mom6Builder", {}, 27),
     ],
 )

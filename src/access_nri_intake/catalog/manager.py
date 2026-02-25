@@ -4,9 +4,11 @@
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
 from pathlib import Path
+from typing import Any
 
 import intake
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
+from intake_esm import esm_datastore
 from pandas.errors import EmptyDataError
 
 from ..utils import validate_against_schema
@@ -32,7 +34,7 @@ class CatalogManager:
     Add/update intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog
     """
 
-    def __init__(self, path: Path | str):
+    def __init__(self, path: Path | str, use_parquet: bool = False):
         """
         Initialise a CatalogManager instance to add/update intake sources in a
         intake-dataframe-catalog like the ACCESS-NRI catalog
@@ -41,12 +43,21 @@ class CatalogManager:
         ----------
         path: str
             The path to the intake-dataframe-catalog
+        use_parquet: bool
+            Whether to use parquet files instead of csv files. This will also save version info into
+            the `parameters::version_pq` namespace, allowing us to separately track parquet & csv
+            catalog versions, maintaining backwards compatibility with existing catalogs.
         """
         path = Path(path)
 
         self.path = str(path)
+        self.use_parquet = use_parquet
 
         self.mode = "a" if path.exists() else "w"
+
+        columns_with_iterables = (
+            COLUMNS_WITH_ITERABLES if not Path.suffix == ".parquet" else None
+        )
 
         try:
             self.dfcat = DfFileCatalog(
@@ -54,13 +65,13 @@ class CatalogManager:
                 yaml_column=YAML_COLUMN,
                 name_column=NAME_COLUMN,
                 mode=self.mode,
-                columns_with_iterables=COLUMNS_WITH_ITERABLES,
+                columns_with_iterables=columns_with_iterables,
             )
         except (EmptyDataError, DfFileCatalogError) as e:
             raise Exception(str(e) + f": {self.path}") from e
 
-        self.source = None
-        self.source_metadata = None
+        self.source: esm_datastore | None = None
+        self.source_metadata: dict[str, Any] | None = None
 
     def build_esm(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
@@ -114,17 +125,27 @@ class CatalogManager:
                 )
 
         builder = builder(path, **kwargs).build()
-        builder.save(name=name, description=description, directory=directory)
+        builder.save(
+            name=name,
+            description=description,
+            directory=directory,
+            use_parquet=self.use_parquet,
+        )
 
-        self.source, self.source_metadata = _open_and_translate(
-            str(json_file),
-            "esm_datastore",
-            name,
-            description,
-            metadata,
-            translator,
+        open_translate_kwargs = dict(
+            file=str(json_file),
+            driver="esm_datastore",
+            name=name,
+            description=description,
+            metadata=metadata,
+            translator=translator,
             columns_with_iterables=list(builder.columns_with_iterables),
         )
+        if self.use_parquet:
+            # Don't need to specify columns_with_iterables for parquet - serialised into format
+            open_translate_kwargs.pop("columns_with_iterables")
+
+        self.source, self.source_metadata = _open_and_translate(**open_translate_kwargs)
 
         self._add()
 
@@ -133,13 +154,16 @@ class CatalogManager:
         name: str,
         description: str,
         path: str,
+        directory: str | None = None,
         driver: str = "esm_datastore",
         translator=DefaultTranslator,
         metadata: dict | None = None,
         **kwargs,
     ):
         """
-        Load an existing data source using Intake and add it to the catalog
+        Load an existing data source using Intake and add it to the catalog. If
+        it's an NCI datastore, reserialize it into the build directory as parquet,
+        if we've specified a parquet build.
 
         Parameters
         ----------
@@ -149,6 +173,9 @@ class CatalogManager:
             Description of the contents of the data source
         path: str
             The path to the Intake data source
+        directory: str, optional
+            The directory to save reserialized Intake data source to. Defaults to
+            `Path(self.path).parent`
         driver: str
             The name of the Intake driver to use to open the data source
         translator: :py:class:`~access_nri_catalog.metacat.translators.DefaultTranslator`, optional
@@ -169,12 +196,34 @@ class CatalogManager:
                 )
             path = path[0]
 
+        directory = directory or str(Path(self.path).parent)
         metadata = metadata or {}
 
-        self.source, self.source_metadata = _open_and_translate(
+        source, source_metadata = _open_and_translate(
             path, driver, name, description, metadata, translator, **kwargs
         )
 
+        self.source, self.source_metadata = source, source_metadata
+
+        if self.use_parquet:
+            self.source.serialize(
+                name=source.name,
+                directory=directory,
+                catalog_type="file",
+                file_format="parquet",
+            )
+
+            reserialized_path = str(Path(directory) / f"{source.name}.json")
+
+            self.source, self.source_metadata = _open_and_translate(
+                reserialized_path,
+                driver,
+                name,
+                description,
+                metadata,
+                translator,
+                **kwargs,
+            )
         self._add()
 
     def _add(self):
@@ -233,11 +282,13 @@ class CatalogManager:
 
 def _open_and_translate(  # noqa: PLR0913 # Allow this func to have many arguments
     file, driver, name, description, metadata, translator, **kwargs
-):
+) -> tuple[esm_datastore, dict]:
     """
     Open an Intake data source, assign name, description and metadata attrs and
     translate using the provided translator
     """
+    if driver != "esm_datastore":
+        raise CatalogManagerError(f"Driver '{driver}' not supported in CatalogManager")
     open_ = getattr(intake, f"open_{driver}")
     source = open_(file, **kwargs)
     source.name = name
