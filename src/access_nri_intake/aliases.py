@@ -178,6 +178,12 @@ class AliasedESMCatalog:
         norm: dict[str, Any] = self._normalise_kwargs(kwargs)
         return self._cat.search(**norm)
 
+    def unwrap(self) -> esm_datastore:
+        """
+        Get the underlying dataframe catalog without aliasing
+        """
+        return self._cat
+
     # pass-through everything else to underlying catalog
     def __getattr__(self, name):
         return getattr(self._cat, name)
@@ -275,6 +281,12 @@ class AliasedDataframeCatalog:
         for key, datastore in result.items():
             wrapped_result[key] = self._wrap_if_esm_datastore(datastore)
         return wrapped_result
+
+    def unwrap(self) -> DfFileCatalog:
+        """
+        Get the underlying dataframe catalog without aliasing
+        """
+        return self._cat
 
     # pass-through everything else to underlying catalog
     def __getattr__(self, name):

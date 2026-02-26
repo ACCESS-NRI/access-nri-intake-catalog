@@ -20,6 +20,7 @@ from access_nri_intake.aliases import (
     ESM_FIELD_ALIASES,
     VALUE_ALIASES,
     AliasedESMCatalog,
+    AliasedDataframeCatalog,
 )
 
 
@@ -273,6 +274,17 @@ class TestAliasedESMCatalog:
             call_kwargs = mock_cat.search_calls[0]
             assert call_kwargs["variable"] == sent
 
+    def test_unwrap(self, sample_datastore):
+        """Test that unwrap() returns the original catalog"""
+        wrapped_cat = AliasedESMCatalog(
+            sample_datastore,
+            field_aliases=ESM_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+        )
+
+        unwrapped = wrapped_cat.unwrap()
+        assert unwrapped is sample_datastore
+
 
 class TestAliasedDataframeCatalog:
     """Test the AliasedDataframeCatalog wrapper"""
@@ -331,11 +343,6 @@ class TestAliasedDataframeCatalog:
 
     def test_to_source_wraps_esm_datastore(self, tmp_dataframe_catalog):
         """Test that to_source() properly wraps ESM datastores with aliasing"""
-        from access_nri_intake.aliases import (
-            VALUE_ALIASES,
-            AliasedDataframeCatalog,
-            AliasedESMCatalog,
-        )
 
         catalog = AliasedDataframeCatalog(
             tmp_dataframe_catalog,
@@ -351,11 +358,6 @@ class TestAliasedDataframeCatalog:
 
     def test___getitem___wraps_esm_datastore(self, tmp_dataframe_catalog):
         """Test that __getitem__() properly wraps ESM datastores with aliasing"""
-        from access_nri_intake.aliases import (
-            VALUE_ALIASES,
-            AliasedDataframeCatalog,
-            AliasedESMCatalog,
-        )
 
         catalog = AliasedDataframeCatalog(
             tmp_dataframe_catalog,
@@ -373,11 +375,6 @@ class TestAliasedDataframeCatalog:
 
     def test_to_source_dict_wraps_multiple_datastores(self, tmp_dataframe_catalog):
         """Test that to_source_dict() wraps all returned datastores"""
-        from access_nri_intake.aliases import (
-            VALUE_ALIASES,
-            AliasedDataframeCatalog,
-            AliasedESMCatalog,
-        )
 
         catalog = AliasedDataframeCatalog(
             tmp_dataframe_catalog,
@@ -395,7 +392,6 @@ class TestAliasedDataframeCatalog:
 
     def test_getattr_passthrough(self, tmp_dataframe_catalog):
         """Test that __getattr__ passes through to underlying catalog"""
-        from access_nri_intake.aliases import AliasedDataframeCatalog
 
         # Mock an attribute
         mock_attr = MagicMock()
@@ -409,11 +405,6 @@ class TestAliasedDataframeCatalog:
 
     def test_search_wraps_result(self, tmp_dataframe_catalog):
         """Test that search() wraps results that have to_source method"""
-        from access_nri_intake.aliases import (
-            VALUE_ALIASES,
-            AliasedDataframeCatalog,
-            AliasedESMCatalog,
-        )
 
         catalog = AliasedDataframeCatalog(
             tmp_dataframe_catalog,
@@ -428,6 +419,14 @@ class TestAliasedDataframeCatalog:
         esm_datastore = subcat.to_source()
 
         assert isinstance(esm_datastore, AliasedESMCatalog)
+
+    def test_unwrap(self, tmp_dataframe_catalog):
+        """Test that unwrap() returns the original catalog"""
+
+        catalog = AliasedDataframeCatalog(tmp_dataframe_catalog)
+        unwrapped = catalog.unwrap()
+
+        assert unwrapped is tmp_dataframe_catalog
 
 
 @pytest.mark.parametrize(
