@@ -304,7 +304,7 @@ class TestAliasedDataframeCatalog:
             translator=Cmip5Translator,
         )
         cat.load(
-            **load_args, # type: ignore
+            **load_args,  # type: ignore
         )
 
         # Build a couple of sources
@@ -324,10 +324,10 @@ class TestAliasedDataframeCatalog:
 
         # Check that entry with same name overwrites correctly
         cat.load(
-            **load_args, # type: ignore
+            **load_args,  # type: ignore
         )
         cat.save()
-        return intake.open_df_catalog(path) # type: ignore
+        return intake.open_df_catalog(path)  # type: ignore
 
     def test_to_source_wraps_esm_datastore(self, tmp_dataframe_catalog):
         """Test that to_source() properly wraps ESM datastores with aliasing"""
