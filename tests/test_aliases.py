@@ -278,7 +278,7 @@ class TestAliasedDataframeCatalog:
     """Test the AliasedDataframeCatalog wrapper"""
 
     @pytest.fixture
-    def tmp_dataframe_catalog(self,tmp_path, test_data) -> DfFileCatalog:
+    def tmp_dataframe_catalog(self, tmp_path, test_data) -> DfFileCatalog:
         """
 
         Use a temporary, *real* dataframe catalog instead of a mock one, because there's too much wacky
@@ -304,7 +304,7 @@ class TestAliasedDataframeCatalog:
             translator=Cmip5Translator,
         )
         cat.load(
-            **load_args,
+            **load_args, # type: ignore
         )
 
         # Build a couple of sources
@@ -324,15 +324,18 @@ class TestAliasedDataframeCatalog:
 
         # Check that entry with same name overwrites correctly
         cat.load(
-            **load_args,
+            **load_args, # type: ignore
         )
         cat.save()
-        return intake.open_df_catalog(path)
-
+        return intake.open_df_catalog(path) # type: ignore
 
     def test_to_source_wraps_esm_datastore(self, tmp_dataframe_catalog):
         """Test that to_source() properly wraps ESM datastores with aliasing"""
-        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog, AliasedESMCatalog
+        from access_nri_intake.aliases import (
+            VALUE_ALIASES,
+            AliasedDataframeCatalog,
+            AliasedESMCatalog,
+        )
 
         catalog = AliasedDataframeCatalog(
             tmp_dataframe_catalog,
@@ -340,7 +343,7 @@ class TestAliasedDataframeCatalog:
             value_aliases=VALUE_ALIASES,
         )
 
-        subcat = catalog.search(model='ACCESS-OM2')
+        subcat = catalog.search(model="ACCESS-OM2")
         # Since search() returns the result directly (not wrapped), we need to call to_source on the catalog
         esm_datastore = subcat.to_source()
 
@@ -348,7 +351,11 @@ class TestAliasedDataframeCatalog:
 
     def test___getitem___wraps_esm_datastore(self, tmp_dataframe_catalog):
         """Test that __getitem__() properly wraps ESM datastores with aliasing"""
-        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog, AliasedESMCatalog
+        from access_nri_intake.aliases import (
+            VALUE_ALIASES,
+            AliasedDataframeCatalog,
+            AliasedESMCatalog,
+        )
 
         catalog = AliasedDataframeCatalog(
             tmp_dataframe_catalog,
@@ -356,18 +363,21 @@ class TestAliasedDataframeCatalog:
             value_aliases=VALUE_ALIASES,
         )
 
-
         subcat = catalog.search(model="ACCESS-OM2")
         assert isinstance(subcat, AliasedDataframeCatalog)
 
         # Since search() returns the result directly (not wrapped), we need to call to_source on the catalog
-        esm_datastore = subcat['access-om2']
+        esm_datastore = subcat["access-om2"]
 
         assert isinstance(esm_datastore, AliasedESMCatalog)
 
     def test_to_source_dict_wraps_multiple_datastores(self, tmp_dataframe_catalog):
         """Test that to_source_dict() wraps all returned datastores"""
-        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog, AliasedESMCatalog
+        from access_nri_intake.aliases import (
+            VALUE_ALIASES,
+            AliasedDataframeCatalog,
+            AliasedESMCatalog,
+        )
 
         catalog = AliasedDataframeCatalog(
             tmp_dataframe_catalog,
@@ -399,7 +409,11 @@ class TestAliasedDataframeCatalog:
 
     def test_search_wraps_result(self, tmp_dataframe_catalog):
         """Test that search() wraps results that have to_source method"""
-        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog, AliasedESMCatalog
+        from access_nri_intake.aliases import (
+            VALUE_ALIASES,
+            AliasedDataframeCatalog,
+            AliasedESMCatalog,
+        )
 
         catalog = AliasedDataframeCatalog(
             tmp_dataframe_catalog,
