@@ -9,8 +9,10 @@ from unittest.mock import MagicMock
 from pydantic_core import ValidationError
 
 from intake_esm.core import esm_datastore
+import intake
 from typing import Any
 import pytest
+from intake_dataframe_catalog.core import DfFileCatalog
 
 from access_nri_intake.aliases import (
     _CMIP_TO_ACCESS_MAPPINGS,
@@ -276,67 +278,99 @@ class TestAliasedDataframeCatalog:
     """Test the AliasedDataframeCatalog wrapper"""
 
     @pytest.fixture
-    def mock_dataframe_catalog(self):
-        """Create a mock dataframe catalog"""
-        mock_cat = MagicMock()
+    def tmp_dataframe_catalog(self,tmp_path, test_data) -> DfFileCatalog:
+        """
 
-        # Mock to_source to return an ESM datastore
-        mock_esm_datastore = MagicMock()
-        mock_esm_datastore.search = MagicMock()
-        mock_esm_datastore.esmcat = MagicMock()
-        mock_cat.to_source.return_value = mock_esm_datastore
+        Use a temporary, *real* dataframe catalog instead of a mock one, because there's too much wacky
+        intake behaviour we can't easily mock that we need to test.
 
-        # Mock to_source_dict to return multiple ESM datastores
-        mock_esm1 = MagicMock()
-        mock_esm1.search = MagicMock()
-        mock_esm1.esmcat = MagicMock()
+        stolen from tests/test_manager.py/test_CatalogManager_all
+        """
 
-        mock_esm2 = MagicMock()
-        mock_esm2.search = MagicMock()
-        mock_esm2.esmcat = MagicMock()
+        from access_nri_intake.catalog.manager import CatalogManager
+        from access_nri_intake.catalog.translators import Cmip5Translator
+        from access_nri_intake.source.builders import AccessOm2Builder, AccessOm3Builder
+        from access_nri_intake.utils import load_metadata_yaml
+        from access_nri_intake.catalog import EXP_JSONSCHEMA
 
-        mock_cat.to_source_dict.return_value = {
-            "datastore1": mock_esm1,
-            "datastore2": mock_esm2,
-        }
+        path = str(tmp_path / "cat.parquet")
+        cat = CatalogManager(path)
 
-        return mock_cat
+        # Load source
+        load_args = dict(
+            name="cmip5-al33",
+            description="cmip5-al33",
+            path=str(test_data / "esm_datastore/cmip5-al33.json"),
+            translator=Cmip5Translator,
+        )
+        cat.load(
+            **load_args,
+        )
 
-    @pytest.fixture
-    def mock_dfcat_no_source(self):
-        """Create a mock dataframe catalog a to_source_metho"""
-        mock_cat = MagicMock()
-        mock_cat.search.return_value = "random string"
+        # Build a couple of sources
+        models = {"access-om2": AccessOm2Builder, "access-om3": AccessOm3Builder}
+        for model, builder in models.items():
+            metadata = load_metadata_yaml(
+                str(test_data / model / "metadata.yaml"), EXP_JSONSCHEMA
+            )
+            cat.build_esm(
+                name=model,
+                description=model,
+                builder=builder,
+                path=str(test_data / model),
+                metadata=metadata,
+                directory=str(tmp_path),
+            )
 
-        return mock_cat
+        # Check that entry with same name overwrites correctly
+        cat.load(
+            **load_args,
+        )
+        cat.save()
+        return intake.open_df_catalog(path)
 
-    def test_to_source_wraps_esm_datastore(self, mock_dataframe_catalog):
+
+    def test_to_source_wraps_esm_datastore(self, tmp_dataframe_catalog):
         """Test that to_source() properly wraps ESM datastores with aliasing"""
-        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog
+        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog, AliasedESMCatalog
 
         catalog = AliasedDataframeCatalog(
-            mock_dataframe_catalog,
+            tmp_dataframe_catalog,
             field_aliases=DATAFRAME_FIELD_ALIASES,
             value_aliases=VALUE_ALIASES,
         )
 
+        subcat = catalog.search(model='ACCESS-OM2')
         # Since search() returns the result directly (not wrapped), we need to call to_source on the catalog
-        esm_datastore = catalog.to_source()
-
-        # Should have called the underlying catalog's to_source
-        mock_dataframe_catalog.to_source.assert_called_once()
-
-        # The result should be an AliasedESMCatalog wrapping the ESM datastore
-        from access_nri_intake.aliases import AliasedESMCatalog
+        esm_datastore = subcat.to_source()
 
         assert isinstance(esm_datastore, AliasedESMCatalog)
 
-    def test_to_source_dict_wraps_multiple_datastores(self, mock_dataframe_catalog):
-        """Test that to_source_dict() wraps all returned datastores"""
-        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog
+    def test___getitem___wraps_esm_datastore(self, tmp_dataframe_catalog):
+        """Test that __getitem__() properly wraps ESM datastores with aliasing"""
+        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog, AliasedESMCatalog
 
         catalog = AliasedDataframeCatalog(
-            mock_dataframe_catalog,
+            tmp_dataframe_catalog,
+            field_aliases=DATAFRAME_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+        )
+
+
+        subcat = catalog.search(model="ACCESS-OM2")
+        assert isinstance(subcat, AliasedDataframeCatalog)
+
+        # Since search() returns the result directly (not wrapped), we need to call to_source on the catalog
+        esm_datastore = subcat['access-om2']
+
+        assert isinstance(esm_datastore, AliasedESMCatalog)
+
+    def test_to_source_dict_wraps_multiple_datastores(self, tmp_dataframe_catalog):
+        """Test that to_source_dict() wraps all returned datastores"""
+        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog, AliasedESMCatalog
+
+        catalog = AliasedDataframeCatalog(
+            tmp_dataframe_catalog,
             field_aliases=DATAFRAME_FIELD_ALIASES,
             value_aliases=VALUE_ALIASES,
         )
@@ -344,92 +378,42 @@ class TestAliasedDataframeCatalog:
         # Test to_source_dict() workflow
         datastores_dict = catalog.to_source_dict()
 
-        # Should have called the underlying catalog's to_source_dict
-        mock_dataframe_catalog.to_source_dict.assert_called_once()
+        assert len(datastores_dict) == 3
 
-        # Should return a dict of AliasedESMCatalog objects
-        from access_nri_intake.aliases import AliasedESMCatalog
+        for val in datastores_dict.values():
+            assert isinstance(val, AliasedESMCatalog)
 
-        assert len(datastores_dict) == 2
-        assert isinstance(datastores_dict["datastore1"], AliasedESMCatalog)
-        assert isinstance(datastores_dict["datastore2"], AliasedESMCatalog)
-
-    def test_getitem_passthrough(self, mock_dataframe_catalog):
-        """Test that __getitem__ passes through to underlying catalog without wrapping"""
-        from access_nri_intake.aliases import AliasedDataframeCatalog
-
-        # Mock a catalog entry
-        mock_entry = MagicMock()
-        mock_dataframe_catalog.__getitem__.return_value = mock_entry
-
-        catalog = AliasedDataframeCatalog(mock_dataframe_catalog)
-        result = catalog["some_entry"]
-
-        # Should return the raw entry, not wrapped
-        assert result is mock_entry
-        mock_dataframe_catalog.__getitem__.assert_called_once_with("some_entry")
-
-    def test_getattr_passthrough(self, mock_dataframe_catalog):
+    def test_getattr_passthrough(self, tmp_dataframe_catalog):
         """Test that __getattr__ passes through to underlying catalog"""
         from access_nri_intake.aliases import AliasedDataframeCatalog
 
         # Mock an attribute
         mock_attr = MagicMock()
-        mock_dataframe_catalog.some_attribute = mock_attr
+        tmp_dataframe_catalog.some_attribute = mock_attr
 
-        catalog = AliasedDataframeCatalog(mock_dataframe_catalog)
+        catalog = AliasedDataframeCatalog(tmp_dataframe_catalog)
         result = catalog.some_attribute
 
         # Should return the raw attribute, not wrapped
         assert result is mock_attr
 
-    def test_search_wraps_result_with_to_source(self, mock_dataframe_catalog):
+    def test_search_wraps_result(self, tmp_dataframe_catalog):
         """Test that search() wraps results that have to_source method"""
-        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog
-
-        # Mock search result that has to_source method (like real dataframe catalog search results)
-        mock_search_result = MagicMock()
-        mock_search_result.to_source = MagicMock()
-
-        # Mock ESM datastore returned by to_source
-        mock_esm_datastore = MagicMock()
-        mock_esm_datastore.search = MagicMock()
-        mock_esm_datastore.esmcat = MagicMock()
-        mock_search_result.to_source.return_value = mock_esm_datastore
-
-        mock_dataframe_catalog.search.return_value = mock_search_result
+        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog, AliasedESMCatalog
 
         catalog = AliasedDataframeCatalog(
-            mock_dataframe_catalog,
+            tmp_dataframe_catalog,
             field_aliases=DATAFRAME_FIELD_ALIASES,
             value_aliases=VALUE_ALIASES,
         )
 
-        # Test the user workflow: catalog.search(...).to_source()
-        search_result = catalog.search(name="bx944")
+        subcat = catalog.search(name="access-om2")
 
-        # Search result should be wrapped
-        assert isinstance(search_result, AliasedDataframeCatalog)
+        assert isinstance(subcat, AliasedDataframeCatalog)
 
-        # Now call to_source on the wrapped result
-        esm_datastore = search_result.to_source()
-
-        # Should be an aliased ESM datastore
-        from access_nri_intake.aliases import AliasedESMCatalog
+        esm_datastore = subcat.to_source()
 
         assert isinstance(esm_datastore, AliasedESMCatalog)
-
-    def test_search_doesnt_wrap_result_without_to_source(self, mock_dfcat_no_source):
-        """Test that search doesn't wrap result without to_source"""
-        from access_nri_intake.aliases import VALUE_ALIASES, AliasedDataframeCatalog
-
-        catalog = AliasedDataframeCatalog(
-            mock_dfcat_no_source,
-            field_aliases=DATAFRAME_FIELD_ALIASES,
-            value_aliases=VALUE_ALIASES,
-        )
-        search_result = catalog.search(name="bx944")
-        assert not isinstance(search_result, AliasedDataframeCatalog)
 
 
 @pytest.mark.parametrize(

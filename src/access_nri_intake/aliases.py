@@ -237,7 +237,8 @@ class AliasedDataframeCatalog:
         """
         Handle catalog['entry-name'] access - delegate to underlying catalog
         """
-        return self._cat[key]
+        result = self._cat[key]
+        return self._wrap_if_esm_datastore(result)
 
     def search(self, **kwargs):
         """
@@ -245,18 +246,17 @@ class AliasedDataframeCatalog:
         """
         # For dataframe catalogs, search operates on the catalog metadata
         # We don't need to alias these searches since they're on the catalog structure
-        result = self._cat.search(**kwargs)
 
-        # If the result has to_source method (i.e., it's a searchable catalog result), wrap it
-        if hasattr(result, "to_source"):
-            return AliasedDataframeCatalog(
-                result,
-                field_aliases=self.field_aliases,
-                value_aliases=self.value_aliases,
-                show_warnings=self.show_warnings,
-            )
+        # @CT: I'm not sure I understand what this means. We can search on variable, which makes me
+        # think that we might actually need too...
+        result: DfFileCatalog = self._cat.search(**kwargs)
 
-        return result
+        return AliasedDataframeCatalog(
+            result,
+            field_aliases=self.field_aliases,
+            value_aliases=self.value_aliases,
+            show_warnings=self.show_warnings,
+        )
 
     def to_source(self, **kwargs):
         """
