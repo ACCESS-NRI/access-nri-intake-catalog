@@ -246,6 +246,52 @@ class AliasedDataframeCatalog:
         result = self._cat[key]
         return self._wrap_if_esm_datastore(result)
 
+    def _normalise_value(self, field: str, value: str | Collection[str] | Any) -> Any:
+        """
+        Convert user-facing value to canonical value for a given field
+
+        Value can be:
+            - scalar string
+            - Collection of strings (list, tuple, set)
+            - anything else (regex, callable, etc.) – leave untouched
+        """
+        aliases_for_field = self.value_aliases.get(field, {})
+
+        # scalar string
+        if isinstance(value, str):
+            normalized = aliases_for_field.get(value, value)
+            if normalized != value and self.show_warnings:
+                warnings.warn(
+                    message=f"Value aliasing: {field}='{value}' → {field}='{normalized}'",
+                    category=UserWarning,
+                    stacklevel=4,
+                )
+            return normalized
+
+        # list/tuple/set of strings
+        if isinstance(value, (list | tuple | set)):
+            out = []
+            for v in value:
+                normalized = aliases_for_field.get(v, v)
+                if normalized != v and self.show_warnings:
+                    warnings.warn(
+                        message=f"Value aliasing: {field}='{v}' → {field}='{normalized}'",
+                        category=UserWarning,
+                        stacklevel=4,
+                    )
+                out.append(normalized)
+            return type(value)(out)
+
+        # anything else (regex, callable, etc.) – leave untouched
+        return value  # pragma: no cover
+
+    def _normalise_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
+        """Normalise all kwargs by applying value aliases"""
+        norm = {}
+        for field, value in kwargs.items():
+            norm[field] = self._normalise_value(field, value)
+        return norm
+
     def search(self, **kwargs):
         """
         Search the dataframe catalog - apply aliases and wrap results
@@ -253,9 +299,8 @@ class AliasedDataframeCatalog:
         # For dataframe catalogs, search operates on the catalog metadata
         # We don't need to alias these searches since they're on the catalog structure
 
-        # @CT: I'm not sure I understand what this means. We can search on variable, which makes me
-        # think that we might actually need too...
-        result: DfFileCatalog = self._cat.search(**kwargs)
+        norm: dict[str, Any] = self._normalise_kwargs(kwargs)
+        result: DfFileCatalog = self._cat.search(**norm)
 
         return AliasedDataframeCatalog(
             result,

@@ -28,7 +28,7 @@ class SpyEsmDatastore(esm_datastore):
     """Real ESMDataStore that records search calls across chains."""
 
     def __init__(self, *args, search_calls: list[Any] | None = None, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, columns_with_iterables=["variable"], **kwargs)
         self.search_calls = search_calls or []
         self._captured_init_kwargs = {"metadata": {"version": "test"}}
 
@@ -61,6 +61,9 @@ class TestAliasedESMCatalog:
             value_aliases=VALUE_ALIASES,
             show_warnings=show_warnings,
         )
+
+        assert "tos" not in mock_cat.unique().variable
+        assert "tos" not in wrapped_cat.unique().variable
 
         # Test that field names pass through unchanged - ESM datastores use native names
         wrapped_cat.search(variable="tos")  # Use native ESM field name
@@ -419,6 +422,23 @@ class TestAliasedDataframeCatalog:
         esm_datastore = subcat.to_source()
 
         assert isinstance(esm_datastore, AliasedESMCatalog)
+
+    def test_search_normalises_values(self, tmp_dataframe_catalog):
+        """Test that search() normalizes values using value aliases"""
+
+        catalog = AliasedDataframeCatalog(
+            tmp_dataframe_catalog,
+            field_aliases=DATAFRAME_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+        )
+
+        subcat = catalog.search(
+            variable="bigthetao"
+        )  # CMIP variable should map to ACCESS "temp"
+
+        assert len(subcat._df) == 1  # Just the om2 dataset
+        assert subcat.unique().variable == ["temp"]
+        assert subcat.unique().model == ["ACCESS-OM2"]
 
     def test_unwrap(self, tmp_dataframe_catalog):
         """Test that unwrap() returns the original catalog"""
