@@ -146,7 +146,7 @@ class AliasedESMCatalog:
                     UserWarning,
                     stacklevel=4,
                 )
-            return normalized
+            return f"{normalized}|{value}" if normalized != value else value
 
         # list/tuple/set of strings
         if isinstance(value, (list | tuple | set)):
@@ -159,6 +159,7 @@ class AliasedESMCatalog:
                         UserWarning,
                         stacklevel=4,
                     )
+                out.append(v)
                 out.append(normalized)
             return type(value)(out)
 
@@ -262,11 +263,11 @@ class AliasedDataframeCatalog:
             normalized = aliases_for_field.get(value, value)
             if normalized != value and self.show_warnings:
                 warnings.warn(
-                    message=f"Value aliasing: {field}='{value}' → {field}='{normalized}'",
+                    message=f"Value aliasing: {field}='{value}' → {field}='{normalized}|{value}'",
                     category=UserWarning,
                     stacklevel=4,
                 )
-            return normalized
+            return f"{normalized}|{value}" if normalized != value else value
 
         # list/tuple/set of strings
         if isinstance(value, (list | tuple | set)):
@@ -279,6 +280,7 @@ class AliasedDataframeCatalog:
                         category=UserWarning,
                         stacklevel=4,
                     )
+                    out.append(v)
                 out.append(normalized)
             return type(value)(out)
 
