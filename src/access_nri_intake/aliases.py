@@ -142,25 +142,25 @@ class AliasedESMCatalog:
             normalized = aliases_for_field.get(value, value)
             if normalized != value and self.show_warnings:
                 warnings.warn(
-                    f"Value aliasing: {field}='{value}' → {field}='{normalized}'",
+                    f"Value aliasing: {field}='{value}' → {field}=['{normalized}','{value}']",
                     UserWarning,
                     stacklevel=4,
                 )
-            return f"{normalized}|{value}" if normalized != value else value
+            return [normalized, value] if normalized != value else value
 
         # list/tuple/set of strings
         if isinstance(value, (list | tuple | set)):
-            out = []
+            out = set()
             for v in value:
                 normalized = aliases_for_field.get(v, v)
                 if normalized != v and self.show_warnings:
                     warnings.warn(
-                        f"Value aliasing: {field}='{v}' → {field}='{normalized}'",
-                        UserWarning,
+                        message=f"Value aliasing: {field}='{value}' → {field}=['{normalized}','{value}']",
+                        category=UserWarning,
                         stacklevel=4,
                     )
-                out.append(v)
-                out.append(normalized)
+                out.add(v)
+                out.add(normalized)
             return type(value)(out)
 
         # anything else (regex, callable, etc.) – leave untouched
