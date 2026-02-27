@@ -267,11 +267,11 @@ class AliasedDataframeCatalog:
                     category=UserWarning,
                     stacklevel=4,
                 )
-            return f"{normalized}|{value}" if normalized != value else value
+            return [normalized, value] if normalized != value else value
 
         # list/tuple/set of strings
         if isinstance(value, (list | tuple | set)):
-            out = []
+            out = set()
             for v in value:
                 normalized = aliases_for_field.get(v, v)
                 if normalized != v and self.show_warnings:
@@ -280,8 +280,8 @@ class AliasedDataframeCatalog:
                         category=UserWarning,
                         stacklevel=4,
                     )
-                    out.append(v)
-                out.append(normalized)
+                out.add(v)
+                out.add(normalized)
             return type(value)(out)
 
         # anything else (regex, callable, etc.) – leave untouched
