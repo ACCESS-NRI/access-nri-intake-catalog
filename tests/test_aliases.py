@@ -4,6 +4,7 @@
 """Tests for aliasing functionality"""
 
 import json
+import re
 from unittest import mock
 from unittest.mock import MagicMock
 from pydantic_core import ValidationError
@@ -445,6 +446,29 @@ class TestAliasedDataframeCatalog:
         subcat = catalog.search(
             variable="bigthetao"
         )  # CMIP variable should map to ACCESS "temp"
+
+        assert len(subcat._df) == 1  # Just the om2 dataset
+        assert subcat.unique().variable == ["temp"]
+        assert subcat.unique().model == ["ACCESS-OM2"]
+
+    def test_search_normalises_list_values(self, tmp_dataframe_catalog):
+        """Test that search() normalizes values using value aliases"""
+
+        catalog = AliasedDataframeCatalog(
+            tmp_dataframe_catalog,
+            field_aliases=DATAFRAME_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+        )
+
+        with pytest.warns(
+            UserWarning,
+            match=re.escape(
+                "Value aliasing: variable='bigthetao' → variable=['temp','bigthetao']"
+            ),
+        ):
+            subcat = catalog.search(
+                variable=["bigthetao"]
+            )  # CMIP variable should map to ACCESS "temp"
 
         assert len(subcat._df) == 1  # Just the om2 dataset
         assert subcat.unique().variable == ["temp"]

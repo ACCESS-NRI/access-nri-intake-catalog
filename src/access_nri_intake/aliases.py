@@ -263,7 +263,7 @@ class AliasedDataframeCatalog:
             normalized = aliases_for_field.get(value, value)
             if normalized != value and self.show_warnings:
                 warnings.warn(
-                    message=f"Value aliasing: {field}='{value}' → {field}='{normalized}|{value}'",
+                    message=f"Value aliasing: {field}='{value}' → {field}=['{normalized}','{value}']",
                     category=UserWarning,
                     stacklevel=4,
                 )
@@ -276,7 +276,7 @@ class AliasedDataframeCatalog:
                 normalized = aliases_for_field.get(v, v)
                 if normalized != v and self.show_warnings:
                     warnings.warn(
-                        message=f"Value aliasing: {field}='{v}' → {field}='{normalized}'",
+                        message=f"Value aliasing: {field}='{v}' → {field}=['{normalized}','{v}']",
                         category=UserWarning,
                         stacklevel=4,
                     )
