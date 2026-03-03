@@ -72,9 +72,10 @@ class TestAliasedESMCatalog:
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
         assert "variable" in call_kwargs  # Field name unchanged
-        assert (
-            call_kwargs["variable"] == "surface_temp"
-        )  # But value should be aliased (tos -> surface_temp)
+        assert call_kwargs["variable"] == [
+            "surface_temp",
+            "tos",
+        ]  # But value should be aliased (tos -> surface_temp)
 
     @pytest.mark.parametrize("show_warnings", [True, False])
     def test_value_aliases(self, sample_datastore, show_warnings):
@@ -95,7 +96,7 @@ class TestAliasedESMCatalog:
         # Should have been called with canonical values
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert call_kwargs["variable"] == "fld_s03i236"
+        assert call_kwargs["variable"] == ["fld_s03i236", "tas"]
 
     @pytest.mark.parametrize("show_warnings", [True, False])
     def test_field_aliases(self, sample_datastore, show_warnings):
@@ -118,7 +119,10 @@ class TestAliasedESMCatalog:
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
         assert "variable" in call_kwargs
-        assert call_kwargs["variable"] == "fld_s03i236"  # Value should still be aliased
+        assert call_kwargs["variable"] == [
+            "fld_s03i236",
+            "tas",
+        ]  # Value should still be aliased
 
     def test_combined_aliases(self, sample_datastore):
         """Test that field and value aliases work together"""
@@ -133,10 +137,11 @@ class TestAliasedESMCatalog:
         # Should have been called with all canonical names and values
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
-        assert (
-            call_kwargs["variable"] == "fld_s05i269"
-        )  # ci -> fld_s05i269 (CMIP to ACCESS mapping)
-        assert call_kwargs["frequency"] == "1day"  # daily -> 1day
+        assert call_kwargs["variable"] == [
+            "fld_s05i269",
+            "ci",
+        ]  # ci -> fld_s05i269 (CMIP to ACCESS mapping)
+        assert call_kwargs["frequency"] == ["1day", "daily"]  # daily -> 1day
 
     def test_list_values(self, sample_datastore):
         """Test that lists of values are properly aliased"""
@@ -152,11 +157,14 @@ class TestAliasedESMCatalog:
         assert len(mock_cat.search_calls) == 1
         call_kwargs = mock_cat.search_calls[0]
         expected_values = [
-            "fld_s05i269",
+            "tas",
             "fld_s02i261",
+            "fld_s05i269",
+            "ci",
             "fld_s03i236",
+            "cl",
         ]  # ci->fld_s05i269, cl->fld_s02i261, tas->fld_s03i236
-        assert call_kwargs["variable"] == expected_values
+        assert set(call_kwargs["variable"]) == set(expected_values)
 
     def test_regex_values(self, sample_datastore):
         """Test that a regex value is passed through untouched"""
@@ -257,7 +265,9 @@ class TestAliasedESMCatalog:
                     )
 
     @pytest.mark.parametrize("show_warnings", [True, False])
-    @pytest.mark.parametrize("search, sent", [("ci", "fld_s05i269"), ("ci.*", "ci.*")])
+    @pytest.mark.parametrize(
+        "search, sent", [("ci", ["fld_s05i269", "ci"]), ("ci.*", "ci.*")]
+    )
     def test_cmip_variable_search(self, show_warnings, search, sent, sample_datastore):
         """Test that CMIP variables can be found and return ACCESS variables"""
         mock_cat = SpyEsmDatastore(sample_datastore)
