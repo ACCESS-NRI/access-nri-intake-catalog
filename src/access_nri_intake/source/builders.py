@@ -796,7 +796,8 @@ class OnlineMLTBuilder(AccessEsm16Builder):
         "ice": "seaIce",
         # Some ice data is under output*/ice/OUTPUT/*.nc
         "OUTPUT": "seaIce",
-        # All the ml[st]_budget diagnostics are ocean
+        # All the post_processed_diags/*.nc and post_processed_diags/ml[st]_budget/*.nc
+        # diagnostics are ocean
         "mls_budget": "ocean",
         "mlt_budget_offline": "ocean",
         "mlt_budget_online_falavg": "ocean",
