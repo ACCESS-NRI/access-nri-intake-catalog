@@ -787,6 +787,7 @@ class OnlineMLTBuilder(AccessEsm16Builder):
     These files are not added to the datastore:
     - output*/o2i.nc : these files have no calendar attribute on the 'time' axis
     """
+
     PATH_REGEX = r".*/(?:output\d+|post_processed_diags|.*)/([^/]*)(?:/[^/]*)?/.*\.nc"
 
     REALM_MAPPING = {
