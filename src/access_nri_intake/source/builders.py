@@ -33,6 +33,7 @@ __all__ = [
     "ROMSBuilder",
     "WoaBuilder",
     "Cmip6Builder",
+    "OnlineMltBuilder",
 ]
 
 # Frequency translations
@@ -775,7 +776,7 @@ class AccessEsm16Builder(AccessEsm15Builder):
         return ncinfo_dict
 
 
-class OnlineMLTBuilder(AccessEsm16Builder):
+class OnlineMltBuilder(AccessEsm16Builder):
     """
     Builder for the Mixed Layer Tracer Budget Diagnostics dataset located at
     /g/data/av17/access-nri/OM2/025deg_jra55_iaf_cycle6_online_mlt

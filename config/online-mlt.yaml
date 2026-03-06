@@ -1,4 +1,4 @@
-builder: OnlineMLTBuilder
+builder: OnlineMltBuilder
 
 translator: DefaultTranslator
 
