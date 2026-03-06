@@ -1,0 +1,10 @@
+builder: OnlineMLTBuilder
+
+translator: DefaultTranslator
+
+sources:
+
+  - metadata_yaml: /g/data/av17/access-nri/OM2/025deg_jra55_iaf_cycle6_online_mlt/metadata.yaml
+    path:
+      - /g/data/av17/access-nri/OM2/025deg_jra55_iaf_cycle6_online_mlt
+    ensemble: false
