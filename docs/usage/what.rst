@@ -75,29 +75,26 @@ on Gadi.
 
 .. _cmip_compatibility:
 
-CMIP Variable Compatibility
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Aliasing and CMIP compatibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ACCESS-NRI catalog includes built-in compatibility with CMIP (Coupled Model Intercomparison Project) 
-standard variable names, making it easier for researchers familiar with CMIP datasets to work with raw 
-ACCESS model outputs.
+The ACCESS-NRI catalog includes built-in **aliasing** support, which lets you search using
+alternative, user-friendly names that are automatically mapped to the underlying canonical
+values stored in the catalog. This is particularly useful for researchers familiar with
+CMIP vocabularies who want to discover raw ACCESS model outputs without needing to learn
+ACCESS-specific variable codes or column names.
 
-**What does this mean for users?**
+For example, you can search for ``variable="tas"`` and the catalog will find files stored
+under the raw ACCESS code ``fld_s03i236`` as well as any files already labelled ``tas``.
+Similarly, ``frequency="daily"`` will match entries stored as ``1day``, and
+``source_id="ACCESS-ESM1-5"`` is accepted in place of the native ``model`` column name.
 
-When searching for variables in ACCESS model data, you can use either:
+.. seealso::
 
-* **CMIP standard names** (like ``tas`` for near-surface air temperature, ``tos`` for sea surface temperature)
-* **Raw ACCESS variable names** (like ``temp_2m``, ``surface_temp``)
+   :ref:`aliasing` — full reference documentation for all supported aliases,
+   field mappings, and CMIP-to-ACCESS variable tables.
 
-The catalog automatically maps CMIP variable names to the corresponding raw ACCESS model variable names 
-behind the scenes. This means researchers who typically work with CMIP data can use their familiar 
-vocabulary to discover raw ACCESS model outputs without needing to learn the ACCESS-specific variable names.
-
-**Examples of CMIP mappings:**
-
-* ``tas`` (near-surface air temperature) → ``temp_2m``
-* ``tos`` (sea surface temperature) → ``surface_temp``  
-* ``ci`` (sea ice area fraction) → ``fld_s05i269``
+   :doc:`aliases_demo` — interactive Jupyter notebook demonstrating aliasing on Gadi.
 * ``pr`` (precipitation) → ``precip``
 
 When a mapping occurs, you'll see a helpful message showing what translation was applied, so you can 
