@@ -40,6 +40,7 @@ from collections.abc import Collection
 from importlib import resources as rsr
 from typing import Any, TypeVar
 
+import pydantic
 from intake_dataframe_catalog.core import DfFileCatalog
 from intake_esm.core import esm_datastore
 
@@ -103,6 +104,7 @@ class AliasedESMCatalog:
         Whether to show warnings when aliasing occurs
     """
 
+    @pydantic.validate_call(config=dict(arbitrary_types_allowed=True))
     def __init__(
         self,
         cat: esm_datastore,
@@ -308,7 +310,7 @@ class AliasedDataframeCatalog:
             norm[field] = self._normalise_value(field, value)
         return norm
 
-    def search(self, **kwargs):
+    def search(self, **kwargs) -> "AliasedDataframeCatalog":
         """
         Search the dataframe catalog - apply aliases and wrap results
         """

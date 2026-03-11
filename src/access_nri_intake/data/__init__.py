@@ -41,7 +41,7 @@ will hit `sources::access_nri` in the yaml, but that this version (and future)
 will hit `sources::access_nri_pq`. This allows us to maintain seamless backward
 compatibility while transitioning to the new Parquet-based catalog.
 
-Note: Does not need to be configurable in the code - handled by versionin.
+Note: Does not need to be configurable in the code - handled by versioning.
 """
 try:
     base_catalog = intake.open_catalog(get_catalog_fp()).access_nri_pq

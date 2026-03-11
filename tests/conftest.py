@@ -31,7 +31,7 @@ def ipython_bare():
 
 
 @pytest.fixture(scope="session")
-def sample_datastore():
+def sample_datastore_path() -> Path:
     return Path(here / "data" / "esm_datastore" / "by473.json")
 
 
