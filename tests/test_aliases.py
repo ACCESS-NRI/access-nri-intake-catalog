@@ -130,18 +130,18 @@ class TestAliasedESMCatalog:
         # Test field alias mapping - using CMIP field names that should map to canonical names
         # Since ESM_FIELD_ALIASES is empty in the actual code, this tests the passthrough behavior
         if show_warnings:
-            # Should have issued a warning about value aliasing - one, and no nested
+            # Should have issued a warning about field aliasing - one, and no nested
             # list nonsense
             with pytest.warns(UserWarning) as warning_record:
                 wrapped_cat.search(
-                    variable="tas"
+                    varname="tas"
                 )  # Should pass through as-is since no field aliases are defined for ESM
-            assert len(warning_record) == 1
+            assert len(warning_record) == 2  # Warn for field, warn for value
         else:
             with warnings.catch_warnings():
                 warnings.simplefilter("error")
                 wrapped_cat.search(
-                    variable="tas"
+                    varname="tas"
                 )  # Should pass through as-is since no field aliases are defined for ESM
 
         # Should have been called with the same field name (no aliasing for ESM catalogs)
