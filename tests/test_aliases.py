@@ -144,7 +144,8 @@ class TestAliasedESMCatalog:
         ]  # ci -> fld_s05i269 (CMIP to ACCESS mapping)
         assert call_kwargs["frequency"] == ["1day", "daily"]  # daily -> 1day
 
-    def test_list_values(self, sample_datastore):
+    @pytest.mark.parametrize("show_warnings", [True, False])
+    def test_list_values(self, sample_datastore, show_warnings):
         """Test that lists of values are properly aliased"""
         mock_cat = SpyEsmDatastore(sample_datastore)
         wrapped_cat = AliasedESMCatalog(
@@ -166,6 +167,13 @@ class TestAliasedESMCatalog:
             "cl",
         ]  # ci->fld_s05i269, cl->fld_s02i261, tas->fld_s03i236
         assert set(call_kwargs["variable"]) == set(expected_values)
+
+        if show_warnings:
+            # Should have issued a warning about value aliasing - one, and no nested
+            # list nonsense
+            with pytest.warns(UserWarning) as warning_record:
+                wrapped_cat.search(variable=["ci", "cl", "tas"])
+            assert len(warning_record) == 1
 
     def test_regex_values(self, sample_datastore):
         """Test that a regex value is passed through untouched"""

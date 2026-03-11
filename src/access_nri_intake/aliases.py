@@ -134,6 +134,14 @@ class AliasedESMCatalog:
             - scalar string
             - Collection of strings (list, tuple, set)
             - anything else (regex, callable, etc.) – leave untouched
+
+        Parameters
+        ----------
+        field : str
+            The field name for which to apply value aliasing
+        value : str | Collection[str] | Any
+            The value(s) to normalise - can be a scalar string, a collection of
+            strings, or any other type (which will be returned unchanged)
         """
         aliases_for_field = self.value_aliases.get(field, {})
 
@@ -153,21 +161,27 @@ class AliasedESMCatalog:
             out = set()
             for v in value:
                 normalized = aliases_for_field.get(v, v)
-                if normalized != v and self.show_warnings:
-                    warnings.warn(
-                        message=f"Value aliasing: {field}='{value}' → {field}=['{normalized}','{value}']",
-                        category=UserWarning,
-                        stacklevel=4,
-                    )
                 out.add(v)
                 out.add(normalized)
+
+            # If any aliasing occurred, issue a warning showing the original and aliased values
+            if len(out) > len(value) and self.show_warnings:
+                warnings.warn(
+                    message=f"Value aliasing: {field}='{value}' → {field}={list(out)}",
+                    category=UserWarning,
+                    stacklevel=4,
+                )
             return type(value)(out)
 
         # anything else (regex, callable, etc.) – leave untouched
         return value  # pragma: no cover
 
     def _normalise_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
-        """Normalise all kwargs by applying field and value aliases"""
+        """Normalise all kwargs by applying field and value aliases.
+
+        Cache everything in self._norm so we don't have to duplicate any logic
+        when we emit a warning
+        """
         norm = {}
         for field, value in kwargs.items():
             canon_field = self._canonical_field(field)
