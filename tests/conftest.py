@@ -30,6 +30,11 @@ def ipython_bare():
     return ip
 
 
+@pytest.fixture(scope="session")
+def sample_datastore_path() -> Path:
+    return Path(here / "data" / "esm_datastore" / "by473.json")
+
+
 def metadata_sources():
     return Path(here.parent / "config" / "metadata_sources")
 
