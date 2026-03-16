@@ -163,7 +163,7 @@ class AliasedESMCatalog:
             for v in value:
                 normalized = aliases_for_field.get(v, v)
                 out.add(v)
-                [out.add(n) for n in normalized]
+                [out.add(n) for n in normalized]  # type: ignore[func-returns-value]
 
             # If any aliasing occurred, issue a warning showing the original and aliased values
             if len(out) > len(value) and self.show_warnings:
@@ -296,7 +296,7 @@ class AliasedDataframeCatalog:
                         stacklevel=4,
                     )
                 out.add(v)
-                [out.add(n) for n in normalized]
+                [out.add(n) for n in normalized]  # type: ignore[func-returns-value]
             return type(value)(out)
 
         # anything else (regex, callable, etc.) – leave untouched
