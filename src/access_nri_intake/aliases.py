@@ -47,7 +47,7 @@ from intake_esm.core import esm_datastore
 T = TypeVar("T", esm_datastore, Any)
 
 
-def _load_cmip_mappings() -> dict[str, str]:
+def _load_cmip_mappings() -> dict[str, tuple[str]]:
     """
     Load CMIP to ACCESS variable mappings from the data sources.
     This allows users to search for CMIP standard names (like "ci") and
@@ -75,9 +75,8 @@ def _load_cmip_mappings() -> dict[str, str]:
                 for cmip_var, details in mappings[component].items():
                     if "model_variables" in details and details["model_variables"]:
                         # Map CMIP variable to ACCESS model variables
-                        # If multiple model variables, take the first one
-                        access_var = details["model_variables"][0]
-                        cmip_to_access[cmip_var] = access_var
+                        access_vars = details["model_variables"]
+                        cmip_to_access[cmip_var] = tuple(access_vars)
 
         return cmip_to_access
 
@@ -156,7 +155,7 @@ class AliasedESMCatalog:
                     UserWarning,
                     stacklevel=4,
                 )
-            return [normalized, value] if normalized != value else value
+            return [*normalized, value] if normalized != value else value
 
         # list/tuple/set of strings
         if isinstance(value, (list | tuple | set)):
@@ -164,7 +163,7 @@ class AliasedESMCatalog:
             for v in value:
                 normalized = aliases_for_field.get(v, v)
                 out.add(v)
-                out.add(normalized)
+                [out.add(n) for n in normalized]
 
             # If any aliasing occurred, issue a warning showing the original and aliased values
             if len(out) > len(value) and self.show_warnings:
@@ -279,11 +278,11 @@ class AliasedDataframeCatalog:
             normalized = aliases_for_field.get(value, value)
             if normalized != value and self.show_warnings:
                 warnings.warn(
-                    message=f"Value aliasing: {field}='{value}' → {field}=['{normalized}','{value}']",
+                    message=f"Value aliasing: {field}='{value}' → {field}=['{','.join(n for n in normalized)}','{value}']",
                     category=UserWarning,
                     stacklevel=4,
                 )
-            return [normalized, value] if normalized != value else value
+            return [*normalized, value] if normalized != value else value
 
         # list/tuple/set of strings
         if isinstance(value, (list | tuple | set)):
@@ -292,12 +291,12 @@ class AliasedDataframeCatalog:
                 normalized = aliases_for_field.get(v, v)
                 if normalized != v and self.show_warnings:
                     warnings.warn(
-                        message=f"Value aliasing: {field}='{v}' → {field}=['{normalized}','{v}']",
+                        message=f"Value aliasing: {field}='{v}' → {field}=['{','.join(n for n in normalized)}','{v}']",
                         category=UserWarning,
                         stacklevel=4,
                     )
                 out.add(v)
-                out.add(normalized)
+                [out.add(n) for n in normalized]
             return type(value)(out)
 
         # anything else (regex, callable, etc.) – leave untouched
@@ -362,7 +361,7 @@ class AliasedDataframeCatalog:
 
 
 # Load CMIP to ACCESS variable mappings
-_CMIP_TO_ACCESS_MAPPINGS: dict[str, str] = _load_cmip_mappings()
+_CMIP_TO_ACCESS_MAPPINGS: dict[str, tuple[str]] = _load_cmip_mappings()
 
 # Field aliases - only used at dataframe catalog level, not for ESM datastores
 # ESM datastores use their native field names (variable_id, variable, etc.)
@@ -378,10 +377,10 @@ DATAFRAME_FIELD_ALIASES: dict[str, str] = {
 }
 
 # ESM datastores should NOT use field aliases - they use native field names
-ESM_FIELD_ALIASES: dict[str, str] = {}
+ESM_FIELD_ALIASES: dict[str, tuple[str]] = {}
 
 # Create variable aliases combining manual aliases with CMIP mappings
-_MANUAL_VARIABLE_ALIASES: dict[str, str] = {}
+_MANUAL_VARIABLE_ALIASES: dict[str, tuple[str]] = {}
 
 # Create combined variable aliases with CMIP mappings and manual aliases
 # CMIP variables (like ci) map to ACCESS model variables (like fld_s05i269)
@@ -396,54 +395,54 @@ VALUE_ALIASES = {
     # Model aliases - support both ACCESS-NRI and CMIP field names
     "model": {
         # ACCESS model aliases - maps to ACCESS-NRI catalog's "model" field
-        "ACCESS-ESM1": "ACCESS-ESM1-5",
-        "ACCESS-CM2": "ACCESS-CM2",
-        "ACCESS-OM2": "ACCESS-OM2",
+        "ACCESS-ESM1": ("ACCESS-ESM1-5",),
+        "ACCESS-CM2": ("ACCESS-CM2",),
+        "ACCESS-OM2": ("ACCESS-OM2",),
     },
     "source_id": {
         # CMIP/ESM datastore field name - same aliases as model
-        "ACCESS-ESM1": "ACCESS-ESM1-5",
-        "ACCESS-CM2": "ACCESS-CM2",
-        "ACCESS-OM2": "ACCESS-OM2",
+        "ACCESS-ESM1": ("ACCESS-ESM1-5",),
+        "ACCESS-CM2": ("ACCESS-CM2",),
+        "ACCESS-OM2": ("ACCESS-OM2",),
     },
     "experiment_id": {
         # Common experiment aliases (if catalog has experiment_id field)
-        "historical": "historical",
-        "hist": "historical",
-        "control": "piControl",
-        "pi-control": "piControl",
-        "pre-industrial": "piControl",
-        "rcp85": "ssp585",
-        "rcp45": "ssp245",
-        "rcp26": "ssp126",
-        "ssp5-85": "ssp585",
-        "ssp2-45": "ssp245",
-        "ssp1-26": "ssp126",
+        "historical": ("historical",),
+        "hist": ("historical",),
+        "control": ("piControl",),
+        "pi-control": ("piControl",),
+        "pre-industrial": ("piControl",),
+        "rcp85": ("ssp585",),
+        "rcp45": ("ssp245",),
+        "rcp26": ("ssp126",),
+        "ssp5-85": ("ssp585",),
+        "ssp2-45": ("ssp245",),
+        "ssp1-26": ("ssp126",),
     },
     "frequency": {
         # Frequency aliases - ACCESS-NRI uses frequency field
-        "daily": "1day",
-        "day": "1day",
-        "monthly": "1mon",
-        "month": "1mon",
-        "yearly": "1yr",
-        "annual": "1yr",
-        "year": "1yr",
-        "hourly": "1hr",
-        "hour": "1hr",
-        "3hourly": "3hr",
-        "6hourly": "6hr",
+        "daily": ("1day",),
+        "day": ("1day",),
+        "monthly": ("1mon",),
+        "month": ("1mon",),
+        "yearly": ("1yr",),
+        "annual": ("1yr",),
+        "year": ("1yr",),
+        "hourly": ("1hr",),
+        "hour": ("1hr",),
+        "3hourly": ("3hr",),
+        "6hourly": ("6hr",),
     },
     "realm": {
         # Realm aliases - ACCESS-NRI uses realm field
-        "atmosphere": "atmos",
-        "atm": "atmos",
-        "ocean": "ocean",
-        "oceanic": "ocean",
-        "land": "land",
-        "terrestrial": "land",
-        "ice": "seaIce",
-        "sea_ice": "seaIce",
-        "sea-ice": "seaIce",
+        "atmosphere": ("atmos",),
+        "atm": ("atmos",),
+        "ocean": ("ocean",),
+        "oceanic": ("ocean",),
+        "land": ("land",),
+        "terrestrial": ("land",),
+        "ice": ("seaIce",),
+        "sea_ice": ("seaIce",),
+        "sea-ice": ("seaIce",),
     },
 }

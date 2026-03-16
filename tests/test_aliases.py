@@ -290,7 +290,7 @@ class TestAliasedESMCatalog:
         if _CMIP_TO_ACCESS_MAPPINGS:
             # Test a specific mapping we know should exist
             assert "ci" in _CMIP_TO_ACCESS_MAPPINGS
-            assert _CMIP_TO_ACCESS_MAPPINGS["ci"] == "fld_s05i269"
+            assert _CMIP_TO_ACCESS_MAPPINGS["ci"] == ("fld_s05i269",)
 
         # Test that CMIP variable aliases are included in VALUE_ALIASES
         variable_aliases = VALUE_ALIASES.get("variable", {})

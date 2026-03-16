@@ -155,6 +155,7 @@ pdbpp = ">=0.11.7,<0.12"
 [tool.pixi.feature.dev.dependencies]
 pre-commit = ">=4.2.0,<5"
 pytest = ">=8.4.2,<9"
+ipykernel = ">=7.2.0,<8"
 
 [tool.pixi.feature.dev.tasks]
 ruff = { cmd = "ruff check src", description = "Run ruff checks" }
@@ -193,3 +194,6 @@ python = "3.13.*"
 
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
+
+[tool.pixi.dependencies]
+ipykernel = "*"
