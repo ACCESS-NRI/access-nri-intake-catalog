@@ -15,8 +15,14 @@ import pyarrow.parquet as pq
 import swiftclient
 from fabric import Connection
 
-from access_nri_intake.experiment.colours import (f_err, f_info, f_path,
-                                                  f_reset, f_success, f_warn)
+from access_nri_intake.experiment.colours import (
+    f_err,
+    f_info,
+    f_path,
+    f_reset,
+    f_success,
+    f_warn,
+)
 
 """
 Partition table for various datasets. Used to determine how to partition the

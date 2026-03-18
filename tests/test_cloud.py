@@ -17,14 +17,16 @@ def test_entrypoint():
     exit_status = os.system("mirror-to-cloud --help")
     assert exit_status == 0
 
+
 class TestCatalogMirror:
     """
     Tests for the CatalogMirror class.
     """
+
     @pytest.fixture
     def catalog_lf(self, test_data) -> pl.LazyFrame:
         return pl.scan_csv(test_data / "esm_datastore" / "access-ct11.csv")
-        
+
     @pytest.fixture
     def tmp_dataframe_catfile(self, tmp_path, test_data) -> Path:
         """
@@ -77,7 +79,7 @@ class TestCatalogMirror:
         )
         cat.save()
 
-        return path
+        return Path(path)
 
     def test_init(self):
         assert True
@@ -95,7 +97,7 @@ class TestCatalogMirror:
 
         # Update the path to the dataframe catalog file to point to our temporary one,
         # which has a real catalog in it, so we can test the restructure function properly.
-        cat_mirror.metacat_path = tmp_dataframe_catfile 
+        cat_mirror.metacat_path = tmp_dataframe_catfile
         cat_mirror.restructure_metacat()
 
         df_restructured = pl.read_parquet(tmp_dataframe_catfile)
@@ -106,10 +108,9 @@ class TestCatalogMirror:
             for colname in ["model", "realm", "frequency", "variable"]:
                 # restructuring just collapses init_df into non-singleton lists, so the unique
                 # values in each column should be the same
-                assert (
-                    set(subset_df_init.get_column(colname).explode().unique()) 
-                 == set(subset_df_restruc.get_column(colname).explode().unique())
-                )
+                assert set(
+                    subset_df_init.get_column(colname).explode().unique()
+                ) == set(subset_df_restruc.get_column(colname).explode().unique())
 
     def test_update_esm_datastores(self):
         assert True
@@ -123,7 +124,7 @@ class TestCatalogMirror:
     def test_partition_parquet_files(self):
         assert True
 
-    def test__get_project_id(self, catalog_lf : pl.LazyFrame):     
+    def test__get_project_id(self, catalog_lf: pl.LazyFrame):
         mirror = CatalogMirror()
         project_id = mirror._get_project_id(catalog_lf)
         assert project_id == "ct11"
