@@ -9,7 +9,8 @@ repos:
     rev: 26.3.1
     hooks:
     - id: black
-      language_version: python3.13
+      language_version: python3
+      args: ['-t','py310','-t','py311','-t','py312','-t','py313','-t','py314']
 # Mypy
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: 'v1.19.1'
