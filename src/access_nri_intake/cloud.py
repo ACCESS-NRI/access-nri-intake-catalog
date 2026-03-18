@@ -15,14 +15,8 @@ import pyarrow.parquet as pq
 import swiftclient
 from fabric import Connection
 
-from access_nri_intake.experiment.colours import (
-    f_err,
-    f_info,
-    f_path,
-    f_reset,
-    f_success,
-    f_warn,
-)
+from access_nri_intake.experiment.colours import (f_err, f_info, f_path,
+                                                  f_reset, f_success, f_warn)
 
 """
 Partition table for various datasets. Used to determine how to partition the
@@ -82,7 +76,7 @@ class CatalogMirror:
         # if we are on Gadi, we can use a local mirror path
         self.use_local_mirror = self.basedir.exists()
 
-    def run(self, catalog_version: date, hidden: bool):
+    def __call__(self, catalog_version: date, hidden: bool):
         """Main execution method."""
 
         try:
@@ -139,7 +133,9 @@ class CatalogMirror:
         self.write_to_object_storage()
 
     def mirror_intake_catalog(
-        self, catalog_version: date = date.today(), hidden: bool = False
+        self,
+        catalog_version: date | None = None,
+        hidden: bool = False,
     ) -> None:
         """
         Mirrors the intake catalog to the datalake. Works by scp'ing the specified
@@ -162,6 +158,8 @@ class CatalogMirror:
         it will just copy a file structure to a local temp folder - further processing
         will be needed to integrate it into the datalake structure.
         """
+
+        catalog_version = catalog_version or date.today()
         conn = Connection("gadi")
 
         dotstr = "." if hidden else ""
@@ -193,7 +191,7 @@ class CatalogMirror:
         print(
             f"{f_info}sftp initiated: listing {f_path}{source_dir}{f_reset}{f_info} contents{f_reset}"
         )
-        sourcedir_contents = sftp.listdir(str(source_dir))
+        sourcedir_contents: list[str] = sftp.listdir(str(source_dir))
 
         pq_files = [f for f in sourcedir_contents if Path(f).suffix == ".parquet"]
         json_files = [f for f in sourcedir_contents if Path(f).suffix == ".json"]
@@ -492,5 +490,4 @@ def mirror_catalog(argv: Sequence[str] | None = None) -> None:
 
     args = parser.parse_args(argv)
 
-    mirror = CatalogMirror()
-    mirror.run(catalog_version=args.catalog_version, hidden=args.hidden)
+    _mirror = CatalogMirror()(catalog_version=args.catalog_version, hidden=args.hidden)
