@@ -41,8 +41,7 @@ class TestCatalogMirror:
         from access_nri_intake.catalog import EXP_JSONSCHEMA
         from access_nri_intake.catalog.manager import CatalogManager
         from access_nri_intake.catalog.translators import Cmip5Translator
-        from access_nri_intake.source.builders import (AccessOm2Builder,
-                                                       AccessOm3Builder)
+        from access_nri_intake.source.builders import AccessOm2Builder, AccessOm3Builder
         from access_nri_intake.utils import load_metadata_yaml
 
         path = str(tmp_path / "cat.parquet")
@@ -142,27 +141,35 @@ class TestCatalogMirror:
 
         cat_mirror.create_sidecar_files()
 
-        file_pairs = [
-            (f, f.with_name(f"{f.stem}_uniqs.parquet")) for f in pq_files
-        ]
+        file_pairs = [(f, f.with_name(f"{f.stem}_uniqs.parquet")) for f in pq_files]
 
         for pq_file, sidecar_file in file_pairs:
             df = pl.read_parquet(pq_file)
             sidecar_df = pl.read_parquet(sidecar_file)
             sidecar_metadata = pl.read_parquet_metadata(sidecar_file)
 
-            assert int(sidecar_metadata['num_records']) == len(df)
+            assert int(sidecar_metadata["num_records"]) == len(df)
 
-            str_cols = [col for col, dtype in sidecar_df.schema.items() if dtype == pl.Utf8 and col != 'path']
-            list_cols = [col for col, dtype in sidecar_df.schema.items() if dtype == pl.List(pl.Utf8)]
+            str_cols = [
+                col
+                for col, dtype in sidecar_df.schema.items()
+                if dtype == pl.Utf8 and col != "path"
+            ]
+            list_cols = [
+                col
+                for col, dtype in sidecar_df.schema.items()
+                if dtype == pl.List(pl.Utf8)
+            ]
 
             for col in str_cols:
-                assert set(sidecar_df.get_column(col).explode().unique()) == set(df.get_column(col).unique())
+                assert set(sidecar_df.get_column(col).explode().unique()) == set(
+                    df.get_column(col).unique()
+                )
 
             for col in list_cols:
-                assert set(sidecar_df.get_column(col).explode().unique()) == set(df.get_column(col).explode().unique())
-
-
+                assert set(sidecar_df.get_column(col).explode().unique()) == set(
+                    df.get_column(col).explode().unique()
+                )
 
     def test__create_datastore_metadata(self, tmp_dataframe_catfile):
         tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
@@ -202,13 +209,15 @@ class TestCatalogMirror:
             assert n_records == sidecars[fname]["num_records"]
 
     def test_partition_parquet_files(self, tmp_dataframe_catfile):
-        tmpdir_loc = tmp_dataframe_catfile.parent.iterdir() 
-        pq_files = [f for f in tmpdir_loc if f.suffix == ".parquet" and f.stem == "cmip5_al33"]
+        tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
+        pq_files = [
+            f for f in tmpdir_loc if f.suffix == ".parquet" and f.stem == "cmip5_al33"
+        ]
         cat_mirror = CatalogMirror()
         cat_mirror.local_pq_files = pq_files
 
         cat_mirror.partition_parquet_files()
-        breakpoint()
+        assert Path(tmp_dataframe_catfile.parent / "cmip5_al33").is_dir()
 
     def test__get_project_id(self, catalog_lf: pl.LazyFrame):
         mirror = CatalogMirror()
