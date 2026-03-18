@@ -267,8 +267,7 @@ class CatalogMirror:
         """
         We need to go into each of the esm-datastore parquet files and make a few
         changes. Most important, we need to change the `catalog_file` field to
-        point to the one next door to it. We'll also make sure all parquet files
-        are snappy-compressed.
+        point to the one next door to it.
         """
 
         for file in self.local_json_files:

@@ -112,8 +112,25 @@ class TestCatalogMirror:
                     subset_df_init.get_column(colname).explode().unique()
                 ) == set(subset_df_restruc.get_column(colname).explode().unique())
 
-    def test_update_esm_datastores(self):
-        assert True
+    def test_update_esm_datastores(self, tmp_dataframe_catfile):
+        tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
+        json_files = [f for f in tmpdir_loc if f.suffix == ".json"]
+
+        cat_mirror = CatalogMirror()
+        cat_mirror.local_json_files = json_files
+        cat_mirror.update_esm_datastores()
+
+        # Now check that the json files have been updated with the new paths to the parquet files
+        json_files_updated = [
+            f for f in tmp_dataframe_catfile.parent.iterdir() if f.suffix == ".json"
+        ]
+
+        for f in json_files_updated:
+            with open(f) as fobj:
+                json_dict = json.load(fobj)
+            assert json_dict["catalog_file"].startswith(
+                "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog/source/"
+            )
 
     def test_create_sidecar_files(self):
         assert True
