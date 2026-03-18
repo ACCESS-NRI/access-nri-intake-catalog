@@ -140,6 +140,9 @@ class TestCatalogMirror:
             ["access-om2_metadata", "access-om3_metadata", "cmip5-al33_metadata"]
         )
 
+        # project_id is liable to change depending on where the tests are rn, so
+        # we'll ignore it for now. I'm just leaving them in for potential future
+        # debugging
         sidecars = {
             "access-om2_metadata": {"project_id": "catalog", "num_records": 12},
             "access-om3_metadata": {"project_id": "catalog", "num_records": 14},
@@ -149,8 +152,8 @@ class TestCatalogMirror:
         for f in sidecar_files:
             fname = f.stem
             with open(f) as fobj:
-                metadata = json.load(fobj)
-            assert metadata == sidecars[fname]
+                n_records = json.load(fobj).get("num_records")
+            assert n_records == sidecars[fname]["num_records"]
 
     def test_partition_parquet_files(self):
         assert True
