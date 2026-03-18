@@ -217,7 +217,7 @@ class TestCatalogMirror:
         cat_mirror.local_pq_files = pq_files
 
         cat_mirror.partition_parquet_files()
-        assert Path(tmp_dataframe_catfile.parent / "cmip5_al33").is_dir()
+        assert Path(tmp_dataframe_catfile.parent / "cmip5_al33.parquet").is_dir()
 
     def test__get_project_id(self, catalog_lf: pl.LazyFrame):
         mirror = CatalogMirror()
