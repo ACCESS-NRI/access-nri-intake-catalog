@@ -480,7 +480,7 @@ def mirror_catalog(argv: Sequence[str] | None = None) -> None:
     )
     parser.add_argument(
         "--catalog-version",
-        type=lambda d: date.fromisoformat(d),
+        type=lambda d: date.fromisoformat(d),  # noqa: PLW0108
         default=date.today(),
         help="The version date of the intake catalog to mirror (YYYY-MM-DD). Defaults to today's date.",
     )
