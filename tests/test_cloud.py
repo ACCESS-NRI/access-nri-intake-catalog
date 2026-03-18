@@ -1,6 +1,7 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import os
 from pathlib import Path
 
@@ -44,7 +45,7 @@ class TestCatalogMirror:
         from access_nri_intake.utils import load_metadata_yaml
 
         path = str(tmp_path / "cat.parquet")
-        cat = CatalogManager(path)
+        cat = CatalogManager(path, use_parquet=True)
 
         # Load source
         load_args = dict(
@@ -117,8 +118,39 @@ class TestCatalogMirror:
     def test_create_sidecar_files(self):
         assert True
 
-    def test__create_datastore_metadata(self):
-        assert True
+    def test__create_datastore_metadata(self, tmp_dataframe_catfile):
+        tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
+        pq_files = [f for f in tmpdir_loc if f.suffix == ".parquet" and f.stem != "cat"]
+
+        cat_mirror = CatalogMirror()
+        cat_mirror.local_pq_files = pq_files
+        cat_mirror._create_datastore_metadata()
+
+        tmpdir_loc_updated = tmp_dataframe_catfile.parent.iterdir()
+        sidecar_files = set(
+            (
+                f
+                for f in tmpdir_loc_updated
+                if f.suffix == ".json" and f.stem.endswith("_metadata")
+            )
+        )
+        sidecar_fnames = set(f.stem for f in sidecar_files)
+
+        assert sidecar_fnames == set(
+            ["access-om2_metadata", "access-om3_metadata", "cmip5-al33_metadata"]
+        )
+
+        sidecars = {
+            "access-om2_metadata": {"project_id": "catalog", "num_records": 12},
+            "access-om3_metadata": {"project_id": "catalog", "num_records": 14},
+            "cmip5-al33_metadata": {"project_id": "al33", "num_records": 5},
+        }
+
+        for f in sidecar_files:
+            fname = f.stem
+            with open(f) as fobj:
+                metadata = json.load(fobj)
+            assert metadata == sidecars[fname]
 
     def test_partition_parquet_files(self):
         assert True

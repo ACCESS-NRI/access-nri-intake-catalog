@@ -65,17 +65,14 @@ class CatalogMirror:
     - [ ] Do we really need to copy everything to local first?
     """
 
-    def __init__(self, use_permanent: bool = False) -> None:
+    def __init__(self) -> None:
         self.bucket_name = "access-nri-intake-catalog"
         self.local_json_files: list[Path] = []
         self.local_pq_files: list[Path] = []
 
         self.failed_json_files: list[Path] = []
         self.failed_pq_files: list[Path] = []
-        if not use_permanent:
-            self.local_mirror_path = Path(tempfile.TemporaryDirectory().name)
-        else:
-            self.local_mirror_path = Path("~/scratch/intake-mirror/").expanduser()
+        self.local_mirror_path = Path(tempfile.TemporaryDirectory().name)
         self.metacat_path = self.local_mirror_path / "metacatalog.parquet"
         self.basedir = Path("/g/data/xp65/public/apps/access-nri-intake-catalog/")
 
@@ -338,10 +335,9 @@ class CatalogMirror:
 
     def _create_datastore_metadata(self) -> None:
         """
-        Add project metadata to our parquet files and set the row_group_size to 10,000
-
-        First, we update our local parquet files list - we've partitioned a bunch of stuff, so we'll
-        need to account for that.
+        Create a separate sidecar metadata json file for each of the esm-datastore parquet files,
+        containing information about the project_id and number of records in the parquet file.
+        This is to avoid having to read the parquet files to get this information when we want to display it on the frontend.
         """
 
         for fhandle in self.local_pq_files:
