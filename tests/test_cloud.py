@@ -40,8 +40,7 @@ class TestCatalogMirror:
         from access_nri_intake.catalog import EXP_JSONSCHEMA
         from access_nri_intake.catalog.manager import CatalogManager
         from access_nri_intake.catalog.translators import Cmip5Translator
-        from access_nri_intake.source.builders import (AccessOm2Builder,
-                                                       AccessOm3Builder)
+        from access_nri_intake.source.builders import AccessOm2Builder, AccessOm3Builder
         from access_nri_intake.utils import load_metadata_yaml
 
         path = str(tmp_path / "cat.parquet")
