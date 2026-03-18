@@ -132,6 +132,19 @@ class TestCatalogMirror:
                 "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog/source/"
             )
 
+    def test_update_esm_datastores_failure(self, tmp_dataframe_catfile):
+        """
+        Test that if we can't update json files, we just print an error and move on, not crash. Esily done by passing a parquet file in instead.
+        """
+        tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
+        json_files = [f for f in tmpdir_loc if f.suffix == ".parquet"]
+
+        cat_mirror = CatalogMirror()
+        cat_mirror.local_json_files = json_files
+        cat_mirror.update_esm_datastores()
+
+        assert set(json_files) == set(cat_mirror.failed_json_files)
+
     def test_create_sidecar_files(self, tmp_dataframe_catfile):
         tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
         pq_files = [f for f in tmpdir_loc if f.suffix == ".parquet" and f.stem != "cat"]
@@ -208,16 +221,39 @@ class TestCatalogMirror:
                 n_records = json.load(fobj).get("num_records")
             assert n_records == sidecars[fname]["num_records"]
 
-    def test_partition_parquet_files(self, tmp_dataframe_catfile):
+    def test_partition_parquet_files(self, tmp_dataframe_catfile, capsys):
         tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
         pq_files = [
-            f for f in tmpdir_loc if f.suffix == ".parquet" and f.stem == "cmip5_al33"
+            f
+            for f in tmpdir_loc
+            if f.suffix == ".parquet" and f.stem in ["cmip5_al33", "access-om2"]
         ]
         cat_mirror = CatalogMirror()
         cat_mirror.local_pq_files = pq_files
 
         cat_mirror.partition_parquet_files()
         assert Path(tmp_dataframe_catfile.parent / "cmip5_al33.parquet").is_dir()
+        assert not Path(tmp_dataframe_catfile.parent / "access-om2.parquet").is_dir()
+
+        captured = capsys.readouterr()
+        # assert "No partitioning information for datastore access-om2, skipping partitioning." in captured.out
+        # ^ Ctrl codes in here - need a smarter way to test.
+        assert "Changing row group size to 10,000" in captured.out
+        assert "Partitioning datastore" in captured.out
+
+    def test_partition_parquet_failure(self, tmp_dataframe_catfile, capsys):
+        tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
+        pq_files = [
+            f
+            for f in tmpdir_loc
+            if f.suffix == ".json" and f.stem in ["cmip5_al33", "access-om2"]
+        ]
+        cat_mirror = CatalogMirror()
+        cat_mirror.local_pq_files = pq_files
+
+        cat_mirror.partition_parquet_files()
+
+        assert set(cat_mirror.failed_pq_files) == set(pq_files)
 
     def test__get_project_id(self, catalog_lf: pl.LazyFrame):
         mirror = CatalogMirror()
