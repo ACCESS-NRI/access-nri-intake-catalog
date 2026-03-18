@@ -212,11 +212,15 @@ variable:
 nominal_resolution:
 - 
 version: 
-contact: NCI
-email: help@nci.org.au
-reference:
-license:
-url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f3062_7036_5200_2977
+contact: Bureau of Meteorology
+email: data_governance_office@bom.gov.au
+reference: >-
+  Su, Chun-Hsu et. al. (2022). BARPA: New development of ACCESS-based regional
+  climate modelling for Australian Climate Service. Bureau of Meteorology
+  (Bureau Research Report - 069), Retrieved from
+  http://www.bom.gov.au/research/publications/researchreports/BRR-069.pdf
+license: CC-BY-4.0
+url: https://dx.doi.org/10.25914/z1x6-dq28
 parent_experiment:
 related_experiments:
 -
