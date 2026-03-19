@@ -4,12 +4,38 @@ on:
     inputs:
       release_version:
         description: 'Release version'     
+        type: string
+        default: ''
+        required: false # Not required
+      concretise:
+        description: 'Whether to concretise the catalog (move from .vYYYY-MM-DD to vYYYY-MM-DD and update default catalog.)'     
         required: true
+        default: 'true'
+        type: choice
+        options:
+          - true
+          - false
+      format:
+        description: 'Whether to serialise catalogs as parquet or csv'
+        required: true
+        default: 'parquet'
+        type: choice
+        options:
+          - parquet
+          - csv
+
+
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Get current date
+        if: inputs.release_version == ''
+        id: date
+        uses: Kaven-Universe/github-action-current-date-time@v1 # Think we need a hash here? 3rd party lib?
+        with:
+          format: "YYYY-MM-DD"
       - name: Update catalog
         uses: appleboy/ssh-action@v1.2.5
         with:
@@ -18,8 +44,21 @@ jobs:
           key: ${{secrets.DEPLOY_KEY}}
           script: |
             cd ${{secrets.GADI_REPO_PATH}}
-            export RELEASE=${{ github.event.inputs.release_version }}
+            git pull && git checkout ${{ github.ref_name }}
+            export RELEASE=${{ github.event.inputs.release_version || steps.date.outputs.time}}
             cd bin
             qsub -v version=${RELEASE} build_all.sh
+      - name: Sync new catalog to Nectar
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: gadi.nci.org.au
+          username: ${{secrets.GADI_USER}}
+          key: ${{secrets.DEPLOY_KEY}}
+          script: |
+            cd ${{secrets.GADI_REPO_PATH}}
+            git pull && git checkout ${{ github.ref_name }}
+            export RELEASE=${{github.event.inputs.release_version || steps.date.outputs.time}}
+            cd bin
+            qsub -v version=${RELEASE} sync_to_nectar.sh
 
             
