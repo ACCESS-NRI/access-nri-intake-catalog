@@ -9,7 +9,7 @@ from unittest import mock
 import polars as pl
 import pytest
 
-from access_nri_intake.cloud import CatalogMirror
+from access_nri_intake.cloud import CatalogMirror, mirror_catalog
 
 
 def test_entrypoint():
@@ -436,3 +436,25 @@ class TestCatalogMirror:
             cat_mirror.mirror_intake_catalog(
                 catalog_version=date(2025, 1, 1), hidden=False
             )
+
+
+@mock.patch("access_nri_intake.cloud.CatalogMirror", return_value=MockCatalogMirror())
+@pytest.mark.parametrize(
+    "argv, expected_mirror_args",
+    [
+        (
+            ["--catalog-version", "2025-01-01"],
+            {"catalog_version": "2025-01-01", "hidden": False},
+        ),
+        (
+            ["--catalog-version", "2000-01-01", "--hidden"],
+            {"catalog_version": "2000-01-01", "hidden": True},
+        ),
+    ],
+)
+def test_mirror_catalog(mock_CatalogMirror, argv, expected_mirror_args):
+    mirror_catalog(argv)
+
+    mock_CatalogMirror.assert_called_once_with()
+    mock_CatalogMirror.hidden = expected_mirror_args["hidden"]
+    mock_CatalogMirror.catalog_version = expected_mirror_args["catalog_version"]

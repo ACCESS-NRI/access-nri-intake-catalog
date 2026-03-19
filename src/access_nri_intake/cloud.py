@@ -79,8 +79,12 @@ class CatalogMirror:
         # if we are on Gadi, we can use a local mirror path
         self.use_local_mirror = self.basedir.exists()
 
-    def __call__(self, catalog_version: date, hidden: bool):
+    def __call__(self, catalog_version: date, hidden: bool) -> None:
         """Main execution method."""
+
+        # Cache catalog_version & hidden as instance attributes (mostly for testing)
+        self.catalog_version = catalog_version
+        self.hidden = hidden
 
         try:
             self.mirror_intake_catalog(catalog_version=catalog_version, hidden=hidden)
@@ -491,4 +495,4 @@ def mirror_catalog(argv: Sequence[str] | None = None) -> None:
 
     args = parser.parse_args(argv)
 
-    _mirror = CatalogMirror()(catalog_version=args.catalog_version, hidden=args.hidden)
+    return CatalogMirror()(catalog_version=args.catalog_version, hidden=args.hidden)
