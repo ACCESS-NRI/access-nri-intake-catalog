@@ -4,6 +4,7 @@
 import json
 import os
 from pathlib import Path
+from unittest import mock
 
 import polars as pl
 import pytest
@@ -333,8 +334,105 @@ class TestCatalogMirror:
         assert printout_pq in out
         assert printout_json in out
 
-    def test_write_to_object_store(self):
-        assert True
+    @mock.patch("access_nri_intake.cloud.swiftclient.Connection")
+    @mock.patch("access_nri_intake.cloud.openstack.connect")
+    def test_write_to_object_store(self, mock_openstack, mock_swift, tmp_path):
+        # Create real files so rglob picks them up
+        (tmp_path / "source").mkdir()
+        (tmp_path / "metacatalog.parquet").touch()
+        (tmp_path / "source" / "ds_a.parquet").touch()
+        (tmp_path / "source" / "ds_a.json").touch()
 
-    def test_mirror_intake_catalog(self):
-        assert True
+        mock_openstack.return_value.session.get_endpoint.return_value = (
+            "https://fake-endpoint"
+        )
+        mock_openstack.return_value.session.get_token.return_value = "fake-token"
+        mock_conn = mock_swift.return_value
+
+        cat_mirror = CatalogMirror()
+        cat_mirror.local_mirror_path = tmp_path
+        cat_mirror.write_to_object_storage()
+
+        mock_openstack.assert_called_once_with(cloud="openstack")
+        mock_swift.assert_called_once_with(
+            preauthurl="https://fake-endpoint",
+            preauthtoken="fake-token",
+        )
+        mock_conn.post_container.assert_called_once_with(
+            container="access-nri-intake-catalog",
+            headers={
+                "X-Container-Read": ".r:*",
+                "X-Container-Meta-Access-Control-Allow-Origin": "*",
+                "X-Container-Meta-Access-Control-Allow-Methods": "GET, HEAD",
+                "X-Container-Meta-Access-Control-Allow-Headers": "Range",
+                "X-Container-Meta-Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
+            },
+        )
+        # One put_object call per real file under tmp_path
+        expected_rel_paths = {
+            Path("metacatalog.parquet"),
+            Path("source") / "ds_a.parquet",
+            Path("source") / "ds_a.json",
+        }
+        actual_rel_paths = {
+            Path(call.kwargs["obj"]) for call in mock_conn.put_object.call_args_list
+        }
+        assert mock_conn.put_object.call_count == 3
+        assert actual_rel_paths == expected_rel_paths
+        for call in mock_conn.put_object.call_args_list:
+            assert call.kwargs["container"] == "access-nri-intake-catalog"
+
+    @mock.patch("access_nri_intake.cloud.Connection")
+    def test_mirror_intake_catalog(self, mock_connection, tmp_path):
+        mock_conn = mock_connection.return_value
+        mock_sftp = mock_conn.sftp.return_value
+        mock_sftp.listdir.return_value = [
+            "ds_a.parquet",
+            "ds_b.parquet",
+            "ds_a.json",
+            "ds_b.json",
+        ]
+
+        from datetime import date
+
+        cat_mirror = CatalogMirror()
+        cat_mirror.local_mirror_path = tmp_path
+        cat_mirror.mirror_intake_catalog(catalog_version=date(2025, 1, 1), hidden=False)
+
+        mock_connection.assert_called_once_with("gadi")
+        assert mock_conn.get.call_count == 5  # 1 metacat + 2 pq + 2 json
+        assert {f.stem for f in cat_mirror.local_pq_files} == {"ds_a", "ds_b"}
+        assert {f.stem for f in cat_mirror.local_json_files} == {"ds_a", "ds_b"}
+        assert all(f.parent == tmp_path / "source" for f in cat_mirror.local_pq_files)
+
+    @mock.patch("access_nri_intake.cloud.Connection")
+    def test_mirror_intake_catalog_hidden(self, mock_connection, tmp_path):
+        mock_conn = mock_connection.return_value
+        mock_sftp = mock_conn.sftp.return_value
+        mock_sftp.listdir.return_value = ["ds_a.parquet", "ds_a.json"]
+
+        from datetime import date
+
+        cat_mirror = CatalogMirror()
+        cat_mirror.local_mirror_path = tmp_path
+        cat_mirror.mirror_intake_catalog(catalog_version=date(2025, 1, 1), hidden=True)
+
+        # The metacatalog get call should use the hidden (dot-prefixed) version path
+        metacat_call_arg = str(mock_conn.get.call_args_list[0].args[0])
+        assert "/.v2025-01-01/" in metacat_call_arg
+
+    @mock.patch("access_nri_intake.cloud.Connection")
+    def test_mirror_intake_catalog_mismatch(self, mock_connection, tmp_path):
+        mock_conn = mock_connection.return_value
+        mock_sftp = mock_conn.sftp.return_value
+        # 1 parquet but 2 json — mismatch
+        mock_sftp.listdir.return_value = ["ds_a.parquet", "ds_a.json", "ds_b.json"]
+
+        from datetime import date
+
+        cat_mirror = CatalogMirror()
+        cat_mirror.local_mirror_path = tmp_path
+        with pytest.raises(ValueError, match="Mismatch"):
+            cat_mirror.mirror_intake_catalog(
+                catalog_version=date(2025, 1, 1), hidden=False
+            )
