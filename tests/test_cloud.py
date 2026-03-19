@@ -19,6 +19,44 @@ def test_entrypoint():
     assert exit_status == 0
 
 
+class MockCatalogMirror(CatalogMirror):
+    def __init__(
+        self,
+        mirror_fail=False,
+        pq_fail=False,
+        json_fail=False,
+    ):
+        super().__init__()
+        self.mirror_fail = mirror_fail
+
+        self.failed_pq_files = ["fake_file.parquet"] if pq_fail else []
+        self.failed_json_files = ["fake_file.json"] if json_fail else []
+
+    def mirror_intake_catalog(self, *args, **kwargs) -> None:
+        if not self.mirror_fail:
+            self.mirror_intake_catalog_called = True
+        else:
+            raise Exception("Nonspecific failure...")
+
+    def restructure_metacat(self) -> None:
+        self.restructure_metacat_called = True
+
+    def update_esm_datastores(self) -> None:
+        self.update_esm_datastores_called = True
+
+    def create_sidecar_files(self) -> None:
+        self.create_sidecar_files_called = True
+
+    def _create_datastore_metadata(self) -> None:
+        self._create_datastore_metadata_called = True
+
+    def partition_parquet_files(self) -> None:
+        self.partition_parquet_files_called = True
+
+    def write_to_object_storage(self) -> None:
+        return None
+
+
 class TestCatalogMirror:
     """
     Tests for the CatalogMirror class.
@@ -80,15 +118,6 @@ class TestCatalogMirror:
         cat.save()
 
         return Path(path)
-
-    def test_init(self):
-        assert True
-
-    def test___call__(self):
-        assert True
-
-    def test_mirror_intake_catalog(self):
-        assert True
 
     def test_restructure_metacat(self, tmp_dataframe_catfile):
         df_init = pl.read_parquet(tmp_dataframe_catfile)
@@ -241,7 +270,8 @@ class TestCatalogMirror:
         assert "Changing row group size to 10,000" in captured.out
         assert "Partitioning datastore" in captured.out
 
-    def test_partition_parquet_failure(self, tmp_dataframe_catfile, capsys):
+    def test_partition_parquet_failure(self, tmp_dataframe_catfile):
+        """Test that if we can't partition a file, we just print an error and move on, not crash. Easily done by passing a json file in instead."""
         tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
         pq_files = [
             f
@@ -260,5 +290,51 @@ class TestCatalogMirror:
         project_id = mirror._get_project_id(catalog_lf)
         assert project_id == "ct11"
 
+    @pytest.mark.parametrize(
+        "mirror_fail, printout_mirror",
+        [
+            (True, "Error mirroring intake catalog"),
+            (False, "Successfully mirrored intake catalog"),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "pq_fail, printout_pq",
+        [(True, "Failed parquet files:"), (False, "No failed parquet files")],
+    )
+    @pytest.mark.parametrize(
+        "json_fail, printout_json",
+        [(True, "Failed JSON files:"), (False, "No failed JSON files")],
+    )
+    def test___call__(
+        self,
+        mirror_fail,
+        printout_mirror,
+        pq_fail,
+        printout_pq,
+        json_fail,
+        printout_json,
+        capsys,
+    ):
+        mirror = MockCatalogMirror(mirror_fail, pq_fail, json_fail)
+
+        if not mirror_fail:
+            mirror(catalog_version="test", hidden=False)
+        else:
+            with pytest.raises(SystemExit, match="1"):
+                mirror(catalog_version="test", hidden=False)
+
+        out, err = capsys.readouterr()
+
+        if err:
+            assert printout_mirror in err
+            return None
+
+        assert printout_mirror in out
+        assert printout_pq in out
+        assert printout_json in out
+
     def test_write_to_object_store(self):
+        assert True
+
+    def test_mirror_intake_catalog(self):
         assert True
