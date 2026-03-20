@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import logging
 import sys
 import tempfile
 from collections.abc import Sequence
@@ -15,14 +16,7 @@ import pyarrow.parquet as pq
 import swiftclient
 from fabric import Connection
 
-from access_nri_intake.experiment.colours import (
-    f_err,
-    f_info,
-    f_path,
-    f_reset,
-    f_success,
-    f_warn,
-)
+logger = logging.getLogger(__name__)
 
 """
 Partition table for various datasets. Used to determine how to partition the
@@ -100,55 +94,51 @@ class CatalogMirror:
 
         try:
             self.mirror_intake_catalog(catalog_version=catalog_version, hidden=hidden)
-            print(f"{f_success}Successfully mirrored intake catalog.{f_reset}")
+            logger.info("Successfully mirrored intake catalog.")
         except Exception as e:
-            print(
-                f"{f_warn}Error mirroring intake catalog: {e}{f_reset}", file=sys.stderr
-            )
-            print(f"\n{f_warn}Usage examples:{f_reset}", file=sys.stderr)
-            print("  python cloud.py")
-            print("  python cloud.py --catalog-version 2025-11-01")
-            print("  python cloud.py --hidden")
-            print("  python cloud.py --catalog-version 2025-11-01 --hidden")
+            logger.warning("Error mirroring intake catalog: %s", e)
+            logger.warning("Usage examples:")
+            logger.warning("  python cloud.py")
+            logger.warning("  python cloud.py --catalog-version 2025-11-01")
+            logger.warning("  python cloud.py --hidden")
+            logger.warning("  python cloud.py --catalog-version 2025-11-01 --hidden")
             sys.exit(1)
 
-        print(f"{f_info}Restructuring metacatalog parquet file...{f_reset}")
+        logger.info("Restructuring metacatalog parquet file...")
         self.restructure_metacat()
-        print(f"{f_success}Metacatalog restructured successfully.{f_reset}")
+        logger.info("Metacatalog restructured successfully.")
 
-        print(f"{f_info}Updating ESM datastore parquet file path fields...{f_reset}")
+        logger.info("Updating ESM datastore parquet file path fields...")
         self.update_esm_datastores()
-        print(f"{f_success}ESM datastore parquet files updated successfully.{f_reset}")
+        logger.info("ESM datastore parquet files updated successfully.")
 
-        print(f"{f_info}Creating sidecar files for ESM datastores...{f_reset}")
+        logger.info("Creating sidecar files for ESM datastores...")
         self.create_sidecar_files()
-        print(f"{f_success}ESM datastore sidecar files created successfully.{f_reset}")
+        logger.info("ESM datastore sidecar files created successfully.")
 
-        print(f"{f_info}Writing metadata json files...{f_reset}")
+        logger.info("Writing metadata json files...")
         self._create_datastore_metadata()
-        print(f"{f_success}Metadata json sucessfully written!.{f_reset}")
+        logger.info("Metadata json successfully written.")
 
-        print(f"{f_info}Partitioning ESM datastore parquet files...{f_reset}")
+        logger.info("Partitioning ESM datastore parquet files...")
         self.partition_parquet_files()
-        print(
-            f"{f_success}ESM datastore parquet files partitioned successfully.{f_reset}"
-        )
+        logger.info("ESM datastore parquet files partitioned successfully.")
 
         if self.failed_pq_files:
-            print(f"{f_info}Failed parquet files:{f_reset}")
+            logger.info("Failed parquet files:")
             for f in self.failed_pq_files:
-                print(f" - {str(f)}")
+                logger.info(" - %s", f)
         else:
-            print(f"{f_success}No failed parquet files.{f_reset}")
+            logger.info("No failed parquet files.")
 
         if self.failed_json_files:
-            print(f"{f_info}Failed JSON files:{f_reset}")
+            logger.info("Failed JSON files:")
             for f in self.failed_json_files:
-                print(f" - {f}")
+                logger.info(" - %s", f)
         else:
-            print(f"{f_success}No failed JSON files.{f_reset}")
+            logger.info("No failed JSON files.")
 
-        print(f"{f_info}Writing mirrored catalog to object storage...{f_reset}")
+        logger.info("Writing mirrored catalog to object storage...")
         self.write_to_object_storage()
 
     def mirror_intake_catalog(
@@ -187,14 +177,18 @@ class CatalogMirror:
         remote_path = self.basedir / version_dir
         source_dir = self.basedir / version_dir / "source"
 
-        print(
-            f"{f_info}Mirroring intake catalog from {f_path}{remote_path}{f_reset}{f_info} to {f_path}{self.local_mirror_path}{f_reset}"
+        logger.info(
+            "Mirroring intake catalog from %s to %s",
+            remote_path,
+            self.local_mirror_path,
         )
 
         metacat_file = self.basedir / version_dir / "metacatalog.parquet"
 
-        print(
-            f"{f_info}Downloading metacatalog file: {f_path}{metacat_file}{f_reset}{f_info} to {f_path}{self.local_mirror_path}{f_reset}"
+        logger.info(
+            "Downloading metacatalog file: %s to %s",
+            metacat_file,
+            self.local_mirror_path,
         )
 
         conn.get(
@@ -203,13 +197,11 @@ class CatalogMirror:
             preserve_mode=False,
         )
 
-        print(f"{f_success}Metacatalog file transferred sucessfully!{f_reset}")
+        logger.info("Metacatalog file transferred successfully!")
 
         sftp = conn.sftp()
 
-        print(
-            f"{f_info}sftp initiated: listing {f_path}{source_dir}{f_reset}{f_info} contents{f_reset}"
-        )
+        logger.info("sftp initiated: listing %s contents", source_dir)
         sourcedir_contents: list[str] = sftp.listdir(str(source_dir))
 
         pq_files = [f for f in sourcedir_contents if Path(f).suffix == ".parquet"]
@@ -220,9 +212,7 @@ class CatalogMirror:
                 "Mismatch between number of parquet and json files in source directory."
             )
 
-        print(
-            f"{f_info}Found {len(pq_files)} esm-datastores in source directory.{f_reset}"
-        )
+        logger.info("Found %d esm-datastores in source directory.", len(pq_files))
 
         Path(self.local_mirror_path / "source").mkdir(parents=True, exist_ok=True)
 
@@ -231,8 +221,11 @@ class CatalogMirror:
             local_file_path = self.local_mirror_path / "source" / Path(pq_file).name
             self.local_pq_files.append(local_file_path.absolute())
 
-            print(
-                f"{f_info}Transferring file {idx + 1}/{2 * len(pq_files)}: {f_path}{remote_file_path.name}{f_reset}"
+            logger.info(
+                "Transferring file %d/%d: %s",
+                idx + 1,
+                2 * len(pq_files),
+                remote_file_path.name,
             )
             conn.get(
                 str(remote_file_path),
@@ -240,14 +233,17 @@ class CatalogMirror:
                 preserve_mode=False,
             )
 
-        print(f"{f_success}All parquet files transferred successfully!{f_reset}")
+        logger.info("All parquet files transferred successfully!")
 
         for idx, json_file in enumerate(json_files):
             remote_file_path = source_dir / json_file
             local_file_path = self.local_mirror_path / "source" / Path(json_file).name
 
-            print(
-                f"{f_info}Transferring file {idx + len(json_files) + 1}/{2 * len(json_files)}: {f_path}{remote_file_path.name}{f_reset}"
+            logger.info(
+                "Transferring file %d/%d: %s",
+                idx + len(json_files) + 1,
+                2 * len(json_files),
+                remote_file_path.name,
             )
             conn.get(
                 str(remote_file_path),
@@ -261,7 +257,9 @@ class CatalogMirror:
         We need to go into the parquet files we've just mirrrored and make a few
         changes.
 
-        This collapses duplicate names, aggregating lists columns together. This effectively removes the `123 entries across 3000 rows` structure in the dataframe catalog. It could be removed in future if users find it unhelpful.
+        This collapses duplicate names, aggregating lists columns together. This
+        effectively removes the `123 entries across 3000 rows` structure in the
+        dataframe catalog. It could be removed in future if users find it unhelpful.
         """
 
         lf = pl.scan_parquet(self.metacat_path)
@@ -299,10 +297,7 @@ class CatalogMirror:
                     ).alias("catalog_file")
                 ).write_ndjson(file)
             except Exception as e:
-                print(
-                    f"{f_err}Error updating JSON file {f_path}{file}{f_reset}: {e}{f_reset}",
-                    file=sys.stderr,
-                )
+                logger.error("Error updating JSON file %s: %s", file, e)
                 self.failed_json_files.append(file)
 
     def create_sidecar_files(self) -> None:
@@ -392,19 +387,18 @@ class CatalogMirror:
                 partition_cols = PARTITION_TABLE.get(datastore_name, [])
 
                 if not partition_cols:
-                    print(
-                        f"{f_warn}No partitioning information for datastore {f_path}{datastore_name}{f_reset}, skipping partitioning."
+                    logger.warning(
+                        "No partitioning information for datastore %s, skipping partitioning.",
+                        datastore_name,
                     )
-                    print(f"{f_info}Changing row group size to 10,000")
+                    logger.info("Changing row group size to 10,000")
                     pl.scan_parquet(fhandle).collect().write_parquet(
                         fhandle,
                         row_group_size=10_000,
                     )
                     continue
                 else:
-                    print(
-                        f"{f_info}Partitioning datastore {f_path}{datastore_name}{f_reset}"
-                    )
+                    logger.info("Partitioning datastore %s", datastore_name)
 
                 schema = pl.read_parquet_schema(fhandle)
                 lf = pl.scan_parquet(fhandle)
@@ -440,10 +434,7 @@ class CatalogMirror:
                     row_group_size=10_000,
                 )
             except Exception as e:
-                print(
-                    f"{f_err}Error partitioning parquet file {f_path}{fhandle}{f_reset}: {e}{f_reset}",
-                    file=sys.stderr,
-                )
+                logger.error("Error partitioning parquet file %s: %s", fhandle, e)
                 self.failed_pq_files.append(fhandle)
 
     def _get_project_id(self, lf: pl.LazyFrame) -> str:
@@ -487,12 +478,9 @@ class CatalogMirror:
                     obj=str(rel_path),
                     contents=f,
                 )
-            # Add progress feedback
-            print(f"{f_info}{idx}/{n_objs}: Uploaded {f_path}{rel_path}{f_reset}")
+            logger.info("%d/%d: Uploaded %s", idx, n_objs, rel_path)
 
-        print(
-            f"{f_success}Successfully uploaded {len(objects)} files to object storage{f_reset}"
-        )
+        logger.info("Successfully uploaded %d files to object storage", len(objects))
 
 
 def mirror_catalog(argv: Sequence[str] | None = None) -> None:

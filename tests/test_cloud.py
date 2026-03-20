@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import json
+import logging
 import os
 from pathlib import Path
 from unittest import mock
@@ -251,7 +252,7 @@ class TestCatalogMirror:
                 n_records = json.load(fobj).get("num_records")
             assert n_records == sidecars[fname]["num_records"]
 
-    def test_partition_parquet_files(self, tmp_dataframe_catfile, capsys):
+    def test_partition_parquet_files(self, tmp_dataframe_catfile, caplog):
         tmpdir_loc = tmp_dataframe_catfile.parent.iterdir()
         pq_files = [
             f
@@ -261,15 +262,17 @@ class TestCatalogMirror:
         cat_mirror = CatalogMirror()
         cat_mirror.local_pq_files = pq_files
 
-        cat_mirror.partition_parquet_files()
+        with caplog.at_level(logging.INFO):
+            cat_mirror.partition_parquet_files()
         assert Path(tmp_dataframe_catfile.parent / "cmip5_al33.parquet").is_dir()
         assert not Path(tmp_dataframe_catfile.parent / "access-om2.parquet").is_dir()
 
-        captured = capsys.readouterr()
-        # assert "No partitioning information for datastore access-om2, skipping partitioning." in captured.out
-        # ^ Ctrl codes in here - need a smarter way to test.
-        assert "Changing row group size to 10,000" in captured.out
-        assert "Partitioning datastore" in captured.out
+        assert (
+            "No partitioning information for datastore access-om2, skipping partitioning."
+            in caplog.text
+        )
+        assert "Changing row group size to 10,000" in caplog.text
+        assert "Partitioning datastore" in caplog.text
 
     def test_partition_parquet_failure(self, tmp_dataframe_catfile):
         """Test that if we can't partition a file, we just print an error and move on, not crash. Easily done by passing a json file in instead."""
@@ -314,25 +317,22 @@ class TestCatalogMirror:
         printout_pq,
         json_fail,
         printout_json,
-        capsys,
+        caplog,
     ):
         mirror = MockCatalogMirror(mirror_fail, pq_fail, json_fail)
 
-        if not mirror_fail:
-            mirror(catalog_version="test", hidden=False)
-        else:
-            with pytest.raises(SystemExit, match="1"):
+        with caplog.at_level(logging.INFO):
+            if not mirror_fail:
                 mirror(catalog_version="test", hidden=False)
+            else:
+                with pytest.raises(SystemExit, match="1"):
+                    mirror(catalog_version="test", hidden=False)
 
-        out, err = capsys.readouterr()
-
-        if err:
-            assert printout_mirror in err
+        assert printout_mirror in caplog.text
+        if mirror_fail:
             return None
-
-        assert printout_mirror in out
-        assert printout_pq in out
-        assert printout_json in out
+        assert printout_pq in caplog.text
+        assert printout_json in caplog.text
 
     @mock.patch("access_nri_intake.cloud.swiftclient.Connection")
     @mock.patch("access_nri_intake.cloud.openstack.connect")
