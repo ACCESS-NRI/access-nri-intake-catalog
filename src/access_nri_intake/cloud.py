@@ -248,6 +248,8 @@ class CatalogMirror:
         """
         We need to go into the parquet files we've just mirrrored and make a few
         changes.
+        
+        This collapses duplicate names, aggregating lists columns together. This effectively removes the `123 entries across 3000 rows` structure in the dataframe catalog. It could be removed in future if users find it unhelpful.
         """
 
         lf = pl.scan_parquet(self.metacat_path)
@@ -264,7 +266,7 @@ class CatalogMirror:
                 ]
             )
             .collect()
-            .write_parquet(self.metacat_path, compression="snappy")
+            .write_parquet(self.metacat_path, compression="zstd")
         )
 
     def update_esm_datastores(self) -> None:
@@ -295,8 +297,9 @@ class CatalogMirror:
 
     def create_sidecar_files(self) -> None:
         """
-        Create sidecar files for each of the esm-datastore parquet files. These
-
+        Create sidecar files for each of the esm-datastore parquet files. These contain a single row, which is a list of all the available values in their corresponding main parquet files.
+        
+        We also write the number of records into the parquet metadata.
         """
 
         self.sidecar_files: list[Path] = []
@@ -361,7 +364,9 @@ class CatalogMirror:
         """
         Take each of the esm-datastore parquet files and partition them according
         to the PARTITION_TABLE above, before sorting non-partitioned columns using
-        their cardinality
+        their cardinality.
+        
+        This should optimise internal file structure for expected access patterns to make it as easy as possible for the interactive catalog to just grab the row groups it needs.
         """
         for fhandle in self.local_pq_files:
             try:
@@ -404,7 +409,7 @@ class CatalogMirror:
                     :3
                 ]
 
-                df = lf.sort(sort_on).collect()  # Collect before unlinking
+                df = lf.sort(sort_on).collect()  # Collect before unlinking, otherwise we can't write our partitioned files out (need in memory)
 
                 Path(fhandle).unlink()
                 Path(fhandle).mkdir(parents=True, exist_ok=True)
