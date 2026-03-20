@@ -57,12 +57,12 @@ PARTITION_TABLE = {
 class CatalogMirror:
     """Mirror the intake catalog to the datalake.
 
-    TODO:
-    - [ ] Can we do this asynchronously without upsetting NCI
-    - [ ] Logging
-    - [ ] Fault tolerant transfer/ resume/ yadda yadda
-    - [ ] Sidecar files
-    - [ ] Do we really need to copy everything to local first?
+Implementation Notes:
+
+Could be improved with:
+- Fault Tolerance (Currently, one file breaking will break the whole thing).
+- Batching/Async (Fetch/Post multiple files at once)
+- Steaming (Is it totally necessary to download everything, do the work, and then post it? Smaller memory footprint might be helpful.)
     """
 
     def __init__(self) -> None:
