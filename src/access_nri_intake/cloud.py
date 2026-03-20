@@ -53,6 +53,21 @@ PARTITION_TABLE = {
     "cmip-forcing-qv56": ["realm"],
 }
 
+"""
+Headers to set on the container when we upload it to object storage.  These are
+required to make sure the files are readable by anyone, and that we can do range
+requests on them (for efficient querying).
+"""
+CONTAINER_HEADERS = {
+    "X-Container-Read": ".r:*",
+    "X-Container-Meta-Access-Control-Allow-Origin": "*",
+    "X-Container-Meta-Access-Control-Allow-Methods": "GET, HEAD",
+    "X-Container-Meta-Access-Control-Allow-Headers": "Range",
+    "X-Container-Meta-Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
+}
+
+BUCKET_BASE_URL = "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog"
+
 
 class CatalogMirror:
     """Mirror the intake catalog to the datalake.
@@ -75,9 +90,6 @@ class CatalogMirror:
         self.local_mirror_path = Path(tempfile.TemporaryDirectory().name)
         self.metacat_path = self.local_mirror_path / "metacatalog.parquet"
         self.basedir = Path("/g/data/xp65/public/apps/access-nri-intake-catalog/")
-
-        # if we are on Gadi, we can use a local mirror path
-        self.use_local_mirror = self.basedir.exists()
 
     def __call__(self, catalog_version: date, hidden: bool) -> None:
         """Main execution method."""
@@ -281,9 +293,7 @@ class CatalogMirror:
                 pl.read_json(file).with_columns(
                     pl.concat_str(
                         [
-                            pl.lit(
-                                "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog/source/"
-                            ),
+                            pl.lit(f"{BUCKET_BASE_URL}/source/"),
                             pl.col("catalog_file").str.split("/").list.last(),
                         ]
                     ).alias("catalog_file")
@@ -341,9 +351,17 @@ class CatalogMirror:
 
     def _create_datastore_metadata(self) -> None:
         """
-        Create a separate sidecar metadata json file for each of the esm-datastore parquet files,
-        containing information about the project_id and number of records in the parquet file.
-        This is to avoid having to read the parquet files to get this information when we want to display it on the frontend.
+        Create a separate sidecar metadata json file for each of the esm-datastore
+        parquet files, containing information about the project_id and number of
+        records in the parquet file.  This is to avoid having to read the parquet
+        files to get this information when we want to display it on the frontend.
+
+        Note: num_records is also written into the parquet metadata in the _create_sidecar_files
+        method, but this is a bit of a hack and not easily accessible without
+        reading the parquet file, so we write it out separately here for easy access.
+
+        The frontend currently reads from the parquet metadata, so keep both hanging
+        around until we update that.
         """
 
         for fhandle in self.local_pq_files:
@@ -456,13 +474,7 @@ class CatalogMirror:
 
         conn.post_container(
             container="access-nri-intake-catalog",
-            headers={
-                "X-Container-Read": ".r:*",
-                "X-Container-Meta-Access-Control-Allow-Origin": "*",
-                "X-Container-Meta-Access-Control-Allow-Methods": "GET, HEAD",
-                "X-Container-Meta-Access-Control-Allow-Headers": "Range",
-                "X-Container-Meta-Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
-            },
+            headers=CONTAINER_HEADERS,
         )
 
         objects = [f for f in Path(self.local_mirror_path).rglob("*") if f.is_file()]
