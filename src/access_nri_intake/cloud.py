@@ -17,6 +17,8 @@ import swiftclient
 from fabric import Connection
 
 logger = logging.getLogger(__name__)
+log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 """
 Partition table for various datasets. Used to determine how to partition the
