@@ -33,9 +33,6 @@ dependencies = [
     "colorama",
     "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
-    "python-openstackclient",
-    "python-swiftclient",
-    "fabric",
 ]
 
 [project.optional-dependencies]
@@ -146,6 +143,7 @@ platforms = ["osx-arm64", "linux-64", "win-64"]
 
 [tool.pixi.environments]
 default = { features = ["dev","py313"], solve-group = "default" }
+build = { features = ["build"], solve-group = "default" }
 test-py310 = { features = ["py310", "test"] }
 test-py311 = { features = ["py311", "test"] }
 test-py312 = { features = ["py312", "test"] }
@@ -183,6 +181,12 @@ test = {cmd = "pytest tests", description = "Run tests"}
 test-cov = {cmd = "coverage run -m --source=access_nri_intake pytest tests && coverage xml", description = "Run tests with coverage and generate xml report"}
 test-e2e = {cmd = "pytest --e2e tests", description = "Run tests including e2e tests"}
 
+[tool.pixi.feature.build.dependencies]
+python-openstackclient = "*"
+python-swiftclient = "*"
+fabric = "*"
+requests = ">=2.32.5,<3"
+aiohttp = ">=3.13.3,<4"
 
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
@@ -198,7 +202,3 @@ python = "3.13.*"
 
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
-
-[tool.pixi.dependencies]
-requests = ">=2.32.5,<3"
-aiohttp = ">=3.13.3,<4"
