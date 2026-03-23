@@ -321,16 +321,23 @@ class TestCatalogMirror:
     ):
         mirror = MockCatalogMirror(mirror_fail, pq_fail, json_fail)
 
-        with caplog.at_level(logging.INFO):
-            if not mirror_fail:
-                mirror(catalog_version="test", hidden=False)
-                assert printout_mirror in caplog.text
-            else:
-                with pytest.raises(SystemExit, match="1") as excinfo:
-                    mirror(catalog_version="test", hidden=False)
-                    assert printout_mirror in caplog.text
+        failure = mirror_fail or pq_fail or json_fail
 
-        if mirror_fail:
+        for fail, printout in [
+            (mirror_fail, printout_mirror),
+            (pq_fail, printout_pq),
+            (json_fail, printout_json),
+        ]:
+            with caplog.at_level(logging.INFO):
+                if failure:
+                    with pytest.raises(SystemExit, match="1") as excinfo:
+                        mirror(catalog_version="test", hidden=False)
+                        assert printout in caplog.text
+                else:
+                    mirror(catalog_version="test", hidden=False)
+                    assert printout in caplog.text
+
+        if failure:
             return None
 
         assert printout_pq in caplog.text

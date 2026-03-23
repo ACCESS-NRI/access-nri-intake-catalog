@@ -111,37 +111,34 @@ class CatalogMirror:
 
         logger.info("Restructuring metacatalog parquet file...")
         self.restructure_metacat()
-        logger.info("Metacatalog restructured successfully.")
 
         logger.info("Updating ESM datastore parquet file path fields...")
         self.update_esm_datastores()
-        logger.info("ESM datastore parquet files updated successfully.")
-
-        logger.info("Creating sidecar files for ESM datastores...")
-        self.create_sidecar_files()
-        logger.info("ESM datastore sidecar files created successfully.")
-
-        logger.info("Writing metadata json files...")
-        self._create_datastore_metadata()
-        logger.info("Metadata json successfully written.")
-
-        logger.info("Partitioning ESM datastore parquet files...")
-        self.partition_parquet_files()
-        logger.info("ESM datastore parquet files partitioned successfully.")
-
-        if self.failed_pq_files:
-            logger.info("Failed parquet files:")
-            for f in self.failed_pq_files:
-                logger.info(" - %s", f)
-        else:
-            logger.info("No failed parquet files.")
 
         if self.failed_json_files:
             logger.info("Failed JSON files:")
             for f in self.failed_json_files:
                 logger.info(" - %s", f)
+            raise SystemExit(1, "Failed to process some JSON files.")
         else:
             logger.info("No failed JSON files.")
+
+        logger.info("Creating sidecar files for ESM datastores...")
+        self.create_sidecar_files()
+
+        logger.info("Writing metadata json files...")
+        self._create_datastore_metadata()
+
+        logger.info("Partitioning ESM datastore parquet files...")
+        self.partition_parquet_files()
+
+        if self.failed_pq_files:
+            logger.info("Failed parquet files:")
+            for f in self.failed_pq_files:
+                logger.info(" - %s", f)
+            raise SystemExit(1, "Failed to process some parquet files.")
+        else:
+            logger.info("No failed parquet files.")
 
         logger.info("Writing mirrored catalog to object storage...")
         self.write_to_object_storage()
@@ -180,7 +177,7 @@ class CatalogMirror:
         version_dir = f"{dotstr}v{catalog_version.isoformat()}"
 
         remote_path = self.basedir / version_dir
-        source_dir = self.basedir / version_dir / "source"
+        source_dir = remote_path / "source"
 
         logger.info(
             "Mirroring intake catalog from %s to %s",
