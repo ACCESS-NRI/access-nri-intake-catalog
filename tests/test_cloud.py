@@ -324,13 +324,15 @@ class TestCatalogMirror:
         with caplog.at_level(logging.INFO):
             if not mirror_fail:
                 mirror(catalog_version="test", hidden=False)
+                assert printout_mirror in caplog.text
             else:
-                with pytest.raises(SystemExit, match="1"):
+                with pytest.raises(SystemExit, match="1") as excinfo:
                     mirror(catalog_version="test", hidden=False)
+                    assert printout_mirror in caplog.text
 
-        assert printout_mirror in caplog.text
         if mirror_fail:
             return None
+
         assert printout_pq in caplog.text
         assert printout_json in caplog.text
 

@@ -4,7 +4,6 @@
 import argparse
 import json
 import logging
-import sys
 import tempfile
 from collections.abc import Sequence
 from datetime import date
@@ -98,13 +97,7 @@ class CatalogMirror:
             self.mirror_intake_catalog(catalog_version=catalog_version, hidden=hidden)
             logger.info("Successfully mirrored intake catalog.")
         except Exception as e:
-            logger.warning("Error mirroring intake catalog: %s", e)
-            logger.warning("Usage examples:")
-            logger.warning("  python cloud.py")
-            logger.warning("  python cloud.py --catalog-version 2025-11-01")
-            logger.warning("  python cloud.py --hidden")
-            logger.warning("  python cloud.py --catalog-version 2025-11-01 --hidden")
-            sys.exit(1)
+            raise SystemExit(1, "Error mirroring intake catalog") from e
 
         logger.info("Restructuring metacatalog parquet file...")
         self.restructure_metacat()
@@ -488,7 +481,8 @@ class CatalogMirror:
 def mirror_catalog(argv: Sequence[str] | None = None) -> None:
     """CLI entry point for mirroring the intake catalog."""
     parser = argparse.ArgumentParser(
-        description="Mirror the intake catalog to the datalake."
+        description="Mirror the intake catalog to the datalake.",
+        epilog="Example usage: $ mirror-to-cloud --catalog-version 2024-06-01",
     )
     parser.add_argument(
         "--catalog-version",
