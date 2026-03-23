@@ -5,7 +5,6 @@ on:
       release_version:
         description: 'Release version'     
         type: string
-        default: ''
         required: false # Not required
       concretise:
         description: 'Whether to concretise the catalog (move from .vYYYY-MM-DD to vYYYY-MM-DD and update default catalog.)'     
@@ -30,7 +29,7 @@ jobs:
       - name: Get current date
         if: inputs.release_version == ''
         id: date
-        uses: Kaven-Universe/github-action-current-date-time@v1 # Think we need a hash here? 3rd party lib?
+        uses: Kaven-Universe/github-action-current-date-time@7c1d8465d1bfd7d35466d2ee82a8e460780561ae 
         with:
           format: "YYYY-MM-DD"
       - name: Update catalog
@@ -45,17 +44,8 @@ jobs:
             export RELEASE=${{ github.event.inputs.release_version || steps.date.outputs.time}}
             cd bin
             qsub -v version=${RELEASE} build_all.sh
-      - name: Sync new catalog to Nectar
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: gadi.nci.org.au
-          username: ${{secrets.GADI_USER}}
-          key: ${{secrets.DEPLOY_KEY}}
-          script: |
-            cd ${{secrets.GADI_REPO_PATH}}
-            git pull && git checkout ${{ github.ref_name }}
-            export RELEASE=${{github.event.inputs.release_version || steps.date.outputs.time}}
-            cd bin
-            qsub -v version=${RELEASE} sync_to_nectar.sh
 
+      - name: Sync new catalog to Nectar Cloud
+  # I think the cleanest way to do this is via a pixi task
             
+
