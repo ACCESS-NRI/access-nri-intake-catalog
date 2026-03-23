@@ -161,6 +161,7 @@ class CatalogMirror:
             Whether to mirror a hidden version of the catalog (prefixed with a dot). Defaults to False
 
         Returns
+        -------
         None
 
         Notes
@@ -168,10 +169,25 @@ class CatalogMirror:
         This function requires SSH access to Gadi and the Fabric library. As of right now,
         it will just copy a file structure to a local temp folder - further processing
         will be needed to integrate it into the datalake structure.
+
+        To get access to Gadi and run this command, you will require the credentials for
+        the `xp65_ci` account. This needs to be configured in your ~/.ssh/config, which should
+        contain something like:
+        ```yaml
+        Host xp65_ci-dm
+            Hostname gadi-dm.nci.org.au
+            User xp65_ci
+            ForwardAgent yes
+            ForwardX11 true
+            ForwardX11Trusted yes
+            IdentityFile ~/.ssh/id_gadi_xp65_ci
+            AddKeysToAgent yes
+            UseKeychain yes
+        ````
         """
 
         catalog_version = catalog_version or date.today()
-        conn = Connection("gadi")
+        conn = Connection("xp65_ci-dm")
 
         dotstr = "." if hidden else ""
         version_dir = f"{dotstr}v{catalog_version.isoformat()}"

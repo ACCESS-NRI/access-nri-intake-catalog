@@ -408,7 +408,7 @@ class TestCatalogMirror:
         cat_mirror.local_mirror_path = tmp_path
         cat_mirror.mirror_intake_catalog(catalog_version=date(2025, 1, 1), hidden=False)
 
-        mock_connection.assert_called_once_with("gadi")
+        mock_connection.assert_called_once_with("xp65_ci-dm")
         assert mock_conn.get.call_count == 5  # 1 metacat + 2 pq + 2 json
         assert {f.stem for f in cat_mirror.local_pq_files} == {"ds_a", "ds_b"}
         assert {f.stem for f in cat_mirror.local_json_files} == {"ds_a", "ds_b"}
