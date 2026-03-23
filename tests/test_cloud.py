@@ -355,7 +355,7 @@ class TestCatalogMirror:
         cat_mirror.local_mirror_path = tmp_path
         cat_mirror.write_to_object_storage()
 
-        mock_openstack.assert_called_once_with(cloud="openstack")
+        mock_openstack.assert_called_once_with(cloud="nectar")
         mock_swift.assert_called_once_with(
             preauthurl="https://fake-endpoint",
             preauthtoken="fake-token",
@@ -445,11 +445,14 @@ class TestCatalogMirror:
     "argv, expected_mirror_args",
     [
         (
-            ["--catalog-version", "2025-01-01"],
+            ["--catalog-version", "v2025-01-01"],
             {"catalog_version": "2025-01-01", "hidden": False},
         ),
         (
-            ["--catalog-version", "2000-01-01", "--hidden"],
+            [
+                "--catalog-version",
+                ".v2000-01-01",
+            ],
             {"catalog_version": "2000-01-01", "hidden": True},
         ),
     ],

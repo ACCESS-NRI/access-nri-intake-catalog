@@ -519,16 +519,24 @@ def mirror_catalog(argv: Sequence[str] | None = None) -> None:
     )
     parser.add_argument(
         "--catalog-version",
-        type=lambda d: date.fromisoformat(d),  # noqa: PLW0108
-        default=date.today(),
-        help="The version date of the intake catalog to mirror (YYYY-MM-DD). Defaults to today's date.",
-    )
-    parser.add_argument(
-        "--hidden",
-        action="store_true",
-        help="Whether to mirror a hidden version of the catalog (prefixed with a dot). Defaults to False.",
+        type=str,
+        default=date.today().strftime("v%Y-%m-%d"),
+        help="The version date of the intake catalog to mirror (vYYYY-MM-DD). Defaults to today's date. Prefix with a dot to mirror a hidden version of the catalog (ie. `.v2026-03-20` (hidden) versus `v2026-03-20` (not hidden).",
     )
 
     args = parser.parse_args(argv)
 
-    return CatalogMirror()(catalog_version=args.catalog_version, hidden=args.hidden)
+    hidden: bool = args.catalog_version.startswith(".")
+
+    vstr = args.catalog_version[2:] if hidden else args.catalog_version[1:]
+
+    try:
+        catalog_version = date.fromisoformat(vstr)
+    except ValueError as e:
+        logger.error(
+            "Invalid catalog version format: %s. Expected vYYYY-MM-DD or .vYYYY-MM-DD.",
+            args.catalog_version,
+        )
+        raise SystemExit(1) from e
+
+    return CatalogMirror()(catalog_version=catalog_version, hidden=hidden)
