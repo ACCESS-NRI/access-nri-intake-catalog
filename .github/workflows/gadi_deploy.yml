@@ -10,11 +10,8 @@ on:
       concretise:
         description: 'Whether to concretise the catalog (move from .vYYYY-MM-DD to vYYYY-MM-DD and update default catalog.)'     
         required: true
-        default: 'true'
-        type: choice
-        options:
-          - true
-          - false
+        default: true
+        type: boolean
       format:
         description: 'Whether to serialise catalogs as parquet or csv'
         required: true
