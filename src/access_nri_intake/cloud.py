@@ -467,11 +467,19 @@ class CatalogMirror:
 
     def write_to_object_storage(self):
         """
-        How do we get our hands on these credentials? Ask @jo-basevi is the
-        current best guess... That's how I did it originally!
+        How do we get our hands on these credentials?
+
+        Openstack uses a thing called `clouds.yaml`. This should go in `~/.config/openstack/clouds.yaml`,
+        and contains credentials for whatever cloud we want to connect to. In this intance, we're gonna
+        be connecting to the Nectar Cloud, so your `clouds.yaml` will need to contains the credentials
+        for that. The template you will get will just call it 'openstack' - I've renamed it to 'nectar'
+        here to make it easy enough to figure out what we're calling.
+
+        See https://tutorials.rc.nectar.org.au/application-credentials/03-using-app-credentials to get
+        set up
         """
 
-        cloud = openstack.connect(cloud="openstack")
+        cloud = openstack.connect(cloud="nectar")
 
         # Get storage URL and token from the session
         # auth = cloud.session.get_auth_headers()
