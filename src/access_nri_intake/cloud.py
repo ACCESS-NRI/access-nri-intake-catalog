@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
+# PARTITION_TABLE, CONTAINER_HEADERS, and ROW_GROUP_SIZE could all be put in a config file or something.
+# TODO
+
 """
 Partition table for various datasets. Used to determine how to partition the
 parquet files for efficient querying - we want to have fast page loads.
@@ -62,6 +65,13 @@ CONTAINER_HEADERS = {
 }
 
 BUCKET_BASE_URL = "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog"
+
+"""
+See https://stackoverflow.com/questions/76782018/what-is-actually-meant-when-referring-to-parquet-row-group-size
+We are tuning down row group size here because we use this files to render an interactive UI, so we're less interested in
+total throughput and more interested in getting the first few rows as quickly as possible.
+"""
+ROW_GROUP_SIZE = 10_000
 
 
 class CatalogMirror:
@@ -374,7 +384,22 @@ class CatalogMirror:
         to the PARTITION_TABLE above, before sorting non-partitioned columns using
         their cardinality.
 
-        This should optimise internal file structure for expected access patterns to make it as easy as possible for the interactive catalog to just grab the row groups it needs.
+        This should optimise internal file structure for expected access patterns to
+        make it as easy as possible for the interactive catalog to just grab the row groups it needs.
+
+        Notes
+        -----
+
+        - Row groups sizes are tuned down to 10,000 to optimise for fast page loads in the interactive catalog,
+        rather than total throughput.
+        - We collect the whole dataframe in memory and then unlink the original file before we write it out,
+        because if we partition, we need to change eg. `FILE.parquet` from a file to a folder, which
+        the operating system won't let us do without unlinking first. This might be able to be optimised if we run into memory issues.
+        - We sort the data by the top 3 least cardinal columns that aren't partition columns, to try and optimise for
+        common access patterns in the interactive catalog. TLDR; if we have a column with eg. 10 values, and one with 100 values,
+        we're better off sorting by the one with 10 values first, because that will make it more likely that the row groups we
+        need to load for a given query will be contiguous. This means it's more likely we can skip row groups, partitions, etc,
+        which minimises I/O, fetching, and should speed up page loads.
         """
         for fhandle in self.local_pq_files:
             try:
@@ -389,7 +414,7 @@ class CatalogMirror:
                     logger.info("Changing row group size to 10,000")
                     pl.scan_parquet(fhandle).collect().write_parquet(
                         fhandle,
-                        row_group_size=10_000,
+                        row_group_size=ROW_GROUP_SIZE,
                     )
                     continue
                 else:
@@ -412,7 +437,7 @@ class CatalogMirror:
                     .to_dicts()[0]
                 )
 
-                sort_on = sorted(cardinalities.keys(), key=lambda k: -cardinalities[k])[
+                sort_on = sorted(cardinalities.keys(), key=lambda k: cardinalities[k])[
                     :3
                 ]
 
@@ -426,7 +451,7 @@ class CatalogMirror:
                 df.write_parquet(
                     fhandle,
                     partition_by=partition_cols,
-                    row_group_size=10_000,
+                    row_group_size=ROW_GROUP_SIZE,
                 )
             except Exception as e:
                 logger.error("Error partitioning parquet file %s: %s", fhandle, e)
