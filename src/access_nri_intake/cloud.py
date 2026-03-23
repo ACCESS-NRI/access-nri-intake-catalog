@@ -537,6 +537,7 @@ def mirror_catalog(argv: Sequence[str] | None = None) -> None:
             "Invalid catalog version format: %s. Expected vYYYY-MM-DD or .vYYYY-MM-DD.",
             args.catalog_version,
         )
-        raise SystemExit(1) from e
+        # Invalid args => SystemExit code should be 2
+        raise SystemExit(2) from e
 
     return CatalogMirror()(catalog_version=catalog_version, hidden=hidden)

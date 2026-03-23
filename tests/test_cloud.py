@@ -463,3 +463,26 @@ def test_mirror_catalog(mock_CatalogMirror, argv, expected_mirror_args):
     mock_CatalogMirror.assert_called_once_with()
     mock_CatalogMirror.hidden = expected_mirror_args["hidden"]
     mock_CatalogMirror.catalog_version = expected_mirror_args["catalog_version"]
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["--catalog-version", "v2025-13-01"],  # Not a real date, looks like one though
+        [
+            "--version",
+            ".v2000-01-01",
+        ],  # Wrong arg
+        [
+            "--catalog-version",
+            "..v2000-01-01",
+        ],  # Extra dot
+        [
+            "--catalog-version",
+            ".2000-01-01",
+        ],  # No v
+    ],
+)
+def test_mirror_catalog_failure(argv):
+    with pytest.raises(SystemExit, match="2"):
+        mirror_catalog(argv)
