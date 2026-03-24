@@ -488,8 +488,7 @@ class CatalogMirror:
         for that. The template you will get will just call it 'openstack' - I've renamed it to 'nectar'
         here to make it easy enough to figure out what we're calling.
 
-        See https://tutorials.rc.nectar.org.au/application-credentials/03-using-app-credentials to get
-        set up
+        See https://tutorials.rc.nectar.org.au/application-credentials/01-overview to get set up
         """
 
         cloud = openstack.connect(cloud="nectar")
