@@ -190,6 +190,11 @@ aiohttp = ">=3.13.3,<4"
 [tool.pixi.feature.build.pypi-dependencies]
 python-openstackclient = "*"
 
+[tool.pixi.feature.build.tasks.mirror-to-cloud]
+args = [{ arg = "version", default = ""}]
+cmd = "mirror-to-cloud {{ version }}"
+description = "Mirror catalog to cloud storage"
+
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
 
