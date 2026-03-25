@@ -46,10 +46,13 @@ jobs:
             qsub -v version=${RELEASE} build_all.sh
 
       - name: Checkout code, setup pixi
-        uses: actions/checkout@v6.0.2
         uses: prefix-dev/setup-pixi@v0.9.4
 
       - name: Mirror the catalog from Gadi to Nectar
-        inputs: 
-          release_version: ${{ github.event.inputs.release_version || steps.date.outputs.time}}
-        run: pixi run mirror-to-cloud {{ release_version }}
+        env: 
+          NECTAR_CLOUDS_YAML : ${{ secrets.NECTAR_CLOUDS_YAML }}
+          RELEASE_VERSION: ${{ github.event.inputs.release_version || steps.date.outputs.time}}
+        run: |
+          mkdir -p ~/.config/openstack
+          echo "$NECTAR_CLOUDS_YAML" > ~/.config/openstack/clouds.yaml
+          pixi run mirror-to-cloud $RELEASE_VERSION 
