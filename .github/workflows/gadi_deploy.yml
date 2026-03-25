@@ -1,4 +1,4 @@
-name: Update catalog on Gadi
+name: Update catalog on Gadi and mirror to Nectar
 on:
   workflow_dispatch:
     inputs:
@@ -6,11 +6,6 @@ on:
         description: 'Release version'     
         type: string
         required: false # Not required
-      concretise:
-        description: 'Whether to concretise the catalog (move from .vYYYY-MM-DD to vYYYY-MM-DD and update default catalog.)'     
-        required: true
-        default: true
-        type: boolean
       format:
         description: 'Whether to serialise catalogs as parquet or csv'
         required: true
@@ -46,7 +41,7 @@ jobs:
             qsub -v version=${RELEASE} build_all.sh
 
       - name: Checkout code, setup pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e
 
       - name: Mirror the catalog from Gadi to Nectar
         env: 
