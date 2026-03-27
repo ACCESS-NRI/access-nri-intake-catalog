@@ -480,15 +480,36 @@ class CatalogMirror:
 
     def write_to_object_storage(self):
         """
-        How do we get our hands on these credentials?
+        Upload the mirrored catalog to Nectar object storage.
 
-        Openstack uses a thing called `clouds.yaml`. This should go in `~/.config/openstack/clouds.yaml`,
-        and contains credentials for whatever cloud we want to connect to. In this intance, we're gonna
-        be connecting to the Nectar Cloud, so your `clouds.yaml` will need to contains the credentials
-        for that. The template you will get will just call it 'openstack' - I've renamed it to 'nectar'
-        here to make it easy enough to figure out what we're calling.
+        ## Access Requirements
 
-        See https://tutorials.rc.nectar.org.au/application-credentials/01-overview to get set up
+        This method requires credentials for the **Nectar Cloud** project that hosts the
+        `access-nri-intake-catalog` object storage container.
+
+        ### Getting Access
+
+        1. Log in to the Nectar Dashboard at https://dashboard.rc.nectar.org.au
+        2. Agree to the Nectar Terms and Conditions if prompted.
+        3. Note your username — it is the email address shown in the top-right corner of the
+           dashboard after login.
+        4. Provide that email address to one of the tenant managers listed below so they can
+           add you to the project.
+
+        **Tenant managers** (any of the following can grant access):
+        - Jo Basevi
+        - Aidan Heerdegen
+        - Romain Beucher
+
+        ### Configuring Credentials
+
+        Openstack uses a file called `clouds.yaml` for authentication. Place it at
+        `~/.config/openstack/clouds.yaml`. It should contain application credentials for
+        the Nectar Cloud project. The default template names the cloud `openstack` — rename
+        it to `nectar` to match the `openstack.connect(cloud="nectar")` call in this method.
+
+        See https://tutorials.rc.nectar.org.au/application-credentials/01-overview for a
+        step-by-step guide to generating and installing application credentials.
         """
 
         cloud = openstack.connect(cloud="nectar")
