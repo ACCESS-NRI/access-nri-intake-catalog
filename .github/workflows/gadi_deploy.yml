@@ -46,7 +46,7 @@ jobs:
       - name: Mirror the catalog from Gadi to Nectar
         env: 
           NECTAR_CLOUDS_YAML : ${{ secrets.NECTAR_CLOUDS_YAML }}
-          RELEASE_VERSION: ${{ github.event.inputs.release_version || steps.date.outputs.time}}
+          RELEASE_VERSION: ${{ inputs.release_version || steps.date.outputs.time}}
         run: |
           mkdir -p ~/.config/openstack
           echo "$NECTAR_CLOUDS_YAML" > ~/.config/openstack/clouds.yaml
