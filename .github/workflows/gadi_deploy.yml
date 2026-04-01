@@ -1,16 +1,33 @@
-name: Update catalog on Gadi
+name: Update catalog on Gadi and mirror to Nectar
 on:
   workflow_dispatch:
     inputs:
       release_version:
         description: 'Release version'     
+        type: string
+        required: false # Not required
+      format:
+        description: 'Whether to serialise catalogs as parquet or csv'
         required: true
+        default: 'parquet'
+        type: choice
+        options:
+          - parquet
+          - csv
+
+
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Update catalog
+      - name: Get current date
+        if: inputs.release_version == ''
+        id: date
+        uses: Kaven-Universe/github-action-current-date-time@7c1d8465d1bfd7d35466d2ee82a8e460780561ae 
+        with:
+          format: "YYYY-MM-DD"
+      - name: Update catalog on Gadi
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: gadi.nci.org.au
@@ -18,8 +35,19 @@ jobs:
           key: ${{secrets.DEPLOY_KEY}}
           script: |
             cd ${{secrets.GADI_REPO_PATH}}
-            export RELEASE=${{ github.event.inputs.release_version }}
+            git pull && git checkout ${{ github.ref_name }}
+            export RELEASE=${{ github.event.inputs.release_version || steps.date.outputs.time}}
             cd bin
             qsub -v version=${RELEASE} build_all.sh
 
-            
+      - name: Checkout code, setup pixi
+        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e
+
+      - name: Mirror the catalog from Gadi to Nectar
+        env: 
+          NECTAR_CLOUDS_YAML : ${{ secrets.NECTAR_CLOUDS_YAML }}
+          RELEASE_VERSION: ${{ inputs.release_version || steps.date.outputs.time}}
+        run: |
+          mkdir -p ~/.config/openstack
+          echo "$NECTAR_CLOUDS_YAML" > ~/.config/openstack/clouds.yaml
+          pixi run mirror-to-cloud $RELEASE_VERSION 
