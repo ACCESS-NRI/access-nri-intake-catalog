@@ -33,6 +33,7 @@ jobs:
           host: gadi.nci.org.au
           username: ${{secrets.GADI_USER}}
           key: ${{secrets.DEPLOY_KEY}}
+          command_timeout: 360m # Let it run for 6 hours... probably fine
           script: |
             cd ${{secrets.GADI_REPO_PATH}}
             git pull && git checkout ${{ github.ref_name }}
