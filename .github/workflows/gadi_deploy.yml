@@ -33,14 +33,18 @@ jobs:
           host: gadi.nci.org.au
           username: ${{secrets.GADI_USER}}
           key: ${{secrets.DEPLOY_KEY}}
+          command_timeout: 360m # Let it run for 6 hours... probably fine
           script: |
             cd ${{secrets.GADI_REPO_PATH}}
             git pull && git checkout ${{ github.ref_name }}
             export RELEASE=${{ github.event.inputs.release_version || steps.date.outputs.time}}
             cd bin
-            qsub -v version=${RELEASE} build_all.sh
+            qsub -v version=${RELEASE} -W block=true build_all.sh
 
-      - name: Checkout code, setup pixi
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup pixi
         uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e
         with: 
           environments: default
