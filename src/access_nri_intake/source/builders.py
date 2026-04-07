@@ -570,7 +570,6 @@ class AccessOm3Builder(BaseBuilder):
         return ncinfo_dict
 
 
-# FIXME refactor to be called Mom6Builder (TBC)
 class Mom6Builder(BaseBuilder):
     """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
 
