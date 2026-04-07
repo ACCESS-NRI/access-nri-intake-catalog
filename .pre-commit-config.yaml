@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.15.8'
+    rev: 'v0.15.9'
     hooks:
       - id: ruff
         args: ['--fix']
@@ -13,7 +13,7 @@ repos:
       args: ['-t','py310','-t','py311','-t','py312','-t','py313','-t','py314']
 # Mypy
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.19.1'
+    rev: 'v1.20.0'
     hooks:
     - id: mypy
       name: mypy
