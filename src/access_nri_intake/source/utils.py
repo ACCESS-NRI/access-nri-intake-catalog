@@ -59,6 +59,8 @@ class _NCFileInfo:
     Use of both path and filename seems redundant, but constructing filename from
     the path using a __post_init__ method makes testing more difficult. On balance,
     more explicit tests are probably more important than the slight redundancy.
+
+    - Strings are immutable so using default of "" and not `field(default_factory=str)` is fine.
     """
 
     filename: str | Path
@@ -73,7 +75,7 @@ class _NCFileInfo:
     variable_cell_methods: list[str]
     variable_units: list[str]
     realm: str = ""
-    temporal_label: str = field(default_factory=str)
+    temporal_label: str = ""
 
     def __post_init__(self):
         """
