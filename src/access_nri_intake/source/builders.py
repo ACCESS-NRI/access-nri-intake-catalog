@@ -487,10 +487,6 @@ class AccessOm2Builder(BaseBuilder):
 class AccessOm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM3 COSIMA datasets"""
 
-    PATTERNS = [
-        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm3Builder
@@ -565,14 +561,6 @@ class AccessOm3Builder(BaseBuilder):
 
 class Mom6Builder(BaseBuilder):
     """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
-
-    # FIXME should be able to make one super-pattern, but couldn't
-    # make it work with the ? selector after mom6_added_timestamp
-    # NOTE: Order here is important!
-    PATTERNS = [
-        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
-        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
-    ]
 
     def __init__(self, path, **kwargs):
         """
