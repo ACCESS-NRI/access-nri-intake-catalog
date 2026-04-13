@@ -631,11 +631,6 @@ class Mom6Builder(BaseBuilder):
 class AccessEsm15Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
-    ]
-
     def __init__(self, path, ensemble: bool, **kwargs):
         """
         Initialise a AccessEsm15Builder
@@ -714,11 +709,7 @@ class AccessEsm15Builder(BaseBuilder):
 class AccessCm2Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-CM2 datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
-        r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
-    ]
+    pass
 
 
 class AccessEsm16Builder(AccessEsm15Builder):
