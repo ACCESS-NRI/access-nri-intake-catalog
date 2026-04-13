@@ -856,10 +856,6 @@ class ROMSBuilder(BaseBuilder):
     See https://github.com/bkgf/ROMSIceShelf for details on the ROMSIceShelf model.
     """
 
-    PATTERNS = [
-        rf"^roms_his_({PATTERNS_HELPERS['counter']}).*?$",
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm2Builder
@@ -917,13 +913,6 @@ class ROMSBuilder(BaseBuilder):
 
 class WoaBuilder(BaseBuilder):
     """Intake-ESM datastore builder for WOA datasets"""
-
-    PATTERNS = [
-        rf"^woa13_ts_({PATTERNS_HELPERS['counter']})_mom{PATTERNS_HELPERS['counter']}.*?$",
-        rf"^woa13_decav_ts_({PATTERNS_HELPERS['counter']})_{PATTERNS_HELPERS['counter']}v2.*?$",
-        r"surface.nc",
-        r"ocean_temp_salt.res.nc",
-    ]
 
     def __init__(self, path, **kwargs):
         """
@@ -989,11 +978,6 @@ class WoaBuilder(BaseBuilder):
 class Cmip6Builder(BaseBuilder):
     """Intake-ESM datastore builder for CMIP6 datasets"""
 
-    PATTERNS = [
-        r"^[^_]+_([A-Za-z]+?)(?:mon|day|fx)?_",
-    ]
-    # PATTERNS is mostly unused here - we get the realm from the metadata. Only
-    # using it to match on file names here & should be refactored to be removed. TODO
     ensemble: bool = True
 
     def __init__(self, path, ensemble: bool, **kwargs):
