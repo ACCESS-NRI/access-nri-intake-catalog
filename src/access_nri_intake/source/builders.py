@@ -466,19 +466,20 @@ class AccessOm2Builder(BaseBuilder):
 
     @classmethod
     def parser(cls, file) -> dict:
-        matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
-        if not matches:
-            raise ParserError(f"Cannot determine realm for file {file}")
+        nc_info = cls.parse_ncfile(file)
+        ncinfo_dict = nc_info.to_dict()
 
-        realm = str(matches.groups()[0])
+        if not (realm := ncinfo_dict.get("realm", "")):
+            matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
+            if not matches:
+                raise ParserError(f"Cannot determine realm for file {file}")
+            realm = str(matches.groups()[0])
 
         if realm == "ice":
             realm = "seaIce"
 
-        nc_info = cls.parse_ncfile(file)
-        ncinfo_dict = nc_info.to_dict()
-
         ncinfo_dict["realm"] = realm
+
         ncinfo_dict["file_id"] = ".".join(
             [
                 str(ncinfo_dict["realm"]),
@@ -569,7 +570,6 @@ class AccessOm3Builder(BaseBuilder):
         return ncinfo_dict
 
 
-# FIXME refactor to be called Mom6Builder (TBC)
 class Mom6Builder(BaseBuilder):
     """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
 

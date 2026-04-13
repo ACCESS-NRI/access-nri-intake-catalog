@@ -3103,6 +3103,68 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
 
 
 @pytest.mark.parametrize(
+    "test_dir, metadata_valid, dir_struct_valid, expected_realms",
+    [
+        (
+            "om2_realm/good-metadata-good-dir-structure",
+            True,
+            True,
+            ("metadata-test-ocean", "metadata-test-ice"),
+        ),
+        (
+            "om2_realm/good-metadata-bad-dir-structure",
+            True,
+            False,
+            ("metadata-test-ocean", "metadata-test-ice"),
+        ),
+        (
+            "om2_realm/no-metadata-good-dir-structure",
+            False,
+            True,
+            ("ocean", "seaIce"),
+        ),  # should fall back to dir structure parsing
+        ("om2_realm/no-metadata-bad-dir-structure", False, False, ("ocena", "iec")),
+    ],
+)
+def test_builder_om2_realm(
+    test_data, test_dir, metadata_valid, dir_struct_valid, expected_realms
+):
+    """
+    Checks that the OM2 builder prefers realm metadata to dir/regex parsing, but
+    that if no realm metadata is present it will use dir structure. Also, if no
+    metadata and the dir structure doesn't make sense, then we should get a ParserError
+
+    Note: since it's easier to mess with the metadata than the dir structure, the
+    realm is always 'metadata-test-{ocean|ice}' if the metadata is valid so we can differentiate.
+    """
+
+    raises = not metadata_valid and not dir_struct_valid
+    ocean_path_frag = "ocean" if dir_struct_valid else "ocena"
+    ice_path_frag = "ice/OUTPUT" if dir_struct_valid else "iec/OUTPUT"
+
+    data_path = test_data / test_dir
+    builder = builders.AccessOm2Builder(path=str(data_path))
+
+    if dir_struct_valid:
+        fpath_ocn = data_path / "output000" / ocean_path_frag / "ocean_month.nc"
+        fpath_ice = data_path / "output000" / ice_path_frag / "iceh.1900-01.nc"
+    else:
+        fpath_ocn = data_path / "output000" / "ocean_month.nc"
+        fpath_ice = data_path / "output000" / "iceh.1900-01.nc"
+
+    if raises:
+        for fpath in [fpath_ocn, fpath_ice]:
+            with pytest.raises(builders.ParserError):
+                builder = builder.parser(str(fpath))
+
+        return None
+
+    for fpath, expected_realm in zip([fpath_ocn, fpath_ice], expected_realms):
+        nc_infodict = builder.parser(str(fpath))
+        assert nc_infodict["realm"] == expected_realm
+
+
+@pytest.mark.parametrize(
     "test_file,builder,is_monthly,expected_start_date",
     [
         ("woa/woa23_A5B4_s00_04.nc", "WoaBuilder", True, "2041-07-01, 00:00:00"),
