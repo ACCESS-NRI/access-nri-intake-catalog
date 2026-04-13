@@ -715,14 +715,8 @@ class AccessCm2Builder(AccessEsm15Builder):
 class AccessEsm16Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-ESM1.6 datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        rf"^aiihca\.pea\\d([a-z]{3}).nc",  # ACCESS-ESM1.6 atmosphere
-        rf"^aiihca\.pe-({PATTERNS_HELPERS['ym']})_dai.nc",
-        rf"^{PATTERNS_HELPERS['mom6_components']}.*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
-    ]
-
     PATH_REGEX = r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc"
+
     REALM_MAPPING = {
         "atmosphere": "atmos",
         "ocean": "ocean",
@@ -781,12 +775,6 @@ class OnlineMltBuilder(AccessEsm16Builder):
 
 class AccessCm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-CM3 datasets"""
-
-    PATTERNS = [
-        rf"atmosa.*?({PATTERNS_HELPERS['yymm']}).*?$",  # ACCESS-CM3 atmosphere
-        rf"access-cm3.cice.*?({PATTERNS_HELPERS['ym']}).*?$",  # ACCESS-CM3 ice
-        rf"access_cm3.mom6.*?({PATTERNS_HELPERS['y']}).*?$",  # ACCESS-CM3 ocean
-    ]
 
     def __init__(self, path, **kwargs):
         """
