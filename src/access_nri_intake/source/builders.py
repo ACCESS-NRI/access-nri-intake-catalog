@@ -74,7 +74,8 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class will just parse any and all netcdfs
+    # Base class will just parse any and all netcdfs. To restrict this, override the PATTERNS class variable in
+    # child classes.
     PATTERNS: list = ["*.nc"]
 
     def __init__(  # noqa: PLR0913 # Allow this func to have many agruments
@@ -304,7 +305,6 @@ class BaseBuilder(Builder):
     def parse_filename_freq(
         cls,
         filename: str,
-        patterns: list[str] | None = None,
         frequencies: dict = FREQUENCIES,
     ) -> str | None:
         """
@@ -314,8 +314,6 @@ class BaseBuilder(Builder):
         ----------
         filename: str
             The filename to parse with the extension removed
-        patterns: list of str, optional
-            A list of regex patterns to match against the filename. If None, use the class PATTERNS
         frequencies: dict, optional
             A dictionary of regex patterns to match against the filename to determine the frequency
         redaction_fill: str, optional
@@ -326,9 +324,6 @@ class BaseBuilder(Builder):
         frequency: str | None
             The frequency of the file if available in the filename, otherwise None
         """
-        if patterns is None:
-            patterns = cls.PATTERNS
-
         # Try to determine frequency
         frequency = None
         for pattern, freq in frequencies.items():
