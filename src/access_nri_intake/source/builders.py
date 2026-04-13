@@ -74,8 +74,8 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries an empty set, and a GenericParser
-    PATTERNS: list = []
+    # Base class will just parse any and all netcdfs
+    PATTERNS: list = ["*.nc"]
 
     def __init__(  # noqa: PLR0913 # Allow this func to have many agruments
         self,
@@ -422,10 +422,6 @@ class BaseBuilder(Builder):
 
 class AccessOm2Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM2 COSIMA datasets"""
-
-    PATTERNS = [
-        "*.nc",
-    ]
 
     def __init__(self, path, **kwargs):
         """
