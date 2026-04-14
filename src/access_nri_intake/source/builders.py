@@ -74,8 +74,9 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries an empty set, and a GenericParser
-    PATTERNS: list = []
+    # Base class will just parse any and all netcdfs. To restrict this, override the PATTERNS class variable in
+    # child classes.
+    PATTERNS: list = ["*.nc"]
 
     def __init__(  # noqa: PLR0913 # Allow this func to have many agruments
         self,
@@ -304,7 +305,6 @@ class BaseBuilder(Builder):
     def parse_filename_freq(
         cls,
         filename: str,
-        patterns: list[str] | None = None,
         frequencies: dict = FREQUENCIES,
     ) -> str | None:
         """
@@ -314,8 +314,6 @@ class BaseBuilder(Builder):
         ----------
         filename: str
             The filename to parse with the extension removed
-        patterns: list of str, optional
-            A list of regex patterns to match against the filename. If None, use the class PATTERNS
         frequencies: dict, optional
             A dictionary of regex patterns to match against the filename to determine the frequency
         redaction_fill: str, optional
@@ -326,9 +324,6 @@ class BaseBuilder(Builder):
         frequency: str | None
             The frequency of the file if available in the filename, otherwise None
         """
-        if patterns is None:
-            patterns = cls.PATTERNS
-
         # Try to determine frequency
         frequency = None
         for pattern, freq in frequencies.items():
@@ -423,13 +418,6 @@ class BaseBuilder(Builder):
 class AccessOm2Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM2 COSIMA datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}).*$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
-        rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
-        r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm2Builder
@@ -493,10 +481,6 @@ class AccessOm2Builder(BaseBuilder):
 
 class AccessOm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM3 COSIMA datasets"""
-
-    PATTERNS = [
-        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
-    ]
 
     def __init__(self, path, **kwargs):
         """
@@ -573,14 +557,6 @@ class AccessOm3Builder(BaseBuilder):
 class Mom6Builder(BaseBuilder):
     """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
 
-    # FIXME should be able to make one super-pattern, but couldn't
-    # make it work with the ? selector after mom6_added_timestamp
-    # NOTE: Order here is important!
-    PATTERNS = [
-        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
-        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a Mom6Builder
@@ -649,11 +625,6 @@ class Mom6Builder(BaseBuilder):
 
 class AccessEsm15Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
-
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
-    ]
 
     def __init__(self, path, ensemble: bool, **kwargs):
         """
@@ -733,24 +704,14 @@ class AccessEsm15Builder(BaseBuilder):
 class AccessCm2Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-CM2 datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
-        r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
-    ]
+    pass
 
 
 class AccessEsm16Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-ESM1.6 datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        rf"^aiihca\.pea\\d([a-z]{3}).nc",  # ACCESS-ESM1.6 atmosphere
-        rf"^aiihca\.pe-({PATTERNS_HELPERS['ym']})_dai.nc",
-        rf"^{PATTERNS_HELPERS['mom6_components']}.*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
-    ]
-
     PATH_REGEX = r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc"
+
     REALM_MAPPING = {
         "atmosphere": "atmos",
         "ocean": "ocean",
@@ -809,12 +770,6 @@ class OnlineMltBuilder(AccessEsm16Builder):
 
 class AccessCm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-CM3 datasets"""
-
-    PATTERNS = [
-        rf"atmosa.*?({PATTERNS_HELPERS['yymm']}).*?$",  # ACCESS-CM3 atmosphere
-        rf"access-cm3.cice.*?({PATTERNS_HELPERS['ym']}).*?$",  # ACCESS-CM3 ice
-        rf"access_cm3.mom6.*?({PATTERNS_HELPERS['y']}).*?$",  # ACCESS-CM3 ocean
-    ]
 
     def __init__(self, path, **kwargs):
         """
@@ -896,10 +851,6 @@ class ROMSBuilder(BaseBuilder):
     See https://github.com/bkgf/ROMSIceShelf for details on the ROMSIceShelf model.
     """
 
-    PATTERNS = [
-        rf"^roms_his_({PATTERNS_HELPERS['counter']}).*?$",
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm2Builder
@@ -957,13 +908,6 @@ class ROMSBuilder(BaseBuilder):
 
 class WoaBuilder(BaseBuilder):
     """Intake-ESM datastore builder for WOA datasets"""
-
-    PATTERNS = [
-        rf"^woa13_ts_({PATTERNS_HELPERS['counter']})_mom{PATTERNS_HELPERS['counter']}.*?$",
-        rf"^woa13_decav_ts_({PATTERNS_HELPERS['counter']})_{PATTERNS_HELPERS['counter']}v2.*?$",
-        r"surface.nc",
-        r"ocean_temp_salt.res.nc",
-    ]
 
     def __init__(self, path, **kwargs):
         """
@@ -1029,11 +973,6 @@ class WoaBuilder(BaseBuilder):
 class Cmip6Builder(BaseBuilder):
     """Intake-ESM datastore builder for CMIP6 datasets"""
 
-    PATTERNS = [
-        r"^[^_]+_([A-Za-z]+?)(?:mon|day|fx)?_",
-    ]
-    # PATTERNS is mostly unused here - we get the realm from the metadata. Only
-    # using it to match on file names here & should be refactored to be removed. TODO
     ensemble: bool = True
 
     def __init__(self, path, ensemble: bool, **kwargs):

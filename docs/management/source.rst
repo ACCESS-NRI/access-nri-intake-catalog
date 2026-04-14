@@ -55,6 +55,11 @@ should be required is to:
   <https://ecgtools.readthedocs.io/en/latest/how-to/use-a-custom-parser.html>`_ may be useful. Again, it will 
   also be helpful to look at existing Builder class implementations.
 
+* Optionally, override the :code:`PATTERNS` class variable to restrict which files are crawled. By default,
+  :code:`BaseBuilder` will crawl all :code:`*.nc` files found under the given path. If a model's output
+  follows specific filename conventions, setting :code:`PATTERNS` to a list of glob patterns will limit
+  crawling to only matching files.
+
 .. _source_api:
 
 API for :code:`access_nri_intake.source`
