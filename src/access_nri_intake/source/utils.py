@@ -148,14 +148,11 @@ class _VarInfo:
 
     def append_attrs(self, var: str, attrs: dict) -> None:
         """
-        Append attributes to the _VarInfo object, if the attribute has a
-        'long_name' key.
+        Append attributes to the _VarInfo object
         """
-        if "long_name" not in attrs:
-            return None
 
         self.variable_list.append(var)
-        self.long_name_list.append(attrs["long_name"])
+        self.long_name_list.append(attrs.get("long_name", ""))
         self.standard_name_list.append(attrs.get("standard_name", ""))
         self.cell_methods_list.append(attrs.get("cell_methods", ""))
         self.units_list.append(attrs.get("units", ""))
