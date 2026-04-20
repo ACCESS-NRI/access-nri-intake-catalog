@@ -355,10 +355,7 @@ def _normalize_list_vals(
 ) -> set[str]:
     out = set()
     for v in value:
-        normalized = aliases_for_field.get(v, None)
-        if normalized is None:
-            out.add(v)
-            continue
+        normalized = aliases_for_field.get(v, [v])
 
         if normalized != v and show_warnings:
             warnings.warn(
