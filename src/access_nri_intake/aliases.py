@@ -159,11 +159,9 @@ class AliasedESMCatalog:
 
         # list/tuple/set of strings
         if isinstance(value, (list | tuple | set)):
-            out = set()
-            for v in value:
-                normalized = aliases_for_field.get(v, v)
-                out.add(v)
-                [out.add(n) for n in normalized]  # type: ignore[func-returns-value]
+            out = _normalize_list_vals(
+                value, aliases_for_field, field, self.show_warnings
+            )
 
             # If any aliasing occurred, issue a warning showing the original and aliased values
             if len(out) > len(value) and self.show_warnings:
@@ -286,17 +284,9 @@ class AliasedDataframeCatalog:
 
         # list/tuple/set of strings
         if isinstance(value, (list | tuple | set)):
-            out = set()
-            for v in value:
-                normalized = aliases_for_field.get(v, v)
-                if normalized != v and self.show_warnings:
-                    warnings.warn(
-                        message=f"Value aliasing: {field}='{v}' → {field}=['{','.join(n for n in normalized)}','{v}']",
-                        category=UserWarning,
-                        stacklevel=4,
-                    )
-                out.add(v)
-                [out.add(n) for n in normalized]  # type: ignore[func-returns-value]
+            out = _normalize_list_vals(
+                value, aliases_for_field, field, self.show_warnings
+            )
             return type(value)(out)
 
         # anything else (regex, callable, etc.) – leave untouched
@@ -358,6 +348,27 @@ class AliasedDataframeCatalog:
         return sorted(
             set(dir(self._cat)) | set(self.__dict__.keys())
         )  # pragma: no cover
+
+
+def _normalize_list_vals(
+    value, aliases_for_field: dict[str, Any], field: str, show_warnings: bool
+) -> set[str]:
+    out = set()
+    for v in value:
+        normalized = aliases_for_field.get(v, None)
+        if normalized is None:
+            out.add(v)
+            continue
+
+        if normalized != v and show_warnings:
+            warnings.warn(
+                message=f"Value aliasing: {field}='{v}' → {field}=['{','.join(n for n in normalized)}','{v}']",
+                category=UserWarning,
+                stacklevel=4,
+            )
+        out.add(v)
+        [out.add(n) for n in normalized]  # type: ignore[func-returns-value]
+    return out
 
 
 # Load CMIP to ACCESS variable mappings
