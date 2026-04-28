@@ -310,6 +310,10 @@ sources:
   - metadata_yaml: /g/data/ik11/outputs/access-om2-01/01deg_jra55v140_iaf_cycle4_jra55v150_extension/metadata.yaml
     path:
       - /g/data/ik11/outputs/access-om2-01/01deg_jra55v140_iaf_cycle4_jra55v150_extension
+
+  - metadata_yaml: /g/data/ik11/outputs/access-om2-01/01deg_jra55v140_iaf_cycle3_antarctic_tracers/metadata.yaml
+    path:
+      - /g/data/ik11/outputs/access-om2-01/01deg_jra55v140_iaf_cycle3_antarctic_tracers/
       
     
   - metadata_yaml: /g/data/ik11/outputs/access-om2-01/01deg_jra55v150_iaf_cycle1/metadata.yaml
