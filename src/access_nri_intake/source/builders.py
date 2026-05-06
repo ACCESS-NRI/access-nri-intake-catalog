@@ -27,13 +27,13 @@ __all__ = [
     "AccessOm3Builder",
     "Mom6Builder",
     "AccessEsm15Builder",
-    "AccessEsm16Builder",
     "AccessCm2Builder",
+    "AccessEsm16Builder",
+    "OnlineMltBuilder",
     "AccessCm3Builder",
     "ROMSBuilder",
     "WoaBuilder",
     "Cmip6Builder",
-    "OnlineMltBuilder",
 ]
 
 # Frequency translations
@@ -78,7 +78,7 @@ class BaseBuilder(Builder):
     # child classes.
     PATTERNS: list = ["*.nc"]
 
-    def __init__(  # noqa: PLR0913 # Allow this func to have many agruments
+    def __init__(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
         path: str | list[str],
         depth: int = 0,
