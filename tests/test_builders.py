@@ -3348,20 +3348,20 @@ def test_builder_year_before_1000(
 
 
 @pytest.mark.parametrize(
-        "builder",
-        [
-            builders.AccessOm2Builder,
-            builders.AccessOm3Builder,
-            builders.Mom6Builder,
-            builders.AccessEsm15Builder,
-            builders.AccessCm2Builder,
-            builders.AccessEsm16Builder,
-            builders.OnlineMltBuilder,
-            builders.AccessCm3Builder,
-            builders.ROMSBuilder,
-            builders.WoaBuilder,
-            builders.Cmip6Builder,
-        ]
+    "builder",
+    [
+        builders.AccessOm2Builder,
+        builders.AccessOm3Builder,
+        builders.Mom6Builder,
+        builders.AccessEsm15Builder,
+        builders.AccessCm2Builder,
+        builders.AccessEsm16Builder,
+        builders.OnlineMltBuilder,
+        builders.AccessCm3Builder,
+        builders.ROMSBuilder,
+        builders.WoaBuilder,
+        builders.Cmip6Builder,
+    ],
 )
 def test_builder_uses_parsed_kwargs(builder: builders.BaseBuilder):
     """
@@ -3369,5 +3369,3 @@ def test_builder_uses_parsed_kwargs(builder: builders.BaseBuilder):
     default kwargs dict. It should probably be extended, not dropped, by default
     """
     assert True
-
-
