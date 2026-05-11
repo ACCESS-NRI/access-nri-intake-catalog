@@ -154,7 +154,7 @@ class BaseBuilder(Builder):
         if use_parquet:
             kwargs = {
                 "file_format": "parquet",
-                "write_kwargs": {"compression": "snappy"},
+                "write_kwargs": {"compression": "zstd"},
             }
         else:
             kwargs = {
