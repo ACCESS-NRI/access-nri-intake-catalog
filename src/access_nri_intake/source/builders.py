@@ -578,16 +578,18 @@ class Mom6Builder(BaseBuilder):
         default_kwargs = dict(
             path=path,
             depth=1,
-            exclude_patterns=kwargs.get("exclude_patterns")
-            or [
-                "*restart*",
-                "*MOM_IC.nc",
-                "*sea_ice_geometry.nc",
-                "*ocean_geometry.nc",
-                "*ocean.stats.nc",
-                "*Vertical_coordinate.nc",
-            ],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get(
+                "exclude_patterns",
+                [
+                    "*restart*",
+                    "*MOM_IC.nc",
+                    "*sea_ice_geometry.nc",
+                    "*ocean_geometry.nc",
+                    "*ocean.stats.nc",
+                    "*Vertical_coordinate.nc",
+                ],
+            ),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -794,15 +796,17 @@ class AccessCm3Builder(BaseBuilder):
         default_kwargs = dict(
             path=path,
             depth=2,
-            exclude_patterns=kwargs.get("exclude_patterns")
-            or [
-                "*restart*",
-                "*MOM_IC.nc",
-                "*ocean_geometry.nc",
-                "*ocean.stats.nc",
-                "*Vertical_coordinate.nc",
-            ],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get(
+                "exclude_patterns",
+                [
+                    "*restart*",
+                    "*MOM_IC.nc",
+                    "*ocean_geometry.nc",
+                    "*ocean.stats.nc",
+                    "*Vertical_coordinate.nc",
+                ],
+            ),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",

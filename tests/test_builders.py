@@ -3363,28 +3363,30 @@ def test_builder_year_before_1000(
         (builders.Cmip6Builder, [False]),
     ],
 )
-@mock.patch("access_nri_intake.source.builders.BaseBuilder.__init__", autospec=True, return_value=None)
-def test_builder_uses_parsed_kwargs(mock_base_init, builder: builders.BaseBuilder, args):
+@mock.patch(
+    "access_nri_intake.source.builders.BaseBuilder.__init__",
+    autospec=True,
+    return_value=None,
+)
+def test_builder_uses_parsed_kwargs(
+    mock_base_init, builder: builders.BaseBuilder, args
+):
     """
     Ensure that if we pass **kwargs into a builder, it is not overwritten by the
     default kwargs dict. It should probably be extended, not dropped, by default
 
     Autospec is set to false because the BaseBuilder.__init__ specifies which args
-    it can take. Since it just passed 
+    it can take. Since it just passed
     """
 
-    user_kwargs = {"storage_options" : "stupid_test_value"}
-    builder(str("fake_path"),*args, **user_kwargs)
+    user_kwargs = {"storage_options": "stupid_test_value"}
+    builder(str("fake_path"), *args, **user_kwargs)
     mock_base_init.assert_called_once()
     passed_kwargs = mock_base_init.call_args.kwargs
     assert "storage_options" in passed_kwargs
     assert passed_kwargs["storage_options"] == "stupid_test_value"
 
-    
-    user_kwargs = {"not_accepted_kwarg" : "stupid_test_value"}
+    user_kwargs = {"not_accepted_kwarg": "stupid_test_value"}
     with pytest.raises(TypeError):
         # BaseBuilder.__init__ should raise a TypeError here since it won't accept this.
-        builder(str("fake_path"),*args, **user_kwargs)
-
-    
-
+        builder(str("fake_path"), *args, **user_kwargs)
