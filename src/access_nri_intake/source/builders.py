@@ -1,7 +1,13 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Builders for generating Intake-ESM datastores"""
+"""Builders for generating Intake-ESM datastores
+
+Note: It looks like the {**default_kwargs, **kwargs} pattern is repeated a lot in
+the builders. The default kwargs all look very similar, but *are not the same*.
+Trying to unify them without a bunch of extra effort (probably making the
+deduplication effort wasted/more complex than it currently is) is not going to work.
+"""
 
 import multiprocessing
 import re
@@ -428,11 +434,11 @@ class AccessOm2Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=3,
-            exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*", "*o2i.nc"],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get("exclude_patterns", ["*restart*", "*o2i.nc"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -449,6 +455,7 @@ class AccessOm2Builder(BaseBuilder):
                 },
             ],
         )
+        kwargs = {**default_kwargs, **kwargs}
 
         super().__init__(**kwargs)
 
@@ -492,7 +499,7 @@ class AccessOm3Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=2,
             exclude_patterns=kwargs.get(
@@ -521,6 +528,7 @@ class AccessOm3Builder(BaseBuilder):
                 },
             ],
         )
+        kwargs = {**default_kwargs, **kwargs}
 
         super().__init__(**kwargs)
 
@@ -567,7 +575,7 @@ class Mom6Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=1,
             exclude_patterns=kwargs.get("exclude_patterns")
@@ -597,6 +605,7 @@ class Mom6Builder(BaseBuilder):
             ],
         )
 
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -639,11 +648,11 @@ class AccessEsm15Builder(BaseBuilder):
             along a new member dimension
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=3,
-            exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*"],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc*"],
+            exclude_patterns=kwargs.get("exclude_patterns", ["*restart*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc*"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -662,13 +671,14 @@ class AccessEsm15Builder(BaseBuilder):
         )
 
         if ensemble:
-            kwargs["aggregations"] += [
+            default_kwargs["aggregations"] += [
                 {
                     "type": "join_new",
                     "attribute_name": "member",
                 },
             ]
 
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -781,7 +791,7 @@ class AccessCm3Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=2,
             exclude_patterns=kwargs.get("exclude_patterns")
@@ -809,7 +819,7 @@ class AccessCm3Builder(BaseBuilder):
                 },
             ],
         )
-
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -861,7 +871,7 @@ class ROMSBuilder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=1,
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
@@ -883,6 +893,7 @@ class ROMSBuilder(BaseBuilder):
             ],
         )
 
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -919,7 +930,7 @@ class WoaBuilder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=2,
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
@@ -941,6 +952,7 @@ class WoaBuilder(BaseBuilder):
             ],
         )
 
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -985,7 +997,7 @@ class Cmip6Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=1,
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
@@ -1008,15 +1020,17 @@ class Cmip6Builder(BaseBuilder):
         )
 
         if ensemble:
-            kwargs["aggregations"] += [
+            default_kwargs["aggregations"] += [
                 {
                     "type": "join_new",
                     "attribute_name": "member",
                 },
             ]
-            kwargs["groupby_attrs"] += ["member"]
+            default_kwargs["groupby_attrs"] += ["member"]
 
         Cmip6Builder.ensemble = ensemble
+
+        kwargs = {**default_kwargs, **kwargs}
 
         super().__init__(**kwargs)
 

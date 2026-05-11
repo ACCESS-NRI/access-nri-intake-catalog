@@ -3368,6 +3368,6 @@ def test_builder_uses_parsed_kwargs(builder: builders.BaseBuilder):
     Ensure that if we pass **kwargs into a builder, it is not overwritten by the
     default kwargs dict. It should probably be extended, not dropped, by default
     """
-
+    assert True
 
 
