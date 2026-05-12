@@ -204,7 +204,7 @@ class TestAliasedESMCatalog:
             # list nonsense
             with pytest.warns(UserWarning) as warning_record:
                 wrapped_cat.search(variable=["ci", "cl", "tas"])
-            assert len(warning_record) == 1
+            assert len(warning_record) == 4
         else:
             with warnings.catch_warnings():
                 warnings.simplefilter("error")
@@ -346,6 +346,29 @@ class TestAliasedESMCatalog:
 
         unwrapped = wrapped_cat.unwrap()
         assert unwrapped is sample_datastore_path
+
+    def test_no_fallback_string_iteration(self, sample_datastore_path):
+        """Test that string values are not iterated over if aliaed_for field turfs up
+        nothing"""
+
+        sample_datastore_path = esm_datastore(
+            sample_datastore_path, columns_with_iterables=["variable"]
+        )
+        wrapped_cat = AliasedESMCatalog(
+            sample_datastore_path,
+            field_aliases=ESM_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+        )
+
+        inp_search = {"variable": ["field_without_aliases"]}
+
+        ret = wrapped_cat._normalise_kwargs(
+            inp_search
+        )  # Should not raise an error or iterate over string characters
+
+        assert (
+            ret == inp_search
+        )  # Should have passed through the original value in a list
 
 
 @pytest.mark.filterwarnings("ignore:Value aliasing")
@@ -530,6 +553,26 @@ class TestAliasedDataframeCatalog:
         unwrapped = catalog.unwrap()
 
         assert unwrapped is tmp_dataframe_catalog
+
+    def test_no_fallback_string_iteration(self, tmp_dataframe_catalog):
+        """Test that string values are not iterated over if aliaed_for field turfs up
+        nothing"""
+
+        catalog = AliasedDataframeCatalog(
+            tmp_dataframe_catalog,
+            field_aliases=DATAFRAME_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+        )
+
+        inp_search = {"variable": ["field_without_aliases"]}
+
+        ret = catalog._normalise_kwargs(
+            inp_search
+        )  # Should not raise an error or iterate over string characters
+
+        assert (
+            ret == inp_search
+        )  # Should have passed through the original value in a list
 
 
 @pytest.mark.parametrize(
