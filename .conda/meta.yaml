@@ -21,7 +21,6 @@ requirements:
     - pip
     - versioneer
     - setuptools >=61.0.0
-    - conda-build
   run:
     - python >=3.10
     {% for dep in deps %}
