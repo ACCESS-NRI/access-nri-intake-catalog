@@ -209,3 +209,6 @@ python = "3.13.*"
 
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
+
+[tool.pixi.dependencies]
+wrapt = ">=2.1.2,<3"
