@@ -383,7 +383,7 @@ class TestAliasedESMCatalog:
             value_aliases=VALUE_ALIASES,
         )
 
-        # List is giong to call __iter__ - so this test asserts dunders are being
+        # List is going to call __iter__ - so this test asserts dunders are being
         # passed through to the wrapped catalog, not swallowed by the wrapper
         assert list(wrapped_cat) == list(sample_datastore_path)
 
@@ -601,7 +601,7 @@ class TestAliasedDataframeCatalog:
             value_aliases=VALUE_ALIASES,
         )
 
-        # List is giong to call __iter__ - so this test asserts dunders are being
+        # List is going to call __iter__ - so this test asserts dunders are being
         # passed through to the wrapped catalog, not swallowed by the wrapper
         assert list(catalog) == list(tmp_dataframe_catalog)
 
