@@ -548,7 +548,7 @@ def mirror_catalog(argv: Sequence[str] | None = None) -> None:
     """CLI entry point for mirroring the intake catalog."""
     parser = argparse.ArgumentParser(
         description="Mirror the intake catalog to the datalake.",
-        epilog="Example usage: $ mirror-to-cloud --catalog-version 2024-06-01",
+        epilog="Example usage: $ mirror-to-cloud --catalog-version v2024-06-01",
     )
     parser.add_argument(
         "--catalog-version",
