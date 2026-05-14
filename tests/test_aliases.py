@@ -370,6 +370,22 @@ class TestAliasedESMCatalog:
             ret == inp_search
         )  # Should have passed through the original value in a list
 
+    def test_getattr_dunder_passthrough(self, sample_datastore_path):
+        """__getattr__ will not pass through dunder attributes by default, because
+        python looks them up on the class, not the instance."""
+
+        sample_datastore_path = esm_datastore(
+            sample_datastore_path, columns_with_iterables=["variable"]
+        )
+        wrapped_cat = AliasedESMCatalog(
+            sample_datastore_path,
+            field_aliases=ESM_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+        )
+
+        # List is giong to call __iter__ - so this test asserts dunders are being
+        # passed through to the wrapped catalog, not swallowed by the wrapper
+        assert list(wrapped_cat) == list(sample_datastore_path)
 
 @pytest.mark.filterwarnings("ignore:Value aliasing")
 class TestAliasedDataframeCatalog:
