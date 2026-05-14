@@ -9605,6 +9605,7 @@ packages:
   - colorama
   - yamanifest>=0.3.12
   - access-py-telemetry>=0.1.6
+  - wrapt>=2.1.2
   - pytest ; extra == 'test'
   - tox ; extra == 'test'
   - pytest ; extra == 'e2e'
