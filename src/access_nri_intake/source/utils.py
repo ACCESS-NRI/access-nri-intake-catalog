@@ -13,6 +13,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import cftime
+import fsspec
 import numpy as np
 import polars as pl
 import xarray as xr
@@ -461,14 +462,15 @@ def get_timeinfo(  # noqa: PLR0912, PLR0915 # Allow this func to be long and bra
 
 
 @lru_cache(maxsize=10)
-def open_dataset_cached(*args, **kwargs) -> xr.Dataset:
+def open_dataset_cached(file, *args, **kwargs) -> xr.Dataset:
     """
     Cache xarray open dataset so that multiple opens of the same file can reuse
     the returned object. As we don't currently access the data variable data then
     we shouldn't need to worry about xarray's laziness and the Dataset object
     should have the needed info even if close()ed.
     """
-    return xr.open_dataset(*args, **kwargs)
+    with fsspec.open(file, mode="rb", **kwargs.get("storage_options", {})) as f:
+        return xr.open_dataset(f, *args, **kwargs)
 
 
 def _parse_variable_cell_methods(cell_methods: list[str]) -> str:
