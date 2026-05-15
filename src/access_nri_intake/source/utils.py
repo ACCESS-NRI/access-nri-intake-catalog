@@ -9,7 +9,6 @@ import warnings
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from functools import lru_cache
 from pathlib import Path
 
 import cftime
@@ -461,7 +460,7 @@ def get_timeinfo(  # noqa: PLR0912, PLR0915 # Allow this func to be long and bra
     return start_date, end_date, frequency
 
 
-@lru_cache(maxsize=10)
+# @lru_cache(maxsize=10)
 def open_dataset_cached(file, *args, **kwargs) -> xr.Dataset:
     """
     Cache xarray open dataset so that multiple opens of the same file can reuse

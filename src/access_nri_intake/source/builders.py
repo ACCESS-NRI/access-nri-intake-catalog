@@ -14,8 +14,10 @@ import re
 import traceback
 from pathlib import Path
 
+import fsspec
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
+from frozendict import deepfreeze, frozendict
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
@@ -83,6 +85,7 @@ class BaseBuilder(Builder):
     # Base class will just parse any and all netcdfs. To restrict this, override the PATTERNS class variable in
     # child classes.
     PATTERNS: list = ["*.nc"]
+    storage_options: dict | None = None
 
     def __init__(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
@@ -133,8 +136,8 @@ class BaseBuilder(Builder):
         self.data_format = data_format
         self.groupby_attrs = groupby_attrs
         self.aggregations = aggregations
-        self.storage_options = storage_options
         self.joblib_parallel_kwargs = joblib_parallel_kwargs
+        type(self).storage_options = deepfreeze(storage_options)
 
         super().__post_init__()
 
@@ -365,12 +368,17 @@ class BaseBuilder(Builder):
 
         filename_frequency = cls.parse_filename_freq(file_path.stem)
 
-        with open_dataset_cached(
+        with fsspec.open(
             file,
-            decode_cf=False,
-            decode_times=False,
-            decode_coords=False,
-        ) as ds:
+            # storage_options=cls.storage_options or frozendict({}),  # type: ignore
+        ) as f:
+            ds = xr.open_dataset(
+                f,
+                decode_cf=False,
+                decode_times=False,
+                decode_coords=False,
+                storage_options=cls.storage_options or frozendict({}),
+            )  # type: ignore
             dvars = _VarInfo()
             additional_info = {}
 
