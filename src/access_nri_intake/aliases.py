@@ -41,6 +41,7 @@ from importlib import resources as rsr
 from typing import Any, TypeVar
 
 import pydantic
+import wrapt
 from intake_dataframe_catalog.core import DfFileCatalog
 from intake_esm.core import esm_datastore
 
@@ -85,7 +86,7 @@ def _load_cmip_mappings() -> dict[str, tuple[str]]:
         return {}
 
 
-class AliasedESMCatalog:
+class AliasedESMCatalog(wrapt.ObjectProxy):
     """
     Thin wrapper around an intake-esm ESMDataStore that:
       - maps public field names → canonical fields (FIELD_ALIASES)
@@ -111,7 +112,7 @@ class AliasedESMCatalog:
         value_aliases: dict[str, Any] | None = None,
         show_warnings: bool = True,
     ):
-        self._cat = cat
+        super().__init__(cat)
         self.field_aliases = field_aliases or {}
         self.value_aliases = value_aliases or {}
         self.show_warnings = show_warnings
@@ -190,25 +191,25 @@ class AliasedESMCatalog:
     def search(self, **kwargs) -> esm_datastore:
         """Search the catalog with aliased field names and values"""
         norm: dict[str, Any] = self._normalise_kwargs(kwargs)
-        return self._cat.search(**norm)
+        return self.__wrapped__.search(**norm)
 
     def unwrap(self) -> esm_datastore:
         """
         Get the underlying dataframe catalog without aliasing
         """
-        return self._cat
+        return self.__wrapped__
 
     # pass-through everything else to underlying catalog
     def __getattr__(self, name):
-        return getattr(self._cat, name)
+        return getattr(self.__wrapped__, name)
 
     def __dir__(self) -> list[str]:
         return sorted(
-            set(dir(self._cat)) | set(self.__dict__.keys())
+            set(dir(self.__wrapped__)) | set(self.__dict__.keys())
         )  # pragma: no cover
 
 
-class AliasedDataframeCatalog:
+class AliasedDataframeCatalog(wrapt.ObjectProxy):
     """
     Wrapper around an intake dataframe catalog that provides alias support
     for catalog entries that are ESM datastores.
@@ -232,7 +233,7 @@ class AliasedDataframeCatalog:
         value_aliases: dict[str, Any] | None = None,
         show_warnings: bool = True,
     ):
-        self._cat = cat
+        super().__init__(cat)
         self.field_aliases = field_aliases or {}
         self.value_aliases = value_aliases or {}
         self.show_warnings = show_warnings
@@ -257,7 +258,7 @@ class AliasedDataframeCatalog:
         """
         Handle catalog['entry-name'] access - delegate to underlying catalog
         """
-        result = self._cat[key]
+        result = self.__wrapped__[key]
         return self._wrap_if_esm_datastore(result)
 
     def _normalise_value(self, field: str, value: str | Collection[str] | Any) -> Any:
@@ -307,7 +308,7 @@ class AliasedDataframeCatalog:
         # We don't need to alias these searches since they're on the catalog structure
 
         norm: dict[str, Any] = self._normalise_kwargs(kwargs)
-        result: DfFileCatalog = self._cat.search(**norm)
+        result: DfFileCatalog = self.__wrapped__.search(**norm)
 
         return AliasedDataframeCatalog(
             result,
@@ -320,14 +321,14 @@ class AliasedDataframeCatalog:
         """
         Get ESM datastore from catalog search result - wrap with aliasing
         """
-        result = self._cat.to_source(**kwargs)
+        result = self.__wrapped__.to_source(**kwargs)
         return self._wrap_if_esm_datastore(result)
 
     def to_source_dict(self, **kwargs):
         """
         Get dict of ESM datastores from catalog search result - wrap each with aliasing
         """
-        result = self._cat.to_source_dict(**kwargs)
+        result = self.__wrapped__.to_source_dict(**kwargs)
         # Wrap each datastore in the dictionary
         wrapped_result = {}
         for key, datastore in result.items():
@@ -338,15 +339,15 @@ class AliasedDataframeCatalog:
         """
         Get the underlying dataframe catalog without aliasing
         """
-        return self._cat
+        return self.__wrapped__
 
     # pass-through everything else to underlying catalog
     def __getattr__(self, name):
-        return getattr(self._cat, name)
+        return getattr(self.__wrapped__, name)
 
     def __dir__(self) -> list[str]:
         return sorted(
-            set(dir(self._cat)) | set(self.__dict__.keys())
+            set(dir(self.__wrapped__)) | set(self.__dict__.keys())
         )  # pragma: no cover
 
 
