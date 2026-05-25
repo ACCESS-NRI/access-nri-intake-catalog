@@ -139,7 +139,11 @@ max-complexity = 18
 known-first-party = ["access_nri_intake"]
 
 [tool.pixi.workspace]
-channels = ["conda-forge","accessnri"]
+channels = [
+  "conda-forge",
+  { channel = "accessnri", exclude-newer = "0d" },
+]
+exclude-newer = "7d"
 platforms = ["osx-arm64", "linux-64", "win-64"]
 
 [tool.pixi.environments]
