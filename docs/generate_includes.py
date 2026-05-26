@@ -45,8 +45,6 @@ def storage_includes() -> None:
     with open("storage_flags.rst", "w") as fobj:
         fobj.write(f".. code-block::\n\n   {storage_string}")
 
-    return None
-
 
 if __name__ == "__main__":
     print("Generating documentation includes... ", end="")

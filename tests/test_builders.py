@@ -31,7 +31,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
         (["access-cm3"], "AccessCm3Builder", {}, 32, 31, 13),
-        (["access-om3"], "AccessOm3Builder", {}, 12, 12, 6),
+        (["access-om3"], "AccessOm3Builder", {}, 14, 14, 7),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
         (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
@@ -140,6 +140,13 @@ def test_builder_build(
             "ocean",
             None,
             "ocean.1day.nv:2.xh:1.yh:1",
+        ),
+        (
+            "access-om3/output000/ocean.stats.nc",
+            "AccessOm3Builder",
+            "ocean",
+            None,
+            "ocean.fx.",
         ),
         (
             "access-om3/output000/GMOM_JRA_WD.cice.h.1900-01-01.nc",
@@ -971,11 +978,61 @@ def test_parse_filename(builder, filename, expected):
                 frequency="1day",
                 start_date="2015-01-01, 00:00:00",
                 end_date="2015-02-01, 00:00:00",
-                variable=["fld_s03i236"],
-                variable_long_name=["TEMPERATURE AT 1.5M"],
-                variable_standard_name=["air_temperature"],
-                variable_cell_methods=["time: mean"],
-                variable_units=["K"],
+                variable=[
+                    "fld_s03i236",
+                    "height_0",
+                    "lat",
+                    "lat_bnds",
+                    "latitude_longitude",
+                    "lon",
+                    "lon_bnds",
+                    "time",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "TEMPERATURE AT 1.5M",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_standard_name=[
+                    "air_temperature",
+                    "height",
+                    "latitude",
+                    "",
+                    "",
+                    "longitude",
+                    "",
+                    "time",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "K",
+                    "m",
+                    "degrees_north",
+                    "",
+                    "",
+                    "degrees_east",
+                    "",
+                    "days since 1970-01-01 00:00",
+                    "",
+                ],
             ),
         ),
         (
@@ -1091,11 +1148,61 @@ def test_parse_filename(builder, filename, expected):
                 frequency="1mon",
                 start_date="1850-01-01, 00:00:00",
                 end_date="1850-02-01, 00:00:00",
-                variable=["fld_s03i236"],
-                variable_long_name=["TEMPERATURE AT 1.5M"],
-                variable_standard_name=["air_temperature"],
-                variable_cell_methods=["time: mean"],
-                variable_units=["K"],
+                variable=[
+                    "fld_s03i236",
+                    "height_0",
+                    "lat",
+                    "lat_bnds",
+                    "latitude_longitude",
+                    "lon",
+                    "lon_bnds",
+                    "time",
+                    "time_bnds",
+                ],
+                variable_long_name=[
+                    "TEMPERATURE AT 1.5M",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_standard_name=[
+                    "air_temperature",
+                    "height",
+                    "latitude",
+                    "",
+                    "",
+                    "longitude",
+                    "",
+                    "time",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "time: mean",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "K",
+                    "m",
+                    "degrees_north",
+                    "",
+                    "",
+                    "degrees_east",
+                    "",
+                    "days since 1970-01-01 00:00",
+                    "",
+                ],
             ),
         ),
         (
@@ -1487,11 +1594,29 @@ def test_parse_filename(builder, filename, expected):
                 frequency="fx",  # WW3 provides no time bounds
                 start_date="1900-01-02, 00:00:00",
                 end_date="1900-01-02, 00:00:00",
-                variable=["EF", "mapsta"],
-                variable_long_name=["1D spectral density", "map status"],
-                variable_standard_name=["", ""],
-                variable_cell_methods=["", ""],
-                variable_units=["m2 s", "unitless"],
+                variable=["EF", "lat", "lon", "mapsta", "time"],
+                variable_long_name=["1D spectral density", "", "", "map status", ""],
+                variable_standard_name=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_cell_methods=[
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                variable_units=[
+                    "m2 s",
+                    "degrees_north",
+                    "degrees_east",
+                    "unitless",
+                    "seconds since 1900-01-01 00:00:00",
+                ],
             ),
         ),
         (
@@ -2479,6 +2604,7 @@ def test_parse_filename(builder, filename, expected):
                     "M3obc_out",
                     "rho0",
                     "gamma2",
+                    "grid",
                     "LuvSrc",
                     "LwSrc",
                     "LtracerSrc",
@@ -2580,6 +2706,7 @@ def test_parse_filename(builder, filename, expected):
                     "3D momentum outflow, nudging inverse time scale",
                     "mean density used in Boussinesq approximation",
                     "slipperiness parameter",
+                    "",
                     "momentum point sources and sink activation switch",
                     "mass point sources and sink activation switch",
                     "tracer point sources and sink activation switch",
@@ -2643,6 +2770,7 @@ def test_parse_filename(builder, filename, expected):
                     "surface v-momentum stress",
                 ],
                 variable_standard_name=[
+                    "",
                     "",
                     "",
                     "",
@@ -2824,6 +2952,7 @@ def test_parse_filename(builder, filename, expected):
                     "",
                     "",
                     "",
+                    "",
                     "ocean_time: point",
                     "ocean_time: point",
                     "ocean_time: point",
@@ -2882,6 +3011,7 @@ def test_parse_filename(builder, filename, expected):
                     "second-1",
                     "second-1",
                     "kilogram meter-3",
+                    "",
                     "",
                     "",
                     "",
@@ -3014,7 +3144,6 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
                 "*restart*",
                 "*MOM_IC.nc",
                 "*ocean_geometry.nc",
-                "*ocean.stats.nc",
                 "*Vertical_coordinate.nc",
             ],
         ),
@@ -3097,6 +3226,68 @@ def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
 
 
 @pytest.mark.parametrize(
+    "test_dir, metadata_valid, dir_struct_valid, expected_realms",
+    [
+        (
+            "om2_realm/good-metadata-good-dir-structure",
+            True,
+            True,
+            ("metadata-test-ocean", "metadata-test-ice"),
+        ),
+        (
+            "om2_realm/good-metadata-bad-dir-structure",
+            True,
+            False,
+            ("metadata-test-ocean", "metadata-test-ice"),
+        ),
+        (
+            "om2_realm/no-metadata-good-dir-structure",
+            False,
+            True,
+            ("ocean", "seaIce"),
+        ),  # should fall back to dir structure parsing
+        ("om2_realm/no-metadata-bad-dir-structure", False, False, ("ocena", "iec")),
+    ],
+)
+def test_builder_om2_realm(
+    test_data, test_dir, metadata_valid, dir_struct_valid, expected_realms
+):
+    """
+    Checks that the OM2 builder prefers realm metadata to dir/regex parsing, but
+    that if no realm metadata is present it will use dir structure. Also, if no
+    metadata and the dir structure doesn't make sense, then we should get a ParserError
+
+    Note: since it's easier to mess with the metadata than the dir structure, the
+    realm is always 'metadata-test-{ocean|ice}' if the metadata is valid so we can differentiate.
+    """
+
+    raises = not metadata_valid and not dir_struct_valid
+    ocean_path_frag = "ocean" if dir_struct_valid else "ocena"
+    ice_path_frag = "ice/OUTPUT" if dir_struct_valid else "iec/OUTPUT"
+
+    data_path = test_data / test_dir
+    builder = builders.AccessOm2Builder(path=str(data_path))
+
+    if dir_struct_valid:
+        fpath_ocn = data_path / "output000" / ocean_path_frag / "ocean_month.nc"
+        fpath_ice = data_path / "output000" / ice_path_frag / "iceh.1900-01.nc"
+    else:
+        fpath_ocn = data_path / "output000" / "ocean_month.nc"
+        fpath_ice = data_path / "output000" / "iceh.1900-01.nc"
+
+    if raises:
+        for fpath in [fpath_ocn, fpath_ice]:
+            with pytest.raises(builders.ParserError):
+                builder = builder.parser(str(fpath))
+
+        return None
+
+    for fpath, expected_realm in zip([fpath_ocn, fpath_ice], expected_realms):
+        nc_infodict = builder.parser(str(fpath))
+        assert nc_infodict["realm"] == expected_realm
+
+
+@pytest.mark.parametrize(
     "test_file,builder,is_monthly,expected_start_date",
     [
         ("woa/woa23_A5B4_s00_04.nc", "WoaBuilder", True, "2041-07-01, 00:00:00"),
@@ -3154,3 +3345,48 @@ def test_builder_year_before_1000(
     asset = builder.parser(path)
 
     assert asset["start_date"] == expected_startdate_str
+
+
+@pytest.mark.parametrize(
+    "builder, args",
+    [
+        (builders.AccessOm2Builder, []),
+        (builders.AccessOm3Builder, []),
+        (builders.Mom6Builder, []),
+        (builders.AccessEsm15Builder, [False]),
+        (builders.AccessCm2Builder, [False]),
+        (builders.AccessEsm16Builder, [False]),
+        (builders.OnlineMltBuilder, [False]),
+        (builders.AccessCm3Builder, []),
+        (builders.ROMSBuilder, []),
+        (builders.WoaBuilder, []),
+        (builders.Cmip6Builder, [False]),
+    ],
+)
+@mock.patch(
+    "access_nri_intake.source.builders.BaseBuilder.__init__",
+    autospec=True,
+    return_value=None,
+)
+def test_builder_uses_parsed_kwargs(
+    mock_base_init, builder: builders.BaseBuilder, args
+):
+    """
+    Ensure that if we pass **kwargs into a builder, it is not overwritten by the
+    default kwargs dict. It should probably be extended, not dropped, by default
+
+    Autospec is set to false because the BaseBuilder.__init__ specifies which args
+    it can take. Since it just passed
+    """
+
+    user_kwargs = {"storage_options": "stupid_test_value"}
+    builder(str("fake_path"), *args, **user_kwargs)
+    mock_base_init.assert_called_once()
+    passed_kwargs = mock_base_init.call_args.kwargs
+    assert "storage_options" in passed_kwargs
+    assert passed_kwargs["storage_options"] == "stupid_test_value"
+
+    user_kwargs = {"not_accepted_kwarg": "stupid_test_value"}
+    with pytest.raises(TypeError):
+        # BaseBuilder.__init__ should raise a TypeError here since it won't accept this.
+        builder(str("fake_path"), *args, **user_kwargs)

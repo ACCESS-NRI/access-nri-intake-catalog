@@ -116,8 +116,6 @@ def validate_against_schema(instance: dict, schema: dict) -> None:
                 issue_str += f"\n{i:02d} | (missing) : {issue.message}"
         raise jsonschema.ValidationError(issue_str)
 
-    return
-
 
 def _can_be_array(field):
     """

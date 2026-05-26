@@ -59,6 +59,8 @@ class _NCFileInfo:
     Use of both path and filename seems redundant, but constructing filename from
     the path using a __post_init__ method makes testing more difficult. On balance,
     more explicit tests are probably more important than the slight redundancy.
+
+    - Strings are immutable so using default of "" and not `field(default_factory=str)` is fine.
     """
 
     filename: str | Path
@@ -73,7 +75,7 @@ class _NCFileInfo:
     variable_cell_methods: list[str]
     variable_units: list[str]
     realm: str = ""
-    temporal_label: str = field(default_factory=str)
+    temporal_label: str = ""
 
     def __post_init__(self):
         """
@@ -146,14 +148,11 @@ class _VarInfo:
 
     def append_attrs(self, var: str, attrs: dict) -> None:
         """
-        Append attributes to the _VarInfo object, if the attribute has a
-        'long_name' key.
+        Append attributes to the _VarInfo object
         """
-        if "long_name" not in attrs:
-            return None
 
         self.variable_list.append(var)
-        self.long_name_list.append(attrs["long_name"])
+        self.long_name_list.append(attrs.get("long_name", ""))
         self.standard_name_list.append(attrs.get("standard_name", ""))
         self.cell_methods_list.append(attrs.get("cell_methods", ""))
         self.units_list.append(attrs.get("units", ""))
@@ -198,7 +197,7 @@ class HashableIndexes:
         self.dict = frozendict(
             {
                 key: val.index.values
-                for key, val in _indexes.items()  # type:ignore[union-attr]
+                for key, val in _indexes.items()  # type: ignore[union-attr]
                 if not is_object_dtype(val.coord_dtype) and key not in drop_indices
             }
         )
@@ -217,6 +216,9 @@ class HashableIndexes:
         if other.xxh == self.xxh:
             return True
         return False
+
+    def __hash__(self):
+        return int(self.xxh, 16)
 
     def __and__(self, other) -> set:
         """
@@ -301,7 +303,7 @@ def _guess_start_end_dates(ts, te, frequency):
     return ts, te
 
 
-def get_timeinfo(
+def get_timeinfo(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     ds: xr.Dataset,
     filename_frequency: str | None,
     time_dim: str,
@@ -412,15 +414,15 @@ def get_timeinfo(
 
             dt = t1 - ts
             # TODO: This is not a very good way to get the frequency
-            if dt.days >= 365:
+            if dt.days >= 365:  # noqa: PLR2004 # Allow magic number here
                 years = round(dt.days / 365)
                 frequency = (years, "yr")
-            elif dt.days >= 28:
+            elif dt.days >= 28:  # noqa: PLR2004 # Allow magic number here
                 months = round(dt.days / 30)
                 frequency = (months, "mon")
             elif dt.days >= 1:
                 frequency = (dt.days, "day")
-            elif dt.seconds >= 3600:
+            elif dt.seconds >= 3600:  # noqa: PLR2004 # Allow magic number here
                 hours = round(dt.seconds / 3600)
                 frequency = (hours, "hr")
             else:

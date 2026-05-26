@@ -139,3 +139,7 @@ bin/build_all.sh.o*
 bin/build_all_test.sh
 # pixi environments
 .pixi
+ 
+# Telemetry Tokens
+TELEMETRY_TOKEN_PRODUCTION
+TELEMETRY_TOKEN_STAGING

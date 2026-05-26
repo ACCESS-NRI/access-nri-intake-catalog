@@ -243,7 +243,6 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
     ipython.register_magic_function(
         check_storage_enabled, "cell", "check_storage_enabled"
     )
-    return None
 
 
 # Register the extension

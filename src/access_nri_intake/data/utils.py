@@ -96,11 +96,12 @@ def available_versions(pretty: bool = True) -> list[str] | None:
 
     if pretty:
         for c in cats:
+            to_print = c
             if c in symlink_targets.keys():
-                c += f"(-->{symlink_targets[c]})"
-            if c == vers_def:
-                c += "*"
-            print(c)
+                to_print += f"(-->{symlink_targets[c]})"
+            if to_print == vers_def:
+                to_print += "*"
+            print(to_print)
 
         # In pretty mode, we want to look for & return the catalogs that are referred to
         # by outdated catalog files (catalog-YYYYMMDD-YYYYMMDD)
