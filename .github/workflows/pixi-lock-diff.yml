@@ -1,0 +1,45 @@
+name: Pixi Lock Diff
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'pixi.lock'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pixi-lock-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pyproject.toml
+            pixi.lock
+          sparse-checkout-cone-mode: false
+
+      - uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 #v0.9.6
+        with:
+          run-install: false
+
+      - name: Install pixi extensions
+        run: pixi global install pixi-diff==0.1.5 pixi-diff-to-markdown==0.3.9
+
+      - name: Generate lock diff with base branch
+        working-directory: ./
+        run: |
+          git show origin/${{ github.base_ref }}:pixi.lock > /tmp/base.lock
+          pixi diff --before /tmp/base.lock --after pixi.lock \
+            | pixi diff-to-markdown > /tmp/diff.md
+
+      - name: Comment lock diff on PR
+        uses: access-nri/actions/.github/actions/comment@main
+        with:
+          number: ${{ github.event.pull_request.number }}
+          label: pixi-lock-diff
+          message-file: /tmp/diff.md
