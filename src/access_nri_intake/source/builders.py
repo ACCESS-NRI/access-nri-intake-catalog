@@ -37,6 +37,7 @@ __all__ = [
     "AccessEsm16Builder",
     "OnlineMltBuilder",
     "AccessCm3Builder",
+    "AccessAm3Builder",
     "ROMSBuilder",
     "WoaBuilder",
     "Cmip6Builder",
@@ -857,6 +858,43 @@ class AccessCm3Builder(BaseBuilder):
         )
 
         return ncinfo_dict
+
+
+class AccessAm3Builder(BaseBuilder):
+    """Skeleton Intake-ESM datastore builder for ACCESS-AM3 datasets"""
+
+    def __init__(self, path, **kwargs):
+        """Initialise an AccessAm3Builder skeleton."""
+
+        default_kwargs = dict(
+            path=path,
+            depth=2,
+            exclude_patterns=kwargs.get("exclude_patterns", ["*restart*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
+            data_format="netcdf",
+            groupby_attrs=[
+                "file_id",
+                "temporal_label",
+            ],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+        kwargs = {**default_kwargs, **kwargs}
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        raise NotImplementedError(
+            "AccessAm3Builder parser is not implemented yet; this is just a skeleton"
+        )
 
 
 class ROMSBuilder(BaseBuilder):
