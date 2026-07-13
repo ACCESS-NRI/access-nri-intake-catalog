@@ -1,6 +1,7 @@
 import ast
 import json
 import re
+import socket
 import warnings
 from dataclasses import dataclass, field
 from enum import Enum
@@ -16,6 +17,12 @@ from .colours import f_info, f_reset, f_success, f_warn
 
 
 class DataStoreWarning(RuntimeWarning):
+    pass
+
+
+class LoginNodeWarning(RuntimeWarning):
+    """Warning that process may be killed when running on a login node"""
+
     pass
 
 
@@ -361,3 +368,16 @@ def validate_args(builder: Builder, builder_kwargs: dict[str, Any]) -> None:
             raise TypeError(
                 f"Builder kwarg {key} must be of type {expected_type}, not {type(val)}."
             )
+
+
+def warn_if_login_node(msg: str | None = None) -> None:
+    """
+    If we are running on a login node, just raise a warning that the process
+    might be killed by the gadi task controls
+    """
+    hostnamestr = socket.gethostname()
+
+    msg = msg or "Running on a login node: task may be killed by scheduler"
+
+    if "login" in hostnamestr:
+        warnings.warn(message=msg, category=LoginNodeWarning, stacklevel=2)
