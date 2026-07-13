@@ -3,6 +3,8 @@
 
 
 import shutil
+import warnings
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -12,10 +14,12 @@ from intake_esm import esm_datastore
 from access_nri_intake.experiment.core import find_esm_datastore, use_datastore
 from access_nri_intake.experiment.utils import (
     DataStoreWarning,
+    LoginNodeWarning,
     MultipleDataStoreError,
     parse_kwarg,
     validate_args,
     verify_ds_current,
+    warn_if_login_node,
 )
 from access_nri_intake.source import builders
 from access_nri_intake.source.builders import Builder
@@ -305,3 +309,20 @@ def test_parse_kwarg(kwarg, fails, expected):
     else:
         with pytest.raises(TypeError):
             parse_kwarg(kwarg)
+
+
+@pytest.mark.parametrize(
+    "mock_socket, warns",
+    [("gadi-login-08.gadi.nci.org.au", True), ("anything_else", False)],
+)
+def test_login_node_warning(mock_socket, warns):
+    """If we are running on a login node, assert a warning is raised about the
+    scheduler potentially killing the job"""
+    with mock.patch("socket.gethostname", return_value=mock_socket):
+        if warns:
+            with pytest.warns(LoginNodeWarning):
+                warn_if_login_node()
+        else:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", LoginNodeWarning)
+                warn_if_login_node()
