@@ -59,6 +59,8 @@ class _NCFileInfo:
     Use of both path and filename seems redundant, but constructing filename from
     the path using a __post_init__ method makes testing more difficult. On balance,
     more explicit tests are probably more important than the slight redundancy.
+
+    - Strings are immutable so using default of "" and not `field(default_factory=str)` is fine.
     """
 
     filename: str | Path
@@ -73,7 +75,7 @@ class _NCFileInfo:
     variable_cell_methods: list[str]
     variable_units: list[str]
     realm: str = ""
-    temporal_label: str = field(default_factory=str)
+    temporal_label: str = ""
 
     def __post_init__(self):
         """
@@ -146,14 +148,11 @@ class _VarInfo:
 
     def append_attrs(self, var: str, attrs: dict) -> None:
         """
-        Append attributes to the _VarInfo object, if the attribute has a
-        'long_name' key.
+        Append attributes to the _VarInfo object
         """
-        if "long_name" not in attrs:
-            return None
 
         self.variable_list.append(var)
-        self.long_name_list.append(attrs["long_name"])
+        self.long_name_list.append(attrs.get("long_name", ""))
         self.standard_name_list.append(attrs.get("standard_name", ""))
         self.cell_methods_list.append(attrs.get("cell_methods", ""))
         self.units_list.append(attrs.get("units", ""))

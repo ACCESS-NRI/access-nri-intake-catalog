@@ -1,7 +1,13 @@
 # Copyright 2023 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Builders for generating Intake-ESM datastores"""
+"""Builders for generating Intake-ESM datastores
+
+Note: It looks like the {**default_kwargs, **kwargs} pattern is repeated a lot in
+the builders. The default kwargs all look very similar, but *are not the same*.
+Trying to unify them without a bunch of extra effort (probably making the
+deduplication effort wasted/more complex than it currently is) is not going to work.
+"""
 
 import multiprocessing
 import re
@@ -27,8 +33,9 @@ __all__ = [
     "AccessOm3Builder",
     "Mom6Builder",
     "AccessEsm15Builder",
-    "AccessEsm16Builder",
     "AccessCm2Builder",
+    "AccessEsm16Builder",
+    "OnlineMltBuilder",
     "AccessCm3Builder",
     "ROMSBuilder",
     "WoaBuilder",
@@ -73,10 +80,11 @@ class BaseBuilder(Builder):
     This builds on the ecgtools.Builder class.
     """
 
-    # Base class carries an empty set, and a GenericParser
-    PATTERNS: list = []
+    # Base class will just parse any and all netcdfs. To restrict this, override the PATTERNS class variable in
+    # child classes.
+    PATTERNS: list = ["*.nc"]
 
-    def __init__(  # noqa: PLR0913 # Allow this func to have many agruments
+    def __init__(  # noqa: PLR0913 # Allow this func to have many arguments
         self,
         path: str | list[str],
         depth: int = 0,
@@ -146,7 +154,7 @@ class BaseBuilder(Builder):
         if use_parquet:
             kwargs = {
                 "file_format": "parquet",
-                "write_kwargs": {"compression": "snappy"},
+                "write_kwargs": {"compression": "zstd"},
             }
         else:
             kwargs = {
@@ -303,7 +311,6 @@ class BaseBuilder(Builder):
     def parse_filename_freq(
         cls,
         filename: str,
-        patterns: list[str] | None = None,
         frequencies: dict = FREQUENCIES,
     ) -> str | None:
         """
@@ -313,8 +320,6 @@ class BaseBuilder(Builder):
         ----------
         filename: str
             The filename to parse with the extension removed
-        patterns: list of str, optional
-            A list of regex patterns to match against the filename. If None, use the class PATTERNS
         frequencies: dict, optional
             A dictionary of regex patterns to match against the filename to determine the frequency
         redaction_fill: str, optional
@@ -325,9 +330,6 @@ class BaseBuilder(Builder):
         frequency: str | None
             The frequency of the file if available in the filename, otherwise None
         """
-        if patterns is None:
-            patterns = cls.PATTERNS
-
         # Try to determine frequency
         frequency = None
         for pattern, freq in frequencies.items():
@@ -422,13 +424,6 @@ class BaseBuilder(Builder):
 class AccessOm2Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM2 COSIMA datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}).*$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        rf"^iceh.*\.(\d{{3}})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-OM2 ice
-        rf"^ocean.*[_,-](?:ymd|ym|y)_({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|[_,-]{PATTERNS_HELPERS['not_multi_digit']}.*)",  # ACCESS-OM2 ocean
-        r"^ocean.*[^\d]_(\d{2})$",  # A few wierd files in ACCESS-OM2 01deg_jra55v13_ryf9091
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm2Builder
@@ -439,11 +434,11 @@ class AccessOm2Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=3,
-            exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*", "*o2i.nc"],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get("exclude_patterns", ["*restart*", "*o2i.nc"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -460,24 +455,26 @@ class AccessOm2Builder(BaseBuilder):
                 },
             ],
         )
+        kwargs = {**default_kwargs, **kwargs}
 
         super().__init__(**kwargs)
 
     @classmethod
     def parser(cls, file) -> dict:
-        matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
-        if not matches:
-            raise ParserError(f"Cannot determine realm for file {file}")
+        nc_info = cls.parse_ncfile(file)
+        ncinfo_dict = nc_info.to_dict()
 
-        realm = str(matches.groups()[0])
+        if not (realm := ncinfo_dict.get("realm", "")):
+            matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
+            if not matches:
+                raise ParserError(f"Cannot determine realm for file {file}")
+            realm = str(matches.groups()[0])
 
         if realm == "ice":
             realm = "seaIce"
 
-        nc_info = cls.parse_ncfile(file)
-        ncinfo_dict = nc_info.to_dict()
-
         ncinfo_dict["realm"] = realm
+
         ncinfo_dict["file_id"] = ".".join(
             [
                 str(ncinfo_dict["realm"]),
@@ -492,10 +489,6 @@ class AccessOm2Builder(BaseBuilder):
 class AccessOm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-OM3 COSIMA datasets"""
 
-    PATTERNS = [
-        rf"[^\.]*\.{PATTERNS_HELPERS['om3_components']}\..*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm3Builder
@@ -506,7 +499,7 @@ class AccessOm3Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=2,
             exclude_patterns=kwargs.get(
@@ -535,6 +528,7 @@ class AccessOm3Builder(BaseBuilder):
                 },
             ],
         )
+        kwargs = {**default_kwargs, **kwargs}
 
         super().__init__(**kwargs)
 
@@ -568,17 +562,8 @@ class AccessOm3Builder(BaseBuilder):
         return ncinfo_dict
 
 
-# FIXME refactor to be called Mom6Builder (TBC)
 class Mom6Builder(BaseBuilder):
     """Intake-ESM datastore builder for MOM6 COSIMA datasets"""
-
-    # FIXME should be able to make one super-pattern, but couldn't
-    # make it work with the ? selector after mom6_added_timestamp
-    # NOTE: Order here is important!
-    PATTERNS = [
-        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*{PATTERNS_HELPERS['mom6_added_timestamp']}.*$",  # Daily snapshot naming
-        rf"[^\.]*({PATTERNS_HELPERS['ymd-ns']})\.{PATTERNS_HELPERS['mom6_components']}.*$",  # Basic naming
-    ]
 
     def __init__(self, path, **kwargs):
         """
@@ -590,19 +575,21 @@ class Mom6Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=1,
-            exclude_patterns=kwargs.get("exclude_patterns")
-            or [
-                "*restart*",
-                "*MOM_IC.nc",
-                "*sea_ice_geometry.nc",
-                "*ocean_geometry.nc",
-                "*ocean.stats.nc",
-                "*Vertical_coordinate.nc",
-            ],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get(
+                "exclude_patterns",
+                [
+                    "*restart*",
+                    "*MOM_IC.nc",
+                    "*sea_ice_geometry.nc",
+                    "*ocean_geometry.nc",
+                    "*ocean.stats.nc",
+                    "*Vertical_coordinate.nc",
+                ],
+            ),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -620,6 +607,7 @@ class Mom6Builder(BaseBuilder):
             ],
         )
 
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -649,11 +637,6 @@ class Mom6Builder(BaseBuilder):
 class AccessEsm15Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        r"^.*\.p.-(\d{6})_.*",  # ACCESS-ESM1.5 atmosphere
-    ]
-
     def __init__(self, path, ensemble: bool, **kwargs):
         """
         Initialise a AccessEsm15Builder
@@ -667,11 +650,11 @@ class AccessEsm15Builder(BaseBuilder):
             along a new member dimension
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=3,
-            exclude_patterns=kwargs.get("exclude_patterns") or ["*restart*"],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc*"],
+            exclude_patterns=kwargs.get("exclude_patterns", ["*restart*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc*"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -690,13 +673,14 @@ class AccessEsm15Builder(BaseBuilder):
         )
 
         if ensemble:
-            kwargs["aggregations"] += [
+            default_kwargs["aggregations"] += [
                 {
                     "type": "join_new",
                     "attribute_name": "member",
                 },
             ]
 
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -732,27 +716,24 @@ class AccessEsm15Builder(BaseBuilder):
 class AccessCm2Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-CM2 datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        rf"^iceh.*\.({PATTERNS_HELPERS['ym']})-{PATTERNS_HELPERS['not_multi_digit']}.*",  # ACCESS-CM2 ice
-        r"^.*\.p.(\d{6})_.*",  # ACCESS-CM2 atmosphere
-    ]
+    pass
 
 
 class AccessEsm16Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-ESM1.6 datasets"""
 
-    PATTERNS = [
-        rf"^iceh.*\.({PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']})$",  # ACCESS-ESM1.5/OM2/CM2 ice
-        rf"^aiihca\.pea\\d([a-z]{3}).nc",  # ACCESS-ESM1.6 atmosphere
-        rf"^aiihca\.pe-({PATTERNS_HELPERS['ym']})_dai.nc",
-        rf"^{PATTERNS_HELPERS['mom6_components']}.*?({PATTERNS_HELPERS['ymds']}|{PATTERNS_HELPERS['ymd']}|{PATTERNS_HELPERS['ym']}|{PATTERNS_HELPERS['y']})(?:$|{PATTERNS_HELPERS['not_multi_digit']})",  # ACCESS-OM3
-    ]
+    PATH_REGEX = r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc"
+
+    REALM_MAPPING = {
+        "atmosphere": "atmos",
+        "ocean": "ocean",
+        "ice": "seaIce",
+    }
 
     @classmethod
     def parser(cls, file):
         """Get the realm and member/experiment id from the file name"""
-        match = re.match(r".*/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc", file)
+        match = re.match(cls.PATH_REGEX, file)
         if not match:
             raise ParserError(
                 f"Unable to parse filepath {file} in {cls.__class__.__name__}"
@@ -760,28 +741,47 @@ class AccessEsm16Builder(AccessEsm15Builder):
 
         realm = match.groups()[0]
 
-        realm_mapping = {
-            "atmosphere": "atmos",
-            "ocean": "ocean",
-            "ice": "seaIce",
-        }
-
         nc_info = cls.parse_ncfile(file)
         ncinfo_dict = nc_info.to_dict()
 
-        ncinfo_dict["realm"] = realm_mapping[realm]
+        ncinfo_dict["realm"] = cls.REALM_MAPPING[realm]
 
         return ncinfo_dict
 
 
+class OnlineMltBuilder(AccessEsm16Builder):
+    """
+    Builder for the Mixed Layer Tracer Budget Diagnostics dataset located at
+    /g/data/av17/access-nri/OM2/025deg_jra55_iaf_cycle6_online_mlt
+    generated by Ryan Holmes (ryan.holmes@bom.gov.au)
+
+    Dataset constists of a trimmed down repeat of an existing experiment with
+    additional diagnostics added.
+
+    These files are not added to the datastore:
+    - output*/o2i.nc : these files have no calendar attribute on the 'time' axis
+    """
+
+    PATH_REGEX = r".*/(?:output\d+|post_processed_diags|.*)/([^/]*)(?:/[^/]*)?/.*\.nc"
+
+    REALM_MAPPING = {
+        "atmosphere": "atmos",
+        "ocean": "ocean",
+        "ice": "seaIce",
+        # Some ice data is under output*/ice/OUTPUT/*.nc
+        "OUTPUT": "seaIce",
+        # All the post_processed_diags/*.nc and post_processed_diags/ml[st]_budget/*.nc
+        # diagnostics are ocean
+        "mls_budget": "ocean",
+        "mlt_budget_offline": "ocean",
+        "mlt_budget_online_falavg": "ocean",
+        "mlt_budget_online_stavg": "ocean",
+        "post_processed_diags": "ocean",
+    }
+
+
 class AccessCm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-CM3 datasets"""
-
-    PATTERNS = [
-        rf"atmosa.*?({PATTERNS_HELPERS['yymm']}).*?$",  # ACCESS-CM3 atmosphere
-        rf"access-cm3.cice.*?({PATTERNS_HELPERS['ym']}).*?$",  # ACCESS-CM3 ice
-        rf"access_cm3.mom6.*?({PATTERNS_HELPERS['y']}).*?$",  # ACCESS-CM3 ocean
-    ]
 
     def __init__(self, path, **kwargs):
         """
@@ -793,18 +793,20 @@ class AccessCm3Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=2,
-            exclude_patterns=kwargs.get("exclude_patterns")
-            or [
-                "*restart*",
-                "*MOM_IC.nc",
-                "*ocean_geometry.nc",
-                "*ocean.stats.nc",
-                "*Vertical_coordinate.nc",
-            ],
-            include_patterns=kwargs.get("include_patterns") or ["*.nc"],
+            exclude_patterns=kwargs.get(
+                "exclude_patterns",
+                [
+                    "*restart*",
+                    "*MOM_IC.nc",
+                    "*ocean_geometry.nc",
+                    "*ocean.stats.nc",
+                    "*Vertical_coordinate.nc",
+                ],
+            ),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -821,7 +823,7 @@ class AccessCm3Builder(BaseBuilder):
                 },
             ],
         )
-
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -863,10 +865,6 @@ class ROMSBuilder(BaseBuilder):
     See https://github.com/bkgf/ROMSIceShelf for details on the ROMSIceShelf model.
     """
 
-    PATTERNS = [
-        rf"^roms_his_({PATTERNS_HELPERS['counter']}).*?$",
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a AccessOm2Builder
@@ -877,7 +875,7 @@ class ROMSBuilder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=1,
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
@@ -899,6 +897,7 @@ class ROMSBuilder(BaseBuilder):
             ],
         )
 
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -925,13 +924,6 @@ class ROMSBuilder(BaseBuilder):
 class WoaBuilder(BaseBuilder):
     """Intake-ESM datastore builder for WOA datasets"""
 
-    PATTERNS = [
-        rf"^woa13_ts_({PATTERNS_HELPERS['counter']})_mom{PATTERNS_HELPERS['counter']}.*?$",
-        rf"^woa13_decav_ts_({PATTERNS_HELPERS['counter']})_{PATTERNS_HELPERS['counter']}v2.*?$",
-        r"surface.nc",
-        r"ocean_temp_salt.res.nc",
-    ]
-
     def __init__(self, path, **kwargs):
         """
         Initialise a WoaBuilder
@@ -942,7 +934,7 @@ class WoaBuilder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=2,
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
@@ -964,6 +956,7 @@ class WoaBuilder(BaseBuilder):
             ],
         )
 
+        kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
@@ -996,11 +989,6 @@ class WoaBuilder(BaseBuilder):
 class Cmip6Builder(BaseBuilder):
     """Intake-ESM datastore builder for CMIP6 datasets"""
 
-    PATTERNS = [
-        r"^[^_]+_([A-Za-z]+?)(?:mon|day|fx)?_",
-    ]
-    # PATTERNS is mostly unused here - we get the realm from the metadata. Only
-    # using it to match on file names here & should be refactored to be removed. TODO
     ensemble: bool = True
 
     def __init__(self, path, ensemble: bool, **kwargs):
@@ -1013,7 +1001,7 @@ class Cmip6Builder(BaseBuilder):
             Path or list of paths to crawl for assets/files.
         """
 
-        kwargs = dict(
+        default_kwargs = dict(
             path=path,
             depth=1,
             exclude_patterns=kwargs.get("exclude_patterns", ["*avg*", "*rst*"]),
@@ -1036,15 +1024,17 @@ class Cmip6Builder(BaseBuilder):
         )
 
         if ensemble:
-            kwargs["aggregations"] += [
+            default_kwargs["aggregations"] += [
                 {
                     "type": "join_new",
                     "attribute_name": "member",
                 },
             ]
-            kwargs["groupby_attrs"] += ["member"]
+            default_kwargs["groupby_attrs"] += ["member"]
 
         Cmip6Builder.ensemble = ensemble
+
+        kwargs = {**default_kwargs, **kwargs}
 
         super().__init__(**kwargs)
 

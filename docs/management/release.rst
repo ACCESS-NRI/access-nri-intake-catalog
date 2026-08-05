@@ -108,3 +108,42 @@ build, the recommened process is:
 #. Use the beta release to build a new catalog;
 #. Iterate over the above steps until the desired result is achieved;
 #. Make a definitive code release.
+
+.. _cloud_mirror:
+
+Mirroring the catalog to Nectar object storage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+After a new catalog version has been built and concretized on Gadi, it can be mirrored to
+`Nectar <https://ardc.edu.au/services/ardc-nectar-research-cloud/>`_ object storage using the
+:code:`mirror-to-cloud` command::
+
+   $ mirror-to-cloud --catalog-version vYYYY-MM-DD
+
+This copies the catalog parquet files from Gadi, restructures them for efficient web access, and
+uploads them to the :code:`access-nri-intake-catalog` container in Nectar object storage.
+
+.. _nectar_access:
+
+Getting access to Nectar
+""""""""""""""""""""""""
+
+To run :code:`mirror-to-cloud` you need credentials for the Nectar Cloud project that hosts the
+:code:`access-nri-intake-catalog` object storage container.
+
+#. Log in to the `Nectar Dashboard <https://dashboard.rc.nectar.org.au>`_.
+#. Agree to the Nectar Terms and Conditions if prompted.
+#. Note your **username** — it is the email address shown in the top-right corner of the
+   dashboard after login.
+#. Provide that email address to one of the **tenant managers** below so they can add you to
+   the project:
+
+   * Jo Basevi
+   * Aidan Heerdegen
+   * Romain Beucher
+
+Once you have been added, generate `application credentials
+<https://tutorials.rc.nectar.org.au/application-credentials/01-overview>`_ for the project and
+place them in :code:`~/.config/openstack/clouds.yaml`. The default template names the cloud
+:code:`openstack` — rename it to :code:`nectar` to match the configuration expected by
+:code:`mirror-to-cloud`.

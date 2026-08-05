@@ -33,6 +33,7 @@ dependencies = [
     "colorama",
     "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
+    "wrapt>=2.1.2",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +47,7 @@ metadata-validate = "access_nri_intake.cli:metadata_validate"
 metadata-template = "access_nri_intake.cli:metadata_template"
 build-esm-datastore = "access_nri_intake.cli:use_esm_datastore"
 scaffold-catalog-entry = "access_nri_intake.cli:scaffold_catalog_entry"
+mirror-to-cloud = "access_nri_intake.cloud:mirror_catalog"
 
 [project.entry-points."intake.catalogs"]
 access_nri = "access_nri_intake.data:data"
@@ -65,6 +67,8 @@ access_nri_intake = [
     "data/catalog.yaml",
     "data/metadata_schema_experiment.json",
     "data/metadata_schema_file.json",
+    "data/mappings/*.json",
+    "data/mappings/*.md",
 ]
 
 [tool.versioneer]
@@ -135,16 +139,21 @@ max-complexity = 18
 known-first-party = ["access_nri_intake"]
 
 [tool.pixi.workspace]
-channels = ["conda-forge","accessnri"]
+channels = [
+  "conda-forge",
+  { channel = "accessnri", exclude-newer = "0d" },
+]
+exclude-newer = "7d"
 platforms = ["osx-arm64", "linux-64", "win-64"]
 
 [tool.pixi.environments]
-default = { features = ["dev","py313"], solve-group = "default" }
-test-py310 = { features = ["py310", "test"] }
-test-py311 = { features = ["py311", "test"] }
-test-py312 = { features = ["py312", "test"] }
-test-py313 = { features = ["py313", "test"] }
-test-py314 = { features = ["py314", "test"] }
+default = { features = ["dev","py313","build"], solve-group = "default" }
+build = { features = ["build"], solve-group = "default" }
+test-py310 = { features = ["py310", "test", "build"] }
+test-py311 = { features = ["py311", "test", "build"] }
+test-py312 = { features = ["py312", "test", "build"] }
+test-py313 = { features = ["py313", "test", "build"] }
+test-py314 = { features = ["py314", "test", "build"] }
 
 [tool.pixi.feature.dev.pypi-dependencies]
 access_nri_intake = { path = ".", editable = true }
@@ -153,6 +162,7 @@ pdbpp = ">=0.11.7,<0.12"
 [tool.pixi.feature.dev.dependencies]
 pre-commit = ">=4.2.0,<5"
 pytest = ">=8.4.2,<9"
+ipykernel = ">=7.2.0,<8"
 
 [tool.pixi.feature.dev.tasks]
 ruff = { cmd = "ruff check src", description = "Run ruff checks" }
@@ -176,6 +186,19 @@ test = {cmd = "pytest tests", description = "Run tests"}
 test-cov = {cmd = "coverage run -m --source=access_nri_intake pytest tests && coverage xml", description = "Run tests with coverage and generate xml report"}
 test-e2e = {cmd = "pytest --e2e tests", description = "Run tests including e2e tests"}
 
+[tool.pixi.feature.build.dependencies]
+python-swiftclient = "*"
+fabric = "*"
+requests = ">=2.32.5,<3"
+aiohttp = ">=3.13.3,<4"
+
+[tool.pixi.feature.build.pypi-dependencies]
+python-openstackclient = "*"
+
+[tool.pixi.feature.build.tasks.mirror-to-cloud]
+args = [{ arg = "version", default = ""}]
+cmd = "mirror-to-cloud {{ version }}"
+description = "Mirror catalog to cloud storage"
 
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
@@ -191,3 +214,4 @@ python = "3.13.*"
 
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
+

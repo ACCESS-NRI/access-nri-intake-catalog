@@ -13,6 +13,8 @@ sections we give an overview of the catalog and demonstrate how to use it.
    what
    how
    quickstart
+   aliases
+   aliases_demo
    chunking
    telemetry
    faq

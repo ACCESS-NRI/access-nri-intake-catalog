@@ -11,3 +11,8 @@ sources:
   - metadata_yaml: /g/data/xp65/admin/intake/metadata/woa23_av17/metadata.yaml
     path:
     - /g/data/av17/access-nri/OM3/woa23
+    exclude_patterns:
+    # The raw annual files have incorrect time values
+    # - the raw/uncorrected files are under annual_files/raw
+    # - the files with corrected time values under annual_files/corrected_times
+    - "*annual_files/raw/*.nc"

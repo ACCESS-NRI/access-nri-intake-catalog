@@ -10,6 +10,11 @@ from access_py_telemetry.api import ApiHandler, ProductionToggle
 from access_py_telemetry.cli import configure_telemetry
 from pandas.errors import EmptyDataError
 
+from access_nri_intake.aliases import (
+    DATAFRAME_FIELD_ALIASES,
+    VALUE_ALIASES,
+    AliasedDataframeCatalog,
+)
 from access_nri_intake.utils import get_catalog_fp
 
 try:
@@ -39,10 +44,17 @@ compatibility while transitioning to the new Parquet-based catalog.
 Note: Does not need to be configurable in the code - handled by versioning.
 """
 try:
-    data = intake.open_catalog(get_catalog_fp()).access_nri_pq
-    cat_version = data._captured_init_kwargs.get("metadata", {}).get(
+    base_catalog = intake.open_catalog(get_catalog_fp()).access_nri_pq
+    cat_version = base_catalog._captured_init_kwargs.get("metadata", {}).get(
         "version", "latest"
     )  # Get the catalog version number and set it to "latest" if it can't be found
+
+    # Wrap the base catalog with aliasing support
+    data = AliasedDataframeCatalog(
+        base_catalog,
+        field_aliases=DATAFRAME_FIELD_ALIASES,
+        value_aliases=VALUE_ALIASES,
+    )
 except FileNotFoundError:
     warnings.warn(
         "Unable to access a default catalog location. Calling intake.cat.access_nri will not work.",
