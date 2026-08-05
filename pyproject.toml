@@ -1,8 +1,6 @@
 [project]
 name = "access_nri_intake"
-authors = [
-    { name = "ACCESS-NRI" },
-]
+authors = [{ name = "ACCESS-NRI" }]
 description = "Intake catalog managed by ACCESS-NRI and associated tools"
 readme = "README.rst"
 requires-python = ">=3.10"
@@ -54,10 +52,7 @@ access_nri = "access_nri_intake.data:data"
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = [
-  "setuptools >= 61.0.0",
-  "versioneer[toml]",
-]
+requires = ["setuptools >= 61.0.0", "versioneer[toml]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -80,10 +75,7 @@ tag_prefix = "v"
 parentdir_prefix = "access-nri-intake-"
 
 [tool.coverage.run]
-omit = [
-    "*/_version.py",
-    "*/data/__init__.py",
-]
+omit = ["*/_version.py", "*/data/__init__.py"]
 
 [tool.ruff]
 target-version = "py310"
@@ -114,10 +106,7 @@ exclude = [
 ]
 # E402: module level import not at top of file
 # E501: line too long - let black worry about that
-lint.ignore = [
-    "E402",
-    "E501",
-]
+lint.ignore = ["E402", "E501"]
 lint.select = [
     # PyLint
     "PL",
@@ -139,15 +128,12 @@ max-complexity = 18
 known-first-party = ["access_nri_intake"]
 
 [tool.pixi.workspace]
-channels = [
-  "conda-forge",
-  { channel = "accessnri", exclude-newer = "0d" },
-]
+channels = ["conda-forge", { channel = "accessnri", exclude-newer = "0d" }]
 exclude-newer = "7d"
 platforms = ["osx-arm64", "linux-64", "win-64"]
 
 [tool.pixi.environments]
-default = { features = ["dev","py313","build"], solve-group = "default" }
+default = { features = ["dev", "py313", "build"], solve-group = "default" }
 build = { features = ["build"], solve-group = "default" }
 test-py310 = { features = ["py310", "test", "build"] }
 test-py311 = { features = ["py311", "test", "build"] }
@@ -170,7 +156,7 @@ black = { cmd = "black src", description = "Format code with black" }
 mypy = { cmd = "mypy src", description = "Run mypy type checks" }
 mypy-setup = { cmd = "mypy --install-types", description = "Install mypy type stubs" }
 pre-commit-install = { cmd = "pre-commit install", description = "Install pre-commit hooks" }
-pre-commit = { cmd = "pre-commit run --all-files && pixi lock", description = "Run pre-commit hooks" }
+lint = { cmd = "pre-commit run --all-files && pixi lock", description = "Run pre-commit hooks" }
 dump-conda-env = { cmd = "pixi workspace export conda-environment --name access-nri-intake-test > env.yml", description = "Dump conda environment to env.yml" }
 
 [tool.pixi.feature.test.pypi-dependencies]
@@ -182,9 +168,9 @@ pytest-ordering = ">=0.6,<0.7"
 coverage = "*"
 
 [tool.pixi.feature.test.tasks]
-test = {cmd = "pytest tests", description = "Run tests"}
-test-cov = {cmd = "coverage run -m --source=access_nri_intake pytest tests && coverage xml", description = "Run tests with coverage and generate xml report"}
-test-e2e = {cmd = "pytest --e2e tests", description = "Run tests including e2e tests"}
+test = { cmd = "pytest tests", description = "Run tests" }
+test-cov = { cmd = "coverage run -m --source=access_nri_intake pytest tests && coverage xml", description = "Run tests with coverage and generate xml report" }
+test-e2e = { cmd = "pytest --e2e tests", description = "Run tests including e2e tests" }
 
 [tool.pixi.feature.build.dependencies]
 python-swiftclient = "*"
@@ -196,7 +182,7 @@ aiohttp = ">=3.13.3,<4"
 python-openstackclient = "*"
 
 [tool.pixi.feature.build.tasks.mirror-to-cloud]
-args = [{ arg = "version", default = ""}]
+args = [{ arg = "version", default = "" }]
 cmd = "mirror-to-cloud {{ version }}"
 description = "Mirror catalog to cloud storage"
 
@@ -214,4 +200,3 @@ python = "3.13.*"
 
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
-
