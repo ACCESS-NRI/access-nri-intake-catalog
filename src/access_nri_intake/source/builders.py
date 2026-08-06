@@ -84,7 +84,7 @@ class BaseBuilder(Builder):
     # child classes.
     PATTERNS: list = ["*.nc"]
 
-    def __init__(  # noqa: PLR0913 # Allow this func to have many arguments
+    def __init__(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
         self,
         path: str | list[str],
         depth: int = 0,

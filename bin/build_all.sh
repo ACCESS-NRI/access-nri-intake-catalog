@@ -57,8 +57,9 @@ for conf in ${CONFIGS[@]}; do
     fi
 done
 
-if [ -z "$version" ]; then
-    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} ${config_paths[@]}
-else
-    catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} --version=${version} ${config_paths[@]}
+cmd="catalog-build --build_base_path=${OUTPUT_BASE_PATH} --catalog_base_path=${OUTPUT_BASE_PATH} ${config_paths[@]} --use_parquet"
+if [ -n "$version" ]; then
+    cmd="$cmd --version=${version}"
 fi
+
+eval "$cmd"

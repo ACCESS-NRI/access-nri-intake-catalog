@@ -812,7 +812,7 @@ def concretize(argv: Sequence[str] | None = None):
         ) from e
 
 
-def _concretize_build(  # noqa: PLR0913 # Allow this func to have many arguments
+def _concretize_build(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
     build_base_path: str | Path,
     version: str,
     catalog_file: str,
