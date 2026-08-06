@@ -94,6 +94,7 @@ class BaseBuilder(Builder):
         groupby_attrs: list[str] | None = None,
         aggregations: list[dict] | None = None,
         storage_options: dict | None = None,
+        parsing_func_kwargs: dict | None = None,
         joblib_parallel_kwargs: dict = {"n_jobs": multiprocessing.cpu_count()},
     ):
         """
@@ -119,6 +120,8 @@ class BaseBuilder(Builder):
         storage_options: dict, optional
             Parameters passed to the backend file-system such as Google Cloud Storage,
             Amazon Web Service S3
+        parsing_func_kwargs: dict, optional
+            Extra keyword arguments to pass to the parser for each asset.
         joblib_parallel_kwargs: dict, optional
             Parameters passed to joblib.Parallel. Default is {}.
         """
@@ -134,12 +137,16 @@ class BaseBuilder(Builder):
         self.groupby_attrs = groupby_attrs
         self.aggregations = aggregations
         self.storage_options = storage_options
+        self.parsing_func_kwargs = parsing_func_kwargs
         self.joblib_parallel_kwargs = joblib_parallel_kwargs
 
         super().__post_init__()
 
     def _parse(self):
-        super().parse(parsing_func=self._parser_catch_invalid)
+        super().parse(
+            parsing_func=self._parser_catch_invalid,
+            parsing_func_kwargs=self.parsing_func_kwargs,
+        )
 
     def parse(self):
         """
@@ -206,13 +213,13 @@ class BaseBuilder(Builder):
         self._save(name, description, directory, use_parquet)
 
     @classmethod
-    def _parser_catch_invalid(cls, file: str) -> dict:
+    def _parser_catch_invalid(cls, file: str, **kwargs) -> dict:
         """
         Catch all exceptions raised when parsing individual files for the Builders.
         These exceptions are later reported to the user in an INVALID_ASSETS file.
         """
         try:
-            return cls.parser(file)
+            return cls.parser(file, **kwargs)
         except Exception:
             return {INVALID_ASSET: file, TRACEBACK: traceback.format_exc()}
 
@@ -989,8 +996,6 @@ class WoaBuilder(BaseBuilder):
 class Cmip6Builder(BaseBuilder):
     """Intake-ESM datastore builder for CMIP6 datasets"""
 
-    ensemble: bool = True
-
     def __init__(self, path, ensemble: bool, **kwargs):
         """
         Initialise a Cmip6Builder
@@ -1031,15 +1036,14 @@ class Cmip6Builder(BaseBuilder):
                 },
             ]
             default_kwargs["groupby_attrs"] += ["member"]
-
-        Cmip6Builder.ensemble = ensemble
+        default_kwargs["parsing_func_kwargs"] = {"ensemble": ensemble}
 
         kwargs = {**default_kwargs, **kwargs}
 
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file: str) -> dict:
+    def parser(cls, file: str, ensemble: bool = True) -> dict:
         """
         No need to do much here - just parse the netCDF file and return the info
         as a dictionary. The realm is obtained from the file metadata following
@@ -1057,19 +1061,20 @@ class Cmip6Builder(BaseBuilder):
             ]
         )
 
-        if cls.ensemble:
-            with open_dataset_cached(
-                file,
-                decode_cf=False,
-                decode_times=False,
-                decode_coords=False,
-            ) as ds:
-                member_id = ds.attrs.get("realization_index", None)
-                if member_id is None:
-                    raise ParserError(
-                        f"Cannot determine member for file {file} - "
-                        "realization_index attribute missing"
-                    )
+        with open_dataset_cached(
+            file,
+            decode_cf=False,
+            decode_times=False,
+            decode_coords=False,
+        ) as ds:
+            member_id = ds.attrs.get("realization_index", None)
+            if member_id is None:
+                raise ParserError(
+                    f"Cannot determine member for file {file} - "
+                    "realization_index attribute missing"
+                )
+
+            if ensemble:
                 ncinfo_dict["member"] = f"r{int(member_id)}"
 
         return ncinfo_dict
