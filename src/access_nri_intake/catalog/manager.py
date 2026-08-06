@@ -73,7 +73,7 @@ class CatalogManager:
         self.source: esm_datastore | None = None
         self.source_metadata: dict[str, Any] | None = None
 
-    def build_esm(  # noqa: PLR0913 # Allow this func to have many arguments
+    def build_esm(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
         self,
         name: str,
         description: str,
@@ -149,7 +149,7 @@ class CatalogManager:
 
         self._add()
 
-    def load(  # noqa: PLR0913 # Allow this func to have many arguments
+    def load(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
         self,
         name: str,
         description: str,
@@ -280,7 +280,7 @@ class CatalogManager:
         self.dfcat.save(**kwargs)
 
 
-def _open_and_translate(  # noqa: PLR0913 # Allow this func to have many arguments
+def _open_and_translate(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
     file, driver, name, description, metadata, translator, **kwargs
 ) -> tuple[esm_datastore, dict]:
     """
