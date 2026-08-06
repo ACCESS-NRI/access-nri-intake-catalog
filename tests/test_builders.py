@@ -3390,3 +3390,26 @@ def test_builder_uses_parsed_kwargs(
     with pytest.raises(TypeError):
         # BaseBuilder.__init__ should raise a TypeError here since it won't accept this.
         builder(str("fake_path"), *args, **user_kwargs)
+
+
+def test_build_remote_store():
+    """
+    Make sure that if we point a builder at some data sitting in a bucket somewhere,
+    it is able to successfully build a datastore.
+    """
+
+    endpoint = "https://projects.pawsey.org.au"
+    bucket = "s3://intake-virtual-icechunk-om2-esm-ds-container"
+
+    data_root = bucket
+
+    builder = builders.AccessOm2Builder(
+        path=data_root,
+        storage_options={
+            "anon": True,
+            "client_kwargs": {
+                "endpoint_url": endpoint,
+            },
+        },
+    )
+    builder.build()
