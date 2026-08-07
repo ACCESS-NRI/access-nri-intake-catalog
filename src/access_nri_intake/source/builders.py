@@ -19,8 +19,14 @@ from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import (EmptyFileError, HashableIndexes, _NCFileInfo, _VarInfo,
-                    get_timeinfo, open_dataset_cached)
+from .utils import (
+    EmptyFileError,
+    HashableIndexes,
+    _NCFileInfo,
+    _VarInfo,
+    get_timeinfo,
+    open_dataset_cached,
+)
 
 __all__ = [
     "AccessOm2Builder",

@@ -42,8 +42,22 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 14, 14, 7),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["access-esm1-6"], "AccessEsm16Builder", {"depth": 5, "ensemble": False}, 40, 40, 7),
-        (["access-esm1-6"], "AccessEsm16Builder", {"depth": 5, "ensemble": True}, 40, 40, 14),
+        (
+            ["access-esm1-6"],
+            "AccessEsm16Builder",
+            {"depth": 5, "ensemble": False},
+            40,
+            40,
+            7,
+        ),
+        (
+            ["access-esm1-6"],
+            "AccessEsm16Builder",
+            {"depth": 5, "ensemble": True},
+            40,
+            40,
+            14,
+        ),
         (["woa"], "WoaBuilder", {}, 8, 8, 3),
         (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
@@ -347,18 +361,21 @@ def test_builder_build(
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     Builder = getattr(builders, builder)
-    if builder in ["AccessCm2Builder", "AccessEsm15Builder", "AccessEsm16Builder", "Cmip6Builder"]:
-        kwargs = {
-            "ensemble" : member is not None
-        }
-    else: 
+    if builder in [
+        "AccessCm2Builder",
+        "AccessEsm15Builder",
+        "AccessEsm16Builder",
+        "Cmip6Builder",
+    ]:
+        kwargs = {"ensemble": member is not None}
+    else:
         kwargs = {}
 
     info = Builder.parser(str(test_data / filename), **kwargs)
     assert info["realm"] == realm
     if member:
         assert info["member"] == member
-            
+
     assert info["file_id"] == file_id
 
 
