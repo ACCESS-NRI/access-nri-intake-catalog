@@ -19,14 +19,8 @@ from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
 from ..utils import validate_against_schema
 from . import ESM_JSONSCHEMA, PATH_COLUMN, VARIABLE_COLUMN
-from .utils import (
-    EmptyFileError,
-    HashableIndexes,
-    _NCFileInfo,
-    _VarInfo,
-    get_timeinfo,
-    open_dataset_cached,
-)
+from .utils import (EmptyFileError, HashableIndexes, _NCFileInfo, _VarInfo,
+                    get_timeinfo, open_dataset_cached)
 
 __all__ = [
     "AccessOm2Builder",
@@ -686,6 +680,8 @@ class AccessEsm15Builder(BaseBuilder):
                     "attribute_name": "member",
                 },
             ]
+            default_kwargs["groupby_attrs"] += ["member"]
+
         default_kwargs["parsing_func_kwargs"] = {"ensemble": ensemble}
 
         kwargs = {**default_kwargs, **kwargs}
@@ -731,7 +727,9 @@ class AccessCm2Builder(AccessEsm15Builder):
 class AccessEsm16Builder(AccessEsm15Builder):
     """Intake-ESM datastore builder for ACCESS-ESM1.6 datasets"""
 
-    PATH_REGEX = r".*/([^/]*)/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc"
+    PATH_REGEX = (
+        r".*/[^/]*-(r\d+i\d+p\d+f\d+)-[0-9a-f]+/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc"
+    )
 
     REALM_MAPPING = {
         "atmosphere": "atmos",
@@ -744,9 +742,7 @@ class AccessEsm16Builder(AccessEsm15Builder):
         """Get the realm and member/experiment id from the file name"""
         match = re.match(cls.PATH_REGEX, file)
         if not match:
-            raise ParserError(
-                f"Unable to parse filepath {file} in {cls.__class__.__name__}"
-            )
+            raise ParserError(f"Unable to parse filepath {file} in {cls.__name__}")
 
         exp_id, realm = match.groups()
 
