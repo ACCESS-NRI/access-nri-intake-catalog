@@ -27,6 +27,14 @@ from access_nri_intake.source.utils import _NCFileInfo
             {"ensemble": True},
             18,
             14,
+            14,
+        ),
+        (
+            ["access-cm2/by578", "access-cm2/by578a"],
+            "AccessCm2Builder",
+            {"ensemble": False},
+            18,
+            14,
             7,
         ),
         (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}, 11, 11, 10),
@@ -34,7 +42,22 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["access-om3"], "AccessOm3Builder", {}, 14, 14, 7),
         (["mom6"], "Mom6Builder", {}, 27, 27, 15),
         (["roms"], "ROMSBuilder", {}, 4, 4, 1),
-        (["access-esm1-6"], "AccessEsm16Builder", {"ensemble": False}, 20, 20, 7),
+        (
+            ["access-esm1-6"],
+            "AccessEsm16Builder",
+            {"depth": 5, "ensemble": False},
+            40,
+            40,
+            7,
+        ),
+        (
+            ["access-esm1-6"],
+            "AccessEsm16Builder",
+            {"depth": 5, "ensemble": True},
+            40,
+            40,
+            14,
+        ),
         (["woa"], "WoaBuilder", {}, 8, 8, 3),
         (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
@@ -65,6 +88,7 @@ def test_builder_build(
         builder.valid_assets
 
     builder.get_assets()
+
     assert isinstance(builder.assets, list)
     assert len(builder.assets) == num_assets
 
@@ -79,6 +103,7 @@ def test_builder_build(
         str(tmp_path / "test.json"),
         columns_with_iterables=builder.columns_with_iterables,
     )
+
     assert len(cat.df) == num_valid_assets
     assert len(cat) == num_datasets
 
@@ -248,14 +273,14 @@ def test_builder_build(
             "seaIce.5day.boundary:1.eta_psi:1.eta_rho:1.eta_u:1.eta_v:1.s_rho:1.s_w:1.tracer:1.xi_psi:1.xi_rho:1.xi_u:1.xi_v:1",
         ),
         (
-            "access-esm1-6/output000/atmosphere/NetCDF/aiihca.pea1apr.nc",
+            "access-esm1-6/historical-historical-1.1-r10i1p1f1-aaca3142/historical-historical-1.1-r10i1p1f1-aaca3142/output001/atmosphere/NetCDF/aiihca.pea1apr.nc",
             "AccessEsm16Builder",
             "atmos",
             None,
             "bnds:2.lat:2.lat_v:2.lon:2.lon_u:2.soil_model_level_number:2",
         ),
         (
-            "access-esm1-6/output000/ocean/ocean-2d-fprec_melt_heat-1monthly-mean-ym_0101_01.nc",
+            "access-esm1-6/historical-historical-1.1-r10i1p1f1-aaca3142/historical-historical-1.1-r10i1p1f1-aaca3142/output001/ocean/ocean-2d-fprec_melt_heat-1monthly-mean-ym_0101_01.nc",
             "AccessEsm16Builder",
             "ocean",
             None,
@@ -317,15 +342,40 @@ def test_builder_build(
             "r9",
             "atmos.1mon.bnds:2.lat:2.lon:2",
         ),
+        (
+            "access-esm1-6/historical-historical-1.1-r10i1p1f1-aaca3142/historical-historical-1.1-r10i1p1f1-aaca3142/output001/ocean/ocean-2d-roughness_amp.nc",
+            "AccessEsm16Builder",
+            "ocean",
+            "r10i1p1f1",
+            "xt_ocean:2.yt_ocean:2",
+        ),
+        (
+            "access-esm1-6/historical-historical-1.1-r10i1p1f1-aaca3142/historical-historical-1.1-r10i1p1f1-aaca3142/output001/ocean/ocean-2d-roughness_amp.nc",
+            "AccessEsm16Builder",
+            "ocean",
+            None,
+            "xt_ocean:2.yt_ocean:2",
+        ),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
 def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     Builder = getattr(builders, builder)
-    info = Builder.parser(str(test_data / filename))
+    if builder in [
+        "AccessCm2Builder",
+        "AccessEsm15Builder",
+        "AccessEsm16Builder",
+        "Cmip6Builder",
+    ]:
+        kwargs = {"ensemble": member is not None}
+    else:
+        kwargs = {}
+
+    info = Builder.parser(str(test_data / filename), **kwargs)
     assert info["realm"] == realm
     if member:
         assert info["member"] == member
+
     assert info["file_id"] == file_id
 
 
@@ -392,6 +442,35 @@ def test_cmip6_builder_parser_no_ensemble(test_data):
                 / "vas_Amon_ACCESS-ESM1-5_historical_r9i1p1f1_1981-2000_r360x180_no_realisation_index.nc"
             )
         )
+
+
+@pytest.mark.parametrize(
+    "test_path, expected",
+    [
+        (
+            "access-esm1-6/historical-historical-1.1-r10i1p1f1-aaca3142/historical-historical-1.1-r10i1p1f1-aaca3142/output001/ocean/ocean-2d-roughness_amp.nc",
+            ("r10i1p1f1", "ocean"),
+        ),
+        (
+            "/scratch/tm70/jt4085/esm1p6_postprocessing/1pctCO2-01/output000/atmosphere/access-esm1p6.um7p3.3d.fld_s33i002.1mon.mean.0201.nc",
+            (None, "atmos"),
+        ),
+        (
+            "/scratch/tm70/jt4085/esm16_examples/1pcC02-01/output000/atmosphere/netCDF/aiihca.pa-020101_mon.nc",
+            (None, "atmos"),
+        ),
+    ],
+)
+def test_esm16_regex(test_path, expected):
+    """
+    The above tests of the parser do test the regexes used, but also require that
+    we crack open the file and test that. This test is a bit more lightweight and
+    just tests the regexes themselves - without any extra work.
+    """
+    builder = builders.AccessEsm16Builder
+    tup = builder._parse_regex(test_path)
+
+    assert tup == expected, f"Expected {expected} but got {tup}"
 
 
 def test_builder_columns_with_iterables(test_data):
