@@ -731,11 +731,22 @@ class AccessCm2Builder(AccessEsm15Builder):
 
 
 class AccessEsm16Builder(AccessEsm15Builder):
-    """Intake-ESM datastore builder for ACCESS-ESM1.6 datasets"""
+    r"""Intake-ESM datastore builder for ACCESS-ESM1.6 datasets
 
-    PATH_REGEX = (
-        r".*/[^/]*-(r\d+i\d+p\d+f\d+)-[0-9a-f]+/output\d+/([^/]*)(?:/[^/]*)?/.*\.nc"
-    )
+    Path regex works as follows:
+
+    .*?/                    Match any leading path, non-greedily, up to a slash.
+    (?: ... )?              Optionally match the realisation/hash directory.
+    [^/]*-                  Match any prefix within that directory, ending in '-'.
+    (?P<realisation>...)    Capture a CMIP member ID, e.g. r10i1p1f1 to the group 'realisation'.
+    -[0-9a-f]+/             Match a '-' followed by a hexadecimal hash and '/'.
+    output\d+/              Match output followed by digits, e.g. output001/.
+    (?P<realm>[^/]*)        Capture the next path component to the group 'realm'.
+    (?:/[^/]*)?             Optionally match one additional subdirectory.
+    /.*\.nc                 Match the remaining path ending in a .nc file.
+    """
+
+    PATH_REGEX = r".*?/(?:[^/]*-(?P<realisation>r\d+i\d+p\d+f\d+)-[0-9a-f]+/)?output\d+/(?P<realm>[^/]*)(?:/[^/]*)?/.*\.nc"
 
     REALM_MAPPING = {
         "atmosphere": "atmos",
@@ -744,20 +755,31 @@ class AccessEsm16Builder(AccessEsm15Builder):
     }
 
     @classmethod
-    def parser(cls, file, ensemble: bool = False):
-        """Get the realm and member/experiment id from the file name"""
+    def _parse_regex(cls, file) -> tuple[str | None, str]:
+        """
+        Helper method to make testing easier.
+        """
         match = re.match(cls.PATH_REGEX, file)
         if not match:
             raise ParserError(f"Unable to parse filepath {file} in {cls.__name__}")
 
-        exp_id, realm = match.groups()
+        match_dict = match.groupdict()
+        return (
+            match_dict.get("realisation", None),
+            cls.REALM_MAPPING[match_dict["realm"]],
+        )
 
+    @classmethod
+    def parser(cls, file, ensemble: bool = False):
+        """Get the realm and member/experiment id from the file name"""
+        exp_id, realm = cls._parse_regex(file)
         nc_info = cls.parse_ncfile(file)
         ncinfo_dict = nc_info.to_dict()
 
-        ncinfo_dict["realm"] = cls.REALM_MAPPING[realm]
+        ncinfo_dict["realm"] = realm
         if ensemble:
-            ncinfo_dict["member"] = exp_id
+            # We now know that exp_id is a string, so ignore the type checker warning
+            ncinfo_dict["member"] = exp_id  # type: ignore
 
         return ncinfo_dict
 

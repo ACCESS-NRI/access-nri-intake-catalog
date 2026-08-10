@@ -444,6 +444,35 @@ def test_cmip6_builder_parser_no_ensemble(test_data):
         )
 
 
+@pytest.mark.parametrize(
+    "test_path, expected",
+    [
+        (
+            "access-esm1-6/historical-historical-1.1-r10i1p1f1-aaca3142/historical-historical-1.1-r10i1p1f1-aaca3142/output001/ocean/ocean-2d-roughness_amp.nc",
+            ("r10i1p1f1", "ocean"),
+        ),
+        (
+            "/scratch/tm70/jt4085/esm1p6_postprocessing/1pctCO2-01/output000/atmosphere/access-esm1p6.um7p3.3d.fld_s33i002.1mon.mean.0201.nc",
+            (None, "atmos"),
+        ),
+        (
+            "/scratch/tm70/jt4085/esm16_examples/1pcC02-01/output000/atmosphere/netCDF/aiihca.pa-020101_mon.nc",
+            (None, "atmos"),
+        ),
+    ],
+)
+def test_esm16_regex(test_path, expected):
+    """
+    The above tests of the parser do test the regexes used, but also require that
+    we crack open the file and test that. This test is a bit more lightweight and
+    just tests the regexes themselves - without any extra work.
+    """
+    builder = builders.AccessEsm16Builder
+    tup = builder._parse_regex(test_path)
+
+    assert tup == expected, f"Expected {expected} but got {tup}"
+
+
 def test_builder_columns_with_iterables(test_data):
     builder = builders.AccessOm2Builder(str(test_data / "access-om2"))
     assert not builder.columns_with_iterables
