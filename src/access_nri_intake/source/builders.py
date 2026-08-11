@@ -700,7 +700,7 @@ class AccessEsm15Builder(BaseBuilder):
             ]
             default_kwargs["groupby_attrs"] += ["member"]
 
-            default_kwargs["parsing_func_kwargs"] = {"ensemble": ensemble}
+        default_kwargs["parsing_func_kwargs"] = {"ensemble": ensemble}
 
         kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
