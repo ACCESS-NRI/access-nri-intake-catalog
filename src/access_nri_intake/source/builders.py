@@ -644,6 +644,9 @@ class Mom6Builder(BaseBuilder):
 class AccessEsm15Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
 
+    PATH_REGEX = r".*/(?P<exp_id>[^/]*)/history/(?P<realm>[^/]*)/.*\.nc"
+    REALM_MAPPING = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
+
     def __init__(self, path, ensemble: bool, **kwargs):
         """
         Initialise a AccessEsm15Builder
@@ -688,28 +691,34 @@ class AccessEsm15Builder(BaseBuilder):
             ]
             default_kwargs["groupby_attrs"] += ["member"]
 
-        default_kwargs["parsing_func_kwargs"] = {"ensemble": ensemble}
+            default_kwargs["parsing_func_kwargs"] = {"ensemble": ensemble}
 
         kwargs = {**default_kwargs, **kwargs}
         super().__init__(**kwargs)
 
     @classmethod
-    def parser(cls, file, ensemble: bool = True) -> dict:
-        match = re.match(r".*/([^/]*)/history/([^/]*)/.*\.nc", file)
+    def _parse_regex(cls, file) -> tuple[str | None, str]:
+        """
+        Helper method to make testing easier.
+        """
+        match = re.match(cls.PATH_REGEX, file)
         if not match:
-            raise ParserError(
-                f"Unable to parse filepath {file} in {cls.__class__.__name__}"
-            )
+            raise ParserError(f"Unable to parse filepath {file} in {cls.__name__}")
 
-        exp_id = match.groups()[0]
-        realm = match.groups()[1]
+        match_dict = match.groupdict()
+        return (
+            match_dict.get("exp_id", None),
+            cls.REALM_MAPPING[match_dict["realm"]],
+        )
 
-        realm_mapping = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
-
+    @classmethod
+    def parser(cls, file, ensemble: bool = True) -> dict:
         nc_info = cls.parse_ncfile(file)
         ncinfo_dict = nc_info.to_dict()
 
-        ncinfo_dict["realm"] = realm_mapping[realm]
+        exp_id, realm = cls._parse_regex(file)
+
+        ncinfo_dict["realm"] = realm
         if ensemble:
             ncinfo_dict["member"] = exp_id
         ncinfo_dict["file_id"] = ".".join(
