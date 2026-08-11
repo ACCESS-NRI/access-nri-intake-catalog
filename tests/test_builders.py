@@ -472,6 +472,15 @@ def test_esm16_regex(test_path, expected):
 
     assert tup == expected, f"Expected {expected} but got {tup}"
 
+def test_esm15_regex_failure():
+    """
+    Assert that the regex parser for AccessEsm15Builder raises a ParserError when given a string that does not match the expected pattern.
+    """
+    with pytest.raises(builders.ParserError):
+        builders.AccessEsm15Builder._parse_regex(
+            "gobbledegook"
+        )
+
 
 def test_builder_columns_with_iterables(test_data):
     builder = builders.AccessOm2Builder(str(test_data / "access-om2"))
