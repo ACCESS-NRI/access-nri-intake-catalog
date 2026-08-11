@@ -12,17 +12,14 @@ import pytest
 import yamanifest
 from intake_esm import esm_datastore
 
-from access_nri_intake.experiment.main import find_esm_datastore, use_datastore
-from access_nri_intake.experiment.utils import (
-    DatastoreInfo,
-    DataStoreInvalidCause,
-    DataStoreWarning,
-    MultipleDataStoreError,
-    hash_catalog,
-    parse_kwarg,
-    validate_args,
-    verify_ds_current,
-)
+from access_nri_intake.experiment.core import find_esm_datastore, use_datastore
+from access_nri_intake.experiment.utils import (DatastoreInfo,
+                                                DataStoreInvalidCause,
+                                                DataStoreWarning,
+                                                MultipleDataStoreError,
+                                                hash_catalog, parse_kwarg,
+                                                validate_args,
+                                                verify_ds_current)
 from access_nri_intake.source import builders
 from access_nri_intake.source.builders import Builder
 
@@ -265,7 +262,7 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
 )
 @pytest.mark.parametrize("use_path", [True, False])
 @mock.patch(
-    "access_nri_intake.experiment.main.datetime",
+    "access_nri_intake.experiment.core.datetime",
 )
 @pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_use_datastore(

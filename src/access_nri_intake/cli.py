@@ -24,7 +24,7 @@ from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
 from .experiment.colours import f_info, f_path, f_reset
-from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
+from .experiment.core import scaffold_catalog_entry as _scaffold_catalog_entry
 from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
