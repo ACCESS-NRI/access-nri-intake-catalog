@@ -721,7 +721,7 @@ class AccessEsm15Builder(BaseBuilder):
         )
 
     @classmethod
-    def parser(cls, file, ensemble: bool = True) -> dict:
+    def parser(cls, file, ensemble: bool = False) -> dict:
         nc_info = cls.parse_ncfile(file)
         ncinfo_dict = nc_info.to_dict()
 
