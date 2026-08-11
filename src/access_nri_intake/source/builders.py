@@ -720,7 +720,7 @@ class AccessEsm15Builder(BaseBuilder):
 
         ncinfo_dict["realm"] = realm
         if ensemble:
-            ncinfo_dict["member"] = exp_id
+            ncinfo_dict["member"] = exp_id  # type: ignore
         ncinfo_dict["file_id"] = ".".join(
             [
                 str(ncinfo_dict["realm"]),
