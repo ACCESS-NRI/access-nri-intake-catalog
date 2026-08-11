@@ -642,7 +642,16 @@ class Mom6Builder(BaseBuilder):
 
 
 class AccessEsm15Builder(BaseBuilder):
-    """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets"""
+    """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets
+
+    Path regex works as follows:
+
+    .*/                     Match any leading path, greedily, up to a slash.
+    (?P<exp_id>[^/]*)       Capture the next path component to the group 'exp_id'.
+    /history/               Match the literal '/history/' path component.
+    (?P<realm>[^/]*)        Capture the next path component to the group 'realm'.
+    /.*\.nc                 Match the remaining path ending in a .nc file.
+    """
 
     PATH_REGEX = r".*/(?P<exp_id>[^/]*)/history/(?P<realm>[^/]*)/.*\.nc"
     REALM_MAPPING = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
