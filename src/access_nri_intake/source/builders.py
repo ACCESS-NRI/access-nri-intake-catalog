@@ -642,7 +642,7 @@ class Mom6Builder(BaseBuilder):
 
 
 class AccessEsm15Builder(BaseBuilder):
-    """Intake-ESM datastore builder for ACCESS-ESM1.5 datasets
+    r"""Intake-ESM datastore builder for ACCESS-ESM1.5 datasets
 
     Path regex works as follows:
 
