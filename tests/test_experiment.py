@@ -12,12 +12,15 @@ import pytest
 from intake_esm import esm_datastore
 
 from access_nri_intake.experiment.core import find_esm_datastore, use_datastore
-from access_nri_intake.experiment.utils import (DatastoreInfo,
-                                                DataStoreInvalidCause,
-                                                DataStoreWarning,
-                                                MultipleDataStoreError,
-                                                parse_kwarg, validate_args,
-                                                verify_ds_current)
+from access_nri_intake.experiment.utils import (
+    DatastoreInfo,
+    DataStoreInvalidCause,
+    DataStoreWarning,
+    MultipleDataStoreError,
+    parse_kwarg,
+    validate_args,
+    verify_ds_current,
+)
 from access_nri_intake.source import builders
 from access_nri_intake.source.builders import Builder
 

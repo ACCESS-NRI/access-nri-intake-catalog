@@ -1,10 +1,8 @@
 import itertools
 import warnings
-from datetime import datetime
 from pathlib import Path
 
 import intake
-import pandas as pd
 from intake_esm import esm_datastore
 
 from ..source.builders import Builder
@@ -14,7 +12,6 @@ from .utils import (
     DatastoreInfo,
     DataStoreWarning,
     MultipleDataStoreError,
-    find_experiment_files,
     verify_ds_current,
 )
 
@@ -109,7 +106,7 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
                 stacklevel=2,
             )
 
-    builder_instance: BaseBuilder = builder(path=str(experiment_dir), **builder_kwargs)
+    builder_instance = builder(path=str(experiment_dir), **builder_kwargs)
     builder_instance.get_assets().build()
 
     print(f"{f_success}Sucessfully built esm-datastore!{f_reset}")
