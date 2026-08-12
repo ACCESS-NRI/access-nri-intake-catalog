@@ -29,7 +29,6 @@ dependencies = [
     "pooch",
     "xarray",
     "colorama",
-    "yamanifest>=0.3.12",
     "access-py-telemetry>=0.1.6",
     "wrapt>=2.1.2",
 ]
@@ -200,3 +199,6 @@ python = "3.13.*"
 
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
+
+[tool.pixi.dependencies]
+python-xxhash = ">=3.7.0,<4"
