@@ -8,13 +8,13 @@ import pandas as pd
 from intake_esm import esm_datastore
 
 from ..source.builders import Builder
+from ..source.utils import _NCFileInfo
 from .colours import f_info, f_path, f_reset, f_success, f_suggestion, f_warn
 from .utils import (
     DatastoreInfo,
     DataStoreWarning,
     MultipleDataStoreError,
     find_experiment_files,
-    hash_catalog,
     verify_ds_current,
 )
 
@@ -25,7 +25,7 @@ warnings.simplefilter(
 
 def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
     experiment_dir: Path | str,
-    builder: Builder | None = None,
+    builder: Builder,
     catalog_dir: Path | str | None = None,
     builder_kwargs: dict | None = None,
     open_ds: bool = True,
@@ -92,35 +92,29 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
 
     ds_info = find_esm_datastore(catalog_dir, datastore_name)
 
-    if ds_info.valid:  # Nothing is obviously wrong with the datastore
+    if ds_info.valid:
+        # We need to grab columns_with_iterables from the builders, I think. Maybe source.utils? Otherwise this will fail.
         print(
             f"{f_info}Datastore found in {f_path}{formatted_catdir_name}{f_info}, verifying datastore integrity...{f_reset}"
         )
-        found_experiment_files = find_experiment_files(
-            builder, experiment_dir, builder_kwargs
-        )
-        ds_info.valid = verify_ds_current(ds_info, found_experiment_files)
-    elif ds_info:  # The datastore was found but was invalid. Rebuild it.
-        warnings.warn(
-            f"{f_warn}esm-datastore broken due to {ds_info.invalid_ds_cause}. Regenerating datastore...{f_reset}",
-            category=DataStoreWarning,
-            stacklevel=2,
-        )
-    else:  # No datastore found. Build one.
-        print(f"{f_success}Generating esm-datastore for {experiment_dir}{f_reset}")
+        try:
+            old_datastore: esm_datastore = esm_datastore(
+                ds_info.json_handle,
+                columns_with_iterables=_NCFileInfo.columns_with_iterables(),
+            )
+        except Exception:
+            warnings.warn(
+                f"{f_warn}Datastore found in {f_path}{formatted_catdir_name}{f_warn}, but it is invalid. Regenerating...{f_reset}",
+                category=DataStoreWarning,
+                stacklevel=2,
+            )
 
-    scaffold_cmd = "scaffold_catalog_entry" if open_ds else "scaffold-catalog-entry"
-    ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
+    builder_instance: BaseBuilder = builder(path=str(experiment_dir), **builder_kwargs)
+    builder_instance.get_assets().build()
 
-    if not ds_info.valid and builder is None:
-        raise ValueError(
-            "A builder must be provided if no valid datastore is found in the experiment directory."
-        )
-    elif not ds_info.valid and builder is not None:
-        builder_instance: Builder = builder(path=str(experiment_dir), **builder_kwargs)
-        print(f"{f_info}Building esm-datastore...{f_reset}")
-        builder_instance.get_assets().build()
-        print(f"{f_success}Sucessfully built esm-datastore!{f_reset}")
+    print(f"{f_success}Sucessfully built esm-datastore!{f_reset}")
+
+    if not verify_ds_current(builder_instance.df, old_datastore):
         print(
             f"{f_info}Saving esm-datastore to {f_path}{str(catalog_dir.absolute())}{f_reset}"
         )
@@ -131,33 +125,7 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
             directory=str(catalog_dir),
         )
 
-        _invalid_assetlist: pd.DataFrame = builder_instance.invalid_assets
-        if not _invalid_assetlist.empty:
-            invalid_asset_fname = f"{datastore_name}_invalid_assets_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}.csv"
-            invalid_asset_path = catalog_dir / invalid_asset_fname
-            _invalid_assetlist.to_csv(invalid_asset_path, index=False)
-            print(
-                f"{f_warn}Some assets were not included in the datastore due to errors. "
-                f"Please check {f_path}{invalid_asset_path}{f_warn} for details.{f_reset}"
-            )
-
-        print(
-            f"{f_info}Hashing catalog to prevent unnecessary rebuilds.\nThis may take some time...{f_reset}"
-        )
-        hash_catalog(catalog_dir, datastore_name, builder_instance)
-        print(f"{f_success}Catalog sucessfully hashed!{f_reset}")
-
-        print(
-            f"{f_success}Datastore sucessfully written to {f_path}{ds_full_path}{f_success}!"
-            f"\n{f_info}Please note that this has not added the datastore to the access-nri-intake catalog."
-            f"\nTo add to catalog, please run '{f_suggestion}{scaffold_cmd}{f_info}' for help on how to do so."
-        )
-    else:
-        print(
-            f"{f_success}Datastore found in {f_path}{ds_full_path}{f_success}!"
-            f"\n{f_info}Please note that this has not added the datastore to the access-nri-intake catalog."
-            f"\nTo add to catalog, please run '{f_suggestion}{scaffold_cmd}{f_info}' for help on how to do so."
-        )
+    ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
 
     if open_ds:
         return intake.open_esm_datastore(
@@ -197,6 +165,11 @@ def find_esm_datastore(experiment_dir: Path, datastore_name: str) -> DatastoreIn
     DatastoreInfo
         A DatastoreInfo object containing the json and csv files if found, or
         a null DatastoreInfo object if not found.
+
+    Notes
+    -----
+    The loop has to be an outer product, not eg. a zip. or else we might miss a
+    datastore if we have rogue csv/json files polluting the ordering.
     """
 
     # If we don't realise iterators into memory, they will be consumed by inner

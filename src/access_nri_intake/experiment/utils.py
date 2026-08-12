@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from yamanifest.manifest import Manifest
+from intake_esm.core import esm_datastore
+from pandas.testing import assert_frame_equal
 
 from ..source.builders import Builder
 from .colours import f_info, f_reset, f_success, f_warn
@@ -41,6 +42,8 @@ class DataStoreInvalidCause(str, Enum):
     COLUMN_MISMATCH = "columns specified in JSON do not match csv.gz file"
 
 
+# CT Note: I'm not sure if we need this at all right now. I think we're just going
+# to want to rebuild the datastoer and check the frames are equal.
 @dataclass
 class DatastoreInfo:
     """
@@ -52,10 +55,6 @@ class DatastoreInfo:
     # Datastores have a json file and a csv.gz file. This class is a simple way to
     # handle both of these files. It also contans a validity flag, which defaults to
     # True, and is flipped to False if any of the checks in __post_init__ fail.
-
-    # It might be necessary and/or helpful to add a hash handle to this? I want
-    # to create a hash of the experiment dir, and then check that if we hash the
-    # dir we get the same
 
     json_handle: Path | str
     csv_handle: Path | str
@@ -95,12 +94,7 @@ class DatastoreInfo:
                 self.invalid_ds_cause = DataStoreInvalidCause.JSON_CORRUPTED.value
                 return None
 
-        colnames = pd.read_csv(self.csv_handle, nrows=0).columns
-
-        # We need to check that the 'catalog_file' field of the json file matches the
-        # csv file, and that we have all the right attributes in the csv file.
-
-        if self.match_broken_internal_path(ds_json):
+        if self.internal_path_broken(ds_json):
             self.valid = False
             self.invalid_ds_cause = DataStoreInvalidCause.PATH_MISMATCH.value
             return None
@@ -109,12 +103,14 @@ class DatastoreInfo:
         # the catalog_file matches the name of the csv file. Someone might have
         # manually fiddled with it, so we'll convert it to a path object and check
         # the name attribute.
-        if Path(ds_json["catalog_file"]).name != self.csv_handle.name:
+        if not Path(ds_json["catalog_file"]).name == self.csv_handle.name:
             self.valid = False
             self.invalid_ds_cause = DataStoreInvalidCause.CATALOG_MISMATCH.value
             return None
 
-        if set(colnames) != set(
+        colnames = pd.read_csv(self.csv_handle, nrows=0).columns
+
+        if not set(colnames) == set(
             [item["column_name"] for item in ds_json["attributes"]]
         ).union({"path"}):
             self.valid = False
@@ -135,7 +131,7 @@ class DatastoreInfo:
             (self.json_handle != "", self.csv_handle != "", self.invalid_ds_cause != "")
         )
 
-    def match_broken_internal_path(self, ds_json: dict) -> bool:
+    def internal_path_broken(self, ds_json: dict) -> bool:
         """
         If our internal reference starts with file:///, then we need to
         ensure that the rest of this *perfectly* matches the csv file or the
@@ -171,12 +167,12 @@ class DatastoreInfo:
 
 
 def verify_ds_current(
-    ds_info: DatastoreInfo,
-    experiment_files: set[Path],
+    builder_dataframe: pd.DataFrame,
+    existing_datastore: esm_datastore | None = None,
 ) -> bool:
     """
-    Verify if the datastore is current, testing for missing/extra files, and files
-    that appear to have changed since the datastore was built.
+    Verify if the datastore is current. We do this by comparing the old and new
+    built datastores - there is no reliable way to jump ahead here.
 
     Parameters
     ----------
@@ -193,68 +189,16 @@ def verify_ds_current(
 
     """
 
-    hashfile = (
-        Path(ds_info.json_handle).parent / f".{Path(ds_info.json_handle).stem}.hash"
-    )
-
-    if not hashfile.exists():
-        warnings.warn(
-            f"{f_warn}No hash file found for datastore. Datastore regeneration required...{f_reset}",
-            category=DataStoreWarning,
-            stacklevel=2,
-        )
+    if existing_datastore is None:
+        print(f"{f_warn}No existing datastore found, rebuilding...{f_reset}")
         return False
 
-    mf = Manifest(str(hashfile), hashes="binhash-xxh").load()
-    manifest_files = {v.get("fullpath") for v in mf.data.values()}
-
-    # Convert experiment files to strings for compatibility with yamanifest
-    experiment_files_str = {str(file) for file in experiment_files}
-
-    if experiment_files_str != manifest_files:
-        warn_str = (
-            "extra files in"
-            if len(experiment_files_str) < len(manifest_files)
-            else "missing files from"
-        )
-        warnings.warn(
-            f"{f_warn}Experiment directory and datastore do not match ({warn_str} datastore). Datastore regeneration required...{f_reset}",
-            category=DataStoreWarning,
-            stacklevel=2,
-        )
-        return False
-
-    expdir_manifest = Manifest("_", hashes="binhash-xxh")
-    expdir_manifest.add(experiment_files_str, hashfn="binhash-xxh")
-
-    if not expdir_manifest.equals(mf):
-        warnings.warn(
-            f"{f_warn}Experiment directory and datastore do not match (differing hashes). Datastore regeneration required...{f_reset}",
-            category=DataStoreWarning,
-            stacklevel=2,
-        )
+    is_valid = assert_frame_equal(builder_dataframe, existing_datastore.df)
+    if not is_valid:
         return False
 
     print(f"{f_success}Datastore integrity verified!{f_reset}")
     return True
-
-
-def hash_catalog(
-    catalog_dir: Path, datastore_name: str, builder_instance: Builder
-) -> None:
-    """
-    Use yamanifest to hash the files contained in the builder, and then stick that in a
-    .$datastore_name.hash file in the catalog_dir. This will be used to check if the datastore
-    is current.
-    """
-    cat_files = builder_instance.df.path.tolist()
-    cat_fullfiles = [str(Path(file).resolve()) for file in cat_files]
-
-    mf = Manifest(str(catalog_dir / f".{datastore_name}.hash"), hashes="binhash-xxh")
-
-    mf.add(cat_fullfiles, hashfn="binhash-xxh")
-
-    mf.dump()
 
 
 def find_experiment_files(
