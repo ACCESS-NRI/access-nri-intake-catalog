@@ -164,10 +164,10 @@ class DatastoreInfo:
             Whether the internal path is broken.
         """
         csv_handle = Path(self.csv_handle)
-        return (
-            (match := re.search(r"^file:///.+$", ds_json["catalog_file"]))
-            and re.sub(r"^file://", "", match.group()) != str(csv_handle.absolute())
-        ) or False
+        return bool(
+            (match := re.search(r"^file://(?P<abs_path>/.+)$", ds_json["catalog_file"]))
+            and match.group("abs_path") != str(csv_handle.absolute())
+        )
 
 
 def verify_ds_current(
