@@ -15,6 +15,7 @@ from access_nri_intake.experiment.utils import (
     MultipleDataStoreError,
     parse_kwarg,
     validate_args,
+    verify_ds_current,
 )
 from access_nri_intake.source import builders
 from access_nri_intake.source.builders import Builder
@@ -225,6 +226,19 @@ def test_use_datastore_broken_existing(
 
     assert "generating new datastore" in captured.out
     assert "Datastore integrity verified!" not in captured.out
+
+
+def test_verify_ds_current_mismatch(test_data):
+    """
+    An existing datastore compared against a non-matching dummy dataframe is not
+    current, so verify_ds_current returns False.
+    """
+    existing_datastore = esm_datastore(
+        str(test_data / "esm_datastore" / "cmip5-al33.json")
+    )
+    dummy_df = pd.DataFrame({"path": ["does_not_match.nc"]})
+
+    assert verify_ds_current(dummy_df, existing_datastore) is False
 
 
 @pytest.mark.parametrize(
