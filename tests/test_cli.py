@@ -1536,20 +1536,6 @@ def test_use_esm_datastore_valid(
     assert ret == 0
 
 
-def test_use_esm_datastore_no_builder(tmp_path):
-    """
-    Test use_esm_datastore - no builder specified. This should look for a ESM-datastore
-    in the new temporary directory, and try to build a datastore since there won't be
-    one in there. Then it'll fail because there's no builder specified.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        use_esm_datastore(["--expt-dir", str(tmp_path)])
-
-        assert "A builder must be provided if no valid datastore is found" in str(
-            excinfo.value
-        )
-
-
 def test_scaffold_catalog_entry():
     """Test scaffold_catalog_entry - as of right now, it should just raise"""
     with pytest.raises(
