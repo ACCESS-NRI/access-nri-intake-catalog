@@ -90,7 +90,6 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
     ds_info = find_esm_datastore(catalog_dir, datastore_name)
 
     if ds_info.valid:
-        # We need to grab columns_with_iterables from the builders, I think. Maybe source.utils? Otherwise this will fail.
         print(
             f"{f_info}Datastore found in {f_path}{formatted_catdir_name}{f_info}, verifying datastore integrity...{f_reset}"
         )
@@ -133,7 +132,7 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
     if open_ds:
         return intake.open_esm_datastore(
             str(catalog_dir / f"{datastore_name}.json"),
-            columns_with_iterables=["variable"],
+            columns_with_iterables=_NCFileInfo.columns_with_iterables(),
         )
     else:
         print(

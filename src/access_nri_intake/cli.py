@@ -1008,7 +1008,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
             f" {f_info}{', '.join(builders.__all__)}{f_reset}."
             " To build a datastore for a new model, please contact the ACCESS-NRI team."
         ),
-        required=False,
+        required=True,
         # If we can, it would be nice to eventually relax this and try to automatically
         # determine the builder if possible.
     )
