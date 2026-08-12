@@ -25,7 +25,7 @@ from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
 from .experiment.colours import f_info, f_path, f_reset
 from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
-from .experiment.utils import parse_kwarg, validate_args
+from .experiment.utils import parse_kwarg, validate_args, warn_if_login_node
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
@@ -1061,6 +1061,10 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
             f" 'esm_datastore for the model output in {f_info}{{--expt-dir}}{f_reset}'"
         ),
         default=None,
+    )
+
+    warn_if_login_node(
+        msg="build-esm-datastore running on a login node: scheduler may kill job"
     )
 
     args = parser.parse_args(argv)
