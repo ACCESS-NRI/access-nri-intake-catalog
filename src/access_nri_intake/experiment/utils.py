@@ -12,7 +12,7 @@ from intake_esm.core import esm_datastore
 from pandas.testing import assert_frame_equal
 
 from ..source.builders import Builder
-from .colours import f_info, f_reset, f_success, f_warn
+from .colours import f_reset, f_success, f_warn
 
 
 class DataStoreWarning(RuntimeWarning):
