@@ -77,6 +77,20 @@ class _NCFileInfo:
     realm: str = ""
     temporal_label: str = ""
 
+    @classmethod
+    def columns_with_iterables(cls) -> list[str]:
+        """
+        Return a list of columns that contain iterables, for use in the
+        intake-esm catalog entry.
+        """
+        return [
+            "variable",
+            "variable_long_name",
+            "variable_standard_name",
+            "variable_cell_methods",
+            "variable_units",
+        ]
+
     def __post_init__(self):
         """
         Take the `variable_cell_methods` list and turn it into the time_aggregation
