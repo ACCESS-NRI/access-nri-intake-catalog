@@ -1,5 +1,6 @@
 import itertools
 import warnings
+from datetime import datetime
 from pathlib import Path
 
 import intake
@@ -126,6 +127,19 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
             or f"esm_datastore for the model output in '{str(experiment_dir)}'",
             directory=str(catalog_dir),
         )
+
+        invalid_assets = builder_instance.invalid_assets
+        if not invalid_assets.empty:
+            invalid_asset_fname = (
+                f"{datastore_name}_invalid_assets_"
+                f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}.csv"
+            )
+            invalid_asset_path = catalog_dir / invalid_asset_fname
+            invalid_assets.to_csv(invalid_asset_path, index=False)
+            print(
+                f"{f_warn}Some assets were not included in the datastore due to errors. "
+                f"Please check {f_path}{invalid_asset_path}{f_warn} for details.{f_reset}"
+            )
 
     ds_full_path = str((catalog_dir / f"{datastore_name}.json").absolute())
 

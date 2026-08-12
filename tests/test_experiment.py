@@ -110,6 +110,15 @@ def test_use_datastore(
 
     captured = capsys.readouterr()
     assert "generating new datastore" in captured.out
+
+    # The invalid asset should be reported to the user in a CSV file.
+    invalid_files = list(destdir.glob("experiment_datastore_invalid_assets_*.csv"))
+    assert len(invalid_files) == 1
+    invalid_df = pd.read_csv(invalid_files[0])
+    assert len(invalid_df) == 1
+    assert Path(invalid_df.loc[0, "INVALID_ASSET"]).stem == "invalid_asset"
+    assert "Some assets were not included in the datastore" in captured.out
+
     if not open_ds:
         assert "To open the datastore" in captured.out
     else:
@@ -146,6 +155,8 @@ def test_use_datastore_existing(
         open_ds=False,
         builder_kwargs={},
     )
+    capsys.readouterr()  # Clear the buffer so we only assert on the second run
+
     # Run it again so that we can test the case where the datastore already exists
     ret = use_datastore(
         experiment_dir=Path(basedir[0]),
@@ -158,6 +169,8 @@ def test_use_datastore_existing(
     captured = capsys.readouterr()
 
     assert "Datastore found in " in captured.out
+    assert "Datastore integrity verified!" in captured.out
+    assert "Saving esm-datastore" not in captured.out  # Save must be skipped
 
 
 def test_use_datastore_broken_existing(
