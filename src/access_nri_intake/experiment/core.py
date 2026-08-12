@@ -9,7 +9,7 @@ from ..source.builders import Builder
 from ..source.utils import _NCFileInfo
 from .colours import f_info, f_path, f_reset, f_success, f_suggestion, f_warn
 from .utils import (
-    DatastoreInfo,
+    DataStoreFiles,
     DataStoreWarning,
     MultipleDataStoreError,
     verify_ds_current,
@@ -89,7 +89,7 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
 
     ds_info = find_esm_datastore(catalog_dir, datastore_name)
 
-    if ds_info.valid:
+    if ds_info.maybe_valid:
         print(
             f"{f_info}Datastore found in {f_path}{formatted_catdir_name}{f_info}, verifying datastore integrity...{f_reset}"
         )
@@ -144,7 +144,7 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
     return None
 
 
-def find_esm_datastore(experiment_dir: Path, datastore_name: str) -> DatastoreInfo:
+def find_esm_datastore(experiment_dir: Path, datastore_name: str) -> DataStoreFiles:
     """
     Try to find an ESM datastore in the experiment directory, with the same name
     as the one we intend to build. If not, return a dummy DatastoreInfo object.
@@ -197,13 +197,13 @@ def find_esm_datastore(experiment_dir: Path, datastore_name: str) -> DatastoreIn
     matched_pairs = [pair for pair in matched_pairs if pair[0].stem == datastore_name]
 
     if len(matched_pairs) == 0:
-        return DatastoreInfo("", "", False, "")
+        return DataStoreFiles("", "", False)
     elif len(matched_pairs) > 1:
         raise MultipleDataStoreError(
             f"Multiple datastores found in {experiment_dir}. Please remove duplicates."
         )
 
-    return DatastoreInfo(*matched_pairs[0])
+    return DataStoreFiles(*matched_pairs[0])
 
 
 def scaffold_catalog_entry(interactive: bool) -> None:

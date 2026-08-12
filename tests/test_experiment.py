@@ -11,95 +11,13 @@ from intake_esm import esm_datastore
 
 from access_nri_intake.experiment.core import find_esm_datastore, use_datastore
 from access_nri_intake.experiment.utils import (
-    DatastoreInfo,
-    DataStoreInvalidCause,
+    DataStoreFiles,
     MultipleDataStoreError,
     parse_kwarg,
     validate_args,
 )
 from access_nri_intake.source import builders
 from access_nri_intake.source.builders import Builder
-
-
-@pytest.mark.parametrize(
-    "json_name, csv_name, validity, invalid_ds_cause",
-    [
-        (
-            "malformed/missing_attribute.json",
-            "malformed/missing_attribute.csv",
-            False,
-            DataStoreInvalidCause.COLUMN_MISMATCH,
-        ),
-        (
-            "malformed/missing_csv_col.json",
-            "malformed/missing_attribute.csv",
-            False,
-            DataStoreInvalidCause.MISMATCH_NAME,
-        ),
-        (
-            "malformed/missing_csv_col.json",
-            "malformed/missing_csv_col.csv",
-            False,
-            DataStoreInvalidCause.COLUMN_MISMATCH,
-        ),
-        (
-            "malformed/corrupted.json",
-            "malformed/corrupted.csv",
-            False,
-            DataStoreInvalidCause.JSON_CORRUPTED,
-        ),
-        (
-            "malformed/wrong_fname.json",
-            "malformed/wrong_fname.csv",
-            False,
-            DataStoreInvalidCause.CATALOG_MISMATCH,
-        ),
-        (
-            "malformed/wrong_path.json",
-            "malformed/wrong_path.csv",
-            False,
-            DataStoreInvalidCause.PATH_MISMATCH,
-        ),
-        (
-            "cmip6-oi10.json",
-            "cmip6-oi10.csv",
-            True,
-            DataStoreInvalidCause.NO_ISSUE,
-        ),
-    ],
-)
-def test_datastore_info(json_name, csv_name, validity, invalid_ds_cause, test_data):
-    base_path = test_data / "esm_datastore"
-
-    ds_info = DatastoreInfo(base_path / json_name, base_path / csv_name)
-
-    assert ds_info.valid == validity
-    assert ds_info.invalid_ds_cause == invalid_ds_cause
-
-
-@pytest.mark.parametrize(
-    "args, expected",
-    [
-        (["malformed/missing_attribute.json", "malformed/missing_attribute.csv"], True),
-        (["malformed/missing_csv_col.json", "malformed/missing_csv_col.csv"], True),
-        (["malformed/wrong_fname.json", "malformed/wrong_fname.csv"], True),
-        (["malformed/wrong_path.json", "malformed/wrong_path.csv"], True),
-        (["cmip6-oi10.json", "cmip6-oi10.csv"], True),
-        (["", "", False, ""], False),
-    ],
-)
-def test_DatastoreInfo_bool(test_data, args, expected):
-    """
-    Check that the __bool__ method of the DatastoreInfo class works as expected.
-    """
-    base_path = test_data / "esm_datastore"
-
-    if expected:
-        args = [base_path / arg for arg in args]
-
-    ds_info = DatastoreInfo(*args)
-
-    assert bool(ds_info) == expected
 
 
 @pytest.mark.parametrize(
