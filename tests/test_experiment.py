@@ -9,7 +9,6 @@ from unittest import mock
 
 import pandas as pd
 import pytest
-import yamanifest
 from intake_esm import esm_datastore
 
 from access_nri_intake.experiment.core import find_esm_datastore, use_datastore
@@ -17,8 +16,7 @@ from access_nri_intake.experiment.utils import (DatastoreInfo,
                                                 DataStoreInvalidCause,
                                                 DataStoreWarning,
                                                 MultipleDataStoreError,
-                                                hash_catalog, parse_kwarg,
-                                                validate_args,
+                                                parse_kwarg, validate_args,
                                                 verify_ds_current)
 from access_nri_intake.source import builders
 from access_nri_intake.source.builders import Builder
