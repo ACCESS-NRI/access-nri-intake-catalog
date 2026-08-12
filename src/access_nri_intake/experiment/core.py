@@ -105,6 +105,12 @@ def use_datastore(  # noqa: PLR0913, PLR0917 # Allow this func to have many argu
                 category=DataStoreWarning,
                 stacklevel=2,
             )
+            old_datastore = None
+    else:
+        print(
+            f"{f_info}No datastore found in {f_path}{formatted_catdir_name}{f_info}, generating new datastore...{f_reset}"
+        )
+        old_datastore = None
 
     builder_instance = builder(path=str(experiment_dir), **builder_kwargs)
     builder_instance.get_assets().build()
