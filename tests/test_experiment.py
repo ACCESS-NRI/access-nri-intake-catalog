@@ -11,7 +11,7 @@ from intake_esm import esm_datastore
 
 from access_nri_intake.experiment.core import find_esm_datastore, use_datastore
 from access_nri_intake.experiment.utils import (
-    DataStoreFiles,
+    DataStoreWarning,
     MultipleDataStoreError,
     parse_kwarg,
     validate_args,
@@ -191,26 +191,27 @@ def test_use_datastore_broken_existing(
         builder_kwargs={},
     )
 
-    # Now break the catalog - we can just remove a column
+    # Now break the catalog - reserialise as feather, which is not a valid format
     pd.read_csv(
         destdir / "experiment_datastore.csv",
         index_col=0,
-    ).to_csv(
+    ).to_feather(
         destdir / "experiment_datastore.csv",
-        index=False,
     )
 
-    ret = use_datastore(
-        experiment_dir=Path(basedir[0]),
-        builder=builder_type,
-        open_ds=True,
-        builder_kwargs={},
-    )
+    with pytest.warns(DataStoreWarning, match="but it is invalid. Regenerating..."):
+        ret = use_datastore(
+            experiment_dir=Path(basedir[0]),
+            builder=builder_type,
+            open_ds=True,
+            builder_kwargs={},
+        )
     assert isinstance(ret, esm_datastore)
 
     captured = capsys.readouterr()
 
     assert "generating new datastore" in captured.out
+    assert "Datastore integrity verified!" not in captured.out
 
 
 @pytest.mark.parametrize(
