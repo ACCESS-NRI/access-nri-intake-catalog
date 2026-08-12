@@ -131,13 +131,8 @@ class DatastoreInfo:
 
         This allows us to define a bottom value for the DatastoreInfo object.
         """
-        return not all(
-            [
-                self.json_handle == "",
-                self.csv_handle == "",
-                not self.valid,
-                self.invalid_ds_cause == "",
-            ]
+        return self.valid or any(
+            (self.json_handle != "", self.csv_handle != "", self.invalid_ds_cause != "")
         )
 
     def match_broken_internal_path(self, ds_json: dict) -> bool:
