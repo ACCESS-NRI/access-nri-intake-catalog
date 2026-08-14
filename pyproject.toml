@@ -158,6 +158,7 @@ mypy-setup = { cmd = "mypy --install-types", description = "Install mypy type st
 pre-commit-install = { cmd = "pre-commit install", description = "Install pre-commit hooks" }
 pre-commit = { cmd = "pre-commit run --all-files && pixi lock", description = "Run pre-commit hooks" }
 dump-conda-env = { cmd = "pixi workspace export conda-environment --name access-nri-intake-test > env.yml", description = "Dump conda environment to env.yml" }
+setup-ipykernel = { cmd = "python -m ipykernel install --user --name=access-nri-intake-dev", description = "Set up the ipykernel for the dev environment (useful on Gadi)" }
 
 [tool.pixi.feature.test.pypi-dependencies]
 access_nri_intake = { path = ".", editable = false }
