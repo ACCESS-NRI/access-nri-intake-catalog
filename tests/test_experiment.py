@@ -3,109 +3,22 @@
 
 
 import shutil
-from datetime import datetime
 from pathlib import Path
-from unittest import mock
 
 import pandas as pd
 import pytest
-import yamanifest
 from intake_esm import esm_datastore
 
-from access_nri_intake.experiment.main import find_esm_datastore, use_datastore
+from access_nri_intake.experiment.core import find_esm_datastore, use_datastore
 from access_nri_intake.experiment.utils import (
-    DatastoreInfo,
-    DataStoreInvalidCause,
     DataStoreWarning,
     MultipleDataStoreError,
-    hash_catalog,
     parse_kwarg,
     validate_args,
     verify_ds_current,
 )
 from access_nri_intake.source import builders
 from access_nri_intake.source.builders import Builder
-
-
-@pytest.mark.parametrize(
-    "json_name, csv_name, validity, invalid_ds_cause",
-    [
-        (
-            "malformed/missing_attribute.json",
-            "malformed/missing_attribute.csv",
-            False,
-            DataStoreInvalidCause.COLUMN_MISMATCH,
-        ),
-        (
-            "malformed/missing_csv_col.json",
-            "malformed/missing_attribute.csv",
-            False,
-            DataStoreInvalidCause.MISMATCH_NAME,
-        ),
-        (
-            "malformed/missing_csv_col.json",
-            "malformed/missing_csv_col.csv",
-            False,
-            DataStoreInvalidCause.COLUMN_MISMATCH,
-        ),
-        (
-            "malformed/corrupted.json",
-            "malformed/corrupted.csv",
-            False,
-            DataStoreInvalidCause.JSON_CORRUPTED,
-        ),
-        (
-            "malformed/wrong_fname.json",
-            "malformed/wrong_fname.csv",
-            False,
-            DataStoreInvalidCause.CATALOG_MISMATCH,
-        ),
-        (
-            "malformed/wrong_path.json",
-            "malformed/wrong_path.csv",
-            False,
-            DataStoreInvalidCause.PATH_MISMATCH,
-        ),
-        (
-            "cmip6-oi10.json",
-            "cmip6-oi10.csv",
-            True,
-            DataStoreInvalidCause.NO_ISSUE,
-        ),
-    ],
-)
-def test_datastore_info(json_name, csv_name, validity, invalid_ds_cause, test_data):
-    base_path = test_data / "esm_datastore"
-
-    ds_info = DatastoreInfo(base_path / json_name, base_path / csv_name)
-
-    assert ds_info.valid == validity
-    assert ds_info.invalid_ds_cause == invalid_ds_cause
-
-
-@pytest.mark.parametrize(
-    "args, expected",
-    [
-        (["malformed/missing_attribute.json", "malformed/missing_attribute.csv"], True),
-        (["malformed/missing_csv_col.json", "malformed/missing_csv_col.csv"], True),
-        (["malformed/wrong_fname.json", "malformed/wrong_fname.csv"], True),
-        (["malformed/wrong_path.json", "malformed/wrong_path.csv"], True),
-        (["cmip6-oi10.json", "cmip6-oi10.csv"], True),
-        (["", "", False, ""], False),
-    ],
-)
-def test_DatastoreInfo_bool(test_data, args, expected):
-    """
-    Check that the __bool__ method of the DatastoreInfo class works as expected.
-    """
-    base_path = test_data / "esm_datastore"
-
-    if expected:
-        args = [base_path / arg for arg in args]
-
-    ds_info = DatastoreInfo(*args)
-
-    assert bool(ds_info) == expected
 
 
 @pytest.mark.parametrize(
@@ -130,122 +43,6 @@ def test_find_esm_datastore(test_data, subdir, datastore_name, expected):
 
 
 @pytest.mark.parametrize(
-    "ds_name, warning_str",
-    [
-        ("ccam-hq89", "extra files in datastore"),
-        ("cmip5-al33", "missing files from datastore"),
-        ("cordex-ig45", "No hash file found for datastore"),
-    ],
-)
-def test_verify_ds_current_fail_wrong_fileno(test_data, ds_name, warning_str):
-    """
-    We have the following hashes here:
-    - ccam-hq89: This should contain a hash that is not in the csv/json files (stolen from Barpa)
-    - cmip5-al33: This should miss a hash that is in the csv/json files
-    - cmip6-oi10: This should match up but have a different hash
-    - cordex-ig45: No hash, so should be rebuilt
-
-    # To make sure this works, we will need to grab & subset all the netcdf files
-    # that are in these datastores & hash them.
-    """
-
-    dir = test_data / "esm_datastore" / "local_paths"
-    experiment_files = set((dir / "nc_files" / ds_name).glob("*.nc"))
-    ds_info = DatastoreInfo(dir / f"{ds_name}.json", dir / f"{ds_name}.csv")
-
-    with pytest.warns(DataStoreWarning, match=warning_str):
-        ds_current_bool = verify_ds_current(
-            ds_info,
-            experiment_files,
-        )
-
-    assert not ds_current_bool
-
-
-@mock.patch("access_nri_intake.source.builders.Builder")
-def test_verify_ds_current_valid(mock_builder, test_data, tmpdir):
-    """
-    We have the following hashes here:
-    - barpa-py18: This should match up.
-
-    We can't guarantee that filesystem information will be the same across the
-    various systems this test might be run on, so to circumvent that issue, we
-    will write the hash out to a temporary file and verify against that.
-    """
-    shutil.copytree(test_data / "esm_datastore" / "local_paths", tmpdir / "local_paths")
-
-    experiment_files = [
-        str(file)
-        for file in Path(tmpdir / "local_paths" / "nc_files" / "barpa-py18")
-        .resolve()
-        .glob("*.nc")
-    ]
-
-    # Mock the builder instance to have a df.path.tolist() method that returns
-    # the experiment files.
-    mock_builder.df.path.tolist.return_value = experiment_files
-
-    hash_catalog(tmpdir / "local_paths", "barpa-py18", mock_builder)
-
-    dir = tmpdir / "local_paths"
-    ds_info = DatastoreInfo(dir / "barpa-py18.json", dir / "barpa-py18.csv")
-
-    ds_current_bool = verify_ds_current(
-        ds_info,
-        set(experiment_files),
-    )
-
-    assert ds_current_bool
-
-
-@mock.patch("access_nri_intake.source.builders.Builder")
-def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir):
-    """
-    We have the following hashes here:
-    - cmip6-oi10: This should match up but have a different hash
-
-    We can't guarantee that filesystem information will be the same across the
-    various systems this test might be run on, so to circumvent that issue, we
-    will write the hash out to a temporary file and verify against that.
-    """
-
-    shutil.copytree(test_data / "esm_datastore" / "local_paths", tmpdir / "local_paths")
-
-    experiment_files = [
-        str(file)
-        for file in Path(tmpdir / "local_paths" / "nc_files" / "cmip6-oi10")
-        .resolve()
-        .glob("*.nc")
-    ]
-
-    ds_dir = tmpdir / "local_paths"
-
-    # Mock the builder instance to have a df.path.tolist() method that returns
-    # the experiment files.
-    mock_builder.df.path.tolist.return_value = experiment_files
-
-    hash_catalog(ds_dir, "cmip6-oi10", mock_builder)
-    # Now we need to open the hash file and change the hash to something else
-
-    manifest = yamanifest.Manifest(str(ds_dir / ".cmip6-oi10.hash")).load()
-
-    for bh in manifest.data.values():
-        bh["hashes"]["binhash-xxh"] = "0" * len(bh["hashes"]["binhash-xxh"])
-
-    manifest.dump()
-
-    ds_info = DatastoreInfo(ds_dir / "cmip6-oi10.json", ds_dir / "cmip6-oi10.csv")
-
-    with pytest.warns(DataStoreWarning, match="differing hashes"):
-        ds_current_bool = verify_ds_current(
-            ds_info,
-            set(experiment_files),
-        )
-
-    assert not ds_current_bool
-
-
-@pytest.mark.parametrize(
     "basedir, builder, kwargs, num_assets",
     [
         ("access-om2", "AccessOm2Builder", {}, 12),
@@ -264,12 +61,8 @@ def test_verify_ds_current_fail_differing_hashes(mock_builder, test_data, tmpdir
     "open_ds, return_type", [(True, esm_datastore), (False, type(None))]
 )
 @pytest.mark.parametrize("use_path", [True, False])
-@mock.patch(
-    "access_nri_intake.experiment.main.datetime",
-)
 @pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
 def test_use_datastore(
-    mock_datetime,
     test_data: Path,
     basedir,
     builder,
@@ -285,7 +78,6 @@ def test_use_datastore(
     Run the `use_datastore` function on a bunch of different builders to make sure
     they all work as expected.
     """
-    mock_datetime.now.return_value = datetime(2000, 1, 1, 0, 0, 0)
     srcdir, destdir = test_data / basedir, tmp_path / "tests" / "data" / basedir
 
     shutil.copytree(src=srcdir, dst=destdir)
@@ -316,22 +108,18 @@ def test_use_datastore(
     assert len(builder.assets) - len(builder.invalid_assets) == num_assets
     # ^ This check looks really stupid, but we don't have a `builder.valid_assets`
     # property. I think we want to add this tbh...
-    invalid_assetfile = Path(
-        destdir / "experiment_datastore_invalid_assets_2000-01-01-00:00:00.csv"
-    )
-
-    assert invalid_assetfile.exists()
-    invalid_assets_df = pd.read_csv(invalid_assetfile)
-    assert len(invalid_assets_df) == 1
-    assert Path(invalid_assets_df.loc[0, "INVALID_ASSET"]).stem == "invalid_asset"
 
     captured = capsys.readouterr()
-    assert "Generating esm-datastore for" in captured.out
-    assert "Hashing catalog" in captured.out
-    assert (
-        "Please note that this has not added the datastore to the access-nri-intake catalog"
-        in captured.out
-    )
+    assert "generating new datastore" in captured.out
+
+    # The invalid asset should be reported to the user in a CSV file.
+    invalid_files = list(destdir.glob("experiment_datastore_invalid_assets_*.csv"))
+    assert len(invalid_files) == 1
+    invalid_df = pd.read_csv(invalid_files[0])
+    assert len(invalid_df) == 1
+    assert Path(invalid_df.loc[0, "INVALID_ASSET"]).stem == "invalid_asset"
+    assert "Some assets were not included in the datastore" in captured.out
+
     if not open_ds:
         assert "To open the datastore" in captured.out
     else:
@@ -368,6 +156,8 @@ def test_use_datastore_existing(
         open_ds=False,
         builder_kwargs={},
     )
+    capsys.readouterr()  # Clear the buffer so we only assert on the second run
+
     # Run it again so that we can test the case where the datastore already exists
     ret = use_datastore(
         experiment_dir=Path(basedir[0]),
@@ -380,6 +170,8 @@ def test_use_datastore_existing(
     captured = capsys.readouterr()
 
     assert "Datastore found in " in captured.out
+    assert "Datastore integrity verified!" in captured.out
+    assert "Saving esm-datastore" not in captured.out  # Save must be skipped
 
 
 def test_use_datastore_broken_existing(
@@ -405,7 +197,7 @@ def test_use_datastore_broken_existing(
 
     assert isinstance(builder.assets, list)
 
-    # This creates a bunch of datastoers that we don't actually want here.
+    # This creates a bunch of datastores that we don't actually want here.
     ret = use_datastore(
         experiment_dir=Path(basedir[0]),
         builder=builder_type,
@@ -413,17 +205,15 @@ def test_use_datastore_broken_existing(
         builder_kwargs={},
     )
 
-    # Now break the catalog - we can just remove a column
+    # Now break the catalog - reserialise as feather, which is not a valid format
     pd.read_csv(
         destdir / "experiment_datastore.csv",
         index_col=0,
-    ).to_csv(
+    ).to_feather(
         destdir / "experiment_datastore.csv",
-        index=False,
     )
 
-    # Run it again so that we can test the case where the datastore already exists
-    with pytest.warns(DataStoreWarning, match="columns specified in JSON do not match"):
+    with pytest.warns(DataStoreWarning, match="but it is invalid. Regenerating..."):
         ret = use_datastore(
             experiment_dir=Path(basedir[0]),
             builder=builder_type,
@@ -434,7 +224,21 @@ def test_use_datastore_broken_existing(
 
     captured = capsys.readouterr()
 
-    assert "Building esm-datastore" in captured.out
+    assert "generating new datastore" in captured.out
+    assert "Datastore integrity verified!" not in captured.out
+
+
+def test_verify_ds_current_mismatch(test_data):
+    """
+    An existing datastore compared against a non-matching dummy dataframe is not
+    current, so verify_ds_current returns False.
+    """
+    existing_datastore = esm_datastore(
+        str(test_data / "esm_datastore" / "cmip5-al33.json")
+    )
+    dummy_df = pd.DataFrame({"path": ["does_not_match.nc"]})
+
+    assert verify_ds_current(dummy_df, existing_datastore) is False
 
 
 @pytest.mark.parametrize(

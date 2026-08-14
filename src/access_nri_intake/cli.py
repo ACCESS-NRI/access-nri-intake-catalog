@@ -24,7 +24,7 @@ from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
 from .experiment.colours import f_info, f_path, f_reset
-from .experiment.main import scaffold_catalog_entry as _scaffold_catalog_entry
+from .experiment.core import scaffold_catalog_entry as _scaffold_catalog_entry
 from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
@@ -1008,7 +1008,7 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
             f" {f_info}{', '.join(builders.__all__)}{f_reset}."
             " To build a datastore for a new model, please contact the ACCESS-NRI team."
         ),
-        required=False,
+        required=True,
         # If we can, it would be nice to eventually relax this and try to automatically
         # determine the builder if possible.
     )
