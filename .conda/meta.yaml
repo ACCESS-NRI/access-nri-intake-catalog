@@ -2,6 +2,8 @@
 {% set version = data.get('version') %}
 {% set pyproj = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
 {% set deps = pyproj.get('project', {}).get('dependencies',[]) %}
+{# Map PyPI distribution names to their conda-forge equivalents #}
+{% set conda_name_map = {'xxhash': 'python-xxhash'} %}
 
 package:
   name: access-nri-intake
@@ -24,7 +26,8 @@ requirements:
   run:
     - python >=3.10
     {% for dep in deps %}
-    - {{ dep }}
+    {% set dep_name = (dep | replace('>',' ') | replace('<',' ') | replace('=',' ') | replace('!',' ') | replace('~',' ') | replace(',',' ')).split()[0] %}
+    - {{ conda_name_map.get(dep_name, dep_name) }}{{ dep[dep_name | length:] }}
     {% endfor %}
 
 about:
