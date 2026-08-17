@@ -40,7 +40,7 @@ __all__ = [
     "ROMSBuilder",
     "WoaBuilder",
     "Cmip6Builder",
-    "AccessAm3Builder"
+    "AccessAm3Builder",
 ]
 
 # Frequency translations
@@ -1126,6 +1126,7 @@ class Cmip6Builder(BaseBuilder):
 
         return ncinfo_dict
 
+
 class AccessAm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-AM3 datasets"""
 
@@ -1183,5 +1184,3 @@ class AccessAm3Builder(BaseBuilder):
         )
 
         return ncinfo_dict
-
-
