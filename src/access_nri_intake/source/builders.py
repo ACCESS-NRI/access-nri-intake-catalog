@@ -40,6 +40,7 @@ __all__ = [
     "ROMSBuilder",
     "WoaBuilder",
     "Cmip6Builder",
+    "AccessAm3Builder"
 ]
 
 # Frequency translations
@@ -1124,3 +1125,63 @@ class Cmip6Builder(BaseBuilder):
                 ncinfo_dict["member"] = f"r{int(member_id)}"
 
         return ncinfo_dict
+
+class AccessAm3Builder(BaseBuilder):
+    """Intake-ESM datastore builder for ACCESS-AM3 datasets"""
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a AccessAm3Builder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        default_kwargs = dict(
+            path=path,
+            depth=2,
+            exclude_patterns=kwargs.get(
+                "exclude_patterns", []
+            ),
+            include_patterns=kwargs.get(
+                "include_patterns",
+                ["share/data/History_Data/netCDF*.nc"]),
+            data_format="netcdf",
+            groupby_attrs=[
+                "file_id",
+                "temporal_label",
+            ],
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+        kwargs = {**default_kwargs, **kwargs}
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        output_nc_info = cls.parse_ncfile(file)
+        ncinfo_dict = output_nc_info.to_dict()
+
+        ncinfo_dict["realm"] = "atmos"
+
+        ncinfo_dict["file_id"] = ".".join(
+            [
+                str(ncinfo_dict["realm"]),
+                str(ncinfo_dict["frequency"]),
+                str(ncinfo_dict["file_id"]),
+            ]
+        )
+
+        return ncinfo_dict
+
+
