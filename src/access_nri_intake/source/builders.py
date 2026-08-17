@@ -40,7 +40,7 @@ __all__ = [
     "ROMSBuilder",
     "WoaBuilder",
     "Cmip6Builder",
-    "AccessAm3Builder"
+    "AccessAm3Builder",
 ]
 
 # Frequency translations
@@ -1126,6 +1126,7 @@ class Cmip6Builder(BaseBuilder):
 
         return ncinfo_dict
 
+
 class AccessAm3Builder(BaseBuilder):
     """Intake-ESM datastore builder for ACCESS-AM3 datasets"""
 
@@ -1142,12 +1143,10 @@ class AccessAm3Builder(BaseBuilder):
         default_kwargs = dict(
             path=path,
             depth=2,
-            exclude_patterns=kwargs.get(
-                "exclude_patterns", []
-            ),
+            exclude_patterns=kwargs.get("exclude_patterns", []),
             include_patterns=kwargs.get(
-                "include_patterns",
-                ["share/data/History_Data/netCDF*.nc"]),
+                "include_patterns", ["share/data/History_Data/netCDF*.nc"]
+            ),
             data_format="netcdf",
             groupby_attrs=[
                 "file_id",
@@ -1183,5 +1182,3 @@ class AccessAm3Builder(BaseBuilder):
         )
 
         return ncinfo_dict
-
-
