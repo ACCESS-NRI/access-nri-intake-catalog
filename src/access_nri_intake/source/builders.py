@@ -1141,17 +1141,17 @@ class AccessAm3Builder(BaseBuilder):
         """
 
         default_kwargs = dict(
-            path=path,
-            depth=0,
+            path=path + "/share/data/History_Data/netCDF",
+            depth=1,
             exclude_patterns=kwargs.get("exclude_patterns", []),
             include_patterns=kwargs.get(
-                "include_patterns", ["share/data/History_Data/netCDF/*.nc"]
+                "include_patterns", ["*.nc"]
             ),
-            data_format="netcdf",
             groupby_attrs=[
                 "file_id",
                 "temporal_label",
             ],
+            data_format="netcdf",
             aggregations=[
                 {
                     "type": "join_existing",
