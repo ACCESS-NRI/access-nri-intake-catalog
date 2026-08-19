@@ -61,7 +61,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["woa"], "WoaBuilder", {}, 8, 8, 3),
         (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
-        (["access-am3"], "AccessAm3Builder", {}, 0, 0, 0)
+        (["access-am3"], "AccessAm3Builder", {}, 0, 0, 0),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -3200,10 +3200,7 @@ def test_parse_filename(builder, filename, expected):
                     "...",
                     "...",
                 ],
-                variable_standard_name=[
-                    "...",
-                    "..."
-                ],
+                variable_standard_name=["...", "..."],
                 variable_cell_methods=[
                     "...",
                     "...",
