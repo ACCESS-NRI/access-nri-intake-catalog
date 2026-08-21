@@ -61,6 +61,7 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["woa"], "WoaBuilder", {}, 8, 8, 3),
         (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
+        (["access-am3"], "AccessAm3Builder", {}, 0, 0, 0),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -356,6 +357,13 @@ def test_builder_build(
             None,
             "xt_ocean:2.yt_ocean:2",
         ),
+        (
+            "access-am3/...",
+            "AccessAm3Builder",
+            "atmos",
+            None,
+            "coord_1:size1.coord_2:size2",
+        ),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -415,6 +423,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
     [
         "AccessOm2Builder",
         "AccessOm3Builder",
+        "AccessAm3Builder",
         "Mom6Builder",
         "AccessEsm15Builder",
         "AccessEsm16Builder",
@@ -659,6 +668,13 @@ def test_builder_columns_with_iterables(test_data):
             "time",
             "GRID_X_T:2.GRID_Y_T:2.ZT:2",
         ),
+        # Example ACCESS-AM3 filenames
+        (
+            builders.AccessAm3Builder,
+            "something.nc",
+            "time",
+            "something_else",
+        ),
     ],
 )
 def test_generate_file_shape_info(builder, filename, time_dim, expected):
@@ -867,6 +883,8 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
             "woa13_ts_01_mom01",
             None,
         ),
+        # Example ACCESS-AM3 filenames
+        (builders.AccessAm3Builder, "filename", None),
     ],
 )
 def test_parse_filename(builder, filename, expected):
@@ -3164,6 +3182,35 @@ def test_parse_filename(builder, filename, expected):
                 ],
             ),
         ),
+        (
+            builders.AccessAm3Builder,
+            "sample/path/to/file.nc",
+            _NCFileInfo(
+                path=None,  # type: ignore
+                filename="...",
+                file_id="...",
+                frequency="...",
+                start_date="...",
+                end_date="...",
+                variable=[
+                    "...",
+                    "...",
+                ],
+                variable_long_name=[
+                    "...",
+                    "...",
+                ],
+                variable_standard_name=["...", "..."],
+                variable_cell_methods=[
+                    "...",
+                    "...",
+                ],
+                variable_units=[
+                    "...",
+                    "...",
+                ],
+            ),
+        ),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -3249,6 +3296,7 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
         (builders.AccessEsm15Builder, ["*.nc*"], ["*restart*"]),
         (builders.AccessCm2Builder, ["*.nc*"], ["*restart*"]),
         (builders.ROMSBuilder, ["*.nc"], ["*avg*", "*rst*"]),
+        (builders.AccessAm3Builder, ["*.nc*"], ["*restart*"]),
     ],
 )
 @pytest.mark.parametrize("include_patts", [None, ["include", "patterns"]])
