@@ -33,7 +33,7 @@ PARTITION_TABLE = {
     "cmip5_al33": ["realm", "table"],
     "narclim2_zz63": ["experiment_id", "frequency"],
     "barpa_py18": ["source_id", "domain_id", "freq"],
-    "cordex_ig45": ["experiment_id", "frequency"],
+    "cordex_ig45": ["driving_experiment_id", "frequency"],
     "era5_rt52": ["product", "levtype"],
     "rcm_ccam_hq89": ["experiment_id", "version"],
     "01deg_jra55v140_iaf_cycle4": ["frequency"],
