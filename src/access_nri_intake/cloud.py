@@ -307,11 +307,15 @@ class CatalogMirror:
 
         for file in self.local_json_files:
             try:
+                # Partitioned datastores become hive directories; polars needs a
+                # trailing slash to read them.
+                suffix = "/" if file.stem in PARTITION_TABLE else ""
                 pl.read_json(file).with_columns(
                     pl.concat_str(
                         [
                             pl.lit(f"{BUCKET_BASE_URL}/source/"),
                             pl.col("catalog_file").str.split("/").list.last(),
+                            pl.lit(suffix),
                         ]
                     ).alias("catalog_file")
                 ).write_ndjson(file)
