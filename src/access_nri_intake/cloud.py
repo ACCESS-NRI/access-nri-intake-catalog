@@ -64,7 +64,8 @@ CONTAINER_HEADERS = {
     "X-Container-Meta-Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
 }
 
-BUCKET_BASE_URL = "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog"
+BUCKET_NAME = "access-nri-intake-catalog"
+BUCKET_BASE_URL = f"https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/{BUCKET_NAME}"
 
 """
 See https://stackoverflow.com/questions/76782018/what-is-actually-meant-when-referring-to-parquet-row-group-size
@@ -86,7 +87,7 @@ class CatalogMirror:
     """
 
     def __init__(self) -> None:
-        self.bucket_name = "access-nri-intake-catalog"
+        self.bucket_name = BUCKET_NAME
         self.local_json_files: list[Path] = []
         self.local_pq_files: list[Path] = []
 
@@ -525,7 +526,7 @@ class CatalogMirror:
         )
 
         conn.post_container(
-            container="access-nri-intake-catalog",
+            container=BUCKET_NAME,
             headers=CONTAINER_HEADERS,
         )
 
@@ -535,7 +536,7 @@ class CatalogMirror:
             rel_path = object.relative_to(self.local_mirror_path)
             with open(object, "rb") as f:
                 conn.put_object(
-                    container="access-nri-intake-catalog",
+                    container=BUCKET_NAME,
                     obj=str(rel_path),
                     contents=f,
                 )
