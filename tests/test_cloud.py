@@ -10,7 +10,7 @@ from unittest import mock
 import polars as pl
 import pytest
 
-from access_nri_intake.cloud import CatalogMirror, mirror_catalog
+from access_nri_intake.cloud import PARTITION_TABLE, CatalogMirror, mirror_catalog
 
 
 def test_entrypoint():
@@ -159,9 +159,16 @@ class TestCatalogMirror:
         for f in json_files_updated:
             with open(f) as fobj:
                 json_dict = json.load(fobj)
-            assert json_dict["catalog_file"].startswith(
+            catalog_file = json_dict["catalog_file"]
+            assert catalog_file.startswith(
                 "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog/source/"
             )
+            # Partitioned datastores become hive directories, so their path needs
+            # a trailing slash for polars to read them; unpartitioned ones don't.
+            if f.stem in PARTITION_TABLE:
+                assert catalog_file.endswith(".parquet/")
+            else:
+                assert catalog_file.endswith(".parquet")
 
     def test_update_esm_datastores_failure(self, tmp_dataframe_catfile):
         """
