@@ -1,0 +1,40 @@
+builder: AccessEsm16Builder
+
+translator: DefaultTranslator
+
+sources:
+
+  - metadata_yaml: /g/data/jq44/access-nri/access-esm1p6/global/1pctCO2/r1i1p1f1/2026.04.15/metadata.yaml
+    ensemble: false
+    path:
+      - /g/data/jq44/access-nri/access-esm1p6/global/1pctCO2/r1i1p1f1/2026.04.15
+    
+  - metadata_yaml: /g/data/jq44/access-nri/access-esm1p6/global/esm-historical/r1i1p1f1/2026.06.12/metadata.yaml
+    # Currently only one ensemble member has been published
+    # May need a shared metadata.yaml when other members are ready?
+    ensemble: true
+    path:
+      - /g/data/jq44/access-nri/access-esm1p6/global/esm-historical/r1i1p1f1/2026.06.12
+
+  - metadata_yaml: /g/data/jq44/access-nri/access-esm1p6/global/esm-piControl/r1i1p1f1/2026.04.14/metadata.yaml
+    ensemble: false
+    path:
+      - /g/data/jq44/access-nri/access-esm1p6/global/esm-piControl/r1i1p1f1/2026.04.14
+
+  - metadata_yaml: /g/data/jq44/access-nri/access-esm1p6/global/historical/r1i1p1f1/2026.06.12/metadata.yaml
+    # Currently only one ensemble member has been published
+    # May need a shared metadata.yaml when other members are ready?
+    ensemble: true
+    path:
+      - /g/data/jq44/access-nri/access-esm1p6/global/historical/r1i1p1f1/2026.06.12
+    
+
+  - metadata_yaml: /g/data/jq44/access-nri/access-esm1p6/global/piControl/r1i1p1f1/2026.04.07/metadata.yaml
+    ensemble: false
+    path:
+      - /g/data/jq44/access-nri/access-esm1p6/global/piControl/r1i1p1f1/2026.04.07
+
+  - metadata_yaml: /g/data/jq44/access-nri/access-esm1p6/global/piControl/r1i1p1f1/2026.04.22/metadata.yaml
+    ensemble: false
+    path:
+      - /g/data/jq44/access-nri/access-esm1p6/global/piControl/r1i1p1f1/2026.04.22
