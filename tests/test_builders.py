@@ -362,14 +362,14 @@ def test_builder_build(
             "AccessAm3Builder",
             "atmos",
             None,
-            "atmos.1day.bnds:2.depth:6.lat:144.lat_v:145.lon:192.lon_u:192.model_rho_level_number:52.model_theta_level_number:52.pseudo_level:17",
+            "atmos.1day.bnds:2.depth:2.lat:2.lat_v:2.lon:2.lon_u:2.model_rho_level_number:2.model_theta_level_number:2.pseudo_level:2",
         ),
         (
             "access-am3/n96e-release-3.0/share/data/History_Data/netCDF/am3a.pm1982jan.nc",
             "AccessAm3Builder",
             "atmos",
             None,
-            "atmos.1mon.bnds:2.depth:6.dim0:8.height:40.height_0:40.lat:144.lat_v:145.lon:192.lon_u:192.model_rho_level_number:85.model_theta_level_number:85.model_theta_level_number_0:50.model_theta_level_number_2:52.pressure_0:7.pressure_1:17.pseudo_level:6.pseudo_level_0:7.pseudo_level_1:15.pseudo_level_2:17.pseudo_level_3:13",
+            "atmos.1mon.bnds:2.depth:2.dim0:2.height:2.height_0:2.lat:2.lat_v:2.lon:2.lon_u:2.model_rho_level_number:2.model_theta_level_number:2.model_theta_level_number_0:2.model_theta_level_number_2:2.pressure_0:2.pressure_1:2.pseudo_level:2.pseudo_level_0:2.pseudo_level_1:2.pseudo_level_2:2.pseudo_level_3:2",
         ),
     ],
 )
