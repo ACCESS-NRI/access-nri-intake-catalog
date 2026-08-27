@@ -3644,7 +3644,7 @@ def test_parse_access_ncfile(test_data, builder, filename, expected, compare_fil
         (builders.AccessEsm15Builder, ["*.nc*"], ["*restart*"]),
         (builders.AccessCm2Builder, ["*.nc*"], ["*restart*"]),
         (builders.ROMSBuilder, ["*.nc"], ["*avg*", "*rst*"]),
-        (builders.AccessAm3Builder, ["*.nc"], []),
+        (builders.AccessAm3Builder, ["*.nc"], ["*etc*"]),
     ],
 )
 @pytest.mark.parametrize("include_patts", [None, ["include", "patterns"]])

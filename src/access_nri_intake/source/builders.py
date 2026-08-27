@@ -1141,9 +1141,9 @@ class AccessAm3Builder(BaseBuilder):
         """
 
         default_kwargs = dict(
-            path=path + "/share/data/History_Data/netCDF",
-            depth=1,
-            exclude_patterns=kwargs.get("exclude_patterns", []),
+            path=path,
+            depth=5,
+            exclude_patterns=kwargs.get("exclude_patterns", ["*etc*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             groupby_attrs=[
                 "file_id",
