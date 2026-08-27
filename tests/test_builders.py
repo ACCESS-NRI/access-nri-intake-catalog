@@ -679,7 +679,7 @@ def test_builder_columns_with_iterables(test_data):
             builders.AccessAm3Builder,
             "am3a.pd1982jan_nodata.nc",
             "time",
-            "bnds:2.depth:6.lat:144.lat_v:145.lon:192.lon_u:192.model_rho_level_number:52.model_theta_level_number:52.pseudo_level:17"
+            "bnds:2.depth:6.lat:144.lat_v:145.lon:192.lon_u:192.model_rho_level_number:52.model_theta_level_number:52.pseudo_level:17",
         ),
         (
             builders.AccessAm3Builder,
@@ -899,11 +899,7 @@ def test_generate_file_shape_info(builder, filename, time_dim, expected):
         # filename yet. The example files included are streams "pd" and "pm",
         # which do mean "daily" and "monthly", but this is not a rule- there
         # are also "pa" and "pe" streams, which both happen to be daily.
-        (
-            builders.AccessAm3Builder,
-            "am3a_pd1982jan.nc",
-            None
-        ),
+        (builders.AccessAm3Builder, "am3a_pd1982jan.nc", None),
     ],
 )
 def test_parse_filename(builder, filename, expected):
@@ -3279,7 +3275,7 @@ def test_parse_filename(builder, filename, expected):
                     "theta_level_height",
                     "theta_level_height_bnds",
                     "time",
-                    "time_bnds"
+                    "time_bnds",
                 ],
                 variable_long_name=[
                     "",
@@ -3349,7 +3345,7 @@ def test_parse_filename(builder, filename, expected):
                     "level_height",
                     "",
                     "",
-                    ""
+                    "",
                 ],
                 variable_standard_name=[
                     "depth",
@@ -3419,7 +3415,7 @@ def test_parse_filename(builder, filename, expected):
                     "",
                     "",
                     "time",
-                    ""
+                    "",
                 ],
                 variable_cell_methods=[
                     "",
@@ -3489,7 +3485,7 @@ def test_parse_filename(builder, filename, expected):
                     "",
                     "",
                     "",
-                    ""
+                    "",
                 ],
                 variable_units=[
                     "m",
@@ -3559,7 +3555,7 @@ def test_parse_filename(builder, filename, expected):
                     "m",
                     "",
                     "days since 1970-01-01",
-                    ""
+                    "",
                 ],
             ),
         ),
