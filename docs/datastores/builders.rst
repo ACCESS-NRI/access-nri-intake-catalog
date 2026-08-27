@@ -53,6 +53,13 @@ ACCESS-OM3 output: :code:`AccessOm3Builder`
    :special-members: __init__, build, save
    :noindex:
 
+ACCESS-AM3 output: :code:`AccessAm3Builder`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: access_nri_intake.source.builders.AccessAm3Builder
+   :special-members: __init__, build, save
+   :noindex:
+
 MOM6 output: :code:`Mom6Builder`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
