@@ -3844,7 +3844,7 @@ def test_builder_year_before_1000(
         (builders.ROMSBuilder, []),
         (builders.WoaBuilder, []),
         (builders.Cmip6Builder, [False]),
-        (builders.AccessAm3Builder, [])
+        (builders.AccessAm3Builder, []),
     ],
 )
 @mock.patch(
