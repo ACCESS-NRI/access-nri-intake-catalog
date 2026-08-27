@@ -358,14 +358,14 @@ def test_builder_build(
             "xt_ocean:2.yt_ocean:2",
         ),
         (
-            "access-am3/release-3.0/share/data/History_Data/netCDF/am3a.pd1982jan.nc",
+            "access-am3/n96e-release-3.0/share/data/History_Data/netCDF/am3a.pd1982jan.nc",
             "AccessAm3Builder",
             "atmos",
             None,
             "atmos.1day.bnds:2.depth:6.lat:144.lat_v:145.lon:192.lon_u:192.model_rho_level_number:52.model_theta_level_number:52.pseudo_level:17",
         ),
         (
-            "access-am3/release-3.0/share/data/History_Data/netCDF/am3a.pm1982jan.nc",
+            "access-am3/n96e-release-3.0/share/data/History_Data/netCDF/am3a.pm1982jan.nc",
             "AccessAm3Builder",
             "atmos",
             None,
