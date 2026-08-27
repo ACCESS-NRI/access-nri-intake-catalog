@@ -3199,7 +3199,7 @@ def test_parse_filename(builder, filename, expected):
         ),
         (
             builders.AccessAm3Builder,
-            "access-am3/am3a.pd1982jan.nc",
+            "access-am3/n96e-release-3.0/share/data/History_Data/netCDF/am3a.pd1982jan.nc",
             _NCFileInfo(
                 path=None,  # type: ignore
                 filename="am3a.pd1982jan.nc",
