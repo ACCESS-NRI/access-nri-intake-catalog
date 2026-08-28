@@ -8,6 +8,7 @@ import datetime
 import logging
 import re
 import shutil
+import sys
 import traceback
 import warnings
 from collections.abc import Sequence
@@ -23,9 +24,15 @@ from .catalog import EXP_JSONSCHEMA, translators
 from .catalog.manager import CatalogManager
 from .data import CATALOG_NAME_FORMAT
 from .experiment import use_datastore
-from .experiment.colours import f_info, f_path, f_reset
+from .experiment.colours import f_info, f_path, f_reset, f_warn
 from .experiment.core import scaffold_catalog_entry as _scaffold_catalog_entry
-from .experiment.utils import parse_kwarg, validate_args, warn_if_login_node
+from .experiment.utils import (
+    SchedulerKilledError,
+    catch_scheduler_termination,
+    parse_kwarg,
+    validate_args,
+    warn_if_login_node,
+)
 from .source import builders
 from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
 
@@ -1098,15 +1105,20 @@ def use_esm_datastore(argv: Sequence[str] | None = None) -> int:
 
     validate_args(builder, builder_kwargs)
 
-    use_datastore(
-        experiment_dir,
-        builder,
-        catalog_dir,
-        builder_kwargs=builder_kwargs,
-        datastore_name=datastore_name,
-        description=description,
-        open_ds=False,
-    )
+    try:
+        with catch_scheduler_termination():
+            use_datastore(
+                experiment_dir,
+                builder,
+                catalog_dir,
+                builder_kwargs=builder_kwargs,
+                datastore_name=datastore_name,
+                description=description,
+                open_ds=False,
+            )
+    except SchedulerKilledError as exc:
+        print(f"{f_warn}{exc}{f_reset}", file=sys.stderr)
+        return 1
 
     return 0
 

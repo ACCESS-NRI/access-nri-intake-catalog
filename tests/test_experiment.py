@@ -4,8 +4,8 @@
 
 import shutil
 import warnings
-from datetime import datetime
 from pathlib import Path
+from unittest import mock
 
 import pandas as pd
 import pytest
@@ -16,6 +16,8 @@ from access_nri_intake.experiment.utils import (
     DataStoreWarning,
     LoginNodeWarning,
     MultipleDataStoreError,
+    SchedulerKilledError,
+    catch_scheduler_termination,
     parse_kwarg,
     validate_args,
     verify_ds_current,
@@ -326,3 +328,24 @@ def test_login_node_warning(mock_socket, warns):
             with warnings.catch_warnings():
                 warnings.simplefilter("error", LoginNodeWarning)
                 warn_if_login_node()
+
+
+def test_catch_scheduler_termination_raises_on_sigterm():
+    """A SIGTERM received inside the context should be converted into a
+    SchedulerKilledError rather than terminating the process."""
+    import os
+    import signal
+
+    with pytest.raises(SchedulerKilledError):
+        with catch_scheduler_termination():
+            os.kill(os.getpid(), signal.SIGTERM)
+
+
+def test_catch_scheduler_termination_restores_handler():
+    """The previous SIGTERM handler should be restored on exiting the context."""
+    import signal
+
+    original = signal.getsignal(signal.SIGTERM)
+    with catch_scheduler_termination():
+        assert signal.getsignal(signal.SIGTERM) is not original
+    assert signal.getsignal(signal.SIGTERM) is original

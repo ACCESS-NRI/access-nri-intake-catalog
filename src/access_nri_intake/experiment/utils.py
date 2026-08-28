@@ -1,11 +1,13 @@
 import ast
-import json
-import re
+import signal
 import socket
 import warnings
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from inspect import signature
 from pathlib import Path
+from types import FrameType
 from typing import Any
 
 import pandas as pd
@@ -22,6 +24,13 @@ class DataStoreWarning(RuntimeWarning):
 
 class LoginNodeWarning(RuntimeWarning):
     """Warning that process may be killed when running on a login node"""
+
+    pass
+
+
+class SchedulerKilledError(RuntimeError):
+    """Raised when the process receives a SIGTERM, most likely because the job
+    scheduler killed the task (e.g. for exceeding login node resource limits)."""
 
     pass
 
@@ -175,3 +184,30 @@ def warn_if_login_node(msg: str | None = None) -> None:
 
     if "login" in hostnamestr:
         warnings.warn(message=msg, category=LoginNodeWarning, stacklevel=2)
+
+
+@contextmanager
+def catch_scheduler_termination(msg: str | None = None) -> Iterator[None]:
+    """
+    Install a SIGTERM handler for the duration of the context that converts a
+    scheduler kill into a `SchedulerKilledError`, rather than letting the process
+    die with a confusing traceback part-way through a build.
+
+    Note that SIGKILL - which the scheduler sends if the process does not exit
+    promptly after SIGTERM - cannot be caught, so a hard kill will still
+    terminate the process abruptly.
+    """
+    msg = msg or (
+        "Terminated by SIGTERM: the job scheduler most likely killed this task. "
+        "If you are on a login node, run build-esm-datastore via ARE instead."
+    )
+
+    def _handler(signum: int, frame: FrameType | None) -> None:
+        raise SchedulerKilledError(msg)
+
+    previous = signal.getsignal(signal.SIGTERM)
+    signal.signal(signal.SIGTERM, _handler)
+    try:
+        yield
+    finally:
+        signal.signal(signal.SIGTERM, previous)
