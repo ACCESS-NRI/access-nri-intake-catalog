@@ -64,7 +64,7 @@ CONTAINER_HEADERS = {
     "X-Container-Meta-Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
 }
 
-BUCKET_NAME = "access-nri-intake-catalog"
+BUCKET_NAME = "ct-sharded-pq-test"
 BUCKET_BASE_URL = f"https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/{BUCKET_NAME}"
 
 """
