@@ -185,12 +185,14 @@ class CatalogManager:
             datastore = pl.read_csv(datastore_path)
         else:
             # FIXME: need a more appropriate error here
-            raise FileExistsError(f"Unexpected filetype for datastore: {datastore_path.suffix}")
+            raise FileExistsError(
+                f"Unexpected filetype for datastore: {datastore_path.suffix}"
+            )
 
         # Check if any files in the datastore are newer than the datastore itself
         datastore_mtime = os.stat(datastore_path).st_mtime
 
-        return any([os.stat(p).st_mtime > datastore_mtime for p in datastore['path']])
+        return any([os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]])
 
     def load(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
         self,
