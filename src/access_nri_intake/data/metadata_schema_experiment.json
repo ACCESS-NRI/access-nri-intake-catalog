@@ -180,5 +180,5 @@
         "description",
         "long_description"
     ],
-    "additionalProperties": false
+    "additionalProperties": true
 }
