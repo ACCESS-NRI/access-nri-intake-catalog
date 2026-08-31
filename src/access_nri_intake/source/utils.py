@@ -13,6 +13,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import cftime
+import netCDF4
 import numpy as np
 import polars as pl
 import xarray as xr
@@ -483,6 +484,137 @@ def open_dataset_cached(*args, **kwargs) -> xr.Dataset:
     should have the needed info even if close()ed.
     """
     return xr.open_dataset(*args, **kwargs)
+
+
+class _NCVariableView:
+    """
+    A lightweight stand-in for an xarray Variable/DataArray, exposing only the
+    slice of the interface that ``parse_ncfile`` and :func:`get_timeinfo` use.
+
+    It holds the netCDF attributes and dimension names of a variable, plus - for
+    the time coordinate and its bounds variable - the raw array data, so that
+    :func:`get_timeinfo` can index into it exactly as it would an xarray object.
+    Reading the netcdf header directly avoids building a full xarray Dataset
+    (which wraps every variable and builds a pandas index over the time
+    coordinate) just to read metadata.
+    """
+
+    __slots__ = ("attrs", "dimensions", "data")
+
+    def __init__(self, attrs: dict, dimensions: tuple, data: np.ndarray | None = None):
+        self.attrs = attrs
+        self.dimensions = dimensions
+        self.data = data
+
+    def __getattr__(self, name: str):
+        # Only called when normal (slot) lookup fails, i.e. not for attrs/
+        # dimensions/data. Mirror xarray and netCDF4 exposing netCDF attributes
+        # as Python attributes, raising AttributeError (not KeyError) on a miss
+        # so get_timeinfo's `except AttributeError` on `.calendar` still works.
+        try:
+            return self.attrs[name]
+        except KeyError:
+            raise AttributeError(name)
+
+    def _require_data(self) -> np.ndarray:
+        # The data-accessing methods are only reached for the time coordinate and
+        # its bounds variable, which open_nc_view always populates.
+        assert self.data is not None
+        return self.data
+
+    def __getitem__(self, key):
+        return self._require_data()[key]
+
+    def __len__(self) -> int:
+        return len(self._require_data())
+
+    def __array__(self, dtype=None):
+        data = self._require_data()
+        return data if dtype is None else data.astype(dtype)
+
+    def to_numpy(self) -> np.ndarray:
+        return self._require_data()
+
+
+class _NCDatasetView:
+    """
+    A lightweight stand-in for an xarray Dataset, exposing only the slice of the
+    interface that ``parse_ncfile``, :func:`get_timeinfo` and
+    ``_generate_file_shape_info`` use. See :class:`_NCVariableView`.
+    """
+
+    __slots__ = ("variables", "sizes", "attrs")
+
+    def __init__(
+        self,
+        variables: dict[str, _NCVariableView],
+        sizes: dict[str, int],
+        attrs: dict,
+    ):
+        self.variables = variables
+        self.sizes = sizes
+        self.attrs = attrs
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.variables
+
+    def __getitem__(self, key: str) -> _NCVariableView:
+        return self.variables[key]
+
+
+def open_nc_view(file: str, time_dim: str = "time") -> _NCDatasetView:
+    """
+    Read a netcdf file's header with ``netCDF4`` and return a dataset-shaped view
+    carrying the information ``parse_ncfile`` needs: dimension sizes, every
+    variable's attributes and dimensions, the global attributes, and the raw
+    array data of the time coordinate and its bounds variable (the only data
+    :func:`get_timeinfo` reads).
+
+    Parameters
+    ----------
+    file: str
+        The path to the netcdf file.
+    time_dim: str
+        The name of the time dimension. Defaults to "time".
+
+    Returns
+    -------
+    view: _NCDatasetView
+    """
+    with netCDF4.Dataset(file, "r") as nc:
+        # Return raw values (no _FillValue masking / scale_factor), matching the
+        # previous xr.open_dataset(..., decode_cf=False) behaviour. This matters
+        # for get_timeinfo's np.isnan(bounds) check that decides has_bounds.
+        nc.set_auto_maskandscale(False)
+
+        # Only dimensions actually used by a variable, matching xarray's
+        # ds.sizes (a defined-but-unused dimension, as some ROMS files have, is
+        # excluded).
+        sizes = {
+            dim: nc.dimensions[dim].size
+            for var in nc.variables.values()
+            for dim in var.dimensions
+        }
+
+        global_attrs = {k: nc.getncattr(k) for k in nc.ncattrs()}
+
+        # get_timeinfo reads array data only from the time coordinate and, if
+        # present, its bounds variable - read those, leave everything else as
+        # metadata only.
+        data_names: set[str] = set()
+        if time_dim in nc.variables:
+            data_names.add(time_dim)
+            bounds = getattr(nc.variables[time_dim], "bounds", None)
+            if bounds is not None and bounds in nc.variables:
+                data_names.add(bounds)
+
+        variables = {}
+        for name, var in nc.variables.items():
+            attrs = {k: var.getncattr(k) for k in var.ncattrs()}
+            data = var[:] if name in data_names else None
+            variables[name] = _NCVariableView(attrs, tuple(var.dimensions), data)
+
+    return _NCDatasetView(variables, sizes, global_attrs)
 
 
 def _parse_variable_cell_methods(cell_methods: list[str]) -> str:
