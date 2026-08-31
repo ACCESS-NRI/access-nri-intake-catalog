@@ -14,6 +14,7 @@ import re
 import traceback
 from pathlib import Path
 
+import netCDF4
 import xarray as xr
 from ecgtools.builder import INVALID_ASSET, TRACEBACK, Builder
 
@@ -26,6 +27,7 @@ from .utils import (
     _VarInfo,
     get_timeinfo,
     open_dataset_cached,
+    open_nc_view,
 )
 
 __all__ = [
@@ -373,25 +375,28 @@ class BaseBuilder(Builder):
 
         filename_frequency = cls.parse_filename_freq(file_path.stem)
 
-        with open_dataset_cached(
-            file,
-            decode_cf=False,
-            decode_times=False,
-            decode_coords=False,
-        ) as ds:
-            dvars = _VarInfo()
-            additional_info = {}
+        ds = open_nc_view(file, time_dim)
 
-            for var in ds.variables:
-                attrs = ds[var].attrs
-                dvars.append_attrs(var, attrs)  # type: ignore
+        dvars = _VarInfo()
+        additional_info = {}
 
-            start_date, end_date, frequency = get_timeinfo(
-                ds, filename_frequency, time_dim
-            )
-            file_id = cls._generate_file_shape_info(ds, time_dim)
+        # Reproduce xarray's variable ordering: data variables (in on-disk
+        # order) followed by dimension coordinates (a 1-D variable whose single
+        # dimension shares its name). decode_coords=False means auxiliary
+        # coordinates are not promoted, so only dimension coordinates move.
+        names = list(ds.variables)
+        coord_names = [n for n in names if ds[n].dimensions == (n,)]
+        coord_set = set(coord_names)
+        ordered = [n for n in names if n not in coord_set] + coord_names
 
-            additional_info["realm"] = ds.attrs.get("realm", "")
+        for var in ordered:
+            attrs = ds[var].attrs
+            dvars.append_attrs(var, attrs)  # type: ignore
+
+        start_date, end_date, frequency = get_timeinfo(ds, filename_frequency, time_dim)
+        file_id = cls._generate_file_shape_info(ds, time_dim)
+
+        additional_info["realm"] = ds.attrs.get("realm", "")
 
         if not dvars.variable_list:
             raise EmptyFileError("This file contains no variables")
@@ -1108,21 +1113,17 @@ class Cmip6Builder(BaseBuilder):
             ]
         )
 
-        with open_dataset_cached(
-            file,
-            decode_cf=False,
-            decode_times=False,
-            decode_coords=False,
-        ) as ds:
-            member_id = ds.attrs.get("realization_index", None)
-            if member_id is None:
-                raise ParserError(
-                    f"Cannot determine member for file {file} - "
-                    "realization_index attribute missing"
-                )
+        with netCDF4.Dataset(file, "r") as nc:
+            member_id = getattr(nc, "realization_index", None)
 
-            if ensemble:
-                ncinfo_dict["member"] = f"r{int(member_id)}"
+        if member_id is None:
+            raise ParserError(
+                f"Cannot determine member for file {file} - "
+                "realization_index attribute missing"
+            )
+
+        if ensemble:
+            ncinfo_dict["member"] = f"r{int(member_id)}"
 
         return ncinfo_dict
 

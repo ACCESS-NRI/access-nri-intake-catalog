@@ -23,6 +23,7 @@ dependencies = [
     "intake-esm-access",
     "jsonschema",
     "libcst",
+    "netCDF4",
     "pydantic",
     "pandas<3.0.0",
     "polars>=1.24.0",
