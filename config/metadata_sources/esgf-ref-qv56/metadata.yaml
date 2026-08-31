@@ -1,4 +1,4 @@
-schema_version: 1-0-3
+schema_version: 1-0-4
 name: cmip-forcing-qv56
 experiment_uuid: fc49f8d2-2a43-4f34-8cce-6981d20365f0
 description: Earth System Grid (ESGF) Reference Datasets for Climate Model Analysis/Forcing

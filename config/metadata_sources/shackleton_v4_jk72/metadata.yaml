@@ -1,4 +1,4 @@
-schema_version: 1-0-3
+schema_version: 1-0-4
 name: shackleton_v4_jk72
 experiment_uuid: 927b5c0e-d413-4783-9592-40b35ce88f16
 description: Shackleton/Denman Ice Shelf-ocean model application built with ROMSIceShelf
