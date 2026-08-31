@@ -1,12 +1,12 @@
 {
-    "$id": "https://raw.githubusercontent.com/ACCESS-NRI/schema/main/au.org.access-nri/model/output/experiment-metadata/1-0-3.json",
+    "$id": "https://raw.githubusercontent.com/ACCESS-NRI/schema/main/au.org.access-nri/model/output/experiment-metadata/1-0-4.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Experiment metadata",
     "description": "The metadata associated with a model experiment",
     "type": "object",
     "properties": {
         "schema_version": {
-            "const": "1-0-3",
+            "const": "1-0-4",
             "description": "The version of the schema (string)"
         },
         "name": {
@@ -16,7 +16,7 @@
         "experiment_uuid": {
             "type": "string",
             "format": "uuid",
-            "description": "*Unique* uuid for the experiment (string)"
+            "description": "Unique uuid for the experiment (string)"
         },
         "description": {
             "type": "string",
@@ -34,7 +34,7 @@
                     "items": {"type": ["string", "null"]}
                 }
             ],
-            "description": "The name(s) of the model(s) used in the experiment (string)"
+            "description": "The name(s) of the model(s) used in the experiment (string or array of strings)"
         },
         "realm": {
             "type": "array",
@@ -59,7 +59,7 @@
                     }
                 ]
             },
-            "description": "The realm(s) included in the experiment (string)"
+            "description": "The realm(s) included in the experiment (array of strings)"
         },
         "frequency": {
             "type": "array",
@@ -94,14 +94,14 @@
                     }
                 ]
             },
-            "description": "The frequency(/ies) included in the experiment (string)"
+            "description": "The frequency(/ies) included in the experiment (array of strings)"
         },
         "variable": {
             "type": "array",
             "items": {
                 "type": ["string", "null"]
             },
-            "description": "The variable(s) included in the experiment (string)"
+            "description": "The variable(s) included in the experiment (array of strings)"
         },
         "nominal_resolution": {
             "oneOf": [
@@ -111,7 +111,7 @@
                     "items": {"type": ["string", "null"]}
                 }
             ],
-            "description": "The nominal resolution(s) of model(s) used in the experiment (string)"
+            "description": "The nominal resolution(s) of model(s) used in the experiment (string or array of strings), e.g. 10km"
         },
         "version": {
             "type": ["number", "string", "null"],
@@ -135,7 +135,7 @@
         },
         "license": {
             "type": ["string", "null"],
-            "description": "License of the experiment (string)"
+            "description": "License of the experiment (string, SPDX preferred)"
         },
         "url": {
             "type": ["string", "null"],
@@ -150,7 +150,7 @@
             "items": {
                 "type": ["string", "null"]
             },
-            "description": "experiment_uuids for any related experiment(s) (string)"
+            "description": "experiment_uuids for any related experiment(s) (array of strings)"
         },
         "notes": {
             "type": ["string", "null"],
@@ -161,7 +161,17 @@
             "items": {
                 "type": ["string", "null"]
             },
-            "description": "Keywords to associated with experiment (string)"
+            "description": "Keyword(s) associated with experiment (array of strings)"
+        },
+        "parent_experiment_branch_time": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "The model time corresponding to the restart path used to create this branch, e.g., 1951-02-01T00:00:00 (string)"
+        },
+        "parent_experiment_branch_commit": {
+            "type": ["string", "null"],
+            "minLength": 40,
+            "description": "Git commit hash of the source branch when this new branch was created (string)"
         }
     },
     "required": [
