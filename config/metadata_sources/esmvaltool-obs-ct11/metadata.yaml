@@ -1,4 +1,4 @@
-schema_version: 1-0-3
+schema_version: 1-0-4
 name: esmvaltool-obs-ct11
 experiment_uuid: 402A5C9F-187A-43D9-BCA9-B4FAE77D5EDF
 description: Replicated observational datasets for ESMValTool CT11

@@ -1,4 +1,4 @@
-schema_version: 1-0-3
+schema_version: 1-0-4
 name: WOA-13
 experiment_uuid: 4b8b6377-69f4-4c75-8049-e70ee334f4e0
 description: 2013 World Ocean Atlas (WOA-13), regridded to various model grids.
