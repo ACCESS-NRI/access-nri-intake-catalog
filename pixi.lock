@@ -9896,6 +9896,7 @@ packages:
   - intake-esm-access
   - jsonschema
   - libcst
+  - netcdf4
   - pydantic
   - pandas<3.0.0
   - polars>=1.24.0

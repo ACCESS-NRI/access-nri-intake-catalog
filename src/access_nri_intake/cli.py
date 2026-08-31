@@ -27,7 +27,12 @@ from .experiment.colours import f_info, f_path, f_reset
 from .experiment.core import scaffold_catalog_entry as _scaffold_catalog_entry
 from .experiment.utils import parse_kwarg, validate_args
 from .source import builders
-from .utils import _can_be_array, get_catalog_fp, load_metadata_yaml
+from .utils import (
+    _can_be_array,
+    get_catalog_fp,
+    get_versioned_schema,
+    load_metadata_yaml,
+)
 
 STORAGE_FLAG_PATTERN = "gdata/[a-z]{1,2}[0-9]{1,2}"
 
@@ -347,8 +352,12 @@ def _parse_build_inputs(
                 )
 
             try:
+                schema_version = load_metadata_yaml(
+                    Path(data_base_path) / metadata_yaml, None
+                ).get("schema_version", None)
+                versioned_exp_schema = get_versioned_schema(schema_version)
                 metadata = load_metadata_yaml(
-                    Path(data_base_path) / metadata_yaml, EXP_JSONSCHEMA
+                    Path(data_base_path) / metadata_yaml, versioned_exp_schema
                 )
             except jsonschema.exceptions.ValidationError:
                 warnings.warn(
@@ -928,6 +937,8 @@ def metadata_validate(argv: Sequence[str] | None = None):
         if Path(f).is_file():
             print(f"Validating {f}... ")
             try:
+                schema_version = load_metadata_yaml(f, None).get("schema_version", None)
+                EXP_JSONSCHEMA = get_versioned_schema(schema_version)
                 load_metadata_yaml(f, EXP_JSONSCHEMA)
                 print("\nSuccess!")
             except jsonschema.ValidationError as e:  # Don't print the stacktrace
