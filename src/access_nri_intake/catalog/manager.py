@@ -195,7 +195,7 @@ class CatalogManager:
             )
 
         # Check the assets the builder will build matches the those in the datastore
-        if sorted(datastore['path'].to_list()) != sorted(builder.get_assets().assets):
+        if sorted(datastore["path"].to_list()) != sorted(builder.get_assets().assets):
             return True
 
         # Check if any files in the datastore have been modified since the
