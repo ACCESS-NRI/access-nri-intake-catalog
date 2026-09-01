@@ -33,7 +33,7 @@ PARTITION_TABLE = {
     "cmip5_al33": ["realm", "table"],
     "narclim2_zz63": ["experiment_id", "frequency"],
     "barpa_py18": ["source_id", "domain_id", "freq"],
-    "cordex_ig45": ["experiment_id", "frequency"],
+    "cordex_ig45": ["driving_experiment_id", "frequency"],
     "era5_rt52": ["product", "levtype"],
     "rcm_ccam_hq89": ["experiment_id", "version"],
     "01deg_jra55v140_iaf_cycle4": ["frequency"],
@@ -64,7 +64,8 @@ CONTAINER_HEADERS = {
     "X-Container-Meta-Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
 }
 
-BUCKET_BASE_URL = "https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/access-nri-intake-catalog"
+BUCKET_NAME = "ct-sharded-pq-test"
+BUCKET_BASE_URL = f"https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/{BUCKET_NAME}"
 
 """
 See https://stackoverflow.com/questions/76782018/what-is-actually-meant-when-referring-to-parquet-row-group-size
@@ -86,7 +87,7 @@ class CatalogMirror:
     """
 
     def __init__(self) -> None:
-        self.bucket_name = "access-nri-intake-catalog"
+        self.bucket_name = BUCKET_NAME
         self.local_json_files: list[Path] = []
         self.local_pq_files: list[Path] = []
 
@@ -306,11 +307,15 @@ class CatalogMirror:
 
         for file in self.local_json_files:
             try:
+                # Partitioned datastores become hive directories; polars needs a
+                # trailing slash to read them.
+                suffix = "/" if file.stem in PARTITION_TABLE else ""
                 pl.read_json(file).with_columns(
                     pl.concat_str(
                         [
                             pl.lit(f"{BUCKET_BASE_URL}/source/"),
                             pl.col("catalog_file").str.split("/").list.last(),
+                            pl.lit(suffix),
                         ]
                     ).alias("catalog_file")
                 ).write_ndjson(file)
@@ -525,7 +530,7 @@ class CatalogMirror:
         )
 
         conn.post_container(
-            container="access-nri-intake-catalog",
+            container=BUCKET_NAME,
             headers=CONTAINER_HEADERS,
         )
 
@@ -535,7 +540,7 @@ class CatalogMirror:
             rel_path = object.relative_to(self.local_mirror_path)
             with open(object, "rb") as f:
                 conn.put_object(
-                    container="access-nri-intake-catalog",
+                    container=BUCKET_NAME,
                     obj=str(rel_path),
                     contents=f,
                 )
