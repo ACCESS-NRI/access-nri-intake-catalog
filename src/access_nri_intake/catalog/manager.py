@@ -23,6 +23,7 @@ from . import (
     YAML_COLUMN,
 )
 from .translators import DefaultTranslator
+from ..source.builders import BaseBuilder
 
 
 class CatalogManagerError(Exception):
@@ -118,12 +119,14 @@ class CatalogManager:
         metadata = metadata or {}
         directory = directory or ""
 
+        builder = builder(path, **kwargs)
+
         json_file = (Path(directory) / f"{name}.json").absolute()
         # FIXME: this needs to be the PREVIOUS version's datastore
-        datastore_file = Path(directory) / f"{name}.{{parquet,csv}}"
+        prev_datastore_file = Path(directory) / f"{name}.{{parquet,csv}}"
         if json_file.is_file():
             # Check if the dataset has changed since the last build
-            if self._need_to_redo_build(datastore_file):
+            if self._need_to_redo_build(prev_datastore_file, builder):
                 if not overwrite:
                     raise CatalogManagerError(
                         f"An Intake-ESM datastore already exists for {name}. To overwrite, "
@@ -137,7 +140,7 @@ class CatalogManager:
 
                 return
 
-        builder = builder(path, **kwargs).build()
+        builder.build()
         builder.save(
             name=name,
             description=description,
@@ -163,7 +166,7 @@ class CatalogManager:
         self._add()
 
     # FIXME: Should this be a class method/static method/moved elsewhere/etc?
-    def _need_to_redo_build(datastore_path: Path):
+    def _need_to_redo_build(datastore_path: Path, builder: BaseBuilder):
         """
         Determine if any of the files referred to in an existing datastore have
         changed since the datastore was written. If no files have changed then
@@ -173,6 +176,8 @@ class CatalogManager:
         ----------
         datastore_path: Path
             The path to the datastore to check
+        builder: BaseBuilder
+            The builder that will build this datastore
 
         Returns
         -------
@@ -180,7 +185,7 @@ class CatalogManager:
         """
         # Open the datastore
         if datastore_path.suffix == "parquet":
-            datastore = pl.read_parquet(datastore_path).to_pandas()
+            datastore = pl.read_parquet(datastore_path)
         elif datastore_path.suffix == "csv":
             datastore = pl.read_csv(datastore_path)
         else:
@@ -189,7 +194,12 @@ class CatalogManager:
                 f"Unexpected filetype for datastore: {datastore_path.suffix}"
             )
 
-        # Check if any files in the datastore are newer than the datastore itself
+        # Check the assets the builder will build matches the those in the datastore
+        if sorted(datastore['path'].to_list()) != sorted(builder.get_assets().assets):
+            return True
+
+        # Check if any files in the datastore have been modified since the
+        # datastore was last modified
         datastore_mtime = os.stat(datastore_path).st_mtime
 
         return any([os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]])
