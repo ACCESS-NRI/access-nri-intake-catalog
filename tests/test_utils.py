@@ -21,7 +21,7 @@ from access_nri_intake.utils import (
 
 @pytest.mark.parametrize(
     "schema_file",
-    ["data/metadata_schema_experiment.json", "data/metadata_schema_file.json"],
+    ["data/metadata_schema_experiment_latest.json", "data/metadata_schema_file.json"],
 )
 def test_get_jsonschema(schema_file):
     """

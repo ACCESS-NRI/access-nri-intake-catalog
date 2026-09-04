@@ -6,6 +6,7 @@
 import json
 from importlib import resources as rsr
 from pathlib import Path
+from typing import Literal
 from warnings import warn
 
 import jsonschema
@@ -43,15 +44,17 @@ def get_jsonschema(metadata_file: str, required: list) -> tuple[dict, dict]:
     return schema, schema_required
 
 
-def load_metadata_yaml(path: str | Path, jsonschema: dict) -> dict:
+def load_metadata_yaml(path: str | Path, jsonschema: dict | None = None) -> dict:
     """
-    Load a metadata.yaml file, leaving dates as strings, and validate against a jsonschema,
-    allowing for tuples as arrays
+    Load a metadata.yaml file, leaving dates as strings, and optionally validate
+    against a jsonschema, allowing for tuples as arrays
 
     Parameters
     ----------
     paths: str
         The path to the metadata.yaml
+    jsonschema: dict, optional
+        The jsonschema to validate against. If None, no validation is performed
     """
 
     class NoDatesSafeLoader(yaml.SafeLoader):
@@ -75,7 +78,8 @@ def load_metadata_yaml(path: str | Path, jsonschema: dict) -> dict:
     with open(path) as fpath:
         metadata = yaml.load(fpath, Loader=NoDatesSafeLoader)
 
-    validate_against_schema(metadata, jsonschema)
+    if jsonschema is not None:
+        validate_against_schema(metadata, jsonschema)
 
     return metadata
 
@@ -151,3 +155,21 @@ def get_catalog_fp(basepath=None):
         )
         return USER_CATALOG_LOCATION
     return CATALOG_LOCATION
+
+
+def get_versioned_schema(
+    schema_version: Literal["1-0-3", "1-0-4"] | None = None,
+) -> dict:
+    """
+    Get the versioned schema for the catalog.yaml file. If the version is not found, return the newest schema.
+    """
+
+    if schema_version == "1-0-4":
+        metadata_file = "data/metadata_schema_experiment_latest.json"
+    elif schema_version == "1-0-3":
+        metadata_file = "data/metadata_schema_experiment_latest.json"
+    else:
+        metadata_file = "data/metadata_schema_experiment_latest.json"
+
+    schema, _ = get_jsonschema(metadata_file, required=[])
+    return schema
