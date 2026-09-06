@@ -14,6 +14,7 @@ from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.utils import (
     get_catalog_fp,
     get_jsonschema,
+    get_versioned_schema,
     load_metadata_yaml,
     validate_against_schema,
 )
@@ -245,3 +246,13 @@ def test_get_catalog_fp_xp65(mock_is_file):
     Check that we get pointed back to the user catalog
     """
     assert str(get_catalog_fp()) == CATALOG_LOCATION
+
+
+@pytest.mark.parametrize(
+    "version, expected", [("1-0-3", "1-0-3"), ("1-0-4", "1-0-4"), (None, "1-0-4")]
+)
+def test_get_versioned_schema(version, expected):
+    schema = get_versioned_schema(schema_version=version)
+
+    # Pull the allowed value straight out of the schema definition
+    assert schema.get("properties").get("schema_version").get("const") == expected

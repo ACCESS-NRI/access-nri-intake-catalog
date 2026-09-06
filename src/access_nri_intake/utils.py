@@ -165,9 +165,9 @@ def get_versioned_schema(
     """
 
     if schema_version == "1-0-4":
-        metadata_file = "data/metadata_schema_experiment_latest.json"
+        metadata_file = "data/metadata_schema_experiment_1-0-4.json"
     elif schema_version == "1-0-3":
-        metadata_file = "data/metadata_schema_experiment_latest.json"
+        metadata_file = "data/metadata_schema_experiment_1-0-3.json"
     else:
         metadata_file = "data/metadata_schema_experiment_latest.json"
 
