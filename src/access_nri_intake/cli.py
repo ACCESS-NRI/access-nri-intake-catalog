@@ -938,8 +938,8 @@ def metadata_validate(argv: Sequence[str] | None = None):
             print(f"Validating {f}... ")
             try:
                 schema_version = load_metadata_yaml(f, None).get("schema_version", None)
-                EXP_JSONSCHEMA = get_versioned_schema(schema_version)
-                load_metadata_yaml(f, EXP_JSONSCHEMA)
+                exp_jsonschema = get_versioned_schema(schema_version)
+                load_metadata_yaml(f, exp_jsonschema)
                 print("\nSuccess!")
             except jsonschema.ValidationError as e:  # Don't print the stacktrace
                 print("\nVALIDATION FAILED:")
