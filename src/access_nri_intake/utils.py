@@ -164,10 +164,8 @@ def get_versioned_schema(
     Get the versioned schema for the catalog.yaml file. If the version is not found, return the newest schema.
     """
 
-    if schema_version == "1-0-4":
-        metadata_file = "data/metadata_schema_experiment_1-0-4.json"
-    elif schema_version == "1-0-3":
-        metadata_file = "data/metadata_schema_experiment_1-0-3.json"
+    if schema_version:
+        metadata_file = f"data/metadata_schema_experiment_{schema_version}.json"
     else:
         metadata_file = "data/metadata_schema_experiment_latest.json"
 
