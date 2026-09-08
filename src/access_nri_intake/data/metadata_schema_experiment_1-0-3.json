@@ -1,0 +1,174 @@
+{
+    "$id": "https://raw.githubusercontent.com/ACCESS-NRI/schema/main/au.org.access-nri/model/output/experiment-metadata/1-0-3.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Experiment metadata",
+    "description": "The metadata associated with a model experiment",
+    "type": "object",
+    "properties": {
+        "schema_version": {
+            "const": "1-0-3",
+            "description": "The version of the schema (string)"
+        },
+        "name": {
+            "type": "string",
+            "description": "The name of the experiment (string)"
+        },
+        "experiment_uuid": {
+            "type": "string",
+            "format": "uuid",
+            "description": "*Unique* uuid for the experiment (string)"
+        },
+        "description": {
+            "type": "string",
+            "description": "Short description of the experiment (string, < 150 char)"
+        },
+        "long_description": {
+            "type": "string",
+            "description": "Long description of the experiment (string)"
+        },
+        "model": {
+            "oneOf": [
+                {"type": ["string", "null"]},
+                {
+                    "type": "array",
+                    "items": {"type": ["string", "null"]}
+                }
+            ],
+            "description": "The name(s) of the model(s) used in the experiment (string)"
+        },
+        "realm": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {"type": "null"},
+                    {
+                        "type": "string",
+                        "enum": [
+                            "aerosol",
+                            "atmos",
+                            "atmosChem",
+                            "land",
+                            "landIce",
+                            "none",
+                            "ocean",
+                            "ocnBgchem",
+                            "seaIce",
+                            "unknown",
+                            "wave"
+                        ]
+                    }
+                ]
+            },
+            "description": "The realm(s) included in the experiment (string)"
+        },
+        "frequency": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {"type": "null"},
+                    {
+                        "type": "string",
+                        "oneOf": [
+                            {
+                                "pattern": "^fx$"
+                            },
+                            {
+                                "pattern": "^subhr$"
+                            },
+                            {
+                                "pattern": "^\\d+hr$"
+                            },
+                            {
+                                "pattern": "^\\d+day$"
+                            },
+                            {
+                                "pattern": "^\\d+mon$"
+                            },
+                            {
+                                "pattern": "^\\d+yr$"
+                            },
+                            {
+                                "pattern": "^\\d+dec$"
+                            }
+                       ]
+                    }
+                ]
+            },
+            "description": "The frequency(/ies) included in the experiment (string)"
+        },
+        "variable": {
+            "type": "array",
+            "items": {
+                "type": ["string", "null"]
+            },
+            "description": "The variable(s) included in the experiment (string)"
+        },
+        "nominal_resolution": {
+            "oneOf": [
+                {"type": ["string", "null"]},
+                {
+                    "type": "array",
+                    "items": {"type": ["string", "null"]}
+                }
+            ],
+            "description": "The nominal resolution(s) of model(s) used in the experiment (string)"
+        },
+        "version": {
+            "type": ["number", "string", "null"],
+            "description": "The version of the experiment (number, string)"
+        },
+        "contact": {
+            "type": ["string", "null"],
+            "description": "Contact name for the experiment (string)"
+        },
+        "email": {
+            "type": ["string", "null"],
+            "description": "Email address of the contact for the experiment (string)"
+        },
+        "created": {
+            "type": ["string", "null"],
+            "description": "Initial creation date of experiment (string)"
+        },
+        "reference": {
+            "type": ["string", "null"],
+            "description": "Citation or reference information (string)"
+        },
+        "license": {
+            "type": ["string", "null"],
+            "description": "License of the experiment (string)"
+        },
+        "url": {
+            "type": ["string", "null"],
+            "description": "Relevant url, e.g. github repo for experiment configuration (string)"
+        },
+        "parent_experiment": {
+            "type": ["string", "null"],
+            "description": "experiment_uuid for parent experiment if appropriate (string)"
+        },
+        "related_experiments": {
+            "type": "array",
+            "items": {
+                "type": ["string", "null"]
+            },
+            "description": "experiment_uuids for any related experiment(s) (string)"
+        },
+        "notes": {
+            "type": ["string", "null"],
+            "description": "Additional notes (string)"
+        },
+        "keywords": {
+            "type": "array",
+            "items": {
+                "type": ["string", "null"]
+            },
+            "description": "Keywords to associated with experiment (string)"
+        }
+    },
+    "required": [
+        "name",
+        "experiment_uuid",
+        "description",
+        "long_description"
+    ],
+    "additionalProperties": false
+}
