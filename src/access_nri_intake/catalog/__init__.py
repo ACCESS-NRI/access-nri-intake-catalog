@@ -19,7 +19,7 @@ TRANSLATOR_GROUPBY_COLUMNS = ["model", "realm", "frequency"]
 
 
 EXP_JSONSCHEMA, CATALOG_JSONSCHEMA = get_jsonschema(
-    metadata_file="data/metadata_schema_experiment.json", required=CORE_COLUMNS
+    metadata_file="data/metadata_schema_experiment_latest.json", required=CORE_COLUMNS
 )
 
 COLUMNS_WITH_ITERABLES = [
