@@ -64,7 +64,7 @@ CONTAINER_HEADERS = {
     "X-Container-Meta-Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
 }
 
-BUCKET_NAME = "ct-sharded-pq-test"
+BUCKET_NAME = "access-nri-intake-catalog"
 BUCKET_BASE_URL = f"https://object-store.rc.nectar.org.au/v1/AUTH_685340a8089a4923a71222ce93d5d323/{BUCKET_NAME}"
 
 """
@@ -95,7 +95,7 @@ class CatalogMirror:
         self.failed_pq_files: list[Path] = []
         self.local_mirror_path = Path(tempfile.TemporaryDirectory().name)
         self.metacat_path = self.local_mirror_path / "metacatalog.parquet"
-        self.basedir = Path("/g/data/xp65/public/apps/access-nri-intake-catalog/")
+        self.basedir = Path("/g/data/xp65/public/apps//")
 
     def __call__(self, catalog_version: date, hidden: bool) -> None:
         """Main execution method."""
