@@ -800,6 +800,13 @@ class AccessEsm16Builder(AccessEsm15Builder):
             # We now know that exp_id is a string, so ignore the type checker warning
             ncinfo_dict["member"] = exp_id  # type: ignore
 
+        ncinfo_dict["file_id"] = ".".join(
+            [
+                str(ncinfo_dict["realm"]),
+                str(ncinfo_dict["frequency"]),
+                str(ncinfo_dict["file_id"]),
+            ]
+        )
         return ncinfo_dict
 
 
@@ -816,7 +823,9 @@ class OnlineMltBuilder(AccessEsm16Builder):
     - output*/o2i.nc : these files have no calendar attribute on the 'time' axis
     """
 
-    PATH_REGEX = r".*/(?:output\d+|post_processed_diags|.*)/([^/]*)(?:/[^/]*)?/.*\.nc"
+    PATH_REGEX = (
+        r".*/(?:output\d+|post_processed_diags|.*)/(?P<realm>[^/]*)(?:/[^/]*)?/.*\.nc"
+    )
 
     REALM_MAPPING = {
         "atmosphere": "atmos",
