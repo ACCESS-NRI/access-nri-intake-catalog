@@ -816,7 +816,9 @@ class OnlineMltBuilder(AccessEsm16Builder):
     - output*/o2i.nc : these files have no calendar attribute on the 'time' axis
     """
 
-    PATH_REGEX = r".*/(?:output\d+|post_processed_diags|.*)/([^/]*)(?:/[^/]*)?/.*\.nc"
+    PATH_REGEX = (
+        r".*/(?:output\d+|post_processed_diags|.*)/(?P<realm>[^/]*)(?:/[^/]*)?/.*\.nc"
+    )
 
     REALM_MAPPING = {
         "atmosphere": "atmos",

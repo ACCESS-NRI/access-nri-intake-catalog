@@ -371,6 +371,14 @@ def test_builder_build(
             None,
             "atmos.1mon.bnds:2.depth:2.dim0:2.height:2.height_0:2.lat:2.lat_v:2.lon:2.lon_u:2.model_rho_level_number:2.model_theta_level_number:2.model_theta_level_number_0:2.model_theta_level_number_2:2.pressure_0:2.pressure_1:2.pseudo_level:2.pseudo_level_0:2.pseudo_level_1:2.pseudo_level_2:2.pseudo_level_3:2",
         ),
+        ( 
+            "/g/data/av17/access-nri/OM2/025deg_jra55_iaf_cycle6_online_mlt/output335/ice/OUTPUT/iceh.1988-01-01.nc",
+            "OnlineMltBuilder",
+            "ice",
+            None, 
+            "seaIce.1day.d2:2.ni:1.nj:1",
+        )
+
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
