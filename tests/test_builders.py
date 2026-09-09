@@ -376,7 +376,7 @@ def test_builder_build(
             "OnlineMltBuilder",
             "seaIce",
             None,
-            "seaIce.1day.d2:2.ni:1.nj:1",
+            "seaIce.1day.d2:2.nc:1.ni:1.nj:1",
         ),
     ],
 )
