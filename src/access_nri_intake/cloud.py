@@ -95,7 +95,7 @@ class CatalogMirror:
         self.failed_pq_files: list[Path] = []
         self.local_mirror_path = Path(tempfile.TemporaryDirectory().name)
         self.metacat_path = self.local_mirror_path / "metacatalog.parquet"
-        self.basedir = Path("/g/data/xp65/public/apps//")
+        self.gadi_basedir = Path("/g/data/xp65/public/apps/access-nri-intake-catalog/")
 
     def __call__(self, catalog_version: date, hidden: bool) -> None:
         """Main execution method."""
@@ -193,7 +193,7 @@ class CatalogMirror:
         dotstr = "." if hidden else ""
         version_dir = f"{dotstr}v{catalog_version.isoformat()}"
 
-        remote_path = self.basedir / version_dir
+        remote_path = self.gadi_basedir / version_dir
         source_dir = remote_path / "source"
 
         logger.info(
@@ -202,7 +202,7 @@ class CatalogMirror:
             self.local_mirror_path,
         )
 
-        metacat_file = self.basedir / version_dir / "metacatalog.parquet"
+        metacat_file = self.gadi_basedir / version_dir / "metacatalog.parquet"
 
         logger.info(
             "Downloading metacatalog file: %s to %s",
