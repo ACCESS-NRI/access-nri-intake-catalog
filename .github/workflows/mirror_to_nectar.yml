@@ -1,0 +1,70 @@
+name: Mirror catalog to Nectar
+on:
+  workflow_dispatch:
+    inputs:
+      catalog_version:
+        description: 'Catalog version to mirror (vYYYY-MM-DD). Leave blank for today.'
+        type: string
+        required: false
+      hidden:
+        description: 'Mirror as a hidden version (prefixed with a dot).'
+        type: boolean
+        default: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH access to Gadi (xp65_ci-dm)
+        env:
+          # Private key authorised for the xp65_ci account on Gadi.
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          # cloud.py connects via Fabric to the "xp65_ci-dm" host alias and
+          # expects the key at ~/.ssh/id_gadi_xp65_ci.
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_gadi_xp65_ci
+          chmod 600 ~/.ssh/id_gadi_xp65_ci
+          cat >> ~/.ssh/config <<'EOF'
+          Host xp65_ci-dm
+              Hostname gadi-dm.nci.org.au
+              User xp65_ci
+              IdentityFile ~/.ssh/id_gadi_xp65_ci
+              IdentitiesOnly yes
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh-keyscan -H gadi-dm.nci.org.au >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Configure Nectar credentials
+        env:
+          NECTAR_CLOUDS_YAML: ${{ secrets.NECTAR_CLOUDS_YAML }}
+        run: |
+          mkdir -p ~/.config/openstack
+          printf '%s\n' "$NECTAR_CLOUDS_YAML" > ~/.config/openstack/clouds.yaml
+          chmod 600 ~/.config/openstack/clouds.yaml
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e
+        with:
+          environments: default
+          frozen: true
+
+      - name: Mirror catalog from Gadi to Nectar
+        env:
+          CATALOG_VERSION: ${{ inputs.catalog_version }}
+          HIDDEN: ${{ inputs.hidden }}
+        run: |
+          args=()
+          if [ -n "$CATALOG_VERSION" ]; then
+            version="$CATALOG_VERSION"
+            if [ "$HIDDEN" = "true" ]; then
+              version=".${version}"
+            fi
+            args+=(--catalog-version "$version")
+          fi
+          pixi run mirror-to-cloud "${args[@]}"
