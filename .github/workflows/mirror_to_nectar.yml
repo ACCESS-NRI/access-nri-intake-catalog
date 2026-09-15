@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       catalog_version:
-        description: 'Catalog version to mirror (vYYYY-MM-DD). Leave blank for today.'
+        description: 'Catalog version date to mirror (YYYY-MM-DD). Leave blank for today.'
         type: string
         required: false
       hidden:
@@ -15,6 +15,20 @@ jobs:
   mirror:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate catalog_version
+        if: inputs.catalog_version != ''
+        env:
+          CATALOG_VERSION: ${{ inputs.catalog_version }}
+        run: |
+          if ! printf '%s' "$CATALOG_VERSION" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+            echo "::error::catalog_version must be in YYYY-MM-DD format (got '$CATALOG_VERSION')."
+            exit 1
+          fi
+          if ! date -d "$CATALOG_VERSION" >/dev/null 2>&1; then
+            echo "::error::catalog_version '$CATALOG_VERSION' is not a valid calendar date."
+            exit 1
+          fi
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -55,7 +69,8 @@ jobs:
         run: |
           args=()
           if [ -n "$CATALOG_VERSION" ]; then
-            version="$CATALOG_VERSION"
+            # cloud.py's CLI expects a leading "v" (and "." for hidden versions).
+            version="v${CATALOG_VERSION}"
             if [ "$HIDDEN" = "true" ]; then
               version=".${version}"
             fi
