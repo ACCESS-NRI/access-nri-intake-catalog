@@ -30,7 +30,7 @@ jobs:
           fi
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # cloud.py connects via Fabric to the "xp65_ci-dm" host alias and expects
       # the key at ~/.ssh/id_gadi_xp65_ci. DEPLOY_KEY must be authorised for the
