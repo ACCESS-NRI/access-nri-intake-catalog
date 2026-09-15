@@ -1,0 +1,79 @@
+name: Mirror catalog to Nectar
+on:
+  workflow_dispatch:
+    inputs:
+      catalog_version:
+        description: 'Catalog version date to mirror (YYYY-MM-DD). Leave blank for today.'
+        type: string
+        required: false
+      hidden:
+        description: 'Mirror as a hidden version (prefixed with a dot).'
+        type: boolean
+        default: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate catalog_version
+        if: inputs.catalog_version != ''
+        env:
+          CATALOG_VERSION: ${{ inputs.catalog_version }}
+        run: |
+          if ! printf '%s' "$CATALOG_VERSION" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+            echo "::error::catalog_version must be in YYYY-MM-DD format (got '$CATALOG_VERSION')."
+            exit 1
+          fi
+          if ! date -d "$CATALOG_VERSION" >/dev/null 2>&1; then
+            echo "::error::catalog_version '$CATALOG_VERSION' is not a valid calendar date."
+            exit 1
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      # cloud.py connects via Fabric to the "xp65_ci-dm" host alias and expects
+      # the key at ~/.ssh/id_gadi_xp65_ci. DEPLOY_KEY must be authorised for the
+      # xp65_ci account on Gadi.
+      - name: Configure SSH access to Gadi (xp65_ci-dm)
+        uses: shimataro/ssh-key-action@87a8f067114a8ce263df83e9ed5c849953548bc3 # v2.8.1
+        with:
+          key: ${{ secrets.DEPLOY_KEY }}
+          name: id_gadi_xp65_ci
+          known_hosts: ${{ secrets.GADI_KNOWN_HOSTS }}
+          config: |
+            Host xp65_ci-dm
+                Hostname gadi-dm.nci.org.au
+                User xp65_ci
+                IdentityFile ~/.ssh/id_gadi_xp65_ci
+                IdentitiesOnly yes
+
+      - name: Configure Nectar credentials
+        env:
+          NECTAR_CLOUDS_YAML: ${{ secrets.NECTAR_CLOUDS_YAML }}
+        run: |
+          mkdir -p ~/.config/openstack
+          printf '%s\n' "$NECTAR_CLOUDS_YAML" > ~/.config/openstack/clouds.yaml
+          chmod 600 ~/.config/openstack/clouds.yaml
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e # v0.10.2
+        with:
+          environments: default
+          frozen: true
+
+      - name: Mirror catalog from Gadi to Nectar
+        env:
+          CATALOG_VERSION: ${{ inputs.catalog_version }}
+          HIDDEN: ${{ inputs.hidden }}
+        run: |
+          args=()
+          if [ -n "$CATALOG_VERSION" ]; then
+            # cloud.py's CLI expects a leading "v" (and "." for hidden versions).
+            version="v${CATALOG_VERSION}"
+            if [ "$HIDDEN" = "true" ]; then
+              version=".${version}"
+            fi
+            args+=(--catalog-version "$version")
+          fi
+          pixi run mirror-to-cloud "${args[@]}"
