@@ -18,27 +18,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # cloud.py connects via Fabric to the "xp65_ci-dm" host alias and expects
+      # the key at ~/.ssh/id_gadi_xp65_ci. DEPLOY_KEY must be authorised for the
+      # xp65_ci account on Gadi.
       - name: Configure SSH access to Gadi (xp65_ci-dm)
-        env:
-          # Private key authorised for the xp65_ci account on Gadi.
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          # cloud.py connects via Fabric to the "xp65_ci-dm" host alias and
-          # expects the key at ~/.ssh/id_gadi_xp65_ci.
-          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_gadi_xp65_ci
-          chmod 600 ~/.ssh/id_gadi_xp65_ci
-          cat >> ~/.ssh/config <<'EOF'
-          Host xp65_ci-dm
-              Hostname gadi-dm.nci.org.au
-              User xp65_ci
-              IdentityFile ~/.ssh/id_gadi_xp65_ci
-              IdentitiesOnly yes
-          EOF
-          chmod 600 ~/.ssh/config
-          ssh-keyscan -H gadi-dm.nci.org.au >> ~/.ssh/known_hosts 2>/dev/null
-          chmod 600 ~/.ssh/known_hosts
+        uses: shimataro/ssh-key-action@87a8f067114a8ce263df83e9ed5c849953548bc3 # v2.8.1
+        with:
+          key: ${{ secrets.DEPLOY_KEY }}
+          name: id_gadi_xp65_ci
+          known_hosts: ${{ secrets.GADI_KNOWN_HOSTS }}
+          config: |
+            Host xp65_ci-dm
+                Hostname gadi-dm.nci.org.au
+                User xp65_ci
+                IdentityFile ~/.ssh/id_gadi_xp65_ci
+                IdentitiesOnly yes
 
       - name: Configure Nectar credentials
         env:
