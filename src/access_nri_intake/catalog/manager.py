@@ -3,6 +3,7 @@
 
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
+import json
 import logging
 import os
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any
 
 import intake
 import polars as pl
+from ecgtools.builder import INVALID_ASSET
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
 from intake_esm import esm_datastore
 from pandas.errors import EmptyDataError
@@ -33,6 +35,39 @@ class CatalogManagerError(Exception):
     "Generic Exception for the CatalogManager class"
 
     pass
+
+
+INVALID_ASSETS_METADATA_KEY = "access_nri_intake.invalid_assets"
+
+
+def _cache_invalid_assets(datastore_path: Path, invalid_assets) -> None:
+    """Store invalid asset paths in an Intake-ESM parquet file's metadata.
+
+    The datastore itself contains only valid assets. Caching rejected paths in
+    the parquet footer lets a later build compare the complete asset listing
+    without reparsing every file. This grows the footer linearly with the
+    number and length of invalid paths, so a fixed-size asset-list digest may
+    eventually be preferable for unusually large invalid sets.
+    """
+    metadata = pl.read_parquet_metadata(datastore_path)
+    invalid_asset_paths = (
+        [] if invalid_assets.empty else invalid_assets[INVALID_ASSET].tolist()
+    )
+    metadata[INVALID_ASSETS_METADATA_KEY] = json.dumps(invalid_asset_paths)
+
+    temporary_path = datastore_path.with_suffix(".tmp.parquet")
+    pl.read_parquet(datastore_path).write_parquet(
+        temporary_path,
+        compression="zstd",
+        metadata=metadata,
+    )
+    temporary_path.replace(datastore_path)
+
+
+def _read_cached_invalid_assets(datastore_path: Path) -> list[str]:
+    """Return invalid asset paths cached in a datastore, if available."""
+    metadata = pl.read_parquet_metadata(datastore_path)
+    return json.loads(metadata.get(INVALID_ASSETS_METADATA_KEY, "[]"))
 
 
 class CatalogManager:
@@ -112,10 +147,16 @@ class CatalogManager:
                 f"Unexpected filetype for datastore: {datastore_path.suffix}"
             )
 
-        # Check the assets the builder will build match those in the datastore
-        if sorted(datastore["path"].to_list()) != sorted(
-            builder.get_assets().valid_assets
-        ):
+        # The datastore contains only valid assets. For parquet datastores,
+        # include invalid paths cached from the previous build so this compares
+        # the complete asset listing.
+        cached_invalid_assets = (
+            _read_cached_invalid_assets(datastore_path)
+            if datastore_path.suffix == ".parquet"
+            else []
+        )
+        previous_assets = datastore["path"].to_list() + cached_invalid_assets
+        if sorted(previous_assets) != sorted(builder.get_assets().assets):
             logger.info(
                 f"File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}"
             )
@@ -126,7 +167,7 @@ class CatalogManager:
         datastore_mtime = os.stat(datastore_path).st_mtime
 
         need_to_rebuild = any(
-            [os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]]
+            [os.stat(p).st_mtime > datastore_mtime for p in previous_assets]
         )
         if need_to_rebuild:
             logger.info(
@@ -226,6 +267,10 @@ class CatalogManager:
             directory=directory,
             use_parquet=self.use_parquet,
         )
+        if self.use_parquet:
+            _cache_invalid_assets(
+                Path(directory) / f"{name}.parquet", builder.invalid_assets
+            )
 
         open_translate_kwargs = dict(
             file=str(json_file),
