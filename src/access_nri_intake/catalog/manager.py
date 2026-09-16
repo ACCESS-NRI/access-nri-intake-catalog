@@ -3,6 +3,7 @@
 
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
+import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,8 @@ from . import (
 from .translators import DefaultTranslator
 from ..source.builders import BaseBuilder
 
+
+logger = logging.getLogger(__name__)
 
 class CatalogManagerError(Exception):
     "Generic Exception for the CatalogManager class"
@@ -76,6 +79,56 @@ class CatalogManager:
         self.source: esm_datastore | None = None
         self.source_metadata: dict[str, Any] | None = None
 
+    @staticmethod
+    def _need_to_redo_build(datastore_path: Path | None, builder: BaseBuilder):
+        """
+        Determine if any of the files referred to in an existing datastore have
+        changed since the datastore was written. If no files have changed then
+        old datastore can be reused.
+
+        Parameters
+        ----------
+        datastore_path: Path
+            The path to the datastore to check
+        builder: BaseBuilder
+            The builder that will build this datastore
+
+        Returns
+        -------
+            True is the datastore needs to be rebuilt, otherwise False
+        """
+        if not datastore_path:
+            print("No existing catalog found, need to build datastore")
+            return True
+
+        # Open the datastore
+        logger.debug(f"Datastore path: {datastore_path}")
+        if datastore_path.suffix == ".parquet":
+            datastore = pl.read_parquet(datastore_path)
+        elif datastore_path.suffix == ".csv":
+            datastore = pl.read_csv(datastore_path)
+        else:
+            # FIXME: need a more appropriate error here
+            raise FileExistsError(
+                f"Unexpected filetype for datastore: {datastore_path.suffix}"
+            )
+
+        # Check the assets the builder will build matches the those in the datastore
+        if sorted(datastore["path"].to_list()) != sorted(builder.get_assets().valid_assets):
+            logger.debug("File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}")
+            return True
+
+        # Check if any files in the datastore have been modified since the
+        # datastore was last modified
+        datastore_mtime = os.stat(datastore_path).st_mtime
+
+        need_to_rebuild = any([os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]])
+        if need_to_rebuild:
+            logger.debug("File mtimes have changed, need to rebuild datastore: {datastore_path.name}")
+        else:
+            logger.debug(f"Don't need to rebuild datastore: {datastore_path.name}")
+        return need_to_rebuild
+
     def build_esm(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
         self,
         name: str,
@@ -85,6 +138,7 @@ class CatalogManager:
         translator=DefaultTranslator,
         metadata: dict | None = None,
         directory: str | None = None,
+        previous_version_directory: str | Path | None = None,
         overwrite: bool = False,
         **kwargs,
     ):
@@ -121,24 +175,33 @@ class CatalogManager:
 
         builder = builder(path, **kwargs)
 
-        json_file = (Path(directory) / f"{name}.json").absolute()
-        # FIXME: this needs to be the PREVIOUS version's datastore
-        prev_datastore_file = Path(directory) / f"{name}.{{parquet,csv}}"
-        if json_file.is_file():
-            # Check if the dataset has changed since the last build
-            if self._need_to_redo_build(prev_datastore_file, builder):
-                if not overwrite:
-                    raise CatalogManagerError(
-                        f"An Intake-ESM datastore already exists for {name}. To overwrite, "
-                        "pass `overwrite=True` to CatalogBuilder.build_esm"
-                    )
+        if previous_version_directory:
+            # Try parquet first
+            for suffix in ['parquet', 'csv']:
+                previous_datastore_file = Path(previous_version_directory) / f"{name}.{suffix}"
+                if previous_datastore_file.exists():
+                    break
             else:
-                # We can reuse the last build of this datastore
-                # FIXME: Need to figure out which args to pass through/or rejigger this function's
-                #  args so they can be passed on en-masse
-                self.load(**kwargs)
+                raise FileNotFoundError(f"Failed to find a datastore file: {previous_version_directory / name}.{{parquet,csv}}")
+        else:
+            previous_datastore_file = None
 
-                return
+        json_file = (Path(directory) / f"{name}.json").absolute()
+        if json_file.is_file():
+            if not overwrite:
+                raise CatalogManagerError(
+                    f"An Intake-ESM datastore already exists for {name}. To overwrite, "
+                    "pass `overwrite=True` to CatalogBuilder.build_esm"
+                )
+
+        # Check if the dataset has changed since the last build
+        if self._need_to_redo_build(previous_datastore_file, builder):
+            pass
+        else:
+            # We can reuse the last build of this datastore
+            # Don't pass on the translator, since this datastore should already be translated
+            self.load(name=name, description=description, path=previous_datastore_file.with_suffix(".json"), directory=directory, metadata=metadata)
+            return
 
         builder.build()
         builder.save(
@@ -164,45 +227,6 @@ class CatalogManager:
         self.source, self.source_metadata = _open_and_translate(**open_translate_kwargs)
 
         self._add()
-
-    # FIXME: Should this be a class method/static method/moved elsewhere/etc?
-    def _need_to_redo_build(datastore_path: Path, builder: BaseBuilder):
-        """
-        Determine if any of the files referred to in an existing datastore have
-        changed since the datastore was written. If no files have changed then
-        old datastore can be reused.
-
-        Parameters
-        ----------
-        datastore_path: Path
-            The path to the datastore to check
-        builder: BaseBuilder
-            The builder that will build this datastore
-
-        Returns
-        -------
-            True is the datastore needs to be rebuilt, otherwise False
-        """
-        # Open the datastore
-        if datastore_path.suffix == "parquet":
-            datastore = pl.read_parquet(datastore_path)
-        elif datastore_path.suffix == "csv":
-            datastore = pl.read_csv(datastore_path)
-        else:
-            # FIXME: need a more appropriate error here
-            raise FileExistsError(
-                f"Unexpected filetype for datastore: {datastore_path.suffix}"
-            )
-
-        # Check the assets the builder will build matches the those in the datastore
-        if sorted(datastore["path"].to_list()) != sorted(builder.get_assets().assets):
-            return True
-
-        # Check if any files in the datastore have been modified since the
-        # datastore was last modified
-        datastore_mtime = os.stat(datastore_path).st_mtime
-
-        return any([os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]])
 
     def load(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
         self,

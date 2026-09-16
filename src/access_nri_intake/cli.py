@@ -311,7 +311,10 @@ class VersionHandler:
 
 
 def _parse_build_inputs(
-    config_yamls: list[str | Path], build_path: str | Path, data_base_path: str | Path
+    config_yamls: list[str | Path],
+    build_path: str | Path,
+    data_base_path: str | Path,
+    previous_version_directory: str | Path,
 ) -> list[tuple[str, dict]]:
     """
     Parse build inputs into a list of tuples of CatalogManager methods and args to
@@ -333,6 +336,7 @@ def _parse_build_inputs(
             config_args["builder"] = getattr(builders, builder)
             config_args["directory"] = str(build_path)
             config_args["overwrite"] = True
+            config_args["previous_version_directory"] = previous_version_directory
         else:
             method = "load"
             config_args["directory"] = str(build_path)
@@ -679,8 +683,26 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
             "An unexpected error occurred while trying to create the build directory Paths. Please contact ACCESS-NRI."
         ) from e
 
+    # Use a dummy VersionHandler to get the previous version
+    # FIXME: Is there a better way to do this?
+    vh = VersionHandler(yaml_dict={}, catalog_base_path=catalog_base_path,
+                        build_base_path=build_base_path, version=version,
+                        use_parquet=use_parquet)
+    # FIXME: Should we switch the section we look at based on use_parquet?
+    if vh.yaml_old:
+        previous_version = vh.yaml_old['sources']['access_nri_pq' if use_parquet else 'access_nri']['parameters']['version']['default']
+        previous_version_directory = Path(catalog_base_path) / previous_version / "source"
+
+        print(f"Previous version: {previous_version}")
+        print(f"Previous version dir: {previous_version_directory}")
+    else:
+        print("No previous catalog.yaml found")
+        previous_version_directory = None
+
     # Parse inputs to pass to CatalogManager
-    parsed_sources = _parse_build_inputs(config_yamls, build_path, data_base_path)
+    parsed_sources = _parse_build_inputs(
+        config_yamls, build_path, data_base_path,
+        previous_version_directory=previous_version_directory)
     _check_build_args([parsed_source[1] for parsed_source in parsed_sources])
 
     projects = set()
