@@ -685,13 +685,21 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
 
     # Use a dummy VersionHandler to get the previous version
     # FIXME: Is there a better way to do this?
-    vh = VersionHandler(yaml_dict={}, catalog_base_path=catalog_base_path,
-                        build_base_path=build_base_path, version=version,
-                        use_parquet=use_parquet)
+    vh = VersionHandler(
+        yaml_dict={},
+        catalog_base_path=catalog_base_path,
+        build_base_path=build_base_path,
+        version=version,
+        use_parquet=use_parquet,
+    )
     # FIXME: Should we switch the section we look at based on use_parquet?
     if vh.yaml_old:
-        previous_version = vh.yaml_old['sources']['access_nri_pq' if use_parquet else 'access_nri']['parameters']['version']['default']
-        previous_version_directory = Path(catalog_base_path) / previous_version / "source"
+        previous_version = vh.yaml_old["sources"][
+            "access_nri_pq" if use_parquet else "access_nri"
+        ]["parameters"]["version"]["default"]
+        previous_version_directory = (
+            Path(catalog_base_path) / previous_version / "source"
+        )
 
         print(f"Previous version: {previous_version}")
         print(f"Previous version dir: {previous_version_directory}")
@@ -701,8 +709,11 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(
-        config_yamls, build_path, data_base_path,
-        previous_version_directory=previous_version_directory)
+        config_yamls,
+        build_path,
+        data_base_path,
+        previous_version_directory=previous_version_directory,
+    )
     _check_build_args([parsed_source[1] for parsed_source in parsed_sources])
 
     projects = set()

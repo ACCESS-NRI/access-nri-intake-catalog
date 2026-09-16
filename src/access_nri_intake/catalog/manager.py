@@ -26,8 +26,8 @@ from . import (
 from .translators import DefaultTranslator
 from ..source.builders import BaseBuilder
 
-
 logger = logging.getLogger(__name__)
+
 
 class CatalogManagerError(Exception):
     "Generic Exception for the CatalogManager class"
@@ -114,17 +114,25 @@ class CatalogManager:
             )
 
         # Check the assets the builder will build matches the those in the datastore
-        if sorted(datastore["path"].to_list()) != sorted(builder.get_assets().valid_assets):
-            logger.debug("File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}")
+        if sorted(datastore["path"].to_list()) != sorted(
+            builder.get_assets().valid_assets
+        ):
+            logger.debug(
+                "File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}"
+            )
             return True
 
         # Check if any files in the datastore have been modified since the
         # datastore was last modified
         datastore_mtime = os.stat(datastore_path).st_mtime
 
-        need_to_rebuild = any([os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]])
+        need_to_rebuild = any(
+            [os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]]
+        )
         if need_to_rebuild:
-            logger.debug("File mtimes have changed, need to rebuild datastore: {datastore_path.name}")
+            logger.debug(
+                "File mtimes have changed, need to rebuild datastore: {datastore_path.name}"
+            )
         else:
             logger.debug(f"Don't need to rebuild datastore: {datastore_path.name}")
         return need_to_rebuild
@@ -177,12 +185,16 @@ class CatalogManager:
 
         if previous_version_directory:
             # Try parquet first
-            for suffix in ['parquet', 'csv']:
-                previous_datastore_file = Path(previous_version_directory) / f"{name}.{suffix}"
+            for suffix in ["parquet", "csv"]:
+                previous_datastore_file = (
+                    Path(previous_version_directory) / f"{name}.{suffix}"
+                )
                 if previous_datastore_file.exists():
                     break
             else:
-                raise FileNotFoundError(f"Failed to find a datastore file: {previous_version_directory / name}.{{parquet,csv}}")
+                raise FileNotFoundError(
+                    f"Failed to find a datastore file: {previous_version_directory / name}.{{parquet,csv}}"
+                )
         else:
             previous_datastore_file = None
 
@@ -200,7 +212,13 @@ class CatalogManager:
         else:
             # We can reuse the last build of this datastore
             # Don't pass on the translator, since this datastore should already be translated
-            self.load(name=name, description=description, path=previous_datastore_file.with_suffix(".json"), directory=directory, metadata=metadata)
+            self.load(
+                name=name,
+                description=description,
+                path=previous_datastore_file.with_suffix(".json"),
+                directory=directory,
+                metadata=metadata,
+            )
             return
 
         builder.build()
