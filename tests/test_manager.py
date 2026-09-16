@@ -83,6 +83,11 @@ def test_cached_invalid_assets_are_used_when_rebuilding(tmp_path):
     builder.get_assets.return_value.assets = [str(valid_asset), str(invalid_asset)]
     assert not CatalogManager._need_to_redo_build(datastore_path, builder)
 
+    legacy_datastore_path = tmp_path / "legacy-datastore.parquet"
+    pl.DataFrame({"path": [str(valid_asset)]}).write_parquet(legacy_datastore_path)
+    builder.get_assets.return_value.assets = [str(valid_asset)]
+    assert not CatalogManager._need_to_redo_build(legacy_datastore_path, builder)
+
     replacement_invalid_asset = tmp_path / "replacement-invalid.nc"
     replacement_invalid_asset.touch()
     builder.get_assets.return_value.assets = [
@@ -124,14 +129,10 @@ def test_CatalogManager_build_esm(
     )
     cat.build_esm(**args)
 
-    # A parquet datastore can be reused when neither its valid nor invalid
-    # assets have changed. CSV datastores do not have the invalid-asset cache.
-    if use_parquet:
+    # Try to rebuild without setting overwrite
+    with pytest.raises(CatalogManagerError) as excinfo:
         cat.build_esm(**args)
-    else:
-        with pytest.raises(CatalogManagerError) as excinfo:
-            cat.build_esm(**args)
-        assert "An Intake-ESM datastore already exists" in str(excinfo.value)
+    assert "An Intake-ESM datastore already exists" in str(excinfo.value)
 
     # Overwrite
     cat.build_esm(**args, overwrite=True)
