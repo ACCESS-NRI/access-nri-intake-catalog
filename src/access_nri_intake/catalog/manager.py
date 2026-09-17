@@ -112,7 +112,7 @@ class CatalogManager:
                 f"Unexpected filetype for datastore: {datastore_path.suffix}"
             )
 
-        # Check the assets the builder will build matches the those in the datastore
+        # Check the assets the builder will build match those in the datastore
         if sorted(datastore["path"].to_list()) != sorted(
             builder.get_assets().valid_assets
         ):
@@ -206,9 +206,7 @@ class CatalogManager:
                 )
 
         # Check if the dataset has changed since the last build
-        if self._need_to_redo_build(previous_datastore_file, builder):
-            pass
-        else:
+        if not self._need_to_redo_build(previous_datastore_file, builder):
             # We can reuse the last build of this datastore
             # Don't pass on the translator, since this datastore should already be translated
             self.load(
