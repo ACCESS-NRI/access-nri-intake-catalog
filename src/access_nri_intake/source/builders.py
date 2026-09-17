@@ -662,7 +662,7 @@ class AccessEsm15Builder(BaseBuilder):
     PATH_REGEX = r".*/(?P<exp_id>[^/]*)/history/(?P<realm>[^/]*)/.*\.nc"
     REALM_MAPPING = {"atm": "atmos", "ocn": "ocean", "ice": "seaIce"}
 
-    def __init__(self, path, ensemble: bool, **kwargs):
+    def __init__(self, path, ensemble: bool = False, **kwargs):
         """
         Initialise a AccessEsm15Builder
 
