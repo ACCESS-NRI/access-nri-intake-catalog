@@ -692,27 +692,22 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         version=version,
         use_parquet=use_parquet,
     )
-    # FIXME: Should we switch the section we look at based on use_parquet?
     if vh.yaml_old:
-        previous_version = vh.yaml_old["sources"][
-            "access_nri_pq" if use_parquet else "access_nri"
-        ]["parameters"]["version"]["default"]
-        previous_version_directory = (
-            Path(catalog_base_path) / previous_version / "source"
-        )
+        prev_version = vh.yaml_old["sources"]["access_nri_pq"]["parameters"]["version"]["default"]
+        prev_version_dir = Path(catalog_base_path) / prev_version / "source"
 
-        print(f"Previous version: {previous_version}")
-        print(f"Previous version dir: {previous_version_directory}")
+        logger.debug(f"Previous version: {prev_version}")
+        logger.debug(f"Previous version dir: {prev_version_dir}")
     else:
-        print("No previous catalog.yaml found")
-        previous_version_directory = None
+        logger.debug("No previous catalog.yaml found")
+        prev_version_dir = None
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(
         config_yamls,
         build_path,
         data_base_path,
-        previous_version_directory=previous_version_directory,
+        previous_version_directory=prev_version_dir,
     )
     _check_build_args([parsed_source[1] for parsed_source in parsed_sources])
 
