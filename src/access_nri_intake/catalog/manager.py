@@ -108,8 +108,7 @@ class CatalogManager:
         elif datastore_path.suffix == ".csv":
             datastore = pl.read_csv(datastore_path)
         else:
-            # FIXME: need a more appropriate error here
-            raise FileExistsError(
+            raise ValueError(
                 f"Unexpected filetype for datastore: {datastore_path.suffix}"
             )
 
