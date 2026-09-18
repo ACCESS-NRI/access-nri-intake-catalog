@@ -213,7 +213,7 @@ class CatalogManager:
             self.load(
                 name=name,
                 description=description,
-                path=str(previous_datastore_file.with_suffix(".json")),
+                path=str(previous_datastore_file.with_suffix(".json")),  # type: ignore
                 directory=directory,
                 metadata=metadata,
             )
