@@ -9,11 +9,12 @@ from pathlib import Path
 from typing import Any
 
 import intake
+import polars as pl
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
 from intake_esm import esm_datastore
 from pandas.errors import EmptyDataError
-import polars as pl
 
+from ..source.builders import BaseBuilder
 from ..utils import validate_against_schema
 from . import (
     CATALOG_JSONSCHEMA,
@@ -24,7 +25,6 @@ from . import (
     YAML_COLUMN,
 )
 from .translators import DefaultTranslator
-from ..source.builders import BaseBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -207,6 +207,7 @@ class CatalogManager:
 
         # Check if the dataset has changed since the last build
         if not self._need_to_redo_build(previous_datastore_file, builder):
+            logger.info("Reusing previous datastore")
             # We can reuse the last build of this datastore
             # Don't pass on the translator, since this datastore should already be translated
             self.load(
