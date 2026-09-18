@@ -145,7 +145,7 @@ class CatalogManager:
         translator=DefaultTranslator,
         metadata: dict | None = None,
         directory: str | None = None,
-        previous_version_directory: str | Path | None = None,
+        previous_version_directory: Path | None = None,
         overwrite: bool = False,
         **kwargs,
     ):
@@ -213,7 +213,7 @@ class CatalogManager:
             self.load(
                 name=name,
                 description=description,
-                path=previous_datastore_file.with_suffix(".json"),
+                path=str(previous_datastore_file.with_suffix(".json")),
                 directory=directory,
                 metadata=metadata,
             )
