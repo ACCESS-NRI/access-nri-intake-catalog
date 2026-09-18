@@ -693,13 +693,17 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         use_parquet=use_parquet,
     )
     if vh.yaml_old:
-        prev_version = vh.yaml_old["sources"]["access_nri_pq"]["parameters"]["version"][
-            "default"
-        ]
-        prev_version_dir = Path(catalog_base_path) / prev_version / "source"
+        if "access_nri_pq" in vh.yaml_old["sources"]:
+            prev_version = vh.yaml_old["sources"]["access_nri_pq"]["parameters"]["version"][
+                "default"
+            ]
+            prev_version_dir = Path(catalog_base_path) / prev_version / "source"
 
-        logger.debug(f"Previous version: {prev_version}")
-        logger.debug(f"Previous version dir: {prev_version_dir}")
+            logger.debug(f"Previous version: {prev_version}")
+            logger.debug(f"Previous version dir: {prev_version_dir}")
+        else:
+            logger.debug("Unable to get previous version from catalog.yaml")
+            prev_version_dir = None
     else:
         logger.debug("No previous catalog.yaml found")
         prev_version_dir = None
