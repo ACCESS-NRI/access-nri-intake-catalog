@@ -98,7 +98,7 @@ class CatalogManager:
             True is the datastore needs to be rebuilt, otherwise False
         """
         if not datastore_path:
-            print("No existing catalog found, need to build datastore")
+            logger.info("No existing catalog found, need to build datastore")
             return True
 
         # Open the datastore
@@ -116,7 +116,7 @@ class CatalogManager:
         if sorted(datastore["path"].to_list()) != sorted(
             builder.get_assets().valid_assets
         ):
-            logger.debug(
+            logger.info(
                 "File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}"
             )
             return True
@@ -129,11 +129,11 @@ class CatalogManager:
             [os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]]
         )
         if need_to_rebuild:
-            logger.debug(
+            logger.info(
                 "File mtimes have changed, need to rebuild datastore: {datastore_path.name}"
             )
         else:
-            logger.debug(f"Don't need to rebuild datastore: {datastore_path.name}")
+            logger.info(f"Don't need to rebuild datastore: {datastore_path.name}")
         return need_to_rebuild
 
     def build_esm(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
