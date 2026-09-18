@@ -117,7 +117,7 @@ class CatalogManager:
             builder.get_assets().valid_assets
         ):
             logger.info(
-                "File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}"
+                f"File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}"
             )
             return True
 
