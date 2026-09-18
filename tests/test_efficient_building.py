@@ -174,12 +174,14 @@ def test_skipped_build_identical(tmp_path, test_data, basedirs, builder, kwargs)
         ("file.csv", FileNotFoundError),
         # These should fail the filetype check and return a ValueError
         ("file.somethingelse", ValueError),
-        ("file_with_no_extension", ValueError)
-    ]
+        ("file_with_no_extension", ValueError),
+    ],
 )
 def test__need_to_redo_build_invalid_filetype(datastore_file, expected_error):
     """
     This test explores the file type check for the datastore file in _need_to_redo_build
     """
     with pytest.raises(expected_error):
-        CatalogManager._need_to_redo_build(Path(datastore_file), builders.BaseBuilder("."))
+        CatalogManager._need_to_redo_build(
+            Path(datastore_file), builders.BaseBuilder(".")
+        )
