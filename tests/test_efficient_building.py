@@ -8,6 +8,7 @@ import pytest
 from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.source import builders
 
+
 @pytest.mark.parametrize(
     "build_datastore, file_list_changes, need_to_rebuild",
     [
@@ -25,13 +26,18 @@ from access_nri_intake.source import builders
         # Rebuild if files have been deleted
         (True, {"remove": ["woa13_ts_01_mom01.nc"]}, True),
         (True, {"remove": ["woa13_ts_02_mom01.nc"]}, True),
-#        (True, {"remove": ["woa13_ts_01_mom01.nc", "woa13_ts_02_mom01.nc"]}, True),
+        #        (True, {"remove": ["woa13_ts_01_mom01.nc", "woa13_ts_02_mom01.nc"]}, True),
         # Rebuild if files are rename - do an add+remove to simulate this
-        (True, {"add": ["woa13_ts_03_mom01.nc"], "remove": ["woa13_ts_01_mom01.nc"]}, True),
-    ]
+        (
+            True,
+            {"add": ["woa13_ts_03_mom01.nc"], "remove": ["woa13_ts_01_mom01.nc"]},
+            True,
+        ),
+    ],
 )
-def test__need_to_redo_build(tmp_path, test_data, build_datastore,
-                             file_list_changes, need_to_rebuild):
+def test__need_to_redo_build(
+    tmp_path, test_data, build_datastore, file_list_changes, need_to_rebuild
+):
     """
     _need_to_redo_build has a few paths to test
     - datastore is None
@@ -82,13 +88,14 @@ def test__need_to_redo_build(tmp_path, test_data, build_datastore,
         for f in file_list_changes["touch"]:
             # touch the file
             (dataset_path / f).touch()
-    
+
     # Check _need_to_redo_build
     # Need a fresh builder
     b2 = Builder(str(dataset_path))
     d_path = datastore_path / "test.csv" if datastore_path else None
     do_rebuild = CatalogManager._need_to_redo_build(d_path, b2)
     assert do_rebuild == need_to_rebuild
+
 
 @pytest.mark.parametrize(
     "basedirs, builder, kwargs",
@@ -121,10 +128,22 @@ def test__need_to_redo_build(tmp_path, test_data, build_datastore,
             {"depth": 5, "ensemble": True},
         ),
         (["woa"], "WoaBuilder", {}),
-        (["cmip6"], "Cmip6Builder", {"ensemble": False},),
-        (["cmip6"], "Cmip6Builder", {"ensemble": True},),
-        (["access-am3"], "AccessAm3Builder", {},),
-    ]
+        (
+            ["cmip6"],
+            "Cmip6Builder",
+            {"ensemble": False},
+        ),
+        (
+            ["cmip6"],
+            "Cmip6Builder",
+            {"ensemble": True},
+        ),
+        (
+            ["access-am3"],
+            "AccessAm3Builder",
+            {},
+        ),
+    ],
 )
 def test_skipped_build_identical(tmp_path, test_data, basedirs, builder, kwargs):
     """
