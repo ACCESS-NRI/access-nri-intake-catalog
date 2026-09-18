@@ -164,3 +164,22 @@ def test_skipped_build_identical(tmp_path, test_data, basedirs, builder, kwargs)
 
     # Check that the two datastores are identical
     assert cmp(tmp_path / "test.csv", tmp_path / "test2.csv")
+
+
+@pytest.mark.parametrize(
+    "datastore_file, expected_error",
+    [
+        # These two should pass the filetype check and return a FileNotFoundError
+        ("file.parquet", FileNotFoundError),
+        ("file.csv", FileNotFoundError),
+        # These should fail the filetype check and return a ValueError
+        ("file.somethingelse", ValueError),
+        ("file_with_no_extension", ValueError)
+    ]
+)
+def test__need_to_redo_build_invalid_filetype(datastore_file, expected_error):
+    """
+    This test explores the file type check for the datastore file in _need_to_redo_build
+    """
+    with pytest.raises(expected_error):
+        CatalogManager._need_to_redo_build(Path(datastore_file), builders.BaseBuilder("."))
