@@ -230,7 +230,7 @@ class CatalogManager:
                     break
             else:
                 raise FileNotFoundError(
-                    f"Unable to fild an existing datastore file: {previous_version_directory / name}.{{parquet,csv}}"
+                    f"Unable to find an existing datastore file: {previous_version_directory / name}.{{parquet,csv}}"
                 )
         else:
             previous_datastore_file = None
