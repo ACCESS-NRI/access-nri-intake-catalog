@@ -3,8 +3,8 @@
 
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
+
 import json
-import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -27,8 +27,6 @@ from . import (
     YAML_COLUMN,
 )
 from .translators import DefaultTranslator
-
-logger = logging.getLogger(__name__)
 
 
 class CatalogManagerError(Exception):
@@ -133,11 +131,11 @@ class CatalogManager:
             True is the datastore needs to be rebuilt, otherwise False
         """
         if not datastore_path:
-            logger.info("No existing catalog found, need to build datastore")
+            print("No existing catalog found, need to build datastore")
             return True
 
         # Open the datastore
-        logger.debug(f"Datastore path: {datastore_path}")
+        print(f"Datastore path: {datastore_path}")
         if datastore_path.suffix == ".parquet":
             datastore = pl.read_parquet(datastore_path)
         elif datastore_path.suffix == ".csv":
@@ -157,8 +155,8 @@ class CatalogManager:
         )
         previous_assets = datastore["path"].to_list() + cached_invalid_assets
         if sorted(previous_assets) != sorted(builder.get_assets().assets):
-            logger.info(
-                f"File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}"
+            print(
+                f"File list has changed, need to rebuild datastore: {datastore_path.name}"
             )
             return True
 
@@ -170,11 +168,11 @@ class CatalogManager:
             [os.stat(p).st_mtime > datastore_mtime for p in previous_assets]
         )
         if need_to_rebuild:
-            logger.info(
+            print(
                 "File mtimes have changed, need to rebuild datastore: {datastore_path.name}"
             )
         else:
-            logger.info(f"Don't need to rebuild datastore: {datastore_path.name}")
+            print(f"Don't need to rebuild datastore: {datastore_path.name}")
         return need_to_rebuild
 
     def build_esm(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
@@ -233,7 +231,7 @@ class CatalogManager:
                     break
             else:
                 raise FileNotFoundError(
-                    f"Failed to find a datastore file: {previous_version_directory / name}.{{parquet,csv}}"
+                    f"Unable to fild an existing datastore file: {previous_version_directory / name}.{{parquet,csv}}"
                 )
         else:
             previous_datastore_file = None
@@ -248,7 +246,7 @@ class CatalogManager:
 
         # Check if the dataset has changed since the last build
         if not self._need_to_redo_build(previous_datastore_file, builder):
-            logger.info("Reusing previous datastore")
+            print("Reusing previous datastore")
             # We can reuse the last build of this datastore
             # Don't pass on the translator, since this datastore should already be translated
             self.load(
