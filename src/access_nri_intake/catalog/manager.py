@@ -3,7 +3,6 @@
 
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
-
 import json
 import os
 from pathlib import Path
