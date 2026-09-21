@@ -11,6 +11,7 @@ from access_nri_intake.source import builders
 
 from test_cli import fake_project_access
 
+
 @pytest.mark.parametrize(
     "build_datastore, file_list_changes, need_to_rebuild",
     [
@@ -99,12 +100,17 @@ def test__need_to_redo_build(
     assert do_rebuild == need_to_rebuild
 
 
-@pytest.mark.parametrize("version", ["v2024-01-01",])
+@pytest.mark.parametrize(
+    "version",
+    [
+        "v2024-01-01",
+    ],
+)
 @pytest.mark.parametrize(
     "input_list",
     [
         ["config/access-om2.yaml", "config/cmip5.yaml"],
-        # FIXME: The following test has invalid assets - currently fails 
+        # FIXME: The following test has invalid assets - currently fails
         ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
     ],
 )
@@ -192,7 +198,12 @@ def test__need_to_redo_build_invalid_filetype(datastore_file, expected_error):
         )
 
 
-@pytest.mark.parametrize("version", ["v2024-01-01",])
+@pytest.mark.parametrize(
+    "version",
+    [
+        "v2024-01-01",
+    ],
+)
 @pytest.mark.parametrize(
     "input_list",
     [
@@ -253,5 +264,7 @@ def test__build_datastore_missing_file(
     new_version = "v2024-01-02"
     argv[5] = new_version
 
-    with pytest.warns(UserWarning, match=".*Error: Unable to fild an existing datastore file"):
+    with pytest.warns(
+        UserWarning, match=".*Error: Unable to fild an existing datastore file"
+    ):
         build(argv)
