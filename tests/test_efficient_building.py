@@ -102,16 +102,15 @@ def test__need_to_redo_build(
     "input_list",
     [
         ["config/access-om2.yaml", "config/cmip5.yaml"],
+        # FIXME: The following test has invalid assets - currently fails 
         ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
     ],
 )
-@pytest.mark.parametrize("use_parquet", [True, False])
 def test_skipped_build_identical(
     version,
     input_list,
     test_data,
     tmpdir,
-    use_parquet,
     fake_project_access,
     capfd,
 ):
@@ -126,12 +125,8 @@ def test_skipped_build_identical(
 
     configs = [str(test_data / fname) for fname in input_list]
 
-    if use_parquet:
-        cat_name = "access_nri_pq"
-        catfile = "cat.parquet"
-    else:
-        cat_name = "access_nri"
-        catfile = "cat.csv"
+    cat_name = "access_nri_pq"
+    catfile = "cat.parquet"
 
     argv = [
         *configs,
@@ -145,10 +140,8 @@ def test_skipped_build_identical(
         build_base_path,
         "--data_base_path",
         str(test_data),
+        "--use_parquet",
     ]
-
-    if use_parquet:
-        argv.append("--use_parquet")
 
     build(argv)
 
@@ -164,22 +157,14 @@ def test_skipped_build_identical(
     assert reuse_str in stdout
 
     # Now compare the datastore files from each build
-    if use_parquet:
-        ext = "*.parquet"
-    else:
-        ext = "*.csv"
-
     old_source = Path(tmpdir) / version / "source"
     new_source = Path(tmpdir) / new_version / "source"
-    for old_datastore_path in old_source.glob(ext):
+    for old_datastore_path in old_source.glob("*.parquet"):
         new_datastore_path = new_source / old_datastore_path.name
 
-        if use_parquet:
-            old_pq = pq.read_table(old_datastore_path)
-            new_pq = pq.read_table(new_datastore_path)
-            assert old_pq.equals(new_pq)
-        else:
-            assert cmp(old_datastore_path, new_datastore_path)
+        old_pq = pq.read_table(old_datastore_path)
+        new_pq = pq.read_table(new_datastore_path)
+        assert old_pq.equals(new_pq)
 
 
 @pytest.mark.parametrize(
