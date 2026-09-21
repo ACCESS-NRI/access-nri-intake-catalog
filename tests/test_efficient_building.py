@@ -97,73 +97,89 @@ def test__need_to_redo_build(
     assert do_rebuild == need_to_rebuild
 
 
+@pytest.mark.parametrize("version", ["v2024-01-01",])
 @pytest.mark.parametrize(
-    "basedirs, builder, kwargs",
+    "input_list",
     [
-        # This parametrization was taken from test_builders.test_builder_build
-        (["access-om2"], "AccessOm2Builder", {}),
-        (
-            ["access-cm2/by578", "access-cm2/by578a"],
-            "AccessCm2Builder",
-            {"ensemble": True},
-        ),
-        (
-            ["access-cm2/by578", "access-cm2/by578a"],
-            "AccessCm2Builder",
-            {"ensemble": False},
-        ),
-        (["access-esm1-5"], "AccessEsm15Builder", {"ensemble": False}),
-        (["access-cm3"], "AccessCm3Builder", {}),
-        (["access-om3"], "AccessOm3Builder", {}),
-        (["mom6"], "Mom6Builder", {}),
-        (["roms"], "ROMSBuilder", {}),
-        (
-            ["access-esm1-6"],
-            "AccessEsm16Builder",
-            {"depth": 5, "ensemble": False},
-        ),
-        (
-            ["access-esm1-6"],
-            "AccessEsm16Builder",
-            {"depth": 5, "ensemble": True},
-        ),
-        (["woa"], "WoaBuilder", {}),
-        (
-            ["cmip6"],
-            "Cmip6Builder",
-            {"ensemble": False},
-        ),
-        (
-            ["cmip6"],
-            "Cmip6Builder",
-            {"ensemble": True},
-        ),
-        (
-            ["access-am3"],
-            "AccessAm3Builder",
-            {},
-        ),
+        ["config/access-om2.yaml", "config/cmip5.yaml"],
+        ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
     ],
 )
-def test_skipped_build_identical(tmp_path, test_data, basedirs, builder, kwargs):
+@pytest.mark.parametrize("use_parquet", [True, False])
+def test_skipped_build_identical(
+    version,
+    input_list,
+    test_data,
+    tmpdir,
+    use_parquet,
+    fake_project_access,
+    capfd,
+):
     """
     Confirm that if a build is skipped the resulting datastore is identical
     to the previous one
+
+    This test is mostly copied from test_cli.test_build
     """
-    # Build the original datastore
-    Builder = getattr(builders, builder)
-    path = [str(test_data / Path(basedir)) for basedir in basedirs]
-    builder = Builder(path, **kwargs)
-    builder.build()
-    builder.save(name="test", description="test datastore", directory=str(tmp_path))
+    # Build the datastore
+    build_base_path = str(tmpdir)
 
-    # Rebuild the datastore
-    builder = Builder(path, **kwargs)
-    builder.build()
-    builder.save(name="test2", description="test datastore", directory=str(tmp_path))
+    configs = [str(test_data / fname) for fname in input_list]
 
-    # Check that the two datastores are identical
-    assert cmp(tmp_path / "test.csv", tmp_path / "test2.csv")
+    if use_parquet:
+        cat_name = "access_nri_pq"
+        catfile = "cat.parquet"
+    else:
+        cat_name = "access_nri"
+        catfile = "cat.csv"
+
+    argv = [
+        *configs,
+        "--catalog_file",
+        catfile,
+        "--version",
+        version,
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+    ]
+
+    if use_parquet:
+        argv.append("--use_parquet")
+
+    build(argv)
+
+    # Build the datastore again
+    new_version = "v2024-01-02"
+    argv[5] = new_version
+
+    build(argv)
+
+    # Confirm that old datastore was reused
+    reuse_str = "Reusing previous datastore"
+    stdout, _stderr = capfd.readouterr()
+    assert reuse_str in stdout
+
+    # Now compare the datastore files from each build
+    if use_parquet:
+        ext = "*.parquet"
+    else:
+        ext = "*.csv"
+
+    old_source = Path(tmpdir) / version / "source"
+    new_source = Path(tmpdir) / new_version / "source"
+    for old_datastore_path in old_source.glob(ext):
+        new_datastore_path = new_source / old_datastore_path.name
+
+        if use_parquet:
+            old_pq = pq.read_table(old_datastore_path)
+            new_pq = pq.read_table(new_datastore_path)
+            assert old_pq.equals(new_pq)
+        else:
+            assert cmp(old_datastore_path, new_datastore_path)
 
 
 @pytest.mark.parametrize(

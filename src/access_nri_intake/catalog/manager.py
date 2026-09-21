@@ -3,7 +3,6 @@
 
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
-import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -25,8 +24,6 @@ from . import (
     YAML_COLUMN,
 )
 from .translators import DefaultTranslator
-
-logger = logging.getLogger(__name__)
 
 
 class CatalogManagerError(Exception):
@@ -98,11 +95,11 @@ class CatalogManager:
             True is the datastore needs to be rebuilt, otherwise False
         """
         if not datastore_path:
-            logger.info("No existing catalog found, need to build datastore")
+            print("No existing catalog found, need to build datastore")
             return True
 
         # Open the datastore
-        logger.debug(f"Datastore path: {datastore_path}")
+        print(f"Datastore path: {datastore_path}")
         if datastore_path.suffix == ".parquet":
             datastore = pl.read_parquet(datastore_path)
         elif datastore_path.suffix == ".csv":
@@ -116,7 +113,7 @@ class CatalogManager:
         if sorted(datastore["path"].to_list()) != sorted(
             builder.get_assets().valid_assets
         ):
-            logger.info(
+            print(
                 f"File list has changed (or there are invalid assets), need to rebuild datastore: {datastore_path.name}"
             )
             return True
@@ -129,11 +126,11 @@ class CatalogManager:
             [os.stat(p).st_mtime > datastore_mtime for p in datastore["path"]]
         )
         if need_to_rebuild:
-            logger.info(
+            print(
                 "File mtimes have changed, need to rebuild datastore: {datastore_path.name}"
             )
         else:
-            logger.info(f"Don't need to rebuild datastore: {datastore_path.name}")
+            print(f"Don't need to rebuild datastore: {datastore_path.name}")
         return need_to_rebuild
 
     def build_esm(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
@@ -207,7 +204,7 @@ class CatalogManager:
 
         # Check if the dataset has changed since the last build
         if not self._need_to_redo_build(previous_datastore_file, builder):
-            logger.info("Reusing previous datastore")
+            print("Reusing previous datastore")
             # We can reuse the last build of this datastore
             # Don't pass on the translator, since this datastore should already be translated
             self.load(
