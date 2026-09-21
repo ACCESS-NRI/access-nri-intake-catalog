@@ -1,13 +1,15 @@
-from filecmp import cmp
 from os import remove, mkdir
 from pathlib import Path
 from shutil import copyfile, copytree
 from time import sleep
 import pytest
+import pyarrow.parquet as pq
 
+from access_nri_intake.cli import build
 from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.source import builders
 
+from test_cli import fake_project_access
 
 @pytest.mark.parametrize(
     "build_datastore, file_list_changes, need_to_rebuild",
@@ -106,6 +108,8 @@ def test__need_to_redo_build(
         ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
     ],
 )
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+@pytest.mark.filterwarnings("ignore:Unable to parse 32 assets.")
 def test_skipped_build_identical(
     version,
     input_list,
@@ -186,3 +190,68 @@ def test__need_to_redo_build_invalid_filetype(datastore_file, expected_error):
         CatalogManager._need_to_redo_build(
             Path(datastore_file), builders.BaseBuilder(".")
         )
+
+
+@pytest.mark.parametrize("version", ["v2024-01-01",])
+@pytest.mark.parametrize(
+    "input_list",
+    [
+        ["config/access-om2.yaml", "config/cmip5.yaml"],
+    ],
+)
+@pytest.mark.parametrize("use_parquet", [True])
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+def test__build_datastore_missing_file(
+    version,
+    input_list,
+    test_data,
+    tmpdir,
+    use_parquet,
+    fake_project_access,
+):
+    """
+    This test checks that the FileNotFound exception is raised correctly
+
+    This test is mostly copied from test_skipped_build_identical
+    """
+    # Build the datastore
+    build_base_path = str(tmpdir)
+
+    configs = [str(test_data / fname) for fname in input_list]
+
+    if use_parquet:
+        cat_name = "access_nri_pq"
+        catfile = "cat.parquet"
+    else:
+        cat_name = "access_nri"
+        catfile = "cat.csv"
+
+    argv = [
+        *configs,
+        "--catalog_file",
+        catfile,
+        "--version",
+        version,
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+    ]
+
+    if use_parquet:
+        argv.append("--use_parquet")
+
+    build(argv)
+
+    # Delete the datastore files
+    for f in (Path(tmpdir) / version / "source").glob("*.parquet"):
+        remove(f)
+
+    # Build the datastore again
+    new_version = "v2024-01-02"
+    argv[5] = new_version
+
+    with pytest.warns(UserWarning, match=".*Error: Unable to fild an existing datastore file"):
+        build(argv)
