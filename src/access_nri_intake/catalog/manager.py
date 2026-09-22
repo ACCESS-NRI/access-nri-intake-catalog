@@ -3,14 +3,19 @@
 
 """Manager for adding/updating intake sources in an intake-dataframe-catalog like the ACCESS-NRI catalog"""
 
+import json
+import os
 from pathlib import Path
 from typing import Any
 
 import intake
+import polars as pl
+from ecgtools.builder import INVALID_ASSET
 from intake_dataframe_catalog.core import DfFileCatalog, DfFileCatalogError
 from intake_esm import esm_datastore
 from pandas.errors import EmptyDataError
 
+from ..source.builders import BaseBuilder
 from ..utils import validate_against_schema
 from . import (
     CATALOG_JSONSCHEMA,
@@ -27,6 +32,39 @@ class CatalogManagerError(Exception):
     "Generic Exception for the CatalogManager class"
 
     pass
+
+
+INVALID_ASSETS_METADATA_KEY = "access_nri_intake.invalid_assets"
+
+
+def _cache_invalid_assets(datastore_path: Path, invalid_assets) -> None:
+    """Store invalid asset paths in an Intake-ESM parquet file's metadata.
+
+    The datastore itself contains only valid assets. Caching rejected paths in
+    the parquet footer lets a later build compare the complete asset listing
+    without reparsing every file. This grows the footer linearly with the
+    number and length of invalid paths, so a fixed-size asset-list digest may
+    eventually be preferable for unusually large invalid sets.
+    """
+    metadata = pl.read_parquet_metadata(datastore_path)
+    invalid_asset_paths = (
+        [] if invalid_assets.empty else invalid_assets[INVALID_ASSET].tolist()
+    )
+    metadata[INVALID_ASSETS_METADATA_KEY] = json.dumps(invalid_asset_paths)
+
+    temporary_path = datastore_path.with_suffix(".tmp.parquet")
+    pl.read_parquet(datastore_path).write_parquet(
+        temporary_path,
+        compression="zstd",
+        metadata=metadata,
+    )
+    temporary_path.replace(datastore_path)
+
+
+def _read_cached_invalid_assets(datastore_path: Path) -> list[str]:
+    """Return invalid asset paths cached in a datastore, if available."""
+    metadata = pl.read_parquet_metadata(datastore_path)
+    return json.loads(metadata.get(INVALID_ASSETS_METADATA_KEY, "[]"))
 
 
 class CatalogManager:
@@ -73,6 +111,69 @@ class CatalogManager:
         self.source: esm_datastore | None = None
         self.source_metadata: dict[str, Any] | None = None
 
+    @staticmethod
+    def _need_to_redo_build(datastore_path: Path | None, builder: BaseBuilder):
+        """
+        Determine if any of the files referred to in an existing datastore have
+        changed since the datastore was written. If no files have changed then
+        old datastore can be reused.
+
+        Parameters
+        ----------
+        datastore_path: Path
+            The path to the datastore to check
+        builder: BaseBuilder
+            The builder that will build this datastore
+
+        Returns
+        -------
+            True is the datastore needs to be rebuilt, otherwise False
+        """
+        if not datastore_path:
+            print("No existing catalog found, need to build datastore")
+            return True
+
+        # Open the datastore
+        print(f"Datastore path: {datastore_path}")
+        if datastore_path.suffix == ".parquet":
+            datastore = pl.read_parquet(datastore_path)
+        elif datastore_path.suffix == ".csv":
+            datastore = pl.read_csv(datastore_path)
+        else:
+            raise ValueError(
+                f"Unexpected filetype for datastore: {datastore_path.suffix}"
+            )
+
+        # The datastore contains only valid assets. For parquet datastores,
+        # include invalid paths cached from the previous build so this compares
+        # the complete asset listing.
+        cached_invalid_assets = (
+            _read_cached_invalid_assets(datastore_path)
+            if datastore_path.suffix == ".parquet"
+            else []
+        )
+        previous_assets = datastore["path"].to_list() + cached_invalid_assets
+        if sorted(previous_assets) != sorted(builder.get_assets().assets):
+            print(
+                f"File list has changed, need to rebuild datastore: {datastore_path.name}"
+            )
+            return True
+
+        # Check if any files in the datastore have been modified since the
+        # datastore was last modified
+        datastore_mtime = os.stat(datastore_path).st_mtime
+
+        need_to_rebuild = any(
+            [os.stat(p).st_mtime > datastore_mtime for p in previous_assets]
+        )
+        if need_to_rebuild:
+            print(
+                "File mtimes have changed, need to rebuild datastore: {datastore_path.name}"
+            )
+        else:
+            print(f"Don't need to rebuild datastore: {datastore_path.name}")
+        return need_to_rebuild
+
     def build_esm(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
         self,
         name: str,
@@ -82,6 +183,7 @@ class CatalogManager:
         translator=DefaultTranslator,
         metadata: dict | None = None,
         directory: str | None = None,
+        previous_version_directory: Path | None = None,
         overwrite: bool = False,
         **kwargs,
     ):
@@ -116,6 +218,23 @@ class CatalogManager:
         metadata = metadata or {}
         directory = directory or ""
 
+        builder = builder(path, **kwargs)
+
+        if previous_version_directory:
+            # Try parquet first
+            for suffix in ["parquet", "csv"]:
+                previous_datastore_file = (
+                    Path(previous_version_directory) / f"{name}.{suffix}"
+                )
+                if previous_datastore_file.exists():
+                    break
+            else:
+                raise FileNotFoundError(
+                    f"Unable to find an existing datastore file: {previous_version_directory / name}.{{parquet,csv}}"
+                )
+        else:
+            previous_datastore_file = None
+
         json_file = (Path(directory) / f"{name}.json").absolute()
         if json_file.is_file():
             if not overwrite:
@@ -124,13 +243,31 @@ class CatalogManager:
                     "pass `overwrite=True` to CatalogBuilder.build_esm"
                 )
 
-        builder = builder(path, **kwargs).build()
+        # Check if the dataset has changed since the last build
+        if not self._need_to_redo_build(previous_datastore_file, builder):
+            print("Reusing previous datastore")
+            # We can reuse the last build of this datastore
+            # Don't pass on the translator, since this datastore should already be translated
+            self.load(
+                name=name,
+                description=description,
+                path=str(previous_datastore_file.with_suffix(".json")),  # type: ignore
+                directory=directory,
+                metadata=metadata,
+            )
+            return
+
+        builder.build()
         builder.save(
             name=name,
             description=description,
             directory=directory,
             use_parquet=self.use_parquet,
         )
+        if self.use_parquet:
+            _cache_invalid_assets(
+                Path(directory) / f"{name}.parquet", builder.invalid_assets
+            )
 
         open_translate_kwargs = dict(
             file=str(json_file),

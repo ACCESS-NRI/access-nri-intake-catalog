@@ -2,20 +2,25 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from pathlib import Path
 from unittest import mock
 from warnings import warn
-import yaml
 
+import pandas as pd
+import polars as pl
 import pytest
+import yaml
+from ecgtools.builder import INVALID_ASSET
 from intake_dataframe_catalog.core import DfFileCatalogError
 from pandas.errors import EmptyDataError
-from pathlib import Path
 
 from access_nri_intake.catalog import EXP_JSONSCHEMA
 from access_nri_intake.catalog.manager import (
     CatalogManager,
     CatalogManagerError,
+    _cache_invalid_assets,
     _open_and_translate,
+    _read_cached_invalid_assets,
 )
 from access_nri_intake.catalog.translators import (
     Cmip5Translator,
@@ -56,6 +61,40 @@ def test_CatalogManager_init_parquet(tmp_path):
     with pytest.raises(CatalogManagerError) as excinfo:
         cat._add()
     assert "first load or build the source" in str(excinfo.value)
+
+
+def test_cached_invalid_assets_are_used_when_rebuilding(tmp_path):
+    """A parquet datastore remembers rejected assets from its previous build."""
+    valid_asset = tmp_path / "valid.nc"
+    invalid_asset = tmp_path / "invalid.nc"
+    valid_asset.touch()
+    invalid_asset.touch()
+
+    datastore_path = tmp_path / "datastore.parquet"
+    pl.DataFrame({"path": [str(valid_asset)]}).write_parquet(datastore_path)
+    _cache_invalid_assets(
+        datastore_path,
+        pd.DataFrame({INVALID_ASSET: [str(invalid_asset)]}),
+    )
+
+    assert _read_cached_invalid_assets(datastore_path) == [str(invalid_asset)]
+
+    builder = mock.Mock()
+    builder.get_assets.return_value.assets = [str(valid_asset), str(invalid_asset)]
+    assert not CatalogManager._need_to_redo_build(datastore_path, builder)
+
+    legacy_datastore_path = tmp_path / "legacy-datastore.parquet"
+    pl.DataFrame({"path": [str(valid_asset)]}).write_parquet(legacy_datastore_path)
+    builder.get_assets.return_value.assets = [str(valid_asset)]
+    assert not CatalogManager._need_to_redo_build(legacy_datastore_path, builder)
+
+    replacement_invalid_asset = tmp_path / "replacement-invalid.nc"
+    replacement_invalid_asset.touch()
+    builder.get_assets.return_value.assets = [
+        str(valid_asset),
+        str(replacement_invalid_asset),
+    ]
+    assert CatalogManager._need_to_redo_build(datastore_path, builder)
 
 
 @pytest.mark.parametrize(
