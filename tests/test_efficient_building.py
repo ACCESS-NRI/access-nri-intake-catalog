@@ -212,7 +212,7 @@ def test__need_to_redo_build_invalid_filetype(datastore_file, expected_error):
 )
 @pytest.mark.parametrize("use_parquet", [True])
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
-def test__build_datastore_missing_file(
+def test_build_datastore_missing_file(
     version,
     input_list,
     test_data,
@@ -265,6 +265,6 @@ def test__build_datastore_missing_file(
     argv[5] = new_version
 
     with pytest.warns(
-        UserWarning, match=".*Error: Unable to fild an existing datastore file"
+        UserWarning, match=".*Error: Unable to find an existing datastore file"
     ):
         build(argv)
