@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.16.7'
+    rev: 'v0.16.10'
     hooks:
        # Run the linter.
        - id: ruff-check
@@ -8,14 +8,14 @@ repos:
        - id: ruff-format
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.5.1
+    rev: 26.10.0
     hooks:
     - id: black
       language_version: python3
       args: ['-t','py310','-t','py311','-t','py312','-t','py313','-t','py314']
 # Mypy
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v2.3.1'
+    rev: 'v2.4.0'
     hooks:
     - id: mypy
       name: mypy
