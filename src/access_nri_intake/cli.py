@@ -650,7 +650,9 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         "--no-reuse",
         default=False,
         action="store_true",
-        help=("Set this if you want to rebuild all datastores, i.e. don't reuse datastores whose data haven't changed."),
+        help=(
+            "Set this if you want to rebuild all datastores, i.e. don't reuse datastores whose data haven't changed."
+        ),
     )
 
     args = parser.parse_args(argv)
