@@ -314,7 +314,7 @@ def _parse_build_inputs(
     config_yamls: list[str | Path],
     build_path: str | Path,
     data_base_path: str | Path,
-    previous_version_directory: str | Path,
+    previous_version_directory: Path | None,
 ) -> list[tuple[str, dict]]:
     """
     Parse build inputs into a list of tuples of CatalogManager methods and args to
