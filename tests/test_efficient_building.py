@@ -57,6 +57,8 @@ def test__need_to_redo_build(
     src_dataset = test_data / "woa/KDS50"
     dataset_path = tmp_path / "dataset"
     mkdir(dataset_path)
+    datastore_path = tmp_path / "datastore"
+    mkdir(datastore_path)
 
     # Copy the sample dataset
     # This portion of the test woa data set has two nc files:
