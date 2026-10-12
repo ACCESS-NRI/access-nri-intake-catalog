@@ -684,7 +684,6 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         ) from e
 
     # Use a dummy VersionHandler to get the previous version
-    # FIXME: Is there a better way to do this?
     vh = VersionHandler(
         yaml_dict={},
         catalog_base_path=catalog_base_path,

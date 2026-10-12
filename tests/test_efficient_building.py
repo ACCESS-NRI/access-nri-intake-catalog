@@ -17,9 +17,9 @@ from test_cli import fake_project_access
     [
         # If there's no datastore always rebuild
         (False, {}, True),
-        (False, {}, True),
-        # Rebuild if files have been touched
+        # Don't rebuild if nothing has changed
         (True, {}, False),
+        # Rebuild if files have been touched
         (True, {"touch": ["woa13_ts_01_mom01.nc"]}, True),
         (True, {"touch": ["woa13_ts_02_mom01.nc"]}, True),
         (True, {"touch": ["woa13_ts_01_mom01.nc", "woa13_ts_02_mom01.nc"]}, True),
@@ -29,8 +29,7 @@ from test_cli import fake_project_access
         # Rebuild if files have been deleted
         (True, {"remove": ["woa13_ts_01_mom01.nc"]}, True),
         (True, {"remove": ["woa13_ts_02_mom01.nc"]}, True),
-        #        (True, {"remove": ["woa13_ts_01_mom01.nc", "woa13_ts_02_mom01.nc"]}, True),
-        # Rebuild if files are rename - do an add+remove to simulate this
+        # Rebuild if files are renamed - do an add+remove to simulate this
         (
             True,
             {"add": ["woa13_ts_03_mom01.nc"], "remove": ["woa13_ts_01_mom01.nc"]},
@@ -58,8 +57,6 @@ def test__need_to_redo_build(
     src_dataset = test_data / "woa/KDS50"
     dataset_path = tmp_path / "dataset"
     mkdir(dataset_path)
-    datastore_path = tmp_path / "datastore"
-    mkdir(datastore_path)
 
     # Copy the sample dataset
     # This portion of the test woa data set has two nc files:
@@ -110,7 +107,7 @@ def test__need_to_redo_build(
     "input_list",
     [
         ["config/access-om2.yaml", "config/cmip5.yaml"],
-        # FIXME: The following test has invalid assets - currently fails
+        # The following test has invalid assets
         ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
     ],
 )
