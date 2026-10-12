@@ -113,6 +113,7 @@ def test__need_to_redo_build(
         ["config/access-om2-patterns.yaml", "config/cmip5.yaml"],
     ],
 )
+@pytest.mark.parametrize("reuse_catalog", [True, False])
 @pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
 @pytest.mark.filterwarnings("ignore:Unable to parse 32 assets.")
 def test_skipped_build_identical(
@@ -122,6 +123,7 @@ def test_skipped_build_identical(
     tmpdir,
     fake_project_access,
     capfd,
+    reuse_catalog,
 ):
     """
     Confirm that if a build is skipped the resulting datastore is identical
@@ -152,6 +154,9 @@ def test_skipped_build_identical(
         "--use_parquet",
     ]
 
+    if not reuse_catalog:
+        argv.append("--no-reuse")
+
     build(argv)
 
     # Build the datastore again
@@ -160,10 +165,11 @@ def test_skipped_build_identical(
 
     build(argv)
 
-    # Confirm that old datastore was reused
-    reuse_str = "Reusing previous datastore"
-    stdout, _stderr = capfd.readouterr()
-    assert reuse_str in stdout
+    if reuse_catalog:
+        # Confirm that old datastore was reused
+        reuse_str = "Reusing previous datastore"
+        stdout, _stderr = capfd.readouterr()
+        assert reuse_str in stdout
 
     # Now compare the datastore files from each build
     old_source = Path(tmpdir) / version / "source"

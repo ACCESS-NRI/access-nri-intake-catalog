@@ -646,6 +646,13 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         help=("Set this if you want to use parquet files instead of csv files"),
     )
 
+    parser.add_argument(
+        "--no-reuse",
+        default=False,
+        action="store_true",
+        help=("Set this if you want to rebuild all datastores, i.e. don't reuse datastores whose data haven't changed."),
+    )
+
     args = parser.parse_args(argv)
     config_yamls = args.config_yaml
     build_base_path = args.build_base_path
@@ -656,6 +663,7 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
     update = not args.no_update
     concretize = not args.no_concretize
     use_parquet = args.use_parquet
+    reuse_datastore = not args.no_reuse
 
     if catalog_file is None:
         catalog_file = "metacatalog.parquet" if use_parquet else "metacatalog.csv"
@@ -684,6 +692,7 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         ) from e
 
     # Use a dummy VersionHandler to get the previous version
+    # prev_version_dir = None indicates no previous version/rebuild everything
     vh = VersionHandler(
         yaml_dict={},
         catalog_base_path=catalog_base_path,
@@ -691,21 +700,23 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
         version=version,
         use_parquet=use_parquet,
     )
-    if vh.yaml_old:
-        if "access_nri_pq" in vh.yaml_old["sources"]:
-            prev_version = vh.yaml_old["sources"]["access_nri_pq"]["parameters"][
-                "version"
-            ]["default"]
-            prev_version_dir = Path(catalog_base_path) / prev_version / "source"
+    prev_version_dir = None
+    if reuse_datastore:
+        if vh.yaml_old:
+            if "access_nri_pq" in vh.yaml_old["sources"]:
+                prev_version = vh.yaml_old["sources"]["access_nri_pq"]["parameters"][
+                    "version"
+                ]["default"]
+                prev_version_dir = Path(catalog_base_path) / prev_version / "source"
 
-            logger.debug(f"Previous version: {prev_version}")
-            logger.debug(f"Previous version dir: {prev_version_dir}")
+                logger.debug(f"Previous version: {prev_version}")
+                logger.debug(f"Previous version dir: {prev_version_dir}")
+            else:
+                logger.debug("Unable to get previous version from catalog.yaml")
         else:
-            logger.debug("Unable to get previous version from catalog.yaml")
-            prev_version_dir = None
+            logger.debug("No previous catalog.yaml found")
     else:
-        logger.debug("No previous catalog.yaml found")
-        prev_version_dir = None
+        logger.debug("Not reusing previous catalogue")
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(
