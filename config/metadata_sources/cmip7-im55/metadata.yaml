@@ -1,1 +1,14 @@
-TODO
+name: cmip7_australian
+experiment_uuid: b1dac798-e829-4db0-8526-2f80a3758b12
+description: CMIP7 datasets catalogued by NCI under project im55
+long_description: >-
+  CMIP7 datasets indexed by the NCI Intake-ESM datastore at
+  /g/data/im55/admin/catalog/v2/esm/catalog.json. The datastore defines the
+  available models, experiments, variables, and file versions.
+model:
+- CMIP7
+contact: NCI
+email: help@nci.org.au
+license: CC-BY-4.0
+keywords:
+- cmip7
