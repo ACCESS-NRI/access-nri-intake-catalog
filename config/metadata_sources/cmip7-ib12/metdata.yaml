@@ -1,14 +1,14 @@
 name: cmip7_replicated
 experiment_uuid: d1c9311c-39d0-49f8-a77f-ad9ea6345b1c
-description: CMIP7 datasets catalogued by NCI under project ib12
+description: ESGF Replicated CMIP7 Datasets
 long_description: >-
-  CMIP7 datasets indexed by the NCI Intake-ESM datastore at
-  /g/data/ib12/admin/catalog/v2/esm/catalog.json. The datastore defines the
-  available models, experiments, variables, and file versions.
+  Earth System Grid Federation (ESGF) data replicated from the international
+  climate community for the Coupled Model Intercomparison Project (CMIP).
 model:
 - CMIP7
 contact: NCI
 email: help@nci.org.au
-license: CC-BY-4.0
+license: Liceses may vary, please look at individual datasets and consult https://wcrp-cmip.github.io/cmip7-guidance/docs/CMIP7/Guidance_for_users/#2-terms-of-use-and-citations-requirements
 keywords:
 - cmip7
+schema_version: 1-0-4
