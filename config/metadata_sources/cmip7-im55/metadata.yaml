@@ -8,7 +8,7 @@ model:
 - CMIP7
 contact: NCI
 email: help@nci.org.au
-license: Liceses may vary, please look at individual datasets and consult https://wcrp-cmip.github.io/cmip7-guidance/docs/CMIP7/Guidance_for_users/#2-terms-of-use-and-citations-requirements
+license: Licenses may vary, please look at individual datasets and consult https://wcrp-cmip.github.io/cmip7-guidance/docs/CMIP7/Guidance_for_users/#2-terms-of-use-and-citations-requirements
 keywords:
 - cmip7
 reference: https://doi.org/10.25914/vftb-n215
