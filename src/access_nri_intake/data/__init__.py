@@ -49,6 +49,14 @@ try:
         "version", "latest"
     )  # Get the catalog version number and set it to "latest" if it can't be found
 
+    # Auto-enable ACCESS-MOPPy plugin when catalog is loaded
+    try:
+        from ..plugins.moppy import enable_moppy_plugin
+
+        enable_moppy_plugin()
+    except ImportError:
+        # Plugin dependencies not available, skip silently
+        pass
     # Wrap the base catalog with aliasing support
     data = AliasedDataframeCatalog(
         base_catalog,
