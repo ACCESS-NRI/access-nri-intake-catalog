@@ -193,6 +193,37 @@ class AliasedESMCatalog(wrapt.ObjectProxy):
         norm: dict[str, Any] = self._normalise_kwargs(kwargs)
         return self.__wrapped__.search(**norm)
 
+    def cmorise(
+        self,
+        selected: esm_datastore,
+        *,
+        compound_name: str,
+        cmip_version: str,
+        experiment_id: str,
+        variant_label: str,
+        activity_id: str,
+        grid_label: str | None = None,
+        parent_info: dict[str, Any] | None = None,
+    ):
+        """CMORise a searched subset of raw ACCESS-ESM1.6 files with MOPPy.
+
+        Search on this source first, then pass the returned Intake-ESM datastore
+        here. The returned xarray Dataset is lazy; this method does not write files.
+        """
+        from .cmorise import cmorise_selection
+
+        return cmorise_selection(
+            self.__wrapped__,
+            selected,
+            compound_name=compound_name,
+            cmip_version=cmip_version,
+            experiment_id=experiment_id,
+            variant_label=variant_label,
+            activity_id=activity_id,
+            grid_label=grid_label,
+            parent_info=parent_info,
+        )
+
     def unwrap(self) -> esm_datastore:
         """
         Get the underlying dataframe catalog without aliasing
@@ -205,7 +236,9 @@ class AliasedESMCatalog(wrapt.ObjectProxy):
 
     def __dir__(self) -> list[str]:
         return sorted(
-            set(dir(self.__wrapped__)) | set(self.__dict__.keys())
+            set(dir(self.__wrapped__))
+            | set(dir(type(self)))
+            | set(self.__dict__.keys())
         )  # pragma: no cover
 
 

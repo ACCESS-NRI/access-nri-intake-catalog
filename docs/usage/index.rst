@@ -15,6 +15,7 @@ sections we give an overview of the catalog and demonstrate how to use it.
    quickstart
    aliases
    aliases_demo
+   cmorise
    chunking
    telemetry
    faq
