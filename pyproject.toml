@@ -36,6 +36,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+moppy = ["access-moppy"]
 test = ["pytest", "tox"]
 e2e = ["pytest", "pytest-ordering"]
 
