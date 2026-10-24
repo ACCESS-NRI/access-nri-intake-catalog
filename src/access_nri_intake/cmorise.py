@@ -19,8 +19,7 @@ def _check_gadi_projects(paths: list[str]) -> None:
     projects = {
         parts[3]
         for path in paths
-        if (parts := Path(path).parts)[:3] == ("/", "g", "data")
-        and len(parts) > 4
+        if (parts := Path(path).parts)[:3] == ("/", "g", "data") and len(parts) > 4
     }
     missing = sorted(
         project for project in projects if not (Path("/g/data") / project).is_dir()

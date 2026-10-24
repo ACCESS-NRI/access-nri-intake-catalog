@@ -85,9 +85,7 @@ def test_cmorise_uses_only_selected_paths_and_returns_dataset(
     "model",
     [None, ["ACCESS-ESM1-5"], ["ACCESS-ESM1-6", "ACCESS-CM2"]],
 )
-def test_cmorise_rejects_unsupported_or_ambiguous_models(
-    source_and_selection, model
-):
+def test_cmorise_rejects_unsupported_or_ambiguous_models(source_and_selection, model):
     source, selected = source_and_selection
     source.unwrap().metadata = {"model": model}
     with pytest.raises(ValueError, match="only a source whose model metadata"):
