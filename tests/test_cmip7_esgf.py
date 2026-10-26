@@ -155,7 +155,9 @@ def test_compiled_regex_flags_are_preserved():
 
 def test_scalar_compiled_regex_is_wrapped_for_intake_esm():
     pattern = re.compile("t[s]")
-    assert _local_search_kwargs({"source_id": "ACCESS-ESM1-6", "variable_id": pattern}) == {
+    assert _local_search_kwargs(
+        {"source_id": "ACCESS-ESM1-6", "variable_id": pattern}
+    ) == {
         "source_id": "ACCESS-ESM1-6",
         "variable_id": [pattern],
     }
