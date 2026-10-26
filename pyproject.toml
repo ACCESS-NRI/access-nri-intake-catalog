@@ -36,6 +36,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+esgf = ["intake-esgf>=2026.9.4"]
 test = ["pytest", "tox"]
 e2e = ["pytest", "pytest-ordering"]
 
