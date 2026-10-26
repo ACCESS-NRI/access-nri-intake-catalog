@@ -105,3 +105,8 @@ Current limitations
   depend on the Gadi environment and chosen ESGF index. A live Gadi test on
   26 October 2026 fetched an ESGF-only 467,541-byte CMIP7 ``orog`` file into
   a scratch cache and opened it through ``to_dataset_dict()``.
+* If an ESGF index is unreachable, intake-esgf warns that results may be
+  incomplete. If all indices return no results or fail, this optional search
+  returns the NCI matches only. Check the warnings before treating a local-only
+  result as proof that ESGF has no matching dataset. Searches without
+  ``esgf=True`` do not contact ESGF.

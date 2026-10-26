@@ -74,7 +74,7 @@ def _esgf_facets(kwargs: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("ESGF federation is restricted to project='CMIP7'")
     facets.pop("project", None)
     for field, value in facets.items():
-        values = value if isinstance(value, (list, tuple, set)) else [value]
+        values = list(value) if isinstance(value, (list, tuple, set)) else [value]
         if not values or any(
             not isinstance(item, (str, re.Pattern)) for item in values
         ):
@@ -85,7 +85,7 @@ def _esgf_facets(kwargs: Mapping[str, Any]) -> dict[str, Any]:
                     re.compile(item)
                 except re.error as exc:
                     raise ValueError(f"Invalid regex for ESGF facet {field!r}") from exc
-        facets[field] = list(values) if len(values) > 1 else values[0]
+        facets[field] = values if len(values) > 1 else values[0]
     return facets
 
 
