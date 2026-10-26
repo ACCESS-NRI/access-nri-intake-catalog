@@ -7,18 +7,25 @@ as before. ESGF search retrieves metadata only; data transfer occurs when an
 ESGF-only result is opened with ``to_dataset_dict()``.
 
 Install this checkout into a Python 3.12 or newer environment on Gadi, with
-access to the NCI catalog paths and outbound access to ESGF indices::
+access to the NCI catalog paths and outbound access to ESGF indices. Use an
+isolated environment rather than modifying ``analysis3``::
 
    python -m pip install -e '.[esgf]'
 
-Use a cache under your project or scratch allocation. For a first check, run
-the included script without ``--download``::
+CMIP7 requires ``intake-esgf>=2026.9.4``. If an older version is already
+installed in the environment, upgrade it there before testing::
+
+   python -m pip install --upgrade 'intake-esgf>=2026.9.4'
+
+Use a cache under your project or scratch allocation. Set ``CACHE_DIR`` to a
+writable path such as ``/scratch/<project>/<user>/intake-esgf-cache``. For a
+first check, run the included script without ``--download``::
 
    python scripts/gadi_cmip7_esgf_smoke.py \
        --source cmip7_replicated \
        --source-id <CMIP7-source-id> \
        --variable-id <CMIP7-variable-id> \
-       --cache "$SCRATCH/intake-esgf-cache"
+       --cache "$CACHE_DIR"
 
 The script prints the local file count, ESGF dataset count, ESGF-only count,
 and a dataset-level table. Narrow with ``--experiment-id``,
@@ -32,7 +39,7 @@ not expand it::
    python scripts/gadi_cmip7_esgf_smoke.py \
        --source-id '^ACCESS-.*$' \
        --variable-id tas \
-       --cache "$SCRATCH/intake-esgf-cache"
+       --cache "$CACHE_DIR"
 
 In a notebook the equivalent calls are::
 
@@ -95,5 +102,6 @@ Current limitations
 * This searches one CMIP7 NCI source at a time; it does not reconcile the
   replicated and Australian source entries with one another.
 * Network availability, cache permissions, data volume, and transfer speed
-  depend on the Gadi environment and chosen ESGF index. They require a live
-  Gadi test.
+  depend on the Gadi environment and chosen ESGF index. A live Gadi test on
+  26 October 2026 fetched an ESGF-only 467,541-byte CMIP7 ``orog`` file into
+  a scratch cache and opened it through ``to_dataset_dict()``.

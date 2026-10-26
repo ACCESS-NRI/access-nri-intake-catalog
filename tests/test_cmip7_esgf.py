@@ -18,6 +18,7 @@ from access_nri_intake.cmip7_esgf import (
     FederatedCMIP7Catalog,
     _esgf_facets,
     _filter_esgf_frame,
+    _local_search_kwargs,
     _server_facets,
     search_cmip7_esgf,
 )
@@ -152,6 +153,14 @@ def test_compiled_regex_flags_are_preserved():
     assert _filter_esgf_frame(frame, facets).source_id.tolist() == ["ACCESS-ESM1-6"]
 
 
+def test_scalar_compiled_regex_is_wrapped_for_intake_esm():
+    pattern = re.compile("t[s]")
+    assert _local_search_kwargs({"source_id": "ACCESS-ESM1-6", "variable_id": pattern}) == {
+        "source_id": "ACCESS-ESM1-6",
+        "variable_id": [pattern],
+    }
+
+
 def test_regex_search_does_not_download_and_reconciles(monkeypatch):
     local = MagicMock()
     local.df = pd.DataFrame([_row("tas")])
@@ -179,6 +188,9 @@ def test_regex_search_does_not_download_and_reconciles(monkeypatch):
     )
     remote.search.assert_called_once_with(
         project="CMIP7", quiet=True, latest=True, variable_id="tas"
+    )
+    local_catalog.search.assert_called_once_with(
+        source_id=[re.compile("^ACCESS-.*$")], variable_id="tas"
     )
     assert result.df.availability.tolist() == ["both", "esgf"]
     remote.to_dataset_dict.assert_not_called()

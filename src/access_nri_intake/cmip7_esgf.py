@@ -131,6 +131,14 @@ def _local_frame(local: Any) -> pd.DataFrame:
     return frame
 
 
+def _local_search_kwargs(kwargs: Mapping[str, Any]) -> dict[str, Any]:
+    """Pass scalar compiled patterns as sequences for intake-esm search."""
+    return {
+        field: [value] if isinstance(value, re.Pattern) else value
+        for field, value in kwargs.items()
+    }
+
+
 def _identity_columns(local: pd.DataFrame, remote: pd.DataFrame) -> list[str]:
     shared = [col for col in CMIP7_IDENTITY if col in local and col in remote]
     missing = set(REQUIRED_IDENTITY) - set(shared)
@@ -207,7 +215,7 @@ class FederatedCMIP7Catalog:
         """Narrow both search results without transferring files."""
         norm = self._source._normalise_kwargs(kwargs)
         facets = _esgf_facets(norm)
-        local = self.local.search(**norm)
+        local = self.local.search(**_local_search_kwargs(norm))
         if self.esgf is None:
             return FederatedCMIP7Catalog(self._source, local, None)
         remote = self.esgf.clone()
@@ -266,7 +274,7 @@ def search_cmip7_esgf(
             "install with pip install 'access_nri_intake[esgf]'"
         ) from exc
 
-    local = source.unwrap().search(**local_kwargs)
+    local = source.unwrap().search(**_local_search_kwargs(local_kwargs))
     esgf = ESGFCatalog()
     try:
         esgf.search(
