@@ -137,10 +137,92 @@ def test_cmorise_rejects_empty_selection(source_and_selection):
         _call_cmorise(source, selected)
 
 
+def test_cmorise_requires_a_searched_datastore(source_and_selection):
+    source, _ = source_and_selection
+    with pytest.raises(TypeError, match="Intake-ESM datastore"):
+        _call_cmorise(source, object())
+
+
+def test_cmorise_rejects_non_raw_source(source_and_selection):
+    source, selected = source_and_selection
+    source.unwrap().esmcat.df.drop(columns="realm", inplace=True)
+    with pytest.raises(ValueError, match="path, realm and variable columns"):
+        _call_cmorise(source, selected)
+
+
+def test_cmorise_rejects_missing_selected_paths(source_and_selection):
+    source, selected = source_and_selection
+    selected.esmcat.df.drop(columns="path", inplace=True)
+    with pytest.raises(ValueError, match="no path column"):
+        _call_cmorise(source, selected)
+
+
+def test_cmorise_rejects_relative_paths(source_and_selection):
+    source, selected = source_and_selection
+    selected.esmcat.df["path"] = "relative.nc"
+    with pytest.raises(ValueError, match="absolute local file paths"):
+        _call_cmorise(source, selected)
+
+
+def test_cmorise_rejects_other_source_id(source_and_selection):
+    source, selected = source_and_selection
+    selected.esmcat.id = "other-source"
+    with pytest.raises(ValueError, match="does not belong to this catalog source"):
+        _call_cmorise(source, selected)
+
+
+def test_cmorise_rejects_non_netcdf_assets(source_and_selection):
+    source, selected = source_and_selection
+    source.unwrap().esmcat.assets.format = "zarr"
+    with pytest.raises(ValueError, match="only local NetCDF assets"):
+        _call_cmorise(source, selected)
+
+
+@pytest.mark.parametrize(
+    "field", ["compound_name", "experiment_id", "variant_label", "activity_id"]
+)
+def test_cmorise_requires_cmip_metadata(source_and_selection, field):
+    source, selected = source_and_selection
+    kwargs = {
+        "compound_name": "Omon.tos",
+        "cmip_version": "CMIP6",
+        "experiment_id": "historical",
+        "variant_label": "r1i1p1f1",
+        "activity_id": "CMIP",
+    }
+    kwargs[field] = " "
+    with pytest.raises(ValueError, match=f"{field} must be a non-empty string"):
+        source.cmorise(selected, **kwargs)
+
+
+def test_cmorise_rejects_unsupported_cmip_version(source_and_selection):
+    source, selected = source_and_selection
+    with pytest.raises(ValueError, match="cmip_version must be one of"):
+        source.cmorise(
+            selected,
+            compound_name="Omon.tos",
+            cmip_version="CMIP5",
+            experiment_id="historical",
+            variant_label="r1i1p1f1",
+            activity_id="CMIP",
+        )
+
+
 def test_cmorise_reports_missing_optional_dependency(source_and_selection, monkeypatch):
     source, selected = source_and_selection
     monkeypatch.setitem(sys.modules, "access_moppy", None)
     with pytest.raises(ImportError, match=r"access_nri_intake\[moppy\]"):
+        _call_cmorise(source, selected)
+
+
+def test_cmorise_preserves_nested_import_errors(source_and_selection, monkeypatch):
+    source, selected = source_and_selection
+
+    def missing_moppy_dependency(name):
+        raise ModuleNotFoundError("missing MOPPy dependency", name="other_module")
+
+    monkeypatch.setattr(cmorise_module, "import_module", missing_moppy_dependency)
+    with pytest.raises(ModuleNotFoundError, match="missing MOPPy dependency"):
         _call_cmorise(source, selected)
 
 
