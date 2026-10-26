@@ -50,6 +50,7 @@ def main():
     with intake_esgf.conf.set(local_cache=[str(cache)], confirm_download=True):
         source = intake.cat.access_nri.search(name=args.source).to_source()
         result = source.search(esgf=True, esgf_broad=args.esgf_broad, **facets)
+        print(f"ESGF search status: {result.esgf_search_status}")
         print(f"NCI file rows: {len(result.local_df)}")
         print(f"ESGF dataset rows: {len(result.esgf_df)}")
         print(f"ESGF-only datasets: {len(result.esgf_only_df)}")

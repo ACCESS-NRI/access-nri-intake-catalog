@@ -11,9 +11,10 @@ and keeps the original catalogs for opening data.
 from __future__ import annotations
 
 import re
+import warnings
 from collections.abc import Mapping
 from importlib import import_module
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import pandas as pd
 
@@ -45,6 +46,8 @@ REQUIRED_IDENTITY = (
     "grid_label",
 )
 SEARCH_FACETS = set(CMIP7_IDENTITY) | {"member_id"}
+_UNKNOWN_LOCAL_VERSION = object()
+_UNKNOWN_ESGF_VERSION = object()
 
 
 def _is_pattern(value: str | re.Pattern[str]) -> bool:
@@ -152,11 +155,16 @@ def _identity_columns(local: pd.DataFrame, remote: pd.DataFrame) -> list[str]:
     return shared
 
 
-def _identity(row: pd.Series, columns: list[str]) -> tuple[str, ...]:
+def _identity(
+    row: pd.Series, columns: list[str], *, unknown_version: object
+) -> tuple[Any, ...]:
     values = []
     for col in columns:
         value = "" if pd.isna(row[col]) else str(row[col])
         if col == "version":
+            if not value:
+                values.append(unknown_version)
+                continue
             value = value.removeprefix("v")
         values.append(value)
     return tuple(values)
@@ -171,10 +179,18 @@ class FederatedCMIP7Catalog:
     ``to_dataset_dict``; that call may download data into its configured cache.
     """
 
-    def __init__(self, source: AliasedESMCatalog, local: Any, esgf: Any):
+    def __init__(
+        self,
+        source: AliasedESMCatalog,
+        local: Any,
+        esgf: Any,
+        *,
+        esgf_search_status: Literal["complete", "incomplete"] = "complete",
+    ):
         self._source = source
         self.local = local
         self.esgf = esgf
+        self.esgf_search_status = esgf_search_status
         self.local_df = _local_frame(local)
         self.esgf_df = (
             esgf.df.copy() if esgf is not None else pd.DataFrame(columns=CMIP7_IDENTITY)
@@ -182,22 +198,41 @@ class FederatedCMIP7Catalog:
         self._reconcile()
 
     def _reconcile(self) -> None:
-        columns = _identity_columns(self.local_df, self.esgf_df)
+        local_identity = self.local_df
+        remote_identity = self.esgf_df
+        if not local_identity.empty and not remote_identity.empty:
+            # An absent version cannot prove that the NCI and ESGF rows are the
+            # same dataset. Keep the ESGF version eligible for transfer.
+            if "version" not in local_identity:
+                local_identity = local_identity.assign(version=pd.NA)
+            if "version" not in remote_identity:
+                remote_identity = remote_identity.assign(version=pd.NA)
+        columns = _identity_columns(local_identity, remote_identity)
         local_unique = (
-            self.local_df.drop_duplicates(subset=columns)
+            local_identity.drop_duplicates(subset=columns)
             if columns
-            else self.local_df.copy()
+            else local_identity.copy()
         )
-        local_ids = {_identity(row, columns) for _, row in local_unique.iterrows()}
-        esgf_ids = {_identity(row, columns) for _, row in self.esgf_df.iterrows()}
+        local_ids = {
+            _identity(row, columns, unknown_version=_UNKNOWN_LOCAL_VERSION)
+            for _, row in local_unique.iterrows()
+        }
+        esgf_ids = {
+            _identity(row, columns, unknown_version=_UNKNOWN_ESGF_VERSION)
+            for _, row in remote_identity.iterrows()
+        }
         local_matches = local_unique.copy()
         local_matches["availability"] = [
-            "both" if _identity(row, columns) in esgf_ids else "local"
+            "both"
+            if _identity(row, columns, unknown_version=_UNKNOWN_LOCAL_VERSION)
+            in esgf_ids
+            else "local"
             for _, row in local_matches.iterrows()
         ]
         remote_keys = [
-            _identity(row, columns) not in local_ids
-            for _, row in self.esgf_df.iterrows()
+            _identity(row, columns, unknown_version=_UNKNOWN_ESGF_VERSION)
+            not in local_ids
+            for _, row in remote_identity.iterrows()
         ]
         self.esgf_only_df = self.esgf_df.loc[remote_keys].copy()
         remote_matches = self.esgf_only_df.copy()
@@ -217,7 +252,12 @@ class FederatedCMIP7Catalog:
         facets = _esgf_facets(norm)
         local = self.local.search(**_local_search_kwargs(norm))
         if self.esgf is None:
-            return FederatedCMIP7Catalog(self._source, local, None)
+            return FederatedCMIP7Catalog(
+                self._source,
+                local,
+                None,
+                esgf_search_status=self.esgf_search_status,
+            )
         remote = self.esgf.clone()
         remote.project = self.esgf.project
         remote.last_search = self.esgf.last_search.copy()
@@ -226,7 +266,12 @@ class FederatedCMIP7Catalog:
         remote.df = _filter_esgf_frame(self.esgf_df, facets)
         if remote.df.empty:
             remote = None
-        return FederatedCMIP7Catalog(self._source, local, remote)
+        return FederatedCMIP7Catalog(
+            self._source,
+            local,
+            remote,
+            esgf_search_status=self.esgf_search_status,
+        )
 
     def to_dataset_dict(
         self, *, esgf_kwargs: dict[str, Any] | None = None, **local_kwargs: Any
@@ -276,14 +321,39 @@ def search_cmip7_esgf(
 
     local = source.unwrap().search(**_local_search_kwargs(local_kwargs))
     esgf = ESGFCatalog()
-    try:
-        esgf.search(
-            project="CMIP7", quiet=True, latest="version" not in facets, **server_facets
+    with warnings.catch_warnings(record=True) as search_warnings:
+        warnings.simplefilter("always")
+        try:
+            esgf.search(
+                project="CMIP7",
+                quiet=True,
+                latest="version" not in facets,
+                **server_facets,
+            )
+        except NoSearchResults:
+            esgf = None
+    failed_indices = [
+        str(warning.message)
+        for warning in search_warnings
+        if "results may be incomplete" in str(warning.message)
+    ]
+    for warning in search_warnings:
+        if "results may be incomplete" not in str(warning.message):
+            warnings.warn(warning.message, warning.category, stacklevel=2)
+    esgf_search_status: Literal["complete", "incomplete"] = (
+        "incomplete" if failed_indices else "complete"
+    )
+    if failed_indices:
+        warnings.warn(
+            "ESGF search incomplete; local-only results do not prove there are "
+            "no ESGF matches. " + "; ".join(failed_indices),
+            UserWarning,
+            stacklevel=2,
         )
-    except NoSearchResults:
-        esgf = None
     if esgf is not None:
         esgf.df = _filter_esgf_frame(esgf.df, facets)
         if esgf.df.empty:
             esgf = None
-    return FederatedCMIP7Catalog(source, local, esgf)
+    return FederatedCMIP7Catalog(
+        source, local, esgf, esgf_search_status=esgf_search_status
+    )

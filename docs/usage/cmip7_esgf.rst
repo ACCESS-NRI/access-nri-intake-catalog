@@ -49,6 +49,7 @@ In a notebook the equivalent calls are::
    with intake_esgf.conf.set(local_cache=["/scratch/path/intake-esgf"]):
        source = intake.cat.access_nri.search(name="cmip7_replicated").to_source()
        result = source.search(esgf=True, source_id="...", variable_id="...")
+       print(result.esgf_search_status)  # "complete" or "incomplete"
        result.df[["source_id", "variable_id", "availability"]]
        # This is the first call that may transfer files:
        datasets = result.to_dataset_dict()
@@ -93,8 +94,10 @@ Current limitations
   ``frequency``, ``variable_id``, and ``grid_label`` when both catalogs have
   matches. It raises an error if NCI's live CMIP7 schema lacks one of these,
   so Gadi validation can identify needed mappings without silently merging
-  different datasets. Other CMIP7 identity fields, including ``version``,
-  are compared when available in both catalogs.
+  different datasets. Other CMIP7 identity fields are compared when available
+  in both catalogs. Rows with unknown versions are not assumed to be the same
+  dataset, so the ESGF row remains eligible for transfer. This may fetch a
+  duplicate if the local version is merely absent from NCI metadata.
 * The opt-in ``df`` is dataset-level, while the original local-only ``df``
   remains file-level. Use ``local_df`` for local file paths and time ranges.
   Other intake-esm methods remain available on ``result.local``; the combined
@@ -105,8 +108,9 @@ Current limitations
   depend on the Gadi environment and chosen ESGF index. A live Gadi test on
   26 October 2026 fetched an ESGF-only 467,541-byte CMIP7 ``orog`` file into
   a scratch cache and opened it through ``to_dataset_dict()``.
-* If an ESGF index is unreachable, intake-esgf warns that results may be
-  incomplete. If all indices return no results or fail, this optional search
-  returns the NCI matches only. Check the warnings before treating a local-only
-  result as proof that ESGF has no matching dataset. Searches without
-  ``esgf=True`` do not contact ESGF.
+* ``result.esgf_search_status`` is ``"complete"`` or ``"incomplete"``. If an
+  ESGF index fails to respond, the opt-in search emits an explicit warning and
+  sets the status to ``"incomplete"``. If no ESGF rows are available, the
+  result still contains NCI matches; an incomplete local-only result does not
+  prove there are no ESGF matches. The status persists when refining with
+  ``result.search(...)``. Searches without ``esgf=True`` do not contact ESGF.

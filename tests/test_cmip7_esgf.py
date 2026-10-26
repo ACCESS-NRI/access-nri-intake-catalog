@@ -84,6 +84,32 @@ def test_remote_new_version_is_not_suppressed_by_local_version():
     assert result.df.availability.tolist() == ["local", "esgf"]
 
 
+@pytest.mark.parametrize("local_version", ["absent", None, ""])
+def test_unknown_local_version_does_not_hide_esgf_version(local_version):
+    local_row = _row("tas", path="/local/v20260101/tas.nc")
+    if local_version == "absent":
+        local_row.pop("version")
+    else:
+        local_row["version"] = local_version
+    result, _, esgf = _catalog([local_row], [_row("tas", version="20260201")])
+
+    assert result.df.availability.tolist() == ["local", "esgf"]
+    assert result.esgf_only_df.version.tolist() == ["20260201"]
+    result.to_dataset_dict()
+    esgf.to_dataset_dict.assert_called_once()
+
+
+def test_two_unknown_versions_are_not_assumed_equal():
+    local_row = _row("tas")
+    remote_row = _row("tas")
+    local_row.pop("version")
+    remote_row.pop("version")
+
+    result, _, _ = _catalog([local_row], [remote_row])
+
+    assert result.df.availability.tolist() == ["local", "esgf"]
+
+
 def test_version_prefix_is_reconciled():
     result, _, _ = _catalog([_row("tas", version="v20260101")], [_row("tas")])
     assert result.df.availability.tolist() == ["both"]
@@ -222,6 +248,17 @@ def test_refining_local_only_federated_result_stays_local():
     assert narrowed.df.availability.tolist() == ["local"]
 
 
+def test_refining_preserves_incomplete_esgf_status():
+    result, local, _ = _catalog([_row("tas")], [])
+    result.esgf = None
+    result.esgf_search_status = "incomplete"
+    narrowed_local = MagicMock()
+    narrowed_local.df = pd.DataFrame([_row("tas")])
+    local.search.return_value = narrowed_local
+
+    assert result.search(variable_id="tas").esgf_search_status == "incomplete"
+
+
 def test_to_dataset_dict_rejects_overriding_fixed_esgf_options():
     result, local, esgf = _catalog([], [_row("tas")])
     with pytest.raises(ValueError, match="fixed by federation"):
@@ -283,7 +320,7 @@ def test_missing_optional_esgf_dependency_gives_install_hint(monkeypatch):
     source.unwrap.assert_not_called()
 
 
-def test_unreachable_esgf_indices_warn_and_return_local_matches(monkeypatch):
+def test_unreachable_esgf_indices_mark_local_results_incomplete(monkeypatch):
     local = MagicMock()
     local.df = pd.DataFrame([_row("tas")])
     source = MagicMock()
@@ -310,11 +347,65 @@ def test_unreachable_esgf_indices_warn_and_return_local_matches(monkeypatch):
         ),
     )
 
-    with pytest.warns(UserWarning, match="results may be incomplete"):
+    with pytest.warns(UserWarning, match="ESGF search incomplete"):
         result = search_cmip7_esgf(source, {"variable_id": "tas"})
 
     assert result.df.availability.tolist() == ["local"]
     assert result.esgf is None
+    assert result.esgf_search_status == "incomplete"
+
+
+def test_partial_esgf_index_failure_marks_remote_results_incomplete(monkeypatch):
+    local = MagicMock()
+    local.df = pd.DataFrame([_row("tas")])
+    source = MagicMock()
+    source.unwrap.return_value.search.return_value = local
+    remote = MagicMock()
+    remote.df = pd.DataFrame([_row("pr")])
+
+    def partly_unavailable(**_):
+        warnings.warn(
+            "ESGF index failed to return a response, results may be incomplete"
+        )
+
+    remote.search.side_effect = partly_unavailable
+    monkeypatch.setattr(
+        integration,
+        "import_module",
+        lambda name: (
+            SimpleNamespace(ESGFCatalog=lambda: remote)
+            if name == "intake_esgf"
+            else SimpleNamespace(NoSearchResults=Exception)
+        ),
+    )
+
+    with pytest.warns(UserWarning, match="ESGF search incomplete"):
+        result = search_cmip7_esgf(source, {"source_id": "ACCESS-ESM1-6"})
+
+    assert result.df.availability.tolist() == ["local", "esgf"]
+    assert result.esgf_search_status == "incomplete"
+
+
+def test_other_esgf_warnings_are_preserved_without_marking_incomplete(monkeypatch):
+    source = MagicMock()
+    source.unwrap.return_value.search.return_value.df = pd.DataFrame([_row("tas")])
+    remote = MagicMock()
+    remote.df = pd.DataFrame([_row("pr")])
+    remote.search.side_effect = lambda **_: warnings.warn("Other ESGF diagnostic")
+    monkeypatch.setattr(
+        integration,
+        "import_module",
+        lambda name: (
+            SimpleNamespace(ESGFCatalog=lambda: remote)
+            if name == "intake_esgf"
+            else SimpleNamespace(NoSearchResults=Exception)
+        ),
+    )
+
+    with pytest.warns(UserWarning, match="Other ESGF diagnostic"):
+        result = search_cmip7_esgf(source, {"source_id": "ACCESS-ESM1-6"})
+
+    assert result.esgf_search_status == "complete"
 
 
 def test_esgf_results_outside_requested_facets_leave_local_matches(monkeypatch):
@@ -342,6 +433,7 @@ def test_esgf_results_outside_requested_facets_leave_local_matches(monkeypatch):
 
     assert result.df.availability.tolist() == ["local"]
     assert result.esgf is None
+    assert result.esgf_search_status == "complete"
 
 
 def test_source_search_opt_in_does_not_change_normal_search(
