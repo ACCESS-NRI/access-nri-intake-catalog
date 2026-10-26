@@ -4,6 +4,15 @@ Changelog
 This CHANGELOG documents only key changes between versions. For a full description 
 of all changes see https://github.com/ACCESS-NRI/access-nri-intake-catalog/releases
 
+v1.8.1
+------
+
+26/10/2026
+
+- Add CMIP7 replicated and Australian datastores and correct their translator (#696, #697)
+- Add optional ESGF federation to CMIP7 source searches (#699)
+- Add optional MOPPy CMORisation for ACCESS-ESM1.6 output (#700)
+
 v1.0.0
 ------
 
@@ -65,4 +74,3 @@ v0.1.0
 03/11/2023
 
 - First official release
-
