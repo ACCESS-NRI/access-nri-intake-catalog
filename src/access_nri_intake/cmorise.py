@@ -3,6 +3,7 @@
 
 """Optional MOPPy bridge for selected raw ACCESS-ESM1.6 catalog assets."""
 
+from importlib import import_module
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,7 @@ _SUPPORTED_MODELS = {"ACCESS-ESM1.6", "ACCESS-ESM1-6"}
 _SOURCE_ID = "ACCESS-ESM1-6"
 _MODEL_ID = "ACCESS-ESM1-6"
 _CMIP_VERSIONS = {"CMIP6", "CMIP6Plus", "CMIP7"}
+_MIN_GADI_FILE_PATH_PARTS = 5
 
 
 def _check_gadi_projects(paths: list[str]) -> None:
@@ -19,7 +21,8 @@ def _check_gadi_projects(paths: list[str]) -> None:
     projects = {
         parts[3]
         for path in paths
-        if (parts := Path(path).parts)[:3] == ("/", "g", "data") and len(parts) > 4
+        if (parts := Path(path).parts)[:3] == ("/", "g", "data")
+        and len(parts) >= _MIN_GADI_FILE_PATH_PARTS
     }
     missing = sorted(
         project for project in projects if not (Path("/g/data") / project).is_dir()
@@ -31,7 +34,7 @@ def _check_gadi_projects(paths: list[str]) -> None:
         )
 
 
-def _validate_selection(
+def _validate_selection(  # noqa: PLR0912 - Each branch checks a separate input constraint.
     source: esm_datastore, selected: esm_datastore, variant_label: str
 ) -> list[str]:
     metadata = source.metadata if isinstance(source.metadata, dict) else {}
@@ -98,7 +101,7 @@ def _validate_selection(
     return unique_paths
 
 
-def cmorise_selection(
+def cmorise_selection(  # noqa: PLR0913 - MOPPy requires the explicit CMIP metadata.
     source: esm_datastore,
     selected: esm_datastore,
     *,
@@ -125,7 +128,7 @@ def cmorise_selection(
     paths = _validate_selection(source, selected, variant_label)
 
     try:
-        from access_moppy import ACCESS_ESM_CMORiser
+        access_moppy = import_module("access_moppy")
     except ModuleNotFoundError as exc:
         if exc.name != "access_moppy":
             raise
@@ -133,7 +136,7 @@ def cmorise_selection(
             "CMORisation requires ACCESS-MOPPy; install access_nri_intake[moppy]"
         ) from exc
 
-    cmoriser = ACCESS_ESM_CMORiser(
+    cmoriser = access_moppy.ACCESS_ESM_CMORiser(
         input_data=paths,
         compound_name=compound_name,
         cmip_version=cmip_version,

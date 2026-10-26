@@ -45,6 +45,8 @@ import wrapt
 from intake_dataframe_catalog.core import DfFileCatalog
 from intake_esm.core import esm_datastore
 
+from .cmorise import cmorise_selection
+
 T = TypeVar("T", esm_datastore, Any)
 
 
@@ -193,7 +195,7 @@ class AliasedESMCatalog(wrapt.ObjectProxy):
         norm: dict[str, Any] = self._normalise_kwargs(kwargs)
         return self.__wrapped__.search(**norm)
 
-    def cmorise(
+    def cmorise(  # noqa: PLR0913 - MOPPy requires the explicit CMIP metadata.
         self,
         selected: esm_datastore,
         *,
@@ -210,8 +212,6 @@ class AliasedESMCatalog(wrapt.ObjectProxy):
         Search on this source first, then pass the returned Intake-ESM datastore
         here. The returned xarray Dataset is lazy; this method does not write files.
         """
-        from .cmorise import cmorise_selection
-
         return cmorise_selection(
             self.__wrapped__,
             selected,
