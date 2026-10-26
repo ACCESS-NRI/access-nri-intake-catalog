@@ -12,23 +12,46 @@ Install ACCESS-MOPPy 1.8.4 or newer in a compatible Python environment
 
    python -m pip install 'access_nri_intake[moppy]'
 
-Select files from one raw ACCESS-ESM1.6 source, inspect them, and then CMORise::
+For example, the published historical datastore contains raw ACCESS-ESM1.6
+files. Select one monthly ``rsds`` file, then CMORise it::
 
    import intake
 
-   source = intake.cat.access_nri["<ACCESS-ESM1.6 piControl-spinup source>"]
-   selected = source.search(variable="rsds", frequency="1mon")
+   source = intake.cat.access_nri["historical-r1i1p1f1-2026.06.12"]
+   monthly = source.search(variable="rsds", frequency="1mon")
+   selected = source.search(
+       variable="rsds", frequency="1mon", path=monthly.df.path.iloc[0]
+   )
    selected.df[["path", "variable", "start_date", "end_date"]]
+
+   parent_info = {
+       "parent_experiment_id": "piControl",
+       "parent_activity_id": "CMIP",
+       "parent_mip_era": "CMIP7",
+       "parent_source_id": "ACCESS-ESM1-6",
+       "parent_variant_label": "r1i1p1f1",
+       "parent_time_units": "days since 0001-01-01",
+       "branch_time_in_child": 0.0,
+       "branch_time_in_parent": 73048.0,
+       "branch_method": "standard",
+   }
 
    ds = source.cmorise(
        selected,
        compound_name="atmos.rsds.tavg-u-hxy-u.mon.GLB",
        cmip_version="CMIP7",
-       experiment_id="piControl-spinup",
+       experiment_id="historical",
        variant_label="r1i1p1f1",
        activity_id="CMIP",
        grid_label="gn",
+       parent_info=parent_info,
    )
+
+These parent values are specific to this run. Its metadata links to
+``piControl-2026.04.07`` and gives a parent branch date of ``0201-01-01``;
+``73048`` is that date in the parent run's proleptic Gregorian time units.
+MOPPy requires all nine ``parent_info`` fields for this historical CMIP7
+experiment, even when returning an in-memory Dataset.
 
 ``ds`` is MOPPy's lazy CMORised xarray Dataset. The method does not write
 NetCDF files. It passes the exact distinct paths in ``selected.df`` to MOPPy,
@@ -47,6 +70,6 @@ selected ``member`` column when that column has values. Other models and
 already CMIP-processed datastores are rejected. MOPPy receives the fixed
 ``source_id="ACCESS-ESM1-6"`` and mapping ``model_id="ACCESS-ESM1-6"``.
 
-For publication, supply the experiment's ``parent_info`` block and validate
+For publication, verify the experiment's ``parent_info`` values and validate
 written output using the MOPPy workflow. An in-memory Dataset alone has not
 been checked for publication compliance.
