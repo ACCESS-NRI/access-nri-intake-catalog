@@ -10,7 +10,7 @@ from intake_esm.core import esm_datastore
 
 _SUPPORTED_MODELS = {"ACCESS-ESM1.6", "ACCESS-ESM1-6"}
 _SOURCE_ID = "ACCESS-ESM1-6"
-_MODEL_ID = "ACCESS-ESM1.6"
+_MODEL_ID = "ACCESS-ESM1-6"
 _CMIP_VERSIONS = {"CMIP6", "CMIP6Plus", "CMIP7"}
 
 

@@ -77,7 +77,7 @@ def test_cmorise_uses_only_selected_paths_and_returns_dataset(
         "activity_id": "CMIP",
         "grid_label": "gn",
         "parent_info": None,
-        "model_id": "ACCESS-ESM1.6",
+        "model_id": "ACCESS-ESM1-6",
     }
 
 
