@@ -213,27 +213,21 @@ class FederatedCMIP7Catalog:
             if columns
             else local_identity.copy()
         )
-        local_ids = {
+        local_row_ids = [
             _identity(row, columns, unknown_version=_UNKNOWN_LOCAL_VERSION)
             for _, row in local_unique.iterrows()
-        }
-        esgf_ids = {
+        ]
+        remote_row_ids = [
             _identity(row, columns, unknown_version=_UNKNOWN_ESGF_VERSION)
             for _, row in remote_identity.iterrows()
-        }
+        ]
+        local_ids = set(local_row_ids)
+        esgf_ids = set(remote_row_ids)
         local_matches = local_unique.copy()
         local_matches["availability"] = [
-            "both"
-            if _identity(row, columns, unknown_version=_UNKNOWN_LOCAL_VERSION)
-            in esgf_ids
-            else "local"
-            for _, row in local_matches.iterrows()
+            "both" if row_id in esgf_ids else "local" for row_id in local_row_ids
         ]
-        remote_keys = [
-            _identity(row, columns, unknown_version=_UNKNOWN_ESGF_VERSION)
-            not in local_ids
-            for _, row in remote_identity.iterrows()
-        ]
+        remote_keys = [row_id not in local_ids for row_id in remote_row_ids]
         self.esgf_only_df = self.esgf_df.loc[remote_keys].copy()
         remote_matches = self.esgf_only_df.copy()
         remote_matches["availability"] = "esgf"
