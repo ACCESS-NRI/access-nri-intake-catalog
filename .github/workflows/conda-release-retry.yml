@@ -1,0 +1,48 @@
+name: Publish existing release to conda
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag (for example, v1.8.1)
+        required: true
+        type: string
+
+jobs:
+  conda:
+    name: build and deploy to conda
+    if: github.repository == 'ACCESS-NRI/access-nri-intake-catalog'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Use current conda recipe
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git fetch --depth=1 origin main
+          git show FETCH_HEAD:.conda/meta.yaml > .conda/meta.yaml
+
+      - name: Setup conda environment
+        uses: conda-incubator/setup-miniconda@v4
+        with:
+          miniconda-version: "latest"
+          python-version: 3.11
+          environment-file: .conda/environment.yml
+          auto-update-conda: false
+          auto-activate-base: false
+          show-channel-urls: true
+
+      - name: Build and upload the conda package
+        uses: ACCESS-NRI/action-build-and-upload-conda-packages@v3.1.0
+        with:
+          meta_yaml_dir: .conda
+          user: accessnri
+          label: main
+          token: ${{ secrets.anaconda_token }}
