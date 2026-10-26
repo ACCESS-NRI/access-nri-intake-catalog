@@ -26,6 +26,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          echo "RELEASE_VERSION=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
           git fetch --depth=1 origin main
           git show FETCH_HEAD:.conda/meta.yaml > .conda/meta.yaml
 

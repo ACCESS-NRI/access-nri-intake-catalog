@@ -1,5 +1,4 @@
-{% set data = load_setup_py_data(setup_file='../setup.py', from_recipe_dir=True) %}
-{% set version = data.get('version') %}
+{% set version = environ.get('RELEASE_VERSION') or load_setup_py_data(setup_file='../setup.py', from_recipe_dir=True).get('version') %}
 {% set pyproj = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
 {% set deps = pyproj.get('project', {}).get('dependencies',[]) %}
 {# Map PyPI distribution names to their conda-forge equivalents #}
