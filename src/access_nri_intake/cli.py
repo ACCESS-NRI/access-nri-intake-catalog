@@ -711,14 +711,14 @@ def build(  # noqa: PLR0912, PLR0915 # Allow this func to be long and branching
                 ]["default"]
                 prev_version_dir = Path(catalog_base_path) / prev_version / "source"
 
-                logger.debug(f"Previous version: {prev_version}")
-                logger.debug(f"Previous version dir: {prev_version_dir}")
+                logger.info(f"Previous version: {prev_version}")
+                logger.info(f"Previous version dir: {prev_version_dir}")
             else:
-                logger.debug("Unable to get previous version from catalog.yaml")
+                logger.info("Unable to get previous version from catalog.yaml")
         else:
-            logger.debug("No previous catalog.yaml found")
+            logger.info("No previous catalog.yaml found")
     else:
-        logger.debug("Not reusing previous catalogue")
+        logger.info("Not reusing previous catalogue")
 
     # Parse inputs to pass to CatalogManager
     parsed_sources = _parse_build_inputs(

@@ -130,7 +130,7 @@ class CatalogManager:
             True is the datastore needs to be rebuilt, otherwise False
         """
         if not datastore_path:
-            print("No existing catalog found, need to build datastore")
+            print("No existing datastore given, need to build datastore")
             return True
 
         # Open the datastore
