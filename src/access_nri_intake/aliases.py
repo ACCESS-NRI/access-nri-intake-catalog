@@ -45,6 +45,9 @@ import wrapt
 from intake_dataframe_catalog.core import DfFileCatalog
 from intake_esm.core import esm_datastore
 
+from .cmip7_esgf import search_cmip7_esgf
+from .cmorise import cmorise_selection
+
 T = TypeVar("T", esm_datastore, Any)
 
 
@@ -111,11 +114,13 @@ class AliasedESMCatalog(wrapt.ObjectProxy):
         field_aliases: dict[str, str] | None = None,
         value_aliases: dict[str, Any] | None = None,
         show_warnings: bool = True,
+        source_name: str | None = None,
     ):
         super().__init__(cat)
         self.field_aliases = field_aliases or {}
         self.value_aliases = value_aliases or {}
         self.show_warnings = show_warnings
+        self.source_name = source_name or cat.name or getattr(cat.esmcat, "id", None)
 
     def _canonical_field(self, field: str) -> str:
         """Convert user-facing field name to canonical field name"""
@@ -188,10 +193,51 @@ class AliasedESMCatalog(wrapt.ObjectProxy):
             norm[canon_field] = self._normalise_value(canon_field, value)
         return norm
 
-    def search(self, **kwargs) -> esm_datastore:
-        """Search the catalog with aliased field names and values"""
+    def search(
+        self, *, esgf: bool = False, esgf_broad: bool = False, **kwargs
+    ) -> esm_datastore:
+        """Search the catalog, optionally including ESGF for CMIP7 sources."""
+        if esgf_broad and not esgf:
+            raise ValueError("esgf_broad=True requires esgf=True")
+        if esgf and self.source_name not in {
+            "cmip7_replicated",
+            "cmip7_australian",
+        }:
+            raise ValueError("esgf=True is only supported for CMIP7 sources")
         norm: dict[str, Any] = self._normalise_kwargs(kwargs)
-        return self.__wrapped__.search(**norm)
+        if not esgf:
+            return self.__wrapped__.search(**norm)
+
+        return search_cmip7_esgf(self, norm, allow_broad=esgf_broad)
+
+    def cmorise(  # noqa: PLR0913 - MOPPy requires the explicit CMIP metadata.
+        self,
+        selected: esm_datastore,
+        *,
+        compound_name: str,
+        cmip_version: str,
+        experiment_id: str,
+        variant_label: str,
+        activity_id: str,
+        grid_label: str | None = None,
+        parent_info: dict[str, Any] | None = None,
+    ):
+        """CMORise a searched subset of raw ACCESS-ESM1.6 files with MOPPy.
+
+        Search on this source first, then pass the returned Intake-ESM datastore
+        here. The returned xarray Dataset is lazy; this method does not write files.
+        """
+        return cmorise_selection(
+            self.__wrapped__,
+            selected,
+            compound_name=compound_name,
+            cmip_version=cmip_version,
+            experiment_id=experiment_id,
+            variant_label=variant_label,
+            activity_id=activity_id,
+            grid_label=grid_label,
+            parent_info=parent_info,
+        )
 
     def unwrap(self) -> esm_datastore:
         """
@@ -205,7 +251,9 @@ class AliasedESMCatalog(wrapt.ObjectProxy):
 
     def __dir__(self) -> list[str]:
         return sorted(
-            set(dir(self.__wrapped__)) | set(self.__dict__.keys())
+            set(dir(self.__wrapped__))
+            | set(dir(type(self)))
+            | set(self.__dict__.keys())
         )  # pragma: no cover
 
 
@@ -238,7 +286,9 @@ class AliasedDataframeCatalog(wrapt.ObjectProxy):
         self.value_aliases = value_aliases or {}
         self.show_warnings = show_warnings
 
-    def _wrap_if_esm_datastore(self, obj: T) -> AliasedESMCatalog | T:
+    def _wrap_if_esm_datastore(
+        self, obj: T, source_name: str | None = None
+    ) -> AliasedESMCatalog | T:
         """
         Wrap an object with AliasedESMCatalog if it appears to be an ESM datastore.
         ESM datastores should use their native field names, not field aliases.
@@ -250,6 +300,7 @@ class AliasedDataframeCatalog(wrapt.ObjectProxy):
                 field_aliases=ESM_FIELD_ALIASES,  # Empty - use native field names
                 value_aliases=self.value_aliases,
                 show_warnings=self.show_warnings,
+                source_name=source_name,
             )
         # Otherwise return as-is
         return obj  # pragma: no cover
@@ -259,7 +310,7 @@ class AliasedDataframeCatalog(wrapt.ObjectProxy):
         Handle catalog['entry-name'] access - delegate to underlying catalog
         """
         result = self.__wrapped__[key]
-        return self._wrap_if_esm_datastore(result)
+        return self._wrap_if_esm_datastore(result, source_name=key)
 
     def _normalise_value(self, field: str, value: str | Collection[str] | Any) -> Any:
         """
@@ -322,7 +373,8 @@ class AliasedDataframeCatalog(wrapt.ObjectProxy):
         Get ESM datastore from catalog search result - wrap with aliasing
         """
         result = self.__wrapped__.to_source(**kwargs)
-        return self._wrap_if_esm_datastore(result)
+        name = next(iter(self.__wrapped__.keys()), None)
+        return self._wrap_if_esm_datastore(result, source_name=name)
 
     def to_source_dict(self, **kwargs):
         """
@@ -332,7 +384,9 @@ class AliasedDataframeCatalog(wrapt.ObjectProxy):
         # Wrap each datastore in the dictionary
         wrapped_result = {}
         for key, datastore in result.items():
-            wrapped_result[key] = self._wrap_if_esm_datastore(datastore)
+            wrapped_result[key] = self._wrap_if_esm_datastore(
+                datastore, source_name=key
+            )
         return wrapped_result
 
     def unwrap(self) -> DfFileCatalog:

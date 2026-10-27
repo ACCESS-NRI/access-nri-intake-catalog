@@ -36,6 +36,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+moppy = ["access-moppy>=1.8.4,<2"]
+esgf = ["intake-esgf>=2026.9.4"]
 test = ["pytest", "tox"]
 e2e = ["pytest", "pytest-ordering"]
 
