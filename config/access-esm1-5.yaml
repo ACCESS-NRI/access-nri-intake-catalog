@@ -4,52 +4,52 @@ translator: DefaultTranslator
 
 sources:
 
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2035/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2035/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2035
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2035
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2040/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2040/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2040
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2040
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2045/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2045/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2045
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2045
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2050/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2050/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2050
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2050
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2055/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2055/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2055
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2055
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2060/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2060/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2060
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/PI-GWL-B2060
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-C-05-r1/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/HI-C-05-r1/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-C-05-r1
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/HI-C-05-r1
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-CN-05/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/HI-CN-05/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-CN-05
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/HI-CN-05
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-nl-C-05-r1/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/HI-nl-C-05-r1/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-nl-C-05-r1
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/HI-nl-C-05-r1
     ensemble: false
     
-  - metadata_yaml: /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-noluc-CN-05/metadata.yaml
+  - metadata_yaml: /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/HI-noluc-CN-05/metadata.yaml
     path:
-      - /g/data/p73/archive/non-CMIP/ACCESS-ESM1-5/HI-noluc-CN-05
+      - /g/data/p73/archive/CMIP6/non-CMIP/ACCESS-ESM1-5/HI-noluc-CN-05
     ensemble: false
