@@ -262,7 +262,7 @@ def test_build_datastore_missing_file(
     build(argv)
 
     # Delete the datastore files
-    for f in (Path(tmpdir) / version / "source").glob("*.parquet"):
+    for f in (Path(tmpdir) / version / "source").glob("*.{parquet,json}"):
         remove(f)
 
     # Build the datastore again
