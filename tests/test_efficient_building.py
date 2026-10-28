@@ -261,9 +261,20 @@ def test_build_datastore_missing_file(
 
     build(argv)
 
+    # Check the datastores have been built
+    datastore_path = Path(tmpdir / version / "source")
+    assert len(list(datastore_path.glob("*.parquet"))) == len(input_list)
+    assert len(list(datastore_path.glob("*.json"))) == len(input_list)
+
     # Delete the datastore files
-    for f in (Path(tmpdir) / version / "source").glob("*.{parquet,json}"):
-        remove(f)
+    datastore_dir = Path(tmpdir) / version / "source"
+    for suffix in ["parquet", "json"]:
+        for f in datastore_dir.glob(f"*.{suffix}"):
+            remove(f)
+
+    # Check the datastores have been removed
+    assert len(list(datastore_path.glob("*.parquet"))) == 0
+    assert len(list(datastore_path.glob("*.json"))) == 0
 
     # Build the datastore again
     new_version = "v2024-01-02"

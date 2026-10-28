@@ -224,10 +224,11 @@ class CatalogManager:
         if previous_version_directory:
             # Try parquet first
             for suffix in ["parquet", "csv"]:
-                previous_datastore_file = (
+                _previous_datastore_file = (
                     Path(previous_version_directory) / f"{name}.{suffix}"
                 )
-                if previous_datastore_file.exists():
+                if _previous_datastore_file.exists():
+                    previous_datastore_file = _previous_datastore_file
                     break
             else:
                 print(
