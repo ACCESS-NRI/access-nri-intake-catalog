@@ -230,7 +230,9 @@ class CatalogManager:
                 if previous_datastore_file.exists():
                     break
             else:
-                print(f"Unable to find an existing datastore file: {previous_version_directory / name}.{{parquet,csv}}")
+                print(
+                    f"Unable to find an existing datastore file: {previous_version_directory / name}.{{parquet,csv}}"
+                )
 
         json_file = (Path(directory) / f"{name}.json").absolute()
         if json_file.is_file():
