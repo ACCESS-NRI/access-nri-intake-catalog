@@ -220,6 +220,7 @@ class CatalogManager:
 
         builder = builder(path, **kwargs)
 
+        previous_datastore_file = None
         if previous_version_directory:
             # Try parquet first
             for suffix in ["parquet", "csv"]:
@@ -229,11 +230,7 @@ class CatalogManager:
                 if previous_datastore_file.exists():
                     break
             else:
-                raise FileNotFoundError(
-                    f"Unable to find an existing datastore file: {previous_version_directory / name}.{{parquet,csv}}"
-                )
-        else:
-            previous_datastore_file = None
+                print(f"Unable to find an existing datastore file: {previous_version_directory / name}.{{parquet,csv}}")
 
         json_file = (Path(directory) / f"{name}.json").absolute()
         if json_file.is_file():
