@@ -226,7 +226,7 @@ def test_build_datastore_missing_file(
     fake_project_access,
 ):
     """
-    This test checks that the FileNotFound exception is raised correctly
+    This test checks that the if a datastore is missing it is built again
 
     This test is mostly copied from test_skipped_build_identical
     """
@@ -261,15 +261,28 @@ def test_build_datastore_missing_file(
 
     build(argv)
 
+    # Check the datastores have been built
+    datastore_path = Path(tmpdir / version / "source")
+    assert len(list(datastore_path.glob("*.parquet"))) == len(input_list)
+    assert len(list(datastore_path.glob("*.json"))) == len(input_list)
+
     # Delete the datastore files
-    for f in (Path(tmpdir) / version / "source").glob("*.parquet"):
-        remove(f)
+    datastore_dir = Path(tmpdir) / version / "source"
+    for suffix in ["parquet", "json"]:
+        for f in datastore_dir.glob(f"*.{suffix}"):
+            remove(f)
+
+    # Check the datastores have been removed
+    assert len(list(datastore_path.glob("*.parquet"))) == 0
+    assert len(list(datastore_path.glob("*.json"))) == 0
 
     # Build the datastore again
     new_version = "v2024-01-02"
     argv[5] = new_version
 
-    with pytest.warns(
-        UserWarning, match=".*Error: Unable to find an existing datastore file"
-    ):
-        build(argv)
+    build(argv)
+
+    # Check that the datastores have been built a second time
+    datastore_path = Path(tmpdir / new_version / "source")
+    assert len(list(datastore_path.glob("*.parquet"))) == len(input_list)
+    assert len(list(datastore_path.glob("*.json"))) == len(input_list)
