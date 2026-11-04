@@ -1,0 +1,147 @@
+{
+  "intake_version": "2.0.8",
+  "intake_esm_version": "2026.4.15",
+  "results": [
+    {
+      "dataset": "measures_bedmachine_antarctica",
+      "version": "v1",
+      "path": "/g/data/av17/access-nri/cryosphere-data-pool/elevation_geometry/measures_bedmachine_antarctica/v1/BedMachineAntarctica_2019-11-05_v01.nc",
+      "variable": "bed",
+      "status": "passed",
+      "dimensions": {
+        "y": 13333,
+        "x": 13333
+      },
+      "value": "9.468505859375",
+      "coords": [
+        "mapping",
+        "x",
+        "y"
+      ],
+      "seconds": 3.9885053529869765
+    },
+    {
+      "dataset": "measures_bedmachine_antarctica",
+      "version": "v3",
+      "path": "/g/data/av17/access-nri/cryosphere-data-pool/elevation_geometry/measures_bedmachine_antarctica/v3/BedMachineAntarctica-v3.nc",
+      "variable": "bed",
+      "status": "passed",
+      "dimensions": {
+        "y": 13333,
+        "x": 13333
+      },
+      "value": "-27.4306640625",
+      "coords": [
+        "mapping",
+        "x",
+        "y"
+      ],
+      "seconds": 0.6258126159664243
+    },
+    {
+      "dataset": "bedmap",
+      "version": "v3",
+      "path": "/g/data/av17/access-nri/cryosphere-data-pool/elevation_geometry/bedmap/v3/gridded_data/bedmap3.nc",
+      "variable": "bed_topography",
+      "status": "passed",
+      "dimensions": {
+        "y": 13334,
+        "x": 13334
+      },
+      "value": "1.0",
+      "coords": [
+        "x",
+        "y",
+        "mapping"
+      ],
+      "seconds": 0.10477753402665257
+    },
+    {
+      "dataset": "antarctic_geothermal_heat_flow_model_aq1",
+      "version": "v1",
+      "path": "/g/data/av17/access-nri/cryosphere-data-pool/basal_forcing/antarctic_geothermal_heat_flow_model_aq1/v1/aq1_01_20.nc",
+      "variable": "Q",
+      "status": "passed",
+      "dimensions": {
+        "Y": 280,
+        "X": 280
+      },
+      "value": "0.055955703052226996",
+      "coords": [
+        "X",
+        "Y",
+        "XV",
+        "YV",
+        "lat",
+        "lon"
+      ],
+      "seconds": 0.11680611199699342
+    },
+    {
+      "dataset": "measures_annual_antarctic_ice_velocity_maps",
+      "version": "v1",
+      "path": "/g/data/av17/access-nri/cryosphere-data-pool/ice_velocity/measures_annual_antarctic_ice_velocity_maps/v1/Antarctica_ice_velocity_2000_2001_1km_v01.1.nc",
+      "variable": "VX",
+      "status": "passed",
+      "dimensions": {
+        "y": 5601,
+        "x": 5601
+      },
+      "value": "nan",
+      "coords": [
+        "coord_system",
+        "x",
+        "y",
+        "lat",
+        "lon"
+      ],
+      "seconds": 0.15913242613896728
+    },
+    {
+      "dataset": "racmo2.3p2_monthly_27km_1979-2022",
+      "version": "v1",
+      "path": "/g/data/av17/access-nri/cryosphere-data-pool/surface_forcing/racmo2.3p2_monthly_27km_1979-2022/v1/ff10m_monthlyA_ANT27_ERA5-3H_RACMO2.3p2_197901_202212.nc",
+      "variable": "ff10m",
+      "status": "passed",
+      "dimensions": {
+        "time": 528,
+        "height": 1,
+        "rlat": 240,
+        "rlon": 262
+      },
+      "value": "4.057834148406982",
+      "coords": [
+        "lon",
+        "lat",
+        "rlon",
+        "rlat",
+        "height",
+        "time",
+        "rotated_pole"
+      ],
+      "seconds": 0.17003256105817854
+    },
+    {
+      "dataset": "racmo2.4p1_monthly_11km_1979-2023",
+      "version": "v1",
+      "path": "/g/data/av17/access-nri/cryosphere-data-pool/surface_forcing/racmo2.4p1_monthly_11km_1979-2023/v1/gbot_monthlyS_ANT11_RACMO2.4p1_ERA5_197901_202312.nc",
+      "variable": "gbot",
+      "status": "passed",
+      "dimensions": {
+        "time": 540,
+        "rlat": 591,
+        "rlon": 726
+      },
+      "value": "7613132.125",
+      "coords": [
+        "time",
+        "lon",
+        "lat",
+        "rlon",
+        "rlat",
+        "height"
+      ],
+      "seconds": 0.2571239161770791
+    }
+  ]
+}
