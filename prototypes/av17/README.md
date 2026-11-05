@@ -1,0 +1,152 @@
+# av17 / Cryosphere Community Datapool indexing prototype
+
+This prototype assesses how to make published `av17` collections discoverable
+through Intake, with a separate cryosphere datastore. It is a review artifact:
+it does not register or publish a production source, change shipped schemas, or
+modify source data.
+
+**Ready for testing:** the [review datastore and Gadi guide](test-datastore/README.md)
+provide all 978 indexed NetCDF assets as a small JSON/Parquet pair. Headmetal can
+search and load this standalone source without changing the ACCESS metacatalog
+or its schemas. The snapshot is committed for review; it is not a production feed.
+
+The earlier [Cryosphere Data Pool request (#511)](https://github.com/ACCESS-NRI/access-nri-intake-catalog/issues/511)
+was closed after the datapool developed outside Intake because of product-specific
+requirements. This prototype reuses the [ccdtools registry](https://github.com/ACCESS-NRI/ccdtools)
+and preserves its specialist-loader names and exclusions. It complements that
+interface with NetCDF discovery; it does not replace its mixed-format loaders.
+
+**Recommendation:** separate datastores by coherent collection, starting with
+`cryosphere_av17` for CCD NetCDF files and a companion mixed-format inventory.
+Keep ISMIP6 under `cm45` separate. Retain existing av17 sources such as WOA23 and
+OM2 online-MLT instead of indexing them a second time. See the
+[collection assessment](ASSESSMENT.md) and the complete [field reference](FIELDS.md).
+
+## Design and review points
+
+- One row and one independently loadable dataset per file. Grouping uses
+  `project`, `category`, `dataset`, `version`, `subdataset`, `asset_id`; no automatic
+  aggregation is enabled. Equal shapes do not establish compatible grids.
+- The adapter resolves product/version/subdataset metadata from a pinned copy of
+  the ccdtools registry. It reads NetCDF headers and at most 10,000 time-coordinate
+  values, preserving calendar, projection and variable metadata.
+- Declared monthly/annual/quarterly product cadence is separate from coordinate
+  spacing. Unresolved time remains explicit. `unknown` and `irregular` require a
+  schema decision before registration.
+- `realm=landIce` and observational `model=not_applicable` are provisional labels
+  for discussion, especially for RACMO atmospheric forcing variables. Product
+  names, versions, DOIs and exclusions retain their ccdtools meanings.
+- Non-NetCDF assets remain in the inventory with their format and a reason.
+  Specialist ccdtools loading and a future format-specific access interface are
+  needed for CSV, GeoPackage, GeoTIFF and shapefiles.
+
+## Validation
+
+The 5 November 2026 Gadi assessment completed a header scan of 65 registered roots:
+
+| Result | Count |
+| --- | ---: |
+| NetCDF files indexed | 978, across 14 product IDs |
+| Other registered-format assets inventoried | 333 |
+| Ancillary files | 955 |
+| Files excluded by registry rules | 953 |
+| Invalid NetCDF files / missing registered roots | 0 |
+
+The 978 files reference approximately 501 GB on Gadi; science arrays were not read
+for indexing. These are counts under registered roots, not an audit of every
+av17 file. Wider collection counts in the assessment were bounded samples.
+
+Thirty fixture tests cover actual NetCDF search/loading and values, version and
+grid separation, CF projection preservation, calendars, cadence, mixed formats,
+exclusions, corrupt files, root escapes, missing/unreadable roots and incomplete
+scans. They also exercise the exported-datastore smoke tester, metacatalog
+round trips, loss detection, repeated builds and schema restoration after failure.
+Seven live Gadi
+checks loaded one central element from BedMachine v1/v3, Bedmap v3, AQ1, annual
+velocity and both RACMO products. The velocity element was a valid missing value;
+these are I/O smoke checks, not scientific validation or checksums.
+
+The original backend schema rejected unresolved frequencies. With an in-memory
+schema extension, all 978 rows validated and round-tripped through
+`CatalogManager`, preserving 978 independent datasets. Recorded reports are in
+[`evidence/`](evidence/). The compact `test-datastore/` snapshot is included for
+reviewer testing, with checksums and provenance. Raw multi-megabyte scan JSON
+files remain uncommitted. Source/provenance hashes in the original evidence refer
+to the preceding assessment; follow-up validation is recorded separately.
+
+The tested intake-esm-access version still creates an outer thread pool with
+`threaded=False`; concurrent NetCDF-C opening crashed locally. Sequential
+single-asset loads passed locally and on Gadi. Use the single-asset example below
+until parallel loading is separately resolved.
+
+## Reproduce
+
+From the repository root, use a dedicated environment with the prototype
+requirements and this package installed for the backend integration tests.
+
+```bash
+python -m venv prototypes/av17/.venv
+prototypes/av17/.venv/bin/python -m pip install -r prototypes/av17/requirements.txt
+prototypes/av17/.venv/bin/python -m pip install -e .
+prototypes/av17/.venv/bin/python -m pytest -q prototypes/av17/tests
+```
+
+On Gadi in an appropriate analysis3 environment, from the repository root:
+
+```bash
+python prototypes/av17/av17_catalog.py scan \
+  --registry prototypes/av17/config/ccd-datasets.yaml \
+  --max-files 30000 --max-seconds 240 > prototypes/av17/evidence/cryosphere-scan.json
+python prototypes/av17/av17_catalog.py export \
+  prototypes/av17/evidence/cryosphere-scan.json prototypes/av17/output
+python prototypes/av17/live_smoke.py \
+  < prototypes/av17/evidence/cryosphere-scan.json > /tmp/av17-live-smoke.json
+```
+
+The root defaults to `/g/data/av17/access-nri/cryosphere-data-pool`. The scanner
+does not crawl `admin/staging`. `--samples-per-entry 2` gives a smaller pilot.
+Limits are checked between operations, not hard timeouts on filesystem calls.
+Inspect `complete`, `header_scan_complete`, issues and status counts after a scan.
+Missing registry roots/extensions and filesystem walk errors make both completeness
+flags false; available roots are still scanned. Header completeness describes
+attempts, not successful parsing: inspect `invalid` counts separately.
+
+After installing this repository into the same environment, test backend
+integration in a dedicated output directory (the command rebuilds that directory's
+generated metacatalog):
+
+```bash
+python prototypes/av17/check_integration.py \
+  prototypes/av17/output/cryosphere_av17.json prototypes/av17/integration
+```
+
+This verifies both the expected current-schema rejection and an experimental
+extension, then restores the imported schema. The
+[`integration-frequency-schema.patch`](integration-frequency-schema.patch)
+shows that vocabulary change for review; it is not applied to `src/` by this PR.
+Adoption requires the canonical schema's versioning process.
+
+Load one selected file on Gadi:
+
+```python
+import intake
+import intake_esm
+
+cat = intake.open_esm_datastore("prototypes/av17/output/cryosphere_av17.json")
+selection = cat.search(
+    dataset="measures_bedmachine_antarctica", version="v3", variable="bed"
+)
+ds = selection.to_dask(
+    threaded=False,
+    xarray_open_kwargs={"chunks": {}, "decode_coords": "all"},
+)
+try:
+    print(ds.bed.isel(x=100, y=100).compute(scheduler="single-threaded"))
+finally:
+    ds.close()
+```
+
+For multiple results, select one `asset_id` at a time and close each dataset. The
+JSON/Parquet pair is relocatable, but source paths require Gadi and `av17` access.
+The inventory is discoverable metadata; it is not an Intake-ESM loader for raster
+or vector formats. The source arrays remain unchanged.

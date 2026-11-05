@@ -1,0 +1,12 @@
+{
+  "file_rows_validated_with_prototype_schema": 978,
+  "original_schema": "rejected",
+  "original_schema_error": "\n01 | frequency : 'irregular' is not valid under any of the given schemas",
+  "prototype_schema": "accepted",
+  "metacatalog_rows": 7,
+  "reloaded_asset_rows": 978,
+  "independent_datasets": 978,
+  "bedmachine_v3_bed_matches": 1,
+  "production_modified": false,
+  "metacatalog_roundtrip_asset_rows": 978
+}

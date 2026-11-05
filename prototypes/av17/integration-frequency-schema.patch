@@ -1,0 +1,24 @@
+--- a/src/access_nri_intake/data/metadata_schema_file.json
++++ b/src/access_nri_intake/data/metadata_schema_file.json
+@@ -72,6 +72,9 @@
+                     "pattern": "^fx$"
+                 },
+                 {
++                    "enum": ["unknown", "irregular"]
++                },
++                {
+                     "pattern": "^subhr$"
+                 },
+                 {
+--- a/src/access_nri_intake/data/metadata_schema_experiment_latest.json
++++ b/src/access_nri_intake/data/metadata_schema_experiment_latest.json
+@@ -71,6 +71,9 @@
+                         "oneOf": [
+                             {
+                                 "pattern": "^fx$"
++                            },
++                            {
++                                "enum": ["unknown", "irregular"]
+                             },
+                             {
+                                 "pattern": "^subhr$"

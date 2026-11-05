@@ -1,0 +1,390 @@
+datasets:
+
+  # ELEVATION AND GEOMETRY DATASETS
+  measures_bedmachine_antarctica:
+    display_name: BedMachine Antarctica
+    path: /g/data/av17/access-nri/cryosphere-data-pool/elevation_geometry/measures_bedmachine_antarctica
+    description: High-resolution bed topography and ice thickness data for Antarctica.
+    tags:
+      - antarctica
+      - bed topography
+      - ice thickness
+      - surface elevation
+      - bed uncertainty
+      - ice mask
+    extension: nc
+    doi:
+      v1: 10.5067/C2GFER6PTOS4
+      v2: 10.5067/E1QL9HFQ7A8M
+      v3: 10.5067/FPSU0V1MWUB6
+
+  bedmap:
+    display_name: Bedmap
+    path: /g/data/av17/access-nri/cryosphere-data-pool/elevation_geometry/bedmap
+    description: Gridded, geospatial, and point datasets of Antarctic ice thickness, surface elevation, and bed elevation.
+    tags:
+      - antarctica
+      - bed topography
+      - ice thickness
+      - surface elevation
+    subdatasets:
+      v1:
+        geospatial:
+          subpath: geospatial_data
+          extension: gpkg
+          no_data_value: -9999
+          doi: 10.5285/925ac4ec-2a9d-461a-bfaa-6314eb0888c8
+        points:
+          subpath: point_data
+          extension: csv
+          skip_lines: 18
+          no_data_value: -9999
+          doi: 10.5285/f64815ec-4077-4432-9f55-0ce230f46029
+        gridded:
+          subpath: gridded_data
+          extension: tif
+          doi: 10.5285/908BB17F-467C-42BF-AE00-F03BB0FEEA23
+      v2:
+        geospatial:
+          subpath: geospatial_data
+          extension: gpkg
+          no_data_value: -9999
+          ignore_dirs:
+            - shapeLines
+          doi: 10.5285/0f90d926-99ce-43c9-b536-0c7791d1728b
+        points:
+          subpath: point_data
+          extension: csv
+          skip_lines: 18
+          no_data_value: -9999
+          doi: 10.5285/2fd95199-365e-4da1-ae26-3b6d48b3e6ac
+        gridded:
+          subpath: gridded_data
+          extension: tif
+          ignore_dirs:
+            - resources
+          doi: 10.5285/fa5d606c-dc95-47ee-9016-7a82e446f2f2
+      v3:
+        geospatial:
+          subpath: geospatial_data
+          extension: gpkg
+          no_data_value: -9999
+          ignore_dirs:
+            - shapeLines
+          doi: 10.5285/a72a50c6-a829-4e12-9f9a-5a683a1acc4a
+        points:
+          subpath: point_data
+          extension: csv
+          skip_lines: 18
+          no_data_value: -9999
+          doi: 10.5285/91523ff9-d621-46b3-87f7-ffb6efcd1847
+        gridded:
+          subpath: gridded_data
+          extension: nc
+          ignore_dirs:
+            - bm3_streamlines_pt
+          doi: 10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2
+
+  measures_its_live_antarctica_annual_ice_mask:
+    doi: 10.5067/9ZFX84T5GI6D
+    display_name: ITS_LIVE Annual 240 m Ice Sheet Extent Mask - 1997 to 2021
+    path: /g/data/av17/access-nri/cryosphere-data-pool/elevation_geometry/measures_its_live_antarctic_annual_240m_ice_sheet_extent_masks_1997_2021
+    description: Annual ice sheet extent masks for Antarctica from ITS_LIVE at 240 m resolution, covering the years 1997 to 2021. Ice thickness and velocity data used to determine the presence of ice are also provided.
+    tags:
+      - antarctica
+      - ice mask
+      - ice thickness
+      - ice velocity
+    extension: nc
+
+  measures_its_live_antarctic_grounded_ice_sheet_elevation_change:
+    doi: 10.5067/L3LSVDZS15ZV
+    display_name: ITS_LIVE Antarctic Ice Sheet grounded ice elevation change
+    path: /g/data/av17/access-nri/cryosphere-data-pool/elevation_geometry/measures_its_live_antarctic_grounded_ice_sheet_elevation_change
+    description: ITS_LIVE Antarctic Ice Sheet grounded ice elevation change
+    tags:
+      - antarctica
+      - ice thickness
+      - thickness change
+    extension: nc
+
+  measures_its_live_antarctic_quarterly_ice_shelf_height_change:
+    doi: 10.5067/SE3XH9RXQWAM
+    display_name: ITS_LIVE Antarctic Ice Shelf quarterly height change and basal melt rates - 1992 to 2017
+    path: /g/data/av17/access-nri/cryosphere-data-pool/elevation_geometry/measures_its_live_antarctic_quarterly_1920m_ice_shelf_height_change_and_basal_melt_rates_1992_2017
+    description: ITS_LIVE Antarctic Ice Shelf quarterly height change and basal melt rates - 1992 to 2017
+    tags:
+      - antarctica
+      - ice shelf
+      - height change
+      - basal melt rates
+      - smb
+      - ice thickness
+    extension: nc
+
+  # GEOSPTATIAL DATASETS
+  measures_antarctic_boundaries:
+    display_name: Antarctic Boundaries for IPY 2007-2009 from Satellite Radar
+    path: /g/data/av17/access-nri/cryosphere-data-pool/geospatial/measures_antarctic_boundaries_for_ipy_2007_2009_from_satellite_radar
+    description: Antarctic coastline, grounding line, and ice front positions derived from satellite radar data for the International Polar Year 2007-2009.
+    tags:
+      - antarctica
+      - coastline
+      - grounding line
+      - ice front
+      - ice mask
+    extension: shp
+    doi:
+      v1: 10.5067/SEVV4MR8P1ZN
+      v2: 10.5067/AXE4121732AD
+    subdatasets:
+      v1:
+        coastline:
+          subpath: Coastline_Antarctica
+        grounding_line:
+          subpath: GroundingLine_Antarctica
+        ice_boundaries:
+          subpath: IceBoundaries_Antarctica
+        ice_shelf:
+          subpath: IceShelf_Antarctica
+        mask:
+          subpath: Mask_Antarctica
+          extension: tif
+      v2:
+        basins:
+          subpath: Basins_Antarctica
+        basins_imbie:
+          subpath: Basins_IMBIE_Antarctica
+        coastline:
+          subpath: Coastline_Antarctica
+        grounding_line:
+          subpath: GroundingLine_Antarctica
+        ice_boundaries:
+          subpath: IceBoundaries_Antarctica
+        ice_shelf:
+          subpath: IceShelf_Antarctica
+        mask:
+          subpath: Mask_Antarctica
+          extension: tif
+
+  measures_antarctic_grounding_line:
+    display_name: Antarctic Grounding Line from Differential Satellite Radar Interferometry
+    path: /g/data/av17/access-nri/cryosphere-data-pool/geospatial/measures_antarctic_grounding_line_from_differential_satellite_radar_interferometry
+    description: Grounding line positions for Antarctica derived from differential satellite radar interferometry.
+    tags:
+      - antarctica
+      - grounding line
+    extension:
+      v1: csv
+      v2: shp
+    doi:
+      v1: 10.5067/MEASURES/CRYOSPHERE/nsidc-0498.001
+      v2: 10.5067/IKBWW4RYHF1Q
+
+  # BASAL FORCING DATASETS
+  antarctic_geothermal_heat_flow_model_aq1:
+    doi: 10.1594/PANGAEA.924857
+    display_name: Antarctic Geothermal Heat Flow Model AQ1
+    path: /g/data/av17/access-nri/cryosphere-data-pool/basal_forcing/antarctic_geothermal_heat_flow_model_aq1
+    description: Geothermal heat flow model for Antarctica (AQ1) providing estimates of basal heat flux beneath the Antarctic ice sheet.
+    tags:
+      - antarctica
+      - geothermal heat flow
+    extension: nc
+    resolutions:
+      v1:
+        static:
+          20km: "20"
+          50km: "50"
+    static_patterns:
+      v1: "aq1_01_"
+
+  # ICE VELOCITY DATASETS
+  measures_annual_antarctic_ice_velocity_maps:
+    doi: 10.5067/9T4EPQXTJYW9
+    path: /g/data/av17/access-nri/cryosphere-data-pool/ice_velocity/measures_annual_antarctic_ice_velocity_maps
+    display_name: MEaSUREs Annual Antarctic Ice Velocity Maps
+    description: Annual ice velocity maps for Antarctica from the MEaSUREs program, providing ice flow velocities at various resolutions.
+    tags:
+      - antarctica
+      - ice velocity
+    extension: nc
+    loader: measures_velocity
+
+  measures_insar_based_ice_velocity_maps_of_central_antarctica:
+    doi: 10.5067/MEASURES/CRYOSPHERE/nsidc-0525.001
+    path: /g/data/av17/access-nri/cryosphere-data-pool/ice_velocity/measures_insar_based_ice_velocity_maps_of_central_antarctica
+    display_name: InSAR-based Ice Velocity Maps of Central Antarctica
+    description: Ice velocity maps for central Antarctica derived from Interferometric Synthetic Aperture Radar (InSAR) data.
+    tags:
+      - antarctica
+      - ice velocity
+      - insar
+    extension: nc
+    loader: measures_velocity
+
+  measures_insar_based_antarctica_ice_velocity_map:
+    path: /g/data/av17/access-nri/cryosphere-data-pool/ice_velocity/measures_insar_based_antarctica_ice_velocity_map
+    display_name: InSAR-based Antarctica Ice Velocity Map
+    description: High-resolution ice velocity map for Antarctica derived from Interferometric Synthetic Aperture Radar (InSAR) data.
+    tags:
+      - antarctica
+      - ice velocity
+      - insar
+    extension: nc
+    doi:
+      v1: 10.5067/MEASURES/CRYOSPHERE/nsidc-0484.001
+      v2: 10.5067/D7GK8F5J8M8R
+
+  measures_insar_based_ice_velocity_of_the_amundsen_sea_embayment:
+    doi: 10.5067/MEASURES/CRYOSPHERE/nsidc-0545.001
+    path: /g/data/av17/access-nri/cryosphere-data-pool/ice_velocity/measures_insar_based_ice_velocity_of_the_amundsen_sea_embayment
+    display_name: InSAR-based Ice Velocity of the Amundsen Sea Embayment
+    description: Ice velocity data for the Amundsen Sea Embayment region of Antarctica derived from Interferometric Synthetic Aperture Radar (InSAR) measurements.
+    tags:
+      - antarctica
+      - ice velocity
+      - insar
+    extension: nc
+
+  measures_phase_based_antarctica_ice_velocity_map:
+    doi: 10.5067/PZ3NJ5RXRH10
+    path: /g/data/av17/access-nri/cryosphere-data-pool/ice_velocity/measures_phase_based_antarctica_ice_velocity_map
+    display_name: Phase-based Antarctica Ice Velocity Map
+    description: High-resolution ice velocity map for Antarctica derived from phase-based measurements.
+    tags:
+      - antarctica
+      - ice velocity
+    extension: nc
+
+  measures_its_live_regional_glacier_and_ice_sheet_surface_velocities:
+    path: /g/data/av17/access-nri/cryosphere-data-pool/ice_velocity/measures_its_live_regional_glacier_and_ice_sheet_surface_velocities
+    display_name: ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities
+    description: ITS_LIVE regional glacier and ice sheet surface velocities for Antarctica and Greenland.
+    tags:
+      - antarctica
+      - greenland
+      - ice velocity
+    extension: nc
+    loader: measures_velocity
+    resolutions:
+      v1:
+        annual:
+          240m: G0240
+        static:
+          120m: G0120
+          240m: G0240
+    static_patterns:
+      v1: "_0000"
+      v2: "_2014-2022_"
+    doi:
+      v1: 10.5067/6II6VW8LLWJ7
+      v2: 10.5067/JQ6337239C96
+    subdatasets:
+      v1:
+        ANT:
+          subpath: ANT
+        ALA:
+          subpath: ALA
+          resolutions:
+            annual:
+              120m: G0120
+              240m: G0240
+            static:
+              120m: G0120
+              240m: G0240
+        CAN:
+          subpath: CAN
+        GRE:
+          subpath: GRE
+        HMA:
+          subpath: HMA
+        ICE:
+          subpath: ICE
+        PAT:
+          subpath: PAT
+        SRA:
+          subpath: SRA
+          resolutions:
+            annual:
+              120m: G0120
+              240m: G0240
+            static:
+              120m: G0120
+              240m: G0240
+      v2:
+        RGI01A:
+          subpath: RGI01A
+        RGI02A:
+          subpath: RGI02A
+        RGI03A:
+          subpath: RGI03A
+        RGI04A:
+          subpath: RGI04A
+        RGI05A:
+          subpath: RGI05A
+        RGI06A:
+          subpath: RGI06A
+        RGI07A:
+          subpath: RGI07A
+        RGI08A:
+          subpath: RGI08A
+        RGI09A:
+          subpath: RGI09A
+        RGI10A:
+          subpath: RGI10A
+        RGI11A:
+          subpath: RGI11A
+        RGI12A:
+          subpath: RGI12A
+        RGI13A:
+          subpath: RGI13A
+        RGI14A:
+          subpath: RGI14A
+        RGI15A:
+          subpath: RGI15A
+        RGI16A:
+          subpath: RGI16A
+        RGI17A:
+          subpath: RGI17A
+        RGI18A:
+          subpath: RGI18A
+        RGI19A:
+          subpath: RGI19A
+
+  # SURFACE FORCING DATASETS
+  racmo2.3p2_monthly_27km_1979-2022:
+    doi: 10.5281/zenodo.7845736
+    path: /g/data/av17/access-nri/cryosphere-data-pool/surface_forcing/racmo2.3p2_monthly_27km_1979-2022
+    display_name: RACMO2.3p2 Monthly Surface Mass Balance and Climate Data at 27 km Resolution (1979-2022)
+    description: Regional Atmospheric Climate Model (RACMO) version 2.3p2 monthly surface mass balance and climate data for Antarctica at 27 km resolution, covering the years 1979 to 2022.
+    tags:
+      - antarctica
+      - surface mass balance
+      - climate data
+      - racmo
+    extension: nc
+
+    loader: racmo
+    ignore_files:
+    # Ignore static mask files that do not integrate with variable files well
+      v1:
+        - Height_latlon_ANT27.nc
+        - TotIS_RACMO_ANT27_IMBIE2.nc
+
+  racmo2.4p1_monthly_11km_1979-2023:
+    doi: 10.5281/zenodo.14217232
+    path: /g/data/av17/access-nri/cryosphere-data-pool/surface_forcing/racmo2.4p1_monthly_11km_1979-2023
+    display_name: RACMO2.4p1 Monthly Surface Mass Balance and Climate Data at 11 km Resolution (1979-2023)
+    description: Regional Atmospheric Climate Model (RACMO) version 2.4p1 monthly surface mass balance and climate data for Antarctica at 11 km resolution, covering the years 1979 to 2023.
+    tags:
+      - antarctica
+      - surface mass balance
+      - climate data
+      - racmo
+    extension: nc
+    loader: racmo
+    ignore_files:
+    # Ignore static mask files that do not integrate with variable files well
+      v1:
+        - ANT11_masks.nc

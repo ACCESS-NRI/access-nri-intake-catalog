@@ -1,0 +1,156 @@
+{
+  "esmcat_version": "0.1.0",
+  "id": "cryosphere_av17",
+  "description": "PROTOTYPE: Cryosphere Community Datapool NetCDF assets; one dataset per file.",
+  "catalog_file": "cryosphere_av17.parquet",
+  "attributes": [
+    {
+      "column_name": "project",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "category",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "dataset",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "version",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "subdataset",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "realm",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "model",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "display_name",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "tags",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "doi",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "product_description",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "path",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "asset_id",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "format",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "variable",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "dimensions",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "ccdtools_loader",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "frequency",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "start_date",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "end_date",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "calendar",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "time_dimension",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "temporal_status",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "coordinate_frequency",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "frequency_source",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "variable_long_name",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "variable_standard_name",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "variable_units",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "variable_cell_methods",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "grid_mapping",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "source_time_coverage",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "size_bytes",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "mtime_ns",
+      "vocabulary": ""
+    }
+  ],
+  "assets": {
+    "column_name": "path",
+    "format": "netcdf"
+  },
+  "aggregation_control": {
+    "variable_column_name": "variable",
+    "groupby_attrs": [
+      "project",
+      "category",
+      "dataset",
+      "version",
+      "subdataset",
+      "asset_id"
+    ],
+    "aggregations": []
+  }
+}

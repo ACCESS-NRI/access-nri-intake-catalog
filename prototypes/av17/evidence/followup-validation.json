@@ -1,0 +1,40 @@
+{
+  "validated_utc": "2026-11-05T01:26:40.850174+00:00",
+  "reviewed_pr_head": "1bdb41d2b6f09efd5fcff26d08bd65db54061223",
+  "prior_pr_ci": "Python 3.10-3.14 and pre-commit passed; no human reviews or inline review comments at inspection",
+  "fixture_tests_passed": 30,
+  "related_backend_tests": {
+    "passed": 133,
+    "modules": [
+      "tests/test_manager.py",
+      "tests/test_translators.py",
+      "tests/test_source_utils.py"
+    ]
+  },
+  "ruff_check": "passed",
+  "ruff_format_check": "passed",
+  "black_format_api_check": "7 files unchanged",
+  "mypy": "passed with --ignore-missing-imports (pre-commit default), 7 source files",
+  "schema_patch_applicability": "passed",
+  "test_datastore": "prototypes/av17/test-datastore/cryosphere_av17.json",
+  "review_snapshot_checks": "978 assets, 14 products, inventory status counts, 978-record facets and manifest checksums verified",
+  "current_checkout_integration": {
+    "file_rows_validated_with_prototype_schema": 978,
+    "original_schema": "rejected",
+    "original_schema_error": "\n01 | frequency : 'irregular' is not valid under any of the given schemas",
+    "prototype_schema": "accepted",
+    "metacatalog_rows": 7,
+    "reloaded_asset_rows": 978,
+    "independent_datasets": 978,
+    "bedmachine_v3_bed_matches": 1,
+    "production_modified": false,
+    "metacatalog_roundtrip_asset_rows": 978
+  },
+  "fresh_gadi_checks": {
+    "passed": 7,
+    "environment": "conda/analysis3-26.11",
+    "report": "review-datastore-live-smoke.json",
+    "mode": "Exported JSON/Parquet copied to a self-cleaning temporary directory; sequential single-value reads"
+  },
+  "production_modified": false
+}

@@ -36,6 +36,9 @@ jobs:
       run: |
         pixi clean && pixi run -e ${{ matrix.environment }} test-cov
 
+    - name: Test av17 prototype with generated NetCDF fixtures
+      run: pixi run -e ${{ matrix.environment }} python -m pytest -q prototypes/av17/tests
+
     - name: Upload code coverage
       uses: codecov/codecov-action@v7
       with:
