@@ -3,10 +3,12 @@
 
 """Load one small value from each selected real asset, sequentially on Gadi.
 
-Takes a snapshot JSON on stdin. Results go to stdout. No remote files are written.
+Takes an exported datastore with --catalog, or a snapshot JSON on stdin.
+Results go to stdout. No source files are written.
 Only a single array element per dataset is computed; all other data remain lazy.
 """
 
+import argparse
 import json
 import sys
 import time
@@ -15,44 +17,28 @@ import intake
 import intake_esm
 import pandas as pd
 
+SELECTIONS = [
+    ("measures_bedmachine_antarctica", "v1", "bed"),
+    ("measures_bedmachine_antarctica", "v3", "bed"),
+    ("bedmap", "v3", "bed_topography"),
+    ("antarctic_geothermal_heat_flow_model_aq1", "v1", "Q"),
+    ("measures_annual_antarctic_ice_velocity_maps", "v1", "VX"),
+    ("racmo2.3p2_monthly_27km_1979-2022", "v1", "ff10m"),
+    ("racmo2.4p1_monthly_11km_1979-2023", "v1", "gbot"),
+]
 
-def run(snapshot):
-    selections = [
-        ("measures_bedmachine_antarctica", "v1", "bed"),
-        ("measures_bedmachine_antarctica", "v3", "bed"),
-        ("bedmap", "v3", "bed_topography"),
-        ("antarctic_geothermal_heat_flow_model_aq1", "v1", "Q"),
-        ("measures_annual_antarctic_ice_velocity_maps", "v1", "VX"),
-        ("racmo2.3p2_monthly_27km_1979-2022", "v1", "ff10m"),
-        ("racmo2.4p1_monthly_11km_1979-2023", "v1", "gbot"),
-    ]
+
+def run_catalog(catalog, selections=SELECTIONS):
+    """Exercise the actual exported descriptor, selecting one asset at a time."""
     results = []
     for dataset, version, variable in selections:
-        matching = [
-            r
-            for r in snapshot["rows"]
-            if r["dataset"] == dataset
-            and r["version"] == version
-            and variable in r["variable"]
-        ]
-        if not matching:
+        matching = catalog.search(dataset=dataset, version=version, variable=variable)
+        if matching.df.empty:
             results.append(
                 {"dataset": dataset, "version": version, "status": "missing_test_asset"}
             )
             continue
-        row = matching[0]
-        esmcat = {
-            "esmcat_version": "0.1.0",
-            "id": "cryosphere_live_test",
-            "description": "In-memory live smoke test",
-            "attributes": [{"column_name": k, "vocabulary": ""} for k in row],
-            "assets": {"column_name": "path", "format": "netcdf"},
-            "aggregation_control": {
-                "variable_column_name": "variable",
-                "groupby_attrs": ["dataset", "version", "asset_id"],
-                "aggregations": [],
-            },
-        }
+        row = matching.df.sort_values("path").iloc[0]
         started = time.monotonic()
         result = {
             "dataset": dataset,
@@ -61,10 +47,7 @@ def run(snapshot):
             "variable": variable,
         }
         try:
-            cat = intake.open_esm_datastore(
-                {"esmcat": esmcat, "df": pd.DataFrame([row])}
-            )
-            ds = cat.search(variable=variable).to_dask(
+            ds = matching.search(asset_id=row["asset_id"]).to_dask(
                 threaded=False,
                 xarray_open_kwargs={"chunks": {}, "decode_coords": "all"},
             )
@@ -94,5 +77,34 @@ def run(snapshot):
     }
 
 
+def run(snapshot):
+    """Retain the original snapshot-on-stdin assessment interface."""
+    frame = pd.DataFrame(snapshot["rows"])
+    esmcat = {
+        "esmcat_version": "0.1.0",
+        "id": "cryosphere_live_test",
+        "description": "In-memory live smoke test",
+        "attributes": [{"column_name": k, "vocabulary": ""} for k in frame],
+        "assets": {"column_name": "path", "format": "netcdf"},
+        "aggregation_control": {
+            "variable_column_name": "variable",
+            "groupby_attrs": ["dataset", "version", "asset_id"],
+            "aggregations": [],
+        },
+    }
+    return run_catalog(intake.open_esm_datastore({"esmcat": esmcat, "df": frame}))
+
+
 if __name__ == "__main__":
-    print(json.dumps(run(json.load(sys.stdin)), indent=2))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--catalog", help="Path to the exported Intake-ESM JSON descriptor"
+    )
+    args = parser.parse_args()
+    report = (
+        run_catalog(intake.open_esm_datastore(args.catalog))
+        if args.catalog
+        else run(json.load(sys.stdin))
+    )
+    print(json.dumps(report, indent=2))
+    sys.exit(0 if all(r["status"] == "passed" for r in report["results"]) else 1)

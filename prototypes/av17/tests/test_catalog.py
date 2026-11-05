@@ -1,7 +1,9 @@
 # Copyright 2026 ACCESS-NRI and contributors. See the top-level COPYRIGHT file.
 # SPDX-License-Identifier: Apache-2.0
 
+import copy
 import json
+import os
 from pathlib import Path
 import shutil
 
@@ -12,6 +14,8 @@ import numpy as np
 import pyarrow.parquet as pq
 import pytest
 
+from access_nri_intake.catalog import manager as manager_module
+from access_nri_intake.source import ESM_JSONSCHEMA
 from prototypes.av17.av17_catalog import (
     CCD_ROOT,
     export,
@@ -19,6 +23,8 @@ from prototypes.av17.av17_catalog import (
     registry_entries,
     scan,
 )
+from prototypes.av17.check_integration import check, verify_roundtrip
+from prototypes.av17.live_smoke import run_catalog
 
 
 def write_nc(
@@ -176,6 +182,54 @@ def test_unknown_versions_and_missing_datasets_reported(root, registry):
 
 
 @pytest.mark.parametrize(
+    "status", ["missing_dataset", "missing_subdataset", "missing_extension"]
+)
+def test_missing_registry_roots_make_scan_incomplete(root, registry, tmp_path, status):
+    if status == "missing_dataset":
+        registry["datasets"]["missing"] = {
+            "path": str(CCD_ROOT / "missing"),
+            "extension": "nc",
+        }
+    elif status == "missing_subdataset":
+        registry["datasets"]["bedmap"]["subdatasets"]["v3"]["missing"] = {
+            "subpath": "missing",
+            "extension": "nc",
+        }
+    else:
+        del registry["datasets"]["bedmap"]["subdatasets"]["v3"]["points"]["extension"]
+    result = scan(root, registry)
+    assert not result["complete"]
+    assert not result["header_scan_complete"]
+    assert any(issue["status"] == status for issue in result["issues"])
+    # Missing entries must not prevent scanning the available products.
+    assert len(result["rows"]) == 3
+    export(result, tmp_path / "output")
+    report = json.loads((tmp_path / "output" / "build-report.json").read_text())
+    assert not report["complete"] and not report["header_scan_complete"]
+
+
+def test_walk_error_marks_scan_incomplete_without_stopping_other_entries(
+    root, registry, monkeypatch
+):
+    walk = os.walk
+    inaccessible = root / "elevation_geometry" / "bedmap" / "v3" / "gridded_data"
+
+    def walk_with_error(top, *, followlinks, onerror):
+        if Path(top) == inaccessible:
+            onerror(PermissionError(13, "Permission denied", str(inaccessible)))
+            return
+        yield from walk(top, followlinks=followlinks, onerror=onerror)
+
+    monkeypatch.setattr(os, "walk", walk_with_error)
+    result = scan(root, registry)
+    assert not result["complete"] and not result["header_scan_complete"]
+    assert len(result["rows"]) == 2
+    assert {r["version"] for r in result["rows"]} == {"v1", "v2"}
+    assert result["issues"][0]["status"] == "walk_error"
+    assert result["issues"][0]["path"] == str(inaccessible)
+
+
+@pytest.mark.parametrize(
     ("times", "calendar", "frequency"),
     [
         ([0, 31, 60], "standard", "1mon"),
@@ -315,3 +369,111 @@ def test_declared_monthly_cadence_preserves_coordinate_spacing(tmp_path):
     write_nc(path, times=[0, 0, 1])
     row = parse_netcdf(path, entry, tmp_path)
     assert row["frequency"] == "irregular"  # Product cadence cannot mask bad ordering.
+
+
+@pytest.fixture
+def integration_source(root, registry, tmp_path):
+    product = root / "elevation_geometry" / "measures_bedmachine_antarctica"
+    write_nc(product / "v1" / "bed.nc", 11, times=[0])
+    write_nc(product / "v2" / "bed.nc", 22, times=[0, 1, 3])
+    return export(scan(root, registry), tmp_path / "source")
+
+
+def test_metacatalog_roundtrip_preserves_assets_metadata_and_schema(
+    integration_source, tmp_path
+):
+    original = manager_module.CATALOG_JSONSCHEMA
+    original_content = copy.deepcopy(original)
+    file_schema = copy.deepcopy(ESM_JSONSCHEMA)
+    source = intake.open_esm_datastore(str(integration_source))
+    assert set(source.df.frequency) == {"fx", "unknown", "irregular"}
+    # Repeat in the same destination to cover rebuilding an existing experiment.
+    for _ in range(2):
+        report = check(integration_source, tmp_path / "integration")
+        assert report["original_schema"] == "rejected"
+        assert report["prototype_schema"] == "accepted"
+        for field in (
+            "file_rows_validated_with_prototype_schema",
+            "reloaded_asset_rows",
+            "independent_datasets",
+            "metacatalog_roundtrip_asset_rows",
+        ):
+            assert report[field] == 3
+        assert manager_module.CATALOG_JSONSCHEMA is original
+        assert original == original_content
+        assert ESM_JSONSCHEMA == file_schema
+    loaded = intake.open_esm_datastore(
+        str(tmp_path / "integration" / integration_source.name)
+    )
+    for asset_id in loaded.df.asset_id:
+        ds = loaded.search(asset_id=asset_id, variable="bed").to_dask(
+            threaded=False, xarray_open_kwargs={"decode_coords": "all"}
+        )
+        try:
+            expected = {"v1": 11, "v2": 22, "v3": 33}[
+                loaded.search(asset_id=asset_id).df.version.iloc[0]
+            ]
+            assert float(ds.bed.mean()) == expected
+            assert ds.crs.attrs["grid_mapping_name"] == "polar_stereographic"
+        finally:
+            ds.close()
+
+
+def test_integration_restores_schema_after_failure(
+    integration_source, tmp_path, monkeypatch
+):
+    original = manager_module.CATALOG_JSONSCHEMA
+    original_content = copy.deepcopy(original)
+
+    def fail_save(self):
+        assert manager_module.CATALOG_JSONSCHEMA is not original
+        raise OSError("simulated export failure")
+
+    monkeypatch.setattr(manager_module.CatalogManager, "save", fail_save)
+    with pytest.raises(OSError, match="simulated export failure"):
+        check(integration_source, tmp_path / "integration")
+    assert manager_module.CATALOG_JSONSCHEMA is original
+    assert original == original_content
+
+
+@pytest.mark.parametrize("change", ["drop_asset", "alter_metadata", "merge_assets"])
+def test_integration_rejects_lossy_roundtrip(integration_source, change):
+    source = intake.open_esm_datastore(str(integration_source))
+    altered = intake.open_esm_datastore(str(integration_source))
+    if change == "drop_asset":
+        altered = altered.search(version="v1")
+    elif change == "alter_metadata":
+        altered.df.loc[0, "frequency"] = "1day"
+    else:
+        altered.esmcat.aggregation_control.groupby_attrs = ["project"]
+    with pytest.raises(ValueError, match="metadata changed|no longer independent"):
+        verify_roundtrip(source, altered, "test reload")
+
+
+def test_live_smoke_opens_exported_datastore(integration_source):
+    cat = intake.open_esm_datastore(str(integration_source))
+    report = run_catalog(
+        cat,
+        [
+            ("measures_bedmachine_antarctica", "v1", "bed"),
+            ("measures_bedmachine_antarctica", "v2", "bed"),
+        ],
+    )
+    assert [r["status"] for r in report["results"]] == ["passed", "passed"]
+    assert [float(r["value"]) for r in report["results"]] == [11, 22]
+    assert all("crs" in r["coords"] for r in report["results"])
+
+
+def test_live_smoke_reports_missing_selection_and_inaccessible_source(
+    integration_source,
+):
+    cat = intake.open_esm_datastore(str(integration_source))
+    Path(cat.search(version="v1").df.path.iloc[0]).unlink()
+    report = run_catalog(
+        cat,
+        [
+            ("measures_bedmachine_antarctica", "v0", "bed"),
+            ("measures_bedmachine_antarctica", "v1", "bed"),
+        ],
+    )
+    assert [r["status"] for r in report["results"]] == ["missing_test_asset", "failed"]

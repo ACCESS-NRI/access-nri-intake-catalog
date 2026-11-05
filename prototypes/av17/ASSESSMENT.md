@@ -39,6 +39,11 @@ the common collection description for compatibility with `DefaultTranslator`.
 
 ## Remaining implementation work
 
+The [standalone review datastore](test-datastore/README.md) is ready for headmetal
+to test on Gadi. It can be opened directly with Intake-ESM while the production
+decisions below remain open. Its JSON/Parquet files do not register a source in
+the production ACCESS metacatalog.
+
 1. Review the [field definitions](FIELDS.md), especially the provisional realm
    and model labels, cadence provenance, filename-based coverage and asset
    identity. Product licenses still need explicit owner-approved metadata; DOI

@@ -86,7 +86,13 @@ are `indexed`, `inventory_only`, `ancillary`, `excluded`, `invalid` and
 The build report distinguishes directory traversal completeness (`complete`)
 from header sampling completeness (`header_scan_complete`), records limits,
 issues and counts, and keeps `publication_ready=false`. Completeness refers to
-registered roots, not every file in av17. The one-row `*_uniqs.parquet` sidecar
+registered roots, not every file in av17. Missing registered datasets/subdatasets,
+missing extensions, walk errors and traversal limits make both flags false;
+other available roots are still processed after missing-root or walk errors.
+Unregistered versions are reported separately and are outside registered coverage.
+`header_scan_complete` additionally requires every eligible NetCDF header to have
+been attempted. It does not mean every attempt succeeded: check `invalid` counts
+and reasons as well. The one-row `*_uniqs.parquet` sidecar
 contains discovery values and the `num_records` Parquet metadata used by the web
 catalog. The metacatalog's `name`, `description` and grouped summaries are produced
 by the existing `CatalogManager`/`DefaultTranslator`.

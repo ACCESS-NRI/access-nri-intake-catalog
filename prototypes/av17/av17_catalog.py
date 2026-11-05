@@ -362,6 +362,14 @@ def scan(  # noqa: PLR0912, PLR0915 -- explicit inventory outcomes
                 break
         if not complete:
             break
+    # A walk can finish after skipping an unreadable directory, and registry
+    # expansion can omit missing roots. Neither constitutes a complete scan.
+    # Apply this after traversal so errors do not stop other available entries.
+    complete = complete and not any(
+        issue["status"]
+        in ("missing_dataset", "missing_subdataset", "missing_extension", "walk_error")
+        for issue in issues
+    )
     return {
         "root": str(root),
         "observed_utc": dt.datetime.now(dt.timezone.utc).isoformat(),

@@ -22,6 +22,17 @@ from access_nri_intake.catalog.manager import CatalogManager
 from access_nri_intake.source import ESM_JSONSCHEMA
 
 
+def verify_roundtrip(original, reloaded, stage):
+    """Fail the experiment if serialization loses metadata or merges assets."""
+    # Normalize Parquet list columns without depending on row/column order.
+    expected = json.loads(original.df.sort_values("asset_id").to_json(orient="records"))
+    actual = json.loads(reloaded.df.sort_values("asset_id").to_json(orient="records"))
+    if actual != expected:
+        raise ValueError(f"Datastore metadata changed during {stage}")
+    if len(reloaded.keys()) != len(expected):
+        raise ValueError(f"Assets are no longer independent after {stage}")
+
+
 def check(descriptor, output):
     descriptor, output = Path(descriptor).resolve(), Path(output).resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -68,6 +79,7 @@ def check(descriptor, output):
         report["prototype_schema"] = "accepted"
         report["metacatalog_rows"] = len(manager.dfcat.df)
         loaded = intake.open_esm_datastore(str(output / "cryosphere_av17.json"))
+        verify_roundtrip(datastore, loaded, "datastore export")
         report["reloaded_asset_rows"] = len(loaded.df)
         report["independent_datasets"] = len(loaded.keys())
         report["bedmachine_v3_bed_matches"] = len(
@@ -82,7 +94,9 @@ def check(descriptor, output):
             name_column="name",
             mode="r",
         )
-        report["metacatalog_roundtrip_asset_rows"] = len(reopened["cryosphere_av17"].df)
+        roundtrip = reopened["cryosphere_av17"]
+        verify_roundtrip(datastore, roundtrip, "metacatalog reload")
+        report["metacatalog_roundtrip_asset_rows"] = len(roundtrip.df)
     finally:
         manager_module.CATALOG_JSONSCHEMA = original
     (output / "integration-report.json").write_text(json.dumps(report, indent=2) + "\n")
