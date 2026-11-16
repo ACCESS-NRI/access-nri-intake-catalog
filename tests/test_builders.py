@@ -77,7 +77,7 @@ from access_nri_intake.source.utils import _NCFileInfo
                 "cordex/BARRA2",
                 "cordex/CCAM",
                 "cordex/NARCliM2-0",
-                "cordex/QldFCP-2", # Has a file that fails regex
+                "cordex/QldFCP-2",  # Has a file that fails regex
             ],
             "CordexBuilder",
             {},
