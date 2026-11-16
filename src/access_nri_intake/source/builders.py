@@ -1205,6 +1205,7 @@ class CordexBuilder(BaseBuilder):
     some minor differences between implementations of cordex spec.
     E.g. realisation vs realization
     """
+
     # CORDEX DRS - https://cordex.org/wp-content/uploads/2023/02/CORDEX-CMIP6_archive_specs_FOD.pdf
     # Filename pattern:
     # <variable_id>_<domain_id>_<driving_source_id>_<driving_experiment_id>_<driving_variant_label>_<institution_id>_<source_id>_<source_configuration_id>_<frequency>[_<StartTime>-<EndTime>].nc
@@ -1242,7 +1243,7 @@ class CordexBuilder(BaseBuilder):
 
         default_kwargs = dict(
             path=path,
-            depth=12, # CORDEX DRS is very deep
+            depth=12,  # CORDEX DRS is very deep
             exclude_patterns=kwargs.get("exclude_patterns", ["*etc*"]),
             include_patterns=kwargs.get("include_patterns", ["*.nc"]),
             groupby_attrs=[
