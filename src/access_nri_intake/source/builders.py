@@ -43,6 +43,7 @@ __all__ = [
     "WoaBuilder",
     "Cmip6Builder",
     "AccessAm3Builder",
+    "CordexBuilder",
 ]
 
 # Frequency translations
@@ -1188,5 +1189,93 @@ class AccessAm3Builder(BaseBuilder):
                 str(ncinfo_dict["file_id"]),
             ]
         )
+
+        return ncinfo_dict
+
+
+class CordexBuilder(BaseBuilder):
+    """
+    Intake-ESM datastore builder for CORDEX datasets, namely:
+    - Qld FCP (ig45)
+    - BARPA (py18)
+    - CCAM (hq89)
+    - NARCLIM2 (zz63)
+    - BARRA2 (ob53)
+    The goal is to provide a uniform experience for all these datastores despite
+    some minor differences between implementations of cordex spec.
+    E.g. realisation vs realization
+    """
+    # CORDEX DRS - https://cordex.org/wp-content/uploads/2023/02/CORDEX-CMIP6_archive_specs_FOD.pdf
+    # Filename pattern:
+    # <variable_id>_<domain_id>_<driving_source_id>_<driving_experiment_id>_<driving_variant_label>_<institution_id>_<source_id>_<source_configuration_id>_<frequency>[_<StartTime>-<EndTime>].nc
+    # Directory structure:
+    # <project_id>/<mip_era>/<activity_id>/<domain_id>/<institution_id>/<driving_source_id>/<driving_experiment_id>/<driving_variant_label>/<source_id>/<source_configuration_id>/<frequency>/<variable_id>/<version>/
+    # The following regex should match the components of the DRS
+    # Note: <frequency> component shouldn't be optional but most CORDEX fx files
+    #   on Gadi are missing it
+    CORDEX_DRS_REGEX = r"(?P<project_id>[^\/]+)\/(?P<mip_era>[^\/]+)\/(?P<activity_id>[^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(?P<version>[^\/]+)\/(?P<variable_id>[^\/_]+)_(?P<domain_id>[^_]+)_(?P<driving_source_id>[^_]+)_(?P<driving_experiment_id>[^_]+)_(?P<driving_variant_label>[^_]+)_(?P<institution_id>[^_]+)_(?P<source_id>[^_]+)_(?P<source_configuration_id>[^_]+)(_(?P<frequency>[^_]+))?(_(?P<StartTime>\d+)-(?P<EndTime>\d+))?\.nc"
+    # This list indicates which metadata to extract from the path
+    CORDEX_DRS_METADATA = [
+        "activity_id",
+        "domain_id",
+        "driving_experiment_id",
+        "driving_source_id",
+        "driving_variant_label",
+        "institution_id",
+        "mip_era",
+        "project_id",
+        "source_id",
+        "source_configuration_id",
+        "variable_id",
+        "version",
+    ]
+
+    def __init__(self, path, **kwargs):
+        """
+        Initialise a CordexBuilder
+
+        Parameters
+        ----------
+        path : str or list of str
+            Path or list of paths to crawl for assets/files.
+        """
+
+        default_kwargs = dict(
+            path=path,
+            depth=12, # CORDEX DRS is very deep
+            exclude_patterns=kwargs.get("exclude_patterns", ["*etc*"]),
+            include_patterns=kwargs.get("include_patterns", ["*.nc"]),
+            groupby_attrs=[
+                "file_id",
+                "temporal_label",
+            ],
+            data_format="netcdf",
+            aggregations=[
+                {
+                    "type": "join_existing",
+                    "attribute_name": "start_date",
+                    "options": {
+                        "dim": "time",
+                        "combine": "by_coords",
+                    },
+                },
+            ],
+        )
+        kwargs = {**default_kwargs, **kwargs}
+        super().__init__(**kwargs)
+
+    @classmethod
+    def parser(cls, file) -> dict:
+        output_nc_info = cls.parse_ncfile(file)
+        ncinfo_dict = output_nc_info.to_dict()
+
+        # All these cordex datasets  are atmos
+        if not ncinfo_dict["realm"]:
+            ncinfo_dict["realm"] = "atmos"
+
+        # Fetch additional metadata from the path
+        path_match = re.search(cls.CORDEX_DRS_REGEX, file)
+        for field in cls.CORDEX_DRS_METADATA:
+            ncinfo_dict[field] = path_match[field]
 
         return ncinfo_dict
