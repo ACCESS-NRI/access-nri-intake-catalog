@@ -71,6 +71,14 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
         (["access-am3"], "AccessAm3Builder", {}, 4, 4, 2),
+        (
+            ["cordex/BARPA", "cordex/BARRA2", "cordex/CCAM", "cordex/NARCliM2-0", "cordex/QldFCP-2"],
+            "CordexBuilder",
+            {},
+            7,
+            7,
+            7
+        ),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
