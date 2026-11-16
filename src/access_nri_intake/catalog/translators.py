@@ -20,12 +20,8 @@ from .utils import _to_tuple, trace_failure, tuplify_series
 __all__ = [
     "Cmip6Translator",
     "Cmip5Translator",
-    "BarpaTranslator",
-    "CordexTranslator",
     "Era5Translator",
     "EsmValToolTranslator",
-    "CcamTranslator",
-    "NarclimTranslator",
     "EsgfTranslator",
     "Aus2200Translator",
 ]
