@@ -3904,3 +3904,10 @@ def test_builder_uses_parsed_kwargs(
     with pytest.raises(TypeError):
         # BaseBuilder.__init__ should raise a TypeError here since it won't accept this.
         builder(str("fake_path"), *args, **user_kwargs)
+
+
+def test_cordex_builder_regex_fail(test_data):
+    path = list((test_data / "cordex/QldFCP-2").glob("**/doesntmatchregex.nc"))[0]
+
+    with pytest.raises(ValueError, match="Unable to match CORDEX DRS"):
+        builders.CordexBuilder.parser(str(path))
