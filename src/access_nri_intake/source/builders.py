@@ -1276,7 +1276,10 @@ class CordexBuilder(BaseBuilder):
 
         # Fetch additional metadata from the path
         path_match = re.search(cls.CORDEX_DRS_REGEX, file)
-        for field in cls.CORDEX_DRS_METADATA:
-            ncinfo_dict[field] = path_match[field]
+        if path_match:
+            for field in cls.CORDEX_DRS_METADATA:
+                ncinfo_dict[field] = path_match[field]
+        else:
+            raise ValueError(f"Unable to match CORDEX DRS regex to path: {file}")
 
         return ncinfo_dict
