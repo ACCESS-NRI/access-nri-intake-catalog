@@ -16,13 +16,12 @@ sources:
     path:
       - /g/data/hq89/CCAM
 
-  - metadata_yaml: /g/data/xp65/admin/intake/metadata/narclim2-zz63/metadata.yaml
+  - metadata_yaml: /g/data/xp65/admin/access-nri-intake-catalog/config/metadata_sources/narclim2-zz63/metadata.yaml
     path:
       - /g/data/zz63/NARCliM2-0
       - /g/data/zz63/NARCliM2-0-derived
 
-  - metadata_yaml: /g/data/xp65/admin/intake/metadata/cordex_ig45/metadata.yaml
-    path:
+  - metadata_yaml: /g/data/xp65/admin/access-nri-intake-catalog/config/metadata_sources/qld-fcp-ig45/metadata.yaml
       - /g/data/ig45/QldFCP-2
       # QldFCP-2-derived does not follow the CORDEX DRS
-#      - /g/data/ig45/QldFCP-2-derived
+      #- /g/data/ig45/QldFCP-2-derived
