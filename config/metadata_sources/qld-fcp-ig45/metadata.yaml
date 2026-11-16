@@ -117,7 +117,7 @@ version:
 contact: NCI
 email: help@nci.org.au
 reference:
-license:
+license: CC-BY-4.0
 url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f7465_8388_5100_7022
 parent_experiment:
 related_experiments:
