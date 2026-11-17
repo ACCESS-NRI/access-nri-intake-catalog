@@ -16,7 +16,8 @@ frequency:
 - '1day'
 - '1mon'
 - '3hr'
-- 'subhr'
+- '10min'
+- '20min'
 - 'fx'
 variable:
 - BWD01
