@@ -25,11 +25,11 @@ from .utils import (
     HashableIndexes,
     _NCFileInfo,
     _VarInfo,
+    get_attrs,
+    get_matches_from_regex,
     get_timeinfo,
     open_dataset_cached,
     open_nc_view,
-    get_attrs,
-    get_matches_from_regex,
 )
 
 __all__ = [
