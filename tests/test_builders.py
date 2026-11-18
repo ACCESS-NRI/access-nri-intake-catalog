@@ -77,13 +77,23 @@ from access_nri_intake.source.utils import _NCFileInfo
                 "cordex/BARRA2",
                 "cordex/CCAM",
                 "cordex/NARCliM2-0",
-                "cordex/QldFCP-2",  # Has a file that fails regex
             ],
             "CordexBuilder",
             {},
-            8,
-            7,
-            7,
+            6,
+            6,
+            6,
+        ),
+        (
+            [
+                "cordex/QldFCP-2", # Has a file that fails regex
+                "cordex/QldFCP-2-derived"
+            ],
+            "QldFCPBuilder",
+            {},
+            3,
+            2,
+            1
         ),
     ],
 )
@@ -3909,5 +3919,5 @@ def test_builder_uses_parsed_kwargs(
 def test_cordex_builder_regex_fail(test_data):
     path = list((test_data / "cordex/QldFCP-2").glob("**/doesntmatchregex.nc"))[0]
 
-    with pytest.raises(ValueError, match="Unable to match CORDEX DRS"):
+    with pytest.raises(ValueError, match="Unable to match regex"):
         builders.CordexBuilder.parser(str(path))

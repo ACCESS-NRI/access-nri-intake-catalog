@@ -28,6 +28,8 @@ from .utils import (
     get_timeinfo,
     open_dataset_cached,
     open_nc_view,
+    get_attrs,
+    get_matches_from_regex,
 )
 
 __all__ = [
@@ -44,6 +46,7 @@ __all__ = [
     "Cmip6Builder",
     "AccessAm3Builder",
     "CordexBuilder",
+    "QldFCPBuilder",
 ]
 
 # Frequency translations
@@ -1275,11 +1278,63 @@ class CordexBuilder(BaseBuilder):
             ncinfo_dict["realm"] = "atmos"
 
         # Fetch additional metadata from the path
-        path_match = re.search(cls.CORDEX_DRS_REGEX, file)
-        if path_match:
-            for field in cls.CORDEX_DRS_METADATA:
-                ncinfo_dict[field] = path_match[field]
-        else:
-            raise ValueError(f"Unable to match CORDEX DRS regex to path: {file}")
+        extra_metadata = cls.get_extra_metadata_from_file(file)
+        return ncinfo_dict | extra_metadata
 
-        return ncinfo_dict
+    @classmethod
+    def get_extra_metadata_from_file(cls, file):
+        """
+        Parse additional information from the file path using the CORDEX DRS
+        regex
+        """
+        return get_matches_from_regex(file, cls.CORDEX_DRS_REGEX, cls.CORDEX_DRS_METADATA)
+
+
+class QldFCPBuilder(CordexBuilder):
+    """
+    Intake-ESM datastore builder for the Queensland Future Climate Project
+    - data under QldFCP-2 follows the CORDEX DRS and can use parser from
+      CordexBuilder
+    - data under QldFCP-2-derived doesn't follow the CORDEX DRS and needs an
+      alternate parser
+    - QldFCP-2-derived missing institution_id
+    """
+    DERIVED_REGEX = r"(?P<project_id>[^\/]+)\/(?P<activity_id>[^\/]+)\/([^\/]+)\/(?P<domain_id>[^\/]+)\/([^\/]+)\/(?P<driving_experiment_id>[^\/]+)\/(?P<driving_variable_label>[^\/]+)\/(?P<source_id>[^\/]+)\/(?P<variable_id>[^\/]+)\/(?P<version>[^\/]+)\/[^\/]+\.nc"
+    DERIVED_FIELDS = {
+        "attrs": [
+            "driving_experiment_id",
+            "driving_source_id",
+            "driving_variant_label",
+            "mip_era",
+            "project_id",
+            "source_id",
+            "variable_id",
+            "version-realization", # Rename to source_configuration_id
+        ],
+        "regex": [
+            "activity_id",
+            "domain_id",
+            "version",
+        ],
+    }
+
+    @classmethod
+    def get_extra_metadata_from_file(cls, file):
+        if "QldFCP-2-derived" in file:
+            # QldFCP-2-derived doesn't follow CORDEX DRS
+            # Get metadata equivalent to CordexBuilder from attrs and path
+
+            # Get some metadata from the file attrs
+            attrs = get_attrs(file)
+            extra_metadata = {k: v for k, v in attrs.items() if k in cls.DERIVED_FIELDS['attrs']}
+
+            # Rename version-realization to source_configuration_id
+            extra_metadata["source_configuration_id"] = extra_metadata.pop("version-realization")
+
+            # Use alternative regex to get additional fields from filepath
+            extra_metadata |= get_matches_from_regex(file, cls.DERIVED_REGEX, cls.DERIVED_FIELDS['regex'])
+
+            return extra_metadata
+        else:
+            # Use the Cordex DRS for QldFCP-2
+            return super().get_extra_metadata_from_file(file)

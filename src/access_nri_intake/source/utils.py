@@ -638,3 +638,27 @@ def _parse_variable_cell_methods(cell_methods: list[str]) -> str:
     # Join unique aggregation methods, sorted for consistency
     ret = ",".join(sorted(time_aggs)) if time_aggs else "unknown"
     return ret
+
+
+def get_attrs(filepath: str):
+    """
+    Get netCDF attributes from the given file
+    """
+    with open_dataset_cached(filepath) as ds:
+        return ds.attrs
+
+
+def get_matches_from_regex(s: str, regex: str, keys: list[str]):
+    """
+    Extract the given keys from the string using the regex with named
+    capture groups and return as a dictionary.
+    """
+    d = {}
+    m = re.search(regex, s)
+    if m:
+        for field in keys:
+            d[field] = m[field]
+    else:
+        raise ValueError(f"Unable to match regex ('{regex}') to string ('{s}')")
+
+    return d
