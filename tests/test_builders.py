@@ -86,14 +86,14 @@ from access_nri_intake.source.utils import _NCFileInfo
         ),
         (
             [
-                "cordex/QldFCP-2", # Has a file that fails regex
-                "cordex/QldFCP-2-derived"
+                "cordex/QldFCP-2",  # Has a file that fails regex
+                "cordex/QldFCP-2-derived",
             ],
             "QldFCPBuilder",
             {},
             3,
             2,
-            1
+            1,
         ),
     ],
 )
