@@ -489,6 +489,28 @@ def test_builder_rejects_invalid_realm_metadata(
     assert builder.df["realm"].tolist() == ["ocean"]
 
 
+def test_mom6_build_rejects_archive_with_no_valid_assets(tmp_path):
+    output_dir = tmp_path / "output063"
+    output_dir.mkdir()
+    first_file = output_dir / "100_Depth_list.nc"
+    last_file = output_dir / "900_Depth_list.nc"
+    ds = xr.Dataset({"levels": ("depth", [10.0, 20.0])})
+    ds.assign_attrs(realm="invalid_first_realm").to_netcdf(first_file)
+    ds.assign_attrs(realm="invalid_last_realm").to_netcdf(last_file)
+    builder = builders.Mom6Builder(str(tmp_path), joblib_parallel_kwargs={"n_jobs": 1})
+
+    with pytest.raises(
+        builders.ParserError, match="Parser returns no valid assets"
+    ) as exc:
+        builder.build()
+
+    assert builder.assets == [str(first_file), str(last_file)]
+    message = str(exc.value)
+    assert f"Last failed asset: {last_file}" in message
+    assert "Invalid realm" in message
+    assert "invalid_last_realm" in message
+
+
 @pytest.mark.parametrize(
     "filename",
     ["rubbish_name.nc"],
