@@ -312,6 +312,16 @@ class AliasedDataframeCatalog(wrapt.ObjectProxy):
         result = self.__wrapped__[key]
         return self._wrap_if_esm_datastore(result, source_name=key)
 
+    def __call__(self, *args: Any, **kwargs: Any) -> "AliasedDataframeCatalog":
+        """Configure the wrapped catalog while preserving alias support."""
+        result = self.__wrapped__(*args, **kwargs)
+        return AliasedDataframeCatalog(
+            result,
+            field_aliases=self.field_aliases,
+            value_aliases=self.value_aliases,
+            show_warnings=self.show_warnings,
+        )
+
     def _normalise_value(self, field: str, value: str | Collection[str] | Any) -> Any:
         """
         Convert user-facing value to canonical value for a given field
