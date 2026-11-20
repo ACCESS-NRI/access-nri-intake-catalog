@@ -367,8 +367,11 @@ class CatalogManager:
             # If the original datastore has invalid_assets cached, copy them over
             orig_pq_path = Path(path).with_suffix(".parquet")
             new_pq_path = Path(reserialized_path).with_suffix(".parquet")
-            invalid_assets = _read_cached_invalid_assets(orig_pq_path)
-            _cache_invalid_assets(new_pq_path, invalid_assets)
+            if orig_pq_path.exists():
+                # If we're not loading from a parquet then there won't be any
+                # cached invalid files
+                invalid_assets = _read_cached_invalid_assets(orig_pq_path)
+                _cache_invalid_assets(new_pq_path, invalid_assets)
 
         self._add()
 
