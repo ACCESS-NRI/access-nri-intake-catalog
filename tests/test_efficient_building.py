@@ -340,7 +340,7 @@ def test_triple_build(
     # There's probably a better way to mock this... this works for now though
     with patch(
         "access_nri_intake.catalog.manager.CatalogManager._need_to_redo_build",
-        wraps=CatalogManager._need_to_redo_build
+        wraps=CatalogManager._need_to_redo_build,
     ) as m:
         # Build the first time
         build(argv)
