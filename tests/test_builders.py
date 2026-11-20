@@ -71,6 +71,30 @@ from access_nri_intake.source.utils import _NCFileInfo
         (["cmip6"], "Cmip6Builder", {"ensemble": False}, 74, 72, 14),
         (["cmip6"], "Cmip6Builder", {"ensemble": True}, 74, 72, 31),
         (["access-am3"], "AccessAm3Builder", {}, 4, 4, 2),
+        (
+            [
+                "cordex/BARPA",
+                "cordex/BARRA2",
+                "cordex/CCAM",
+                "cordex/NARCliM2-0",
+            ],
+            "CordexBuilder",
+            {},
+            6,
+            6,
+            6,
+        ),
+        (
+            [
+                "cordex/QldFCP-2",  # Has a file that fails regex
+                "cordex/QldFCP-2-derived",
+            ],
+            "QldFCPBuilder",
+            {},
+            3,
+            2,
+            1,
+        ),
     ],
 )
 @pytest.mark.filterwarnings("ignore:Time coordinate does not include bounds")
@@ -3927,3 +3951,10 @@ def test_builder_uses_parsed_kwargs(
     with pytest.raises(TypeError):
         # BaseBuilder.__init__ should raise a TypeError here since it won't accept this.
         builder(str("fake_path"), *args, **user_kwargs)
+
+
+def test_cordex_builder_regex_fail(test_data):
+    path = list((test_data / "cordex/QldFCP-2").glob("**/doesntmatchregex.nc"))[0]
+
+    with pytest.raises(ValueError, match="Unable to match regex"):
+        builders.CordexBuilder.parser(str(path))

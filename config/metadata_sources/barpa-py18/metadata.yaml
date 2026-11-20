@@ -1,3 +1,4 @@
+schema_version: 1-0-4
 name: barpa_py18
 experiment_uuid: 0cc28d8c-7ba5-11ef-a9ea-000007d3fe80
 description: Bureau of Meteorology Atmospheric Regional Projections for Australia (BARPA)

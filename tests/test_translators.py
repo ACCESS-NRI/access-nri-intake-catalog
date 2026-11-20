@@ -9,16 +9,12 @@ from access_nri_intake.catalog import CORE_COLUMNS, TRANSLATOR_GROUPBY_COLUMNS
 from access_nri_intake.catalog.translators import (
     FREQUENCY_TRANSLATIONS,
     Aus2200Translator,
-    BarpaTranslator,
-    CcamTranslator,
     Cmip5Translator,
     Cmip6Translator,
-    CordexTranslator,
     DefaultTranslator,
     Era5Translator,
     EsgfTranslator,
     EsmValToolTranslator,
-    NarclimTranslator,
     TranslatorError,
     _cmip_realm_translator,
     _to_tuple,
@@ -284,37 +280,6 @@ def test_Cmip6Translator(test_data, groupby, n_entries):
     "groupby, n_entries",
     [
         (None, 5),
-        (["realm"], 1),
-        (["variable"], 4),
-        (["frequency"], 1),
-    ],
-)
-def test_BarpaTranslator(test_data, groupby, n_entries):
-    """Test BARPA datastore translator"""
-    esmds = intake.open_esm_datastore(test_data / "esm_datastore/barpa-py18.json")
-    esmds.name = "name"
-    esmds.description = "description"
-    df = BarpaTranslator(esmds, CORE_COLUMNS).translate(groupby)
-    assert len(df) == n_entries
-
-
-@pytest.mark.parametrize(
-    "groupby, n_entries",
-    [(None, 5), (["variable"], 4), (["frequency"], 2), (["realm"], 1)],
-)
-def test_CordexTranslator(test_data, groupby, n_entries):
-    """Test CORDEX datastore translator"""
-    esmds = intake.open_esm_datastore(test_data / "esm_datastore/cordex-ig45.json")
-    esmds.name = "name"
-    esmds.description = "description"
-    df = CordexTranslator(esmds, CORE_COLUMNS).translate(groupby)
-    assert len(df) == n_entries
-
-
-@pytest.mark.parametrize(
-    "groupby, n_entries",
-    [
-        (None, 5),
         (["variable"], 4),
         (["frequency"], 3),
         (["realm"], 1),
@@ -326,25 +291,6 @@ def test_Era5Translator(test_data, groupby, n_entries):
     esmds.name = "name"
     esmds.description = "description"
     df = Era5Translator(esmds, CORE_COLUMNS).translate(groupby)
-    assert len(df) == n_entries
-
-
-@pytest.mark.parametrize(
-    "groupby, n_entries",
-    [
-        (None, 5),
-        (["variable"], 4),
-        (["frequency"], 3),
-        (["model"], 2),
-        (["realm"], 1),
-    ],
-)
-def test_CcamTranslator(test_data, groupby, n_entries):
-    """Test ERA5 datastore translator"""
-    esmds = intake.open_esm_datastore(test_data / "esm_datastore/ccam-hq89.json")
-    esmds.name = "name"
-    esmds.description = "description"
-    df = CcamTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries
 
 
@@ -364,25 +310,6 @@ def test_Aus2200Translator(test_data, groupby, n_entries):
     esmds.name = "name"
     esmds.description = "description"
     df = Aus2200Translator(esmds, CORE_COLUMNS).translate(groupby)
-    assert len(df) == n_entries
-
-
-@pytest.mark.parametrize(
-    "groupby, n_entries",
-    [
-        (None, 5),
-        (["variable"], 4),
-        (["frequency"], 3),
-        (["model"], 2),
-        (["realm"], 1),
-    ],
-)
-def test_NarclimTranslator(test_data, groupby, n_entries):
-    """Test ERA5 datastore translator"""
-    esmds = intake.open_esm_datastore(test_data / "esm_datastore/narclim2-zz63.json")
-    esmds.name = "name"
-    esmds.description = "description"
-    df = NarclimTranslator(esmds, CORE_COLUMNS).translate(groupby)
     assert len(df) == n_entries
 
 
@@ -433,10 +360,10 @@ def test_esmvaltoolTranslator(test_data, groupby, n_entries):
 
 
 def test_translator_failure(test_data):
-    esmds = intake.open_esm_datastore(test_data / "esm_datastore/narclim2-zz63.json")
+    esmds = intake.open_esm_datastore(test_data / "esm_datastore/access-ct11.json")
     esmds.name = "name"
     esmds.description = "description"
-    translator = NarclimTranslator(esmds, CORE_COLUMNS)
+    translator = EsmValToolTranslator(esmds, CORE_COLUMNS)
 
     default = DefaultTranslator(esmds, CORE_COLUMNS)
 

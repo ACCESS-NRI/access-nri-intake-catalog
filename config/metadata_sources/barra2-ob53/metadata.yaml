@@ -1,3 +1,4 @@
+schema_version: 1-0-4
 name: barra2_ob53
 experiment_uuid: 50268157-280e-4db6-8a66-01f2f548cfe8
 description: Bureau of Meteorology Atmospheric Regional Reanalysis for Australia - Version 2 (BARRA2)
