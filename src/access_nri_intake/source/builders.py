@@ -631,7 +631,11 @@ class Mom6Builder(BaseBuilder):
         elif "ice" in ncinfo_dict["filename"] or "roms" in ncinfo_dict["filename"]:
             realm = "seaIce"
         else:
-            realm = output_nc_info.realm or cls.DEFAULT_REALM
+            realm = output_nc_info.realm
+            allowed_realms = ESM_JSONSCHEMA["properties"]["realm"]["enum"]
+            if not isinstance(realm, str) or (realm and realm not in allowed_realms):
+                raise ParserError(f"Invalid realm {realm!r} for file {file}")
+            realm = realm or cls.DEFAULT_REALM
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
