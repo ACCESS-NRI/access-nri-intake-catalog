@@ -37,7 +37,7 @@ class CatalogManagerError(Exception):
 INVALID_ASSETS_METADATA_KEY = "access_nri_intake.invalid_assets"
 
 
-def _cache_invalid_assets(datastore_path: Path, invalid_assets) -> None:
+def _cache_invalid_assets(datastore_path: Path, invalid_assets : list[str]) -> None:
     """Store invalid asset paths in an Intake-ESM parquet file's metadata.
 
     The datastore itself contains only valid assets. Caching rejected paths in
@@ -47,10 +47,7 @@ def _cache_invalid_assets(datastore_path: Path, invalid_assets) -> None:
     eventually be preferable for unusually large invalid sets.
     """
     metadata = pl.read_parquet_metadata(datastore_path)
-    invalid_asset_paths = (
-        [] if invalid_assets.empty else invalid_assets[INVALID_ASSET].tolist()
-    )
-    metadata[INVALID_ASSETS_METADATA_KEY] = json.dumps(invalid_asset_paths)
+    metadata[INVALID_ASSETS_METADATA_KEY] = json.dumps(invalid_assets)
 
     temporary_path = datastore_path.with_suffix(".tmp.parquet")
     pl.read_parquet(datastore_path).write_parquet(
@@ -265,8 +262,11 @@ class CatalogManager:
             use_parquet=self.use_parquet,
         )
         if self.use_parquet:
+            invalid_assets = builder.invalid_assets
+            invalid_assets = [] if invalid_assets.empty else invalid_assets[INVALID_ASSET].tolist()
             _cache_invalid_assets(
-                Path(directory) / f"{name}.parquet", builder.invalid_assets
+                Path(directory) / f"{name}.parquet",
+                invalid_assets,
             )
 
         open_translate_kwargs = dict(
@@ -361,6 +361,13 @@ class CatalogManager:
                 translator,
                 **kwargs,
             )
+
+            # If the original datastore has invalid_assets cached, copy them over
+            orig_pq_path = Path(path).with_suffix('.parquet')
+            new_pq_path = Path(reserialized_path).with_suffix('.parquet')
+            invalid_assets = _read_cached_invalid_assets(orig_path)
+            _cache_invalid_assets(new_path, invalid_assets)
+
         self._add()
 
     def _add(self):
