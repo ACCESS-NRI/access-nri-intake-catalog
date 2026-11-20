@@ -417,6 +417,16 @@ class BaseBuilder(Builder):
 
         return output_ncfile
 
+    @classmethod
+    def _realm_or_default(cls, file_info: _NCFileInfo) -> str:
+        """Use the default only for an empty realm string."""
+        realm = file_info.realm
+        if realm:
+            return realm
+        if not isinstance(realm, str):
+            raise ParserError(f"Invalid realm {realm!r} for file {file_info.path}")
+        return cls.DEFAULT_REALM
+
     @property
     def valid_assets(self) -> list[str]:
         """
@@ -480,7 +490,7 @@ class AccessOm2Builder(BaseBuilder):
 
         if not (realm := nc_info.realm):
             match = re.match(r".*/output\d+/([^/]+)/.*\.nc", file)
-            realm = match[1] if match else cls.DEFAULT_REALM
+            realm = match[1] if match else cls._realm_or_default(nc_info)
 
         if realm == "ice":
             realm = "seaIce"
@@ -559,7 +569,7 @@ class AccessOm3Builder(BaseBuilder):
         elif "cice" in ncinfo_dict["filename"]:
             realm = "seaIce"
         else:
-            realm = output_nc_info.realm or cls.DEFAULT_REALM
+            realm = cls._realm_or_default(output_nc_info)
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
@@ -911,7 +921,7 @@ class AccessCm3Builder(BaseBuilder):
         elif "atmos" in ncinfo_dict["filename"]:
             realm = "atmos"
         else:
-            realm = output_nc_info.realm or cls.DEFAULT_REALM
+            realm = cls._realm_or_default(output_nc_info)
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(

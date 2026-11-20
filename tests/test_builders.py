@@ -414,22 +414,33 @@ def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     "builder_class, filename, metadata_realm, expected_realm",
     [
         (builders.AccessOm2Builder, "Depth_list.nc", None, "unknown"),
+        (builders.AccessOm2Builder, "Depth_list.nc", "", "unknown"),
+        (builders.AccessOm2Builder, "ice/Depth_list.nc", "", "seaIce"),
+        (builders.AccessOm2Builder, "ice/Depth_list.nc", "ocean", "ocean"),
+        (builders.AccessOm2Builder, "ice/Depth_list.nc", 0, "seaIce"),
+        (builders.AccessOm2Builder, "ocean/Depth_list.nc", 0, "ocean"),
+        (builders.AccessOm3Builder, "Depth_list.nc", None, "unknown"),
+        (builders.AccessOm3Builder, "Depth_list.nc", "", "unknown"),
+        (builders.AccessOm3Builder, "Depth_list.nc", "seaIce", "seaIce"),
         (builders.AccessOm3Builder, "access-om3.mom6.static.nc", "seaIce", "ocean"),
+        (builders.AccessOm3Builder, "access-om3.mom6.static.nc", 0, "ocean"),
         (builders.Mom6Builder, "Depth_list.nc", None, "unknown"),
+        (builders.Mom6Builder, "Depth_list.nc", "", "unknown"),
         (builders.Mom6Builder, "Depth_list.nc", "ocean", "ocean"),
         (builders.Mom6Builder, "ocean_static.nc", "seaIce", "ocean"),
         (builders.Mom6Builder, "ocean_static.nc", "invalid_realm", "ocean"),
         (builders.AccessCm3Builder, "Depth_list.nc", None, "unknown"),
+        (builders.AccessCm3Builder, "Depth_list.nc", "", "unknown"),
         (builders.AccessCm3Builder, "Depth_list.nc", "ocean", "ocean"),
         (builders.AccessCm3Builder, "access-cm3.mom6.static.nc", "seaIce", "ocean"),
+        (builders.AccessCm3Builder, "access-cm3.mom6.static.nc", 0, "ocean"),
     ],
 )
 def test_builder_realm_fallback(
     tmp_path, builder_class, filename, metadata_realm, expected_realm
 ):
-    output_dir = tmp_path / "output063"
-    output_dir.mkdir()
-    file = output_dir / filename
+    file = tmp_path / "output063" / filename
+    file.parent.mkdir(parents=True)
     ds = xr.Dataset({"levels": ("depth", [10.0, 20.0])})
     if metadata_realm is not None:
         ds.attrs["realm"] = metadata_realm
@@ -443,10 +454,22 @@ def test_builder_realm_fallback(
 
 
 @pytest.mark.parametrize(
+    "builder_class, metadata_realm",
+    [
+        (builders.AccessOm2Builder, 0),
+        (builders.AccessOm3Builder, 0),
+        (builders.Mom6Builder, 0),
+        (builders.Mom6Builder, "invalid_realm"),
+        (builders.AccessCm3Builder, 0),
+    ],
+)
+@pytest.mark.parametrize(
     "invalid_first", [True, False], ids=["invalid-first", "invalid-last"]
 )
 @pytest.mark.filterwarnings("ignore:Unable to parse 1 assets:UserWarning")
-def test_mom6_builder_rejects_invalid_realm_metadata(tmp_path, invalid_first):
+def test_builder_rejects_invalid_realm_metadata(
+    tmp_path, builder_class, metadata_realm, invalid_first
+):
     output_dir = tmp_path / "output063"
     output_dir.mkdir()
     ocean_file = output_dir / "500_ocean_static.nc"
@@ -454,12 +477,10 @@ def test_mom6_builder_rejects_invalid_realm_metadata(tmp_path, invalid_first):
         "100_Depth_list.nc" if invalid_first else "900_Depth_list.nc"
     )
     ds = xr.Dataset({"levels": ("depth", [10.0, 20.0])})
-    ds.to_netcdf(ocean_file)
-    ds.assign_attrs(realm="invalid_realm").to_netcdf(invalid_file)
+    ds.assign_attrs(realm="ocean").to_netcdf(ocean_file)
+    ds.assign_attrs(realm=metadata_realm).to_netcdf(invalid_file)
 
-    builder = builders.Mom6Builder(
-        str(tmp_path), joblib_parallel_kwargs={"n_jobs": 1}
-    ).build()
+    builder = builder_class(str(tmp_path), joblib_parallel_kwargs={"n_jobs": 1}).build()
 
     assert builder.assets[0] == str(invalid_file if invalid_first else ocean_file)
     assert builder.valid_assets == [str(ocean_file)]
