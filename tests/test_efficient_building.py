@@ -4,6 +4,7 @@ from shutil import copyfile, copytree
 from time import sleep
 import pytest
 import pyarrow.parquet as pq
+from unittest.mock import patch
 
 from access_nri_intake.cli import build
 from access_nri_intake.catalog.manager import CatalogManager
@@ -286,3 +287,77 @@ def test_build_datastore_missing_file(
     datastore_path = Path(tmpdir / new_version / "source")
     assert len(list(datastore_path.glob("*.parquet"))) == len(input_list)
     assert len(list(datastore_path.glob("*.json"))) == len(input_list)
+
+
+@pytest.mark.parametrize(
+    "input_list",
+    [
+        # Only valid assets
+        ["config/access-om2.yaml"],
+        # The following has invalid assets
+        ["config/access-om2-patterns.yaml"],
+    ],
+)
+@pytest.mark.filterwarnings("ignore:Unable to determine project for base path")
+@pytest.mark.filterwarnings("ignore:Unable to parse 32 assets.")
+def test_triple_build(
+    input_list,
+    test_data,
+    tmpdir,
+    fake_project_access,
+    capfd,
+):
+    """
+    Check that if an unchanged datastore is "built" more than two times that it
+    continues to be skipped. I.e. confirm that previously "loaded" datastores
+    (i.e. from attempt #2) don't behave differently to "built" datastores (i.e.
+    attempt #1).
+    """
+    # Build the datastore
+    build_base_path = str(tmpdir)
+
+    configs = [str(test_data / fname) for fname in input_list]
+
+    cat_name = "access_nri_pq"
+    catfile = "cat.parquet"
+
+    versions = ["v2024-01-01", "v2024-01-02", "v2024-01-03"]
+    argv = [
+        *configs,
+        "--catalog_file",
+        catfile,
+        "--version",
+        versions[0],
+        "--build_base_path",
+        build_base_path,
+        "--catalog_base_path",
+        build_base_path,
+        "--data_base_path",
+        str(test_data),
+        "--use_parquet",
+    ]
+
+    # There's probably a better way to mock this... this works for now though
+    with patch(
+        "access_nri_intake.catalog.manager.CatalogManager._need_to_redo_build",
+        wraps=CatalogManager._need_to_redo_build
+    ) as m:
+        # Build the first time
+        build(argv)
+
+        # Confirm that the datastore was built
+        assert CatalogManager._need_to_redo_build(*m.mock_calls[-1].args)
+
+        # Build the datastore again
+        argv[4] = versions[1]
+        build(argv)
+
+        # Confirm that old datastore was reused
+        assert not CatalogManager._need_to_redo_build(*m.mock_calls[-1].args)
+
+        # Build the datastore a third time
+        argv[4] = versions[2]
+        build(argv)
+
+        # Confirm that old datastore was reused
+        assert not CatalogManager._need_to_redo_build(*m.mock_calls[-1].args)
