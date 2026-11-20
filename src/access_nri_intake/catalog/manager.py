@@ -37,7 +37,7 @@ class CatalogManagerError(Exception):
 INVALID_ASSETS_METADATA_KEY = "access_nri_intake.invalid_assets"
 
 
-def _cache_invalid_assets(datastore_path: Path, invalid_assets : list[str]) -> None:
+def _cache_invalid_assets(datastore_path: Path, invalid_assets: list[str]) -> None:
     """Store invalid asset paths in an Intake-ESM parquet file's metadata.
 
     The datastore itself contains only valid assets. Caching rejected paths in
@@ -263,7 +263,9 @@ class CatalogManager:
         )
         if self.use_parquet:
             invalid_assets = builder.invalid_assets
-            invalid_assets = [] if invalid_assets.empty else invalid_assets[INVALID_ASSET].tolist()
+            invalid_assets = (
+                [] if invalid_assets.empty else invalid_assets[INVALID_ASSET].tolist()
+            )
             _cache_invalid_assets(
                 Path(directory) / f"{name}.parquet",
                 invalid_assets,
@@ -363,8 +365,8 @@ class CatalogManager:
             )
 
             # If the original datastore has invalid_assets cached, copy them over
-            orig_pq_path = Path(path).with_suffix('.parquet')
-            new_pq_path = Path(reserialized_path).with_suffix('.parquet')
+            orig_pq_path = Path(path).with_suffix(".parquet")
+            new_pq_path = Path(reserialized_path).with_suffix(".parquet")
             invalid_assets = _read_cached_invalid_assets(orig_path)
             _cache_invalid_assets(new_path, invalid_assets)
 
