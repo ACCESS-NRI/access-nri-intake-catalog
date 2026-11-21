@@ -1,0 +1,12 @@
+{
+  "registry_source": "https://github.com/ACCESS-NRI/ccdtools/blob/main/src/ccdtools/config/datasets.yaml",
+  "registry_git_tree": "83eabf01c7a8d605fc9fb3d475a2125d538aaf01",
+  "registry_git_blob": "683fb26530c11cb854a997c65446204638b21e83",
+  "registry_sha256": "05c9c4970c466e6f0691b405b20e64a3b2b00804d77b88cfadad12aeb4d55933",
+  "backend_commit": "8dbdacc5dd72c4fd0e34c8d5ef443ece038ab631",
+  "scanner_sha256": "57fee9dd5b2801495be149824553a911e14949eb462922656d7b6995a267beb5",
+  "final_snapshot_sha256": "4a0faae14d06d0f7819a65efb22411f8cf3a7d94a1da2473529385f33ede7db6",
+  "backend_repository": "https://github.com/ACCESS-NRI/access-nri-intake-catalog",
+  "note": "Original Gadi assessment evidence; formatting and review documentation were added when preparing the PR.",
+  "vendored_registry_sha256": "88e045ee708fa5751611b6388932a7f5034737ae5ca2893dc0933ff28a1688d1"
+}

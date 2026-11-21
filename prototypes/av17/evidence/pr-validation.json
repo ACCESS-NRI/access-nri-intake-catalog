@@ -1,0 +1,22 @@
+{
+  "base_commit": "87a6e906c453277aa6bf3c38440f886cdfd85069",
+  "fixture_tests_passed": 19,
+  "ruff_check": "passed",
+  "ruff_format_check": "passed",
+  "black_format_api_check": "7 files unchanged",
+  "mypy": "passed, 7 source files",
+  "current_main_integration": {
+    "file_rows_validated_with_prototype_schema": 978,
+    "original_schema": "rejected",
+    "original_schema_error": "\n01 | frequency : 'irregular' is not valid under any of the given schemas",
+    "prototype_schema": "accepted",
+    "metacatalog_rows": 7,
+    "reloaded_asset_rows": 978,
+    "independent_datasets": 978,
+    "bedmachine_v3_bed_matches": 1,
+    "production_modified": false,
+    "metacatalog_roundtrip_asset_rows": 978
+  },
+  "scanner_sha256": "44a9629470756e98a0005f88d460efc6496f88cd9de0e3f0ab6de72838725d49",
+  "live_smoke_note": "Seven Gadi value checks are recorded from the preceding assessment; no new Gadi data reads were needed to package this PR."
+}

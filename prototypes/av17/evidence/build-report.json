@@ -1,0 +1,31 @@
+{
+  "root": "/g/data/av17/access-nri/cryosphere-data-pool",
+  "observed_utc": "2026-11-04T20:41:43.628697+00:00",
+  "complete": true,
+  "elapsed_seconds": 21.988208020105958,
+  "limits": {
+    "max_files": 30000,
+    "max_seconds": 240,
+    "samples_per_entry": null
+  },
+  "header_scan_complete": true,
+  "issues": [],
+  "indexed_files": 978,
+  "registered_entries": 65,
+  "status_counts": {
+    "indexed": 978,
+    "ancillary": 955,
+    "excluded": 953,
+    "inventory_only": 333
+  },
+  "frequency_counts": {
+    "unknown": 866,
+    "1mon": 55,
+    "fx": 38,
+    "1yr": 16,
+    "irregular": 2,
+    "3mon": 1
+  },
+  "publication_ready": false,
+  "aggregation_policy": "One asset per dataset; no automatic joins or unions."
+}
