@@ -434,31 +434,105 @@ def test_builder_parser(test_data, filename, builder, realm, member, file_id):
     assert info["file_id"] == file_id
 
 
-@mock.patch("access_nri_intake.source.utils._NCFileInfo.to_dict")
 @pytest.mark.parametrize(
-    "filename",
+    "builder_class, filename, metadata_realm, expected_realm",
     [
-        "mom6/output000/19000101.ice_daily.nc",
-        "mom6/output001/19010101.ice_month.nc",
-        "mom6/output001/19010101.ocean_annual_rho2.nc",
-        "mom6/output000/19000101.ocean_annual_z.nc",
-        "mom6/output000/19000101.ocean_daily.nc",
-        "mom6/output001/19010101.ocean_month_rho2.nc",
-        "mom6/output000/19000101.ocean_month_z.nc",
-        "mom6/output001/19010101.ocean_month.nc",
-        "mom6/output000/19000101.ocean_scalar_annual.nc",
-        "mom6/output001/19010101.ocean_scalar_month.nc",
-        "mom6/output000/19000101.ocean_static.nc",
+        (builders.AccessOm2Builder, "Depth_list.nc", None, "unknown"),
+        (builders.AccessOm2Builder, "Depth_list.nc", "", "unknown"),
+        (builders.AccessOm2Builder, "ice/Depth_list.nc", "", "seaIce"),
+        (builders.AccessOm2Builder, "ice/Depth_list.nc", "ocean", "ocean"),
+        (builders.AccessOm2Builder, "ice/Depth_list.nc", 0, "seaIce"),
+        (builders.AccessOm2Builder, "ocean/Depth_list.nc", 0, "ocean"),
+        (builders.AccessOm3Builder, "Depth_list.nc", None, "unknown"),
+        (builders.AccessOm3Builder, "Depth_list.nc", "", "unknown"),
+        (builders.AccessOm3Builder, "Depth_list.nc", "seaIce", "seaIce"),
+        (builders.AccessOm3Builder, "access-om3.mom6.static.nc", "seaIce", "ocean"),
+        (builders.AccessOm3Builder, "access-om3.mom6.static.nc", 0, "ocean"),
+        (builders.Mom6Builder, "Depth_list.nc", None, "unknown"),
+        (builders.Mom6Builder, "Depth_list.nc", "", "unknown"),
+        (builders.Mom6Builder, "Depth_list.nc", "ocean", "ocean"),
+        (builders.Mom6Builder, "ocean_static.nc", "seaIce", "ocean"),
+        (builders.Mom6Builder, "ocean_static.nc", "invalid_realm", "ocean"),
+        (builders.AccessCm3Builder, "Depth_list.nc", None, "unknown"),
+        (builders.AccessCm3Builder, "Depth_list.nc", "", "unknown"),
+        (builders.AccessCm3Builder, "Depth_list.nc", "ocean", "ocean"),
+        (builders.AccessCm3Builder, "access-cm3.mom6.static.nc", "seaIce", "ocean"),
+        (builders.AccessCm3Builder, "access-cm3.mom6.static.nc", 0, "ocean"),
     ],
 )
-def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
-    to_dict_mock.return_value = {
-        "filename": filename.replace("ice", "badrealm").replace("ocean", "badrealm")
-    }
-    info = builders.Mom6Builder._parser_catch_invalid(str(test_data / filename))
-    assert INVALID_ASSET in info.keys()
-    assert TRACEBACK in info.keys()
-    assert "ParserError" in info[TRACEBACK]
+def test_builder_realm_fallback(
+    tmp_path, builder_class, filename, metadata_realm, expected_realm
+):
+    file = tmp_path / "output063" / filename
+    file.parent.mkdir(parents=True)
+    ds = xr.Dataset({"levels": ("depth", [10.0, 20.0])})
+    if metadata_realm is not None:
+        ds.attrs["realm"] = metadata_realm
+    ds.to_netcdf(file)
+
+    builder = builder_class(str(tmp_path), joblib_parallel_kwargs={"n_jobs": 1}).build()
+
+    assert builder.valid_assets == [str(file)]
+    assert builder.df["realm"].tolist() == [expected_realm]
+    assert builder.df["file_id"].iloc[0].startswith(f"{expected_realm}.fx.")
+
+
+@pytest.mark.parametrize(
+    "builder_class, metadata_realm",
+    [
+        (builders.AccessOm2Builder, 0),
+        (builders.AccessOm3Builder, 0),
+        (builders.Mom6Builder, 0),
+        (builders.Mom6Builder, "invalid_realm"),
+        (builders.AccessCm3Builder, 0),
+    ],
+)
+@pytest.mark.parametrize(
+    "invalid_first", [True, False], ids=["invalid-first", "invalid-last"]
+)
+@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets:UserWarning")
+def test_builder_rejects_invalid_realm_metadata(
+    tmp_path, builder_class, metadata_realm, invalid_first
+):
+    output_dir = tmp_path / "output063"
+    output_dir.mkdir()
+    ocean_file = output_dir / "500_ocean_static.nc"
+    invalid_file = output_dir / (
+        "100_Depth_list.nc" if invalid_first else "900_Depth_list.nc"
+    )
+    ds = xr.Dataset({"levels": ("depth", [10.0, 20.0])})
+    ds.assign_attrs(realm="ocean").to_netcdf(ocean_file)
+    ds.assign_attrs(realm=metadata_realm).to_netcdf(invalid_file)
+
+    builder = builder_class(str(tmp_path), joblib_parallel_kwargs={"n_jobs": 1}).build()
+
+    assert builder.assets[0] == str(invalid_file if invalid_first else ocean_file)
+    assert builder.valid_assets == [str(ocean_file)]
+    assert builder.invalid_assets[INVALID_ASSET].tolist() == [str(invalid_file)]
+    assert builder.df["path"].tolist() == [str(ocean_file)]
+    assert builder.df["realm"].tolist() == ["ocean"]
+
+
+def test_mom6_build_rejects_archive_with_no_valid_assets(tmp_path):
+    output_dir = tmp_path / "output063"
+    output_dir.mkdir()
+    first_file = output_dir / "100_Depth_list.nc"
+    last_file = output_dir / "900_Depth_list.nc"
+    ds = xr.Dataset({"levels": ("depth", [10.0, 20.0])})
+    ds.assign_attrs(realm="invalid_first_realm").to_netcdf(first_file)
+    ds.assign_attrs(realm="invalid_last_realm").to_netcdf(last_file)
+    builder = builders.Mom6Builder(str(tmp_path), joblib_parallel_kwargs={"n_jobs": 1})
+
+    with pytest.raises(
+        builders.ParserError, match="Parser returns no valid assets"
+    ) as exc:
+        builder.build()
+
+    assert builder.assets == [str(first_file), str(last_file)]
+    message = str(exc.value)
+    assert f"Last failed asset: {last_file}" in message
+    assert "Invalid realm" in message
+    assert "invalid_last_realm" in message
 
 
 @pytest.mark.parametrize(
@@ -470,6 +544,7 @@ def test_Mom6Builder_parser_bad_realm(to_dict_mock, test_data, filename):
     [
         "AccessOm2Builder",
         "AccessOm3Builder",
+        "AccessCm3Builder",
         "AccessAm3Builder",
         "Mom6Builder",
         "AccessEsm15Builder",
@@ -3715,99 +3790,61 @@ def test_builder_include_exclude_patterns(
 
 
 @pytest.mark.parametrize(
-    "test_dir,valid,realm,n_assets",
+    "test_dir, expected_realms",
     [
-        ("om3_realm/single-realm", True, ["ocean"], 1),
-        ("om3_realm/no-realm", False, None, 1),
-        ("om3_realm", True, ["ocean"], 2),  # All files
+        ("om3_realm/single-realm", ["ocean"]),
+        ("om3_realm/no-realm", ["unknown"]),
+        ("om3_realm", ["ocean", "unknown"]),
     ],
 )
-@pytest.mark.filterwarnings("ignore:Unable to parse 1 assets")
-def test_builder_om3_realm(test_data, test_dir, valid, realm, n_assets):
+def test_builder_om3_realm(test_data, test_dir, expected_realms):
     """
-    Tests the OM3 builder with the .nc files in om3_realm.
-
-    The single-realm file has the 'realm' global attribute set and the
-    filenames does not match any of the normal patterns for extracting 'realm'.
-    The no-realm file does not have the 'realm' attribute set.
+    Check the metadata and default fallbacks for unrecognised OM3 filenames.
     """
     data_path = str(test_data / test_dir)
-    builder = builders.AccessOm3Builder(path=data_path)
+    builder = builders.AccessOm3Builder(path=data_path).build()
 
-    if valid:
-        builder = builder.build()
-
-        assert all(builder.df["realm"].isin(realm))
-    else:
-        with pytest.raises(builders.ParserError):
-            builder = builder.build()
-            import pdb
-
-            pdb.set_trace()
-
-    assert len(builder.assets) == n_assets
+    assert len(builder.valid_assets) == len(builder.assets) == len(expected_realms)
+    assert sorted(builder.df["realm"]) == expected_realms
 
 
 @pytest.mark.parametrize(
-    "test_dir, metadata_valid, dir_struct_valid, expected_realms",
+    "test_dir, dir_struct_valid, expected_realms",
     [
         (
             "om2_realm/good-metadata-good-dir-structure",
-            True,
             True,
             ("metadata-test-ocean", "metadata-test-ice"),
         ),
         (
             "om2_realm/good-metadata-bad-dir-structure",
-            True,
             False,
             ("metadata-test-ocean", "metadata-test-ice"),
         ),
         (
             "om2_realm/no-metadata-good-dir-structure",
-            False,
             True,
             ("ocean", "seaIce"),
-        ),  # should fall back to dir structure parsing
-        ("om2_realm/no-metadata-bad-dir-structure", False, False, ("ocena", "iec")),
+        ),
+        ("om2_realm/no-metadata-bad-dir-structure", False, ("unknown", "unknown")),
     ],
 )
-def test_builder_om2_realm(
-    test_data, test_dir, metadata_valid, dir_struct_valid, expected_realms
-):
+def test_builder_om2_realm(test_data, test_dir, dir_struct_valid, expected_realms):
     """
-    Checks that the OM2 builder prefers realm metadata to dir/regex parsing, but
-    that if no realm metadata is present it will use dir structure. Also, if no
-    metadata and the dir structure doesn't make sense, then we should get a ParserError
-
-    Note: since it's easier to mess with the metadata than the dir structure, the
-    realm is always 'metadata-test-{ocean|ice}' if the metadata is valid so we can differentiate.
+    Check that OM2 prefers realm metadata, then directory structure, then the default.
     """
-
-    raises = not metadata_valid and not dir_struct_valid
-    ocean_path_frag = "ocean" if dir_struct_valid else "ocena"
-    ice_path_frag = "ice/OUTPUT" if dir_struct_valid else "iec/OUTPUT"
-
-    data_path = test_data / test_dir
-    builder = builders.AccessOm2Builder(path=str(data_path))
-
+    output_dir = test_data / test_dir / "output000"
     if dir_struct_valid:
-        fpath_ocn = data_path / "output000" / ocean_path_frag / "ocean_month.nc"
-        fpath_ice = data_path / "output000" / ice_path_frag / "iceh.1900-01.nc"
+        fpath_ocn = output_dir / "ocean" / "ocean_month.nc"
+        fpath_ice = output_dir / "ice" / "OUTPUT" / "iceh.1900-01.nc"
     else:
-        fpath_ocn = data_path / "output000" / "ocean_month.nc"
-        fpath_ice = data_path / "output000" / "iceh.1900-01.nc"
-
-    if raises:
-        for fpath in [fpath_ocn, fpath_ice]:
-            with pytest.raises(builders.ParserError):
-                builder = builder.parser(str(fpath))
-
-        return None
+        fpath_ocn = output_dir / "ocean_month.nc"
+        fpath_ice = output_dir / "iceh.1900-01.nc"
 
     for fpath, expected_realm in zip([fpath_ocn, fpath_ice], expected_realms):
-        nc_infodict = builder.parser(str(fpath))
+        nc_infodict = builders.AccessOm2Builder.parser(str(fpath))
         assert nc_infodict["realm"] == expected_realm
+        assert nc_infodict["file_id"].startswith(f"{expected_realm}.")
 
 
 @pytest.mark.parametrize(

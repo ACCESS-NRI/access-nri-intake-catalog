@@ -90,6 +90,7 @@ class BaseBuilder(Builder):
     # Base class will just parse any and all netcdfs. To restrict this, override the PATTERNS class variable in
     # child classes.
     PATTERNS: list = ["*.nc"]
+    DEFAULT_REALM = "unknown"
 
     def __init__(  # noqa: PLR0913, PLR0917 # Allow this func to have many arguments
         self,
@@ -420,6 +421,16 @@ class BaseBuilder(Builder):
 
         return output_ncfile
 
+    @classmethod
+    def _realm_or_default(cls, file_info: _NCFileInfo) -> str:
+        """Use the default only for an empty realm string."""
+        realm = file_info.realm
+        if realm:
+            return realm
+        if not isinstance(realm, str):
+            raise ParserError(f"Invalid realm {realm!r} for file {file_info.path}")
+        return cls.DEFAULT_REALM
+
     @property
     def valid_assets(self) -> list[str]:
         """
@@ -481,11 +492,9 @@ class AccessOm2Builder(BaseBuilder):
         nc_info = cls.parse_ncfile(file)
         ncinfo_dict = nc_info.to_dict()
 
-        if not (realm := ncinfo_dict.get("realm", "")):
-            matches = re.match(r".*/output\d+/([^/]*)/.*\.nc", file)
-            if not matches:
-                raise ParserError(f"Cannot determine realm for file {file}")
-            realm = str(matches.groups()[0])
+        if not (realm := nc_info.realm):
+            match = re.match(r".*/output\d+/([^/]+)/.*\.nc", file)
+            realm = match[1] if match else cls._realm_or_default(nc_info)
 
         if realm == "ice":
             realm = "seaIce"
@@ -563,9 +572,8 @@ class AccessOm3Builder(BaseBuilder):
             realm = "wave"
         elif "cice" in ncinfo_dict["filename"]:
             realm = "seaIce"
-        # Default/missing value for realm is "" which is Falsy
-        elif not (realm := output_nc_info.realm):
-            raise ParserError(f"Cannot determine realm for file {file}")
+        else:
+            realm = cls._realm_or_default(output_nc_info)
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
@@ -637,7 +645,11 @@ class Mom6Builder(BaseBuilder):
         elif "ice" in ncinfo_dict["filename"] or "roms" in ncinfo_dict["filename"]:
             realm = "seaIce"
         else:
-            raise ParserError(f"Cannot determine realm for file {file}")
+            realm = output_nc_info.realm
+            allowed_realms = ESM_JSONSCHEMA["properties"]["realm"]["enum"]
+            if not isinstance(realm, str) or (realm and realm not in allowed_realms):
+                raise ParserError(f"Invalid realm {realm!r} for file {file}")
+            realm = realm or cls.DEFAULT_REALM
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
@@ -912,12 +924,8 @@ class AccessCm3Builder(BaseBuilder):
             realm = "seaIce"
         elif "atmos" in ncinfo_dict["filename"]:
             realm = "atmos"
-        # Default/missing value for realm is "" which is Falsy.
-        # We don't cover these lines as they're a generic catch-all for unexpected errors
-        elif not (realm := output_nc_info.realm):  # pragma: no cover
-            raise ParserError(
-                f"Cannot determine realm for file {file}"
-            )  # pragma: no cover
+        else:
+            realm = cls._realm_or_default(output_nc_info)
         ncinfo_dict["realm"] = realm
 
         ncinfo_dict["file_id"] = ".".join(
