@@ -74,7 +74,7 @@ def test_cached_invalid_assets_are_used_when_rebuilding(tmp_path):
     pl.DataFrame({"path": [str(valid_asset)]}).write_parquet(datastore_path)
     _cache_invalid_assets(
         datastore_path,
-        pd.DataFrame({INVALID_ASSET: [str(invalid_asset)]}),
+        [str(invalid_asset)],
     )
 
     assert _read_cached_invalid_assets(datastore_path) == [str(invalid_asset)]
