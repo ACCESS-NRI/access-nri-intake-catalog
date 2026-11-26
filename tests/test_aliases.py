@@ -476,6 +476,28 @@ class TestAliasedDataframeCatalog:
 
         assert isinstance(esm_datastore, AliasedESMCatalog)
 
+    def test___call___preserves_aliases_for_version_selection(
+        self, tmp_dataframe_catalog
+    ):
+        """Version selection remains callable and preserves alias configuration."""
+        base_catalog = MagicMock()
+        base_catalog.return_value = tmp_dataframe_catalog
+        catalog = AliasedDataframeCatalog(
+            base_catalog,
+            field_aliases=DATAFRAME_FIELD_ALIASES,
+            value_aliases=VALUE_ALIASES,
+            show_warnings=False,
+        )
+
+        configured_catalog = catalog(version="v2026-10-28")
+
+        base_catalog.assert_called_once_with(version="v2026-10-28")
+        assert isinstance(configured_catalog, AliasedDataframeCatalog)
+        assert configured_catalog.unwrap() is tmp_dataframe_catalog
+        assert configured_catalog.field_aliases == DATAFRAME_FIELD_ALIASES
+        assert configured_catalog.value_aliases == VALUE_ALIASES
+        assert configured_catalog.show_warnings is False
+
     def test_to_source_dict_wraps_multiple_datastores(self, tmp_dataframe_catalog):
         """Test that to_source_dict() wraps all returned datastores"""
 
