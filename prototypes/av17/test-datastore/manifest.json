@@ -1,0 +1,33 @@
+{
+  "purpose": "Frozen standalone cryosphere Intake-ESM datastore for headmetal review; not a production source",
+  "observed_utc": "2026-11-04T20:41:43.628697+00:00",
+  "source_snapshot_sha256": "4a0faae14d06d0f7819a65efb22411f8cf3a7d94a1da2473529385f33ede7db6",
+  "registry_git_blob": "683fb26530c11cb854a997c65446204638b21e83",
+  "registry_sha256": "88e045ee708fa5751611b6388932a7f5034737ae5ca2893dc0933ff28a1688d1",
+  "exporter_sha256": "8dc2fa04bbada32477a8c829828fde4a9211c1d315e27a37b1efdab6e7f0a13d",
+  "indexed_assets": 978,
+  "product_ids": 14,
+  "inventory_only_assets": 333,
+  "files": {
+    "build-report.json": {
+      "sha256": "770dbfb23fd9d5db2612309cb849828313f1d201a9300764a50b788c0bb4c6f9",
+      "size_bytes": 726
+    },
+    "cryosphere_av17.json": {
+      "sha256": "4730d1f76366c7b6be673b53172051dc3e93243758fa828bb7c62681c20d09f4",
+      "size_bytes": 2900
+    },
+    "cryosphere_av17.parquet": {
+      "sha256": "52108b258548c69e88fd9f27b4eb72e86d0b51ffc5528208f0c0d018641bf9b9",
+      "size_bytes": 137343
+    },
+    "cryosphere_av17_uniqs.parquet": {
+      "sha256": "9d74186e475fd7b0b9982a05be89742c666c7598f3280bc32fad17cd28dfca36",
+      "size_bytes": 52992
+    },
+    "cryosphere_inventory.parquet": {
+      "sha256": "0b311cec6e791623876f8b27bec716220071f9aeb6d3dde4ad67e446a9cc9943",
+      "size_bytes": 58129
+    }
+  }
+}

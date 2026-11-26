@@ -1,0 +1,10 @@
+intake>=2,<3
+intake-esm-access
+intake-dataframe-catalog
+netCDF4
+xarray
+pandas<3
+pyarrow
+PyYAML
+pytest
+jsonschema

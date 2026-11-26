@@ -1,0 +1,6 @@
+.venv/
+output/
+integration/
+evidence/cryosphere-scan.json
+evidence/av17-collections.json
+evidence/local-test-output.txt
