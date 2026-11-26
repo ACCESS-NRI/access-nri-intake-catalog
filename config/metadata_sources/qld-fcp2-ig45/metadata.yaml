@@ -1,7 +1,7 @@
 schema_version: 1-0-4
-name: qld_fcp_ig45
+name: qld_fcp2_ig45
 experiment_uuid: c7021d1e-7ba2-11ef-beb5-000007d3fe80
-description: 20km regional projections for CORDEX-CMIP6 from the Queensland Future Climate Science Program
+description: 20km regional projections for CORDEX-CMIP6 from the 2nd phase of the Queensland Future Climate Science Program
 long_description: >-
   This dataset includes projections at 20km and 10km, formatted to meet the CORDEX-CMIP6 data standards. 
   The 20km projections were derived from the 10km projections.
