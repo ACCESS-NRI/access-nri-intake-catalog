@@ -1,3 +1,4 @@
+schema_version: 1-0-4
 name: narclim2_zz63
 experiment_uuid: e238a14d-d3df-43f3-b7ff-fd247b03816e
 description:  NARCliM2.0 climate pojections, downscaled from ACCESS-ESM1-5 over Australasia at ~18km resolution.
@@ -197,7 +198,7 @@ reference: >-
   https://doi.org/10.1029/2021EF002625
   https://doi.org/10.5194/gmd-2024-41
   https://doi.org/10.5194/gmd-2024-87
-license: Creative Commons Attribution 4.0 International
+license: CC-BY-4.0
 url: https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f7334_2646_2487_9846
 parent_experiment: CMIP6
 related_experiments:
